@@ -20,6 +20,7 @@ export async function POST(request: Request) {
         name: true,
         email: true,
         image: true,
+        blue_tick_status: true,
         createdAt: true,
       },
     });

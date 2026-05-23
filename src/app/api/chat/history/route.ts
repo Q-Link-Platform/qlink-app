@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { prismaAttachments } from "@/lib/prismaAttachments";
 
 function buildRoomId(a: string, b: string) {
   return [a, b].sort().join(":");
@@ -60,8 +61,43 @@ export async function GET(request: Request) {
         content: true,
         createdAt: true,
         senderId: true,
+        roomId: true,
       },
     });
+
+    // Fetch attachments for these messages from attachments database
+    const messageIds = messages.map((m) => m.id);
+    let attachments: any[] = [];
+    try {
+      attachments = await prismaAttachments.attachment.findMany({
+        where: {
+          messageId: { in: messageIds },
+        },
+      });
+      console.log(`[chat/history] Found ${attachments.length} attachments for ${messageIds.length} messages`);
+    } catch (err) {
+      // If attachments DB fails, continue without attachments
+      console.error("[chat/history] Attachments DB error:", err);
+      attachments = [];
+    }
+
+    const attachmentsByMessage = new Map<string, any[]>();
+    for (const a of attachments) {
+      // Convert BigInt fields to strings for JSON serialization
+      const attachment = {
+        ...a,
+        sizeBytes: a.sizeBytes?.toString?.() ?? a.sizeBytes,
+      };
+      if (!attachmentsByMessage.has(a.messageId)) {
+        attachmentsByMessage.set(a.messageId, []);
+      }
+      attachmentsByMessage.get(a.messageId)!.push(attachment);
+    }
+
+    const messagesWithAttachments = messages.map((m: any) => ({
+      ...m,
+      attachments: attachmentsByMessage.get(m.id) ?? [],
+    }));
 
     return NextResponse.json({
       roomId,
@@ -72,7 +108,7 @@ export async function GET(request: Request) {
         email: peer.email,
         image: peer.image,
       },
-      messages,
+      messages: messagesWithAttachments,
     });
   } catch (err) {
     console.error("[chat/history]", err);

@@ -1,0 +1,228 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
+import { prismaAttachments } from "@/lib/prismaAttachments";
+import { supabaseFiles } from "@/lib/supabaseFiles";
+import { supabaseVideos } from "@/lib/supabaseVideos";
+import crypto from "crypto";
+
+// Force this route to run in the Node.js runtime so Buffer and Supabase JS work correctly.
+export const runtime = "nodejs";
+
+// Reuse the same roomId logic as /api/chat/send
+function buildRoomId(a: string, b: string) {
+  return [a, b].sort().join(":");
+}
+
+const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10MB for files/images
+const MAX_VIDEO_BYTES = 45 * 1024 * 1024; // 45MB for videos (Supabase limit)
+
+const FILES_BUCKET = process.env.SUPABASE_FILES_BUCKET || "attachments";
+const VIDEOS_BUCKET = process.env.SUPABASE_VIDEOS_BUCKET || "videos";
+
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !(session.user as any).id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const formData = await request.formData();
+
+    const toHandle = formData.get("toHandle");
+    const kind = formData.get("kind"); // "file" | "image" | "video"
+    const file = formData.get("file");
+
+    if (!toHandle || typeof toHandle !== "string") {
+      return NextResponse.json({ error: "Missing toHandle" }, { status: 400 });
+    }
+
+    if (!kind || typeof kind !== "string") {
+      return NextResponse.json({ error: "Missing kind" }, { status: 400 });
+    }
+
+    if (!file || !(file instanceof File)) {
+      return NextResponse.json(
+        { error: "File is required" },
+        { status: 400 },
+      );
+    }
+
+    if (!["file", "image", "video"].includes(kind)) {
+      return NextResponse.json(
+        { error: "Invalid kind; must be 'file', 'image', or 'video'" },
+        { status: 400 },
+      );
+    }
+
+    const size = file.size;
+    if (kind === "video") {
+      if (size > MAX_VIDEO_BYTES) {
+        return NextResponse.json(
+          { error: "Video too large (max 45MB)" },
+          { status: 400 },
+        );
+      }
+    } else {
+      if (size > MAX_FILE_BYTES) {
+        return NextResponse.json(
+          { error: "File/image too large (max 10MB)" },
+          { status: 400 },
+        );
+      }
+    }
+
+    const meId = (session.user as any).id as string;
+
+    const peer = await prisma.user.findUnique({ where: { handle: toHandle } });
+    if (!peer) {
+      return NextResponse.json({ error: "Peer not found" }, { status: 404 });
+    }
+
+    if (peer.id === meId) {
+      return NextResponse.json(
+        { error: "Cannot chat with yourself" },
+        { status: 400 },
+      );
+    }
+
+    const accepted = await prisma.friendRequest.findFirst({
+      where: {
+        status: "ACCEPTED",
+        OR: [
+          { fromUserId: meId, toUserId: peer.id },
+          { fromUserId: peer.id, toUserId: meId },
+        ],
+      },
+    });
+
+    if (!accepted) {
+      return NextResponse.json(
+        { error: "No accepted connection between these users" },
+        { status: 403 },
+      );
+    }
+
+    const roomId = buildRoomId(meId, peer.id);
+
+    // Decide which Supabase project/bucket to use
+    const isVideo = kind === "video";
+    const supabase = isVideo ? supabaseVideos : supabaseFiles;
+    const bucket = isVideo ? VIDEOS_BUCKET : FILES_BUCKET;
+
+    // ENABLE Supabase Storage but DISABLE database operations
+    if (!supabase) {
+      console.error("[attachments/upload] Supabase client is null. Files URL:", process.env.SUPABASE_FILES_URL, "Videos URL:", process.env.SUPABASE_VIDEOS_URL);
+      return NextResponse.json(
+        { error: isVideo ? "Supabase videos client not configured" : "Supabase files client not configured" },
+        { status: 500 },
+      );
+    }
+
+    const originalName = file.name || "attachment";
+    const ext = originalName.includes(".")
+      ? originalName.split(".").pop()
+      : undefined;
+
+    const objectKeyBase = crypto.randomUUID();
+    const objectKey = ext
+      ? `${objectKeyBase}.${ext}`
+      : objectKeyBase;
+
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const uploadResult = await supabase.storage
+      .from(bucket)
+      .upload(objectKey, buffer, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || undefined,
+      });
+
+    if (uploadResult.error) {
+      console.error("[attachments/upload] Supabase upload error", uploadResult.error);
+      return NextResponse.json(
+        {
+          error:
+            uploadResult.error.message ||
+            "Failed to upload attachment",
+        },
+        { status: 500 },
+      );
+    }
+
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h (planned expiry)
+
+    // 1) Create a simple message in the main Postgres DB (Neon)
+    const message = await prisma.message.create({
+      data: {
+        content:
+          kind === "image"
+            ? originalName
+            : `[${kind.toUpperCase()} attachment] ${originalName}`,
+        senderId: meId,
+        roomId,
+      },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        senderId: true,
+        roomId: true,
+      },
+    });
+
+    // 2) Store full attachment metadata in the Supabase attachments DB
+    let attachmentRecord;
+    try {
+      attachmentRecord = await prismaAttachments.attachment.create({
+        data: {
+          messageId: message.id,
+          roomId,
+          senderId: meId,
+          kind,
+          bucket,
+          objectKey,
+          originalName,
+          mimeType: file.type || "application/octet-stream",
+          sizeBytes: BigInt(size),
+          status: "uploaded",
+        },
+      });
+
+      // 3) Log upload event for auditing purposes
+      await prismaAttachments.attachmentLog.create({
+        data: {
+          attachmentId: attachmentRecord?.id,
+          event: "upload",
+          // IP / userAgent could be filled in later from request headers
+        },
+      });
+    } catch (metaErr) {
+      console.error("[attachments/upload] Failed to write attachment metadata", metaErr);
+      // We do not fail the whole request because the file is already stored and message created.
+    }
+
+    return NextResponse.json({
+      message,
+      attachment: {
+        id: attachmentRecord?.id,
+        kind,
+        originalName,
+        size,
+        mimeType: file.type || "application/octet-stream",
+        bucket,
+        objectKey,
+        expiresAt,
+      },
+    });
+  } catch (err) {
+    console.error("[attachments/upload] Unhandled error", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}

@@ -11,18 +11,34 @@ model User {
   id            String   @id @default(cuid())
   name          String?
   email         String?   @unique
+  phoneNumber   String?   @unique
   image         String?
   googleId      String?   @unique
   emailVerified DateTime?
   handle        String?   @unique
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  aura_percentage Float?   @default(0)
+  lastSeenAt    DateTime?
+  lastTypingAt  DateTime?
+  lastTypingForHandle String?
+  blue_tick_status String? @default("NONE")
+  points        Int?      @default(0)
+  sessionToken  String?
+  hasClaimedReferral Boolean  @default(false)
+  referredById       String?
 
   accounts              Account[]
   sessions              Session[]
   messages              Message[]      @relation("UserMessages")
   friendRequestsSent     FriendRequest[] @relation("FriendRequestsFrom")
   friendRequestsReceived FriendRequest[] @relation("FriendRequestsTo")
+  posts                 Post[]
+  reactions             Reaction[]     @relation("UserReactions")
+  comments              Comment[]      @relation("UserComments")
+  views                 View[]         @relation("UserViews")
+  following             Follow[]       @relation("UserFollowing")
+  followers             Follow[]       @relation("UserFollowers")
 }
 
 model Account {
@@ -34,6 +50,7 @@ model Account {
   refresh_token     String?
   access_token      String?
   expires_at        Int?
+  ext_expires_in    Int?
   token_type        String?
   scope             String?
   id_token          String?
@@ -91,4 +108,96 @@ model FriendRequest {
 
   @@index([fromUserId])
   @@index([toUserId])
+}
+
+model Post {
+  id            String   @id @default(cuid())
+  text          String
+  audience      String
+  attachmentId  String?
+  attachmentKind String?
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+  updatedAt     DateTime @updatedAt
+
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  reactions Reaction[]
+  comments  Comment[]
+  views     View[]
+
+  @@index([authorId])
+  @@index([expiresAt])
+}
+
+model Reaction {
+  id     String @id @default(cuid())
+  type   String // LIKE, LOVE, LAUGH, etc.
+  
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  userId String
+  user   User   @relation("UserReactions", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  authorId String
+  author   User   @relation("UserComments", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([authorId])
+}
+
+model View {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  userId String
+  user   User   @relation("UserViews", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  followerId String
+  follower   User   @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  
+  followingId String
+  following  User   @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
