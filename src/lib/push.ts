@@ -1,7 +1,7 @@
 import webpush from "web-push";
 
-const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
-const privateKey = process.env.VAPID_PRIVATE_KEY!;
+const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "BMQemcbop-dfZ7bLlwyL083mRANSiRsNbggorApxFfg5U-M_KKMVpwoUdZGM4mbG5rpav7w-vZbcNhiWtW4hvQE";
+const privateKey = process.env.VAPID_PRIVATE_KEY || "I5NjyNbTc0y2nofulJoS5BllzTDDEw02UMbIHXnKrsI";
 
 if (publicKey && privateKey) {
   webpush.setVapidDetails(

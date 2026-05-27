@@ -507,11 +507,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         }
 
         // 2. Subscribe
-        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-        if (!vapidPublicKey) {
-          alert("VAPID public key is missing from environment.");
-          return;
-        }
+        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "BMQemcbop-dfZ7bLlwyL083mRANSiRsNbggorApxFfg5U-M_KKMVpwoUdZGM4mbG5rpav7w-vZbcNhiWtW4hvQE";
 
         let subscription = await registration.pushManager.getSubscription();
         if (!subscription) {
@@ -607,11 +603,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       return;
     }
 
-    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-    if (!vapidPublicKey) {
-      console.warn("VAPID public key is not configured in local environment variables.");
-      return;
-    }
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "BMQemcbop-dfZ7bLlwyL083mRANSiRsNbggorApxFfg5U-M_KKMVpwoUdZGM4mbG5rpav7w-vZbcNhiWtW4hvQE";
 
     const registerAndSubscribe = async () => {
       try {
@@ -624,50 +616,51 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           return;
         }
 
-        // 3. Ask for notification permission if not already granted
-        let permission = Notification.permission;
-        if (permission === "default") {
-          permission = await Notification.requestPermission();
-        }
-
+        // 3. Check for existing permission - NEVER request permission on page load without user gesture
+        const permission = Notification.permission;
         if (permission !== "granted") {
-          console.warn("Web Push Notifications permission denied by user.");
+          console.log("[PWA Push] Notification permission not granted yet. Waiting for manual user toggle in Settings.");
+          setIsPushEnabled(false);
           return;
         }
 
-        // 4. Check for existing subscription or create new one
+        // 4. Check for existing subscription or create new one silently since permission is already granted
         let subscription = await registration.pushManager.getSubscription();
 
-        if (subscription && Notification.permission === "granted") {
+        if (subscription) {
           setIsPushEnabled(true);
         } else {
           setIsPushEnabled(false);
-        }
-
-        if (!subscription) {
           const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
-          subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey,
-          });
-          if (subscription) {
-            setIsPushEnabled(true);
+          try {
+            subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey,
+            });
+            if (subscription) {
+              setIsPushEnabled(true);
+            }
+          } catch (subErr) {
+            console.error("[PWA Push] Silent subscription failed:", subErr);
+            return;
           }
         }
 
-        // 5. Send subscription to Prisma backend
-        const res = await fetch("/api/push/subscribe", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(subscription),
-        });
+        if (subscription) {
+          // 5. Send subscription to Prisma backend
+          const res = await fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(subscription),
+          });
 
-        if (res.ok) {
-          console.log("Registered Push Subscription successfully on backend!");
-        } else {
-          console.error("Failed to save push subscription on backend:", await res.text());
+          if (res.ok) {
+            console.log("Registered Push Subscription successfully on backend!");
+          } else {
+            console.error("Failed to save push subscription on backend:", await res.text());
+          }
         }
       } catch (error) {
         console.error("Error setting up Web Push Notifications:", error);
