@@ -481,6 +481,85 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [chatError, setChatError] = useState<string | null>(null);
   const [chatInput, setChatInput] = useState("");
   const [isChatFull, setIsChatFull] = useState(false);
+  const [isGlowActive, setIsGlowActive] = useState(false);
+  const [isPushEnabled, setIsPushEnabled] = useState(false);
+  const [showNotificationHelpModal, setShowNotificationHelpModal] = useState(false);
+
+  const togglePushNotifications = async (enable: boolean) => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      alert("Push notifications are not supported on this browser.");
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+
+      if (enable) {
+        // 1. Request Permission
+        let permission = Notification.permission;
+        if (permission === "default") {
+          permission = await Notification.requestPermission();
+        }
+
+        if (permission !== "granted") {
+          setShowNotificationHelpModal(true);
+          return;
+        }
+
+        // 2. Subscribe
+        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (!vapidPublicKey) {
+          alert("VAPID public key is missing from environment.");
+          return;
+        }
+
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+          const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey,
+          });
+        }
+
+        // 3. Save to backend
+        const res = await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(subscription),
+        });
+
+        if (res.ok) {
+          setIsPushEnabled(true);
+          console.log("[Push Toggle] Successfully subscribed!");
+        } else {
+          console.error("[Push Toggle] Backend registration failed.");
+        }
+      } else {
+        // Unsubscribe
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          // 1. Unsubscribe locally
+          await subscription.unsubscribe();
+          
+          // 2. Delete on backend
+          await fetch("/api/push/subscribe", {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ endpoint: subscription.endpoint }),
+          });
+        }
+        setIsPushEnabled(false);
+        console.log("[Push Toggle] Successfully unsubscribed!");
+      }
+    } catch (error) {
+      console.error("[Push Toggle] Error toggling push notifications:", error);
+    }
+  };
 
   // High-Fidelity Audio Recording States
   const [isRecording, setIsRecording] = useState(false);
@@ -508,6 +587,120 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       window.removeEventListener('wheel', handleWheel);
     };
   }, []);
+
+  // Helper to convert VAPID public key from Base64 URL to Uint8Array required by pushManager
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  // Register PWA Service Worker & Subscribe to Web Push Notifications
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      console.warn("PWA Service Worker or Web Push is not supported by this browser.");
+      return;
+    }
+
+    const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidPublicKey) {
+      console.warn("VAPID public key is not configured in local environment variables.");
+      return;
+    }
+
+    const registerAndSubscribe = async () => {
+      try {
+        // 1. Register sw.js
+        const registration = await navigator.serviceWorker.register("/sw.js");
+        console.log("Service Worker registered successfully with scope:", registration.scope);
+
+        // 2. Wait until user is fully logged in before subscribing
+        if (status !== "authenticated" || !session?.user?.id) {
+          return;
+        }
+
+        // 3. Ask for notification permission if not already granted
+        let permission = Notification.permission;
+        if (permission === "default") {
+          permission = await Notification.requestPermission();
+        }
+
+        if (permission !== "granted") {
+          console.warn("Web Push Notifications permission denied by user.");
+          return;
+        }
+
+        // 4. Check for existing subscription or create new one
+        let subscription = await registration.pushManager.getSubscription();
+
+        if (subscription && Notification.permission === "granted") {
+          setIsPushEnabled(true);
+        } else {
+          setIsPushEnabled(false);
+        }
+
+        if (!subscription) {
+          const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey,
+          });
+          if (subscription) {
+            setIsPushEnabled(true);
+          }
+        }
+
+        // 5. Send subscription to Prisma backend
+        const res = await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(subscription),
+        });
+
+        if (res.ok) {
+          console.log("Registered Push Subscription successfully on backend!");
+        } else {
+          console.error("Failed to save push subscription on backend:", await res.text());
+        }
+      } catch (error) {
+        console.error("Error setting up Web Push Notifications:", error);
+      }
+    };
+
+    const handleServiceWorkerMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === "NAVIGATE") {
+        const targetUrl = event.data.url;
+        console.log("Received NAVIGATE message from Service Worker:", targetUrl);
+        try {
+          const urlObj = new URL(targetUrl, window.location.origin);
+          const chatHandle = urlObj.searchParams.get("chat");
+          const tabName = urlObj.searchParams.get("tab");
+          if (chatHandle) {
+            setActivePeerHandle(chatHandle);
+            setIsChatFull(true);
+          } else if (tabName === "requests") {
+            setMode("connect");
+          }
+        } catch (e) {
+          console.error("Error parsing targetUrl:", e);
+        }
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", handleServiceWorkerMessage);
+    void registerAndSubscribe();
+
+    return () => {
+      navigator.serviceWorker.removeEventListener("message", handleServiceWorkerMessage);
+    };
+  }, [status, session?.user?.id]);
 
   // Lightbox for viewing attachments fullscreen inside the app
   const [lightboxImageUrl, setLightboxImageUrl] = useState<string | null>(null);
@@ -932,6 +1125,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [showConsoleLoadingDelayed, setShowConsoleLoadingDelayed] = useState(false);
   const [postingIdConsole, setPostingIdConsole] = useState(false);
   const [idConsolePostStatus, setIdConsolePostStatus] = useState<string | null>(null);
+
+  // Founder Grant State
+  const [founderGrantTarget, setFounderGrantTarget] = useState<string | null>(null);
+  const [founderGrantAmount, setFounderGrantAmount] = useState("");
+  const [isFounderGrantModalOpen, setIsFounderGrantModalOpen] = useState(false);
+  const [isFounderGrantLoading, setIsFounderGrantLoading] = useState(false);
+  const [founderGrantError, setFounderGrantError] = useState<string | null>(null);
 
   // Followers state
   const [followers, setFollowers] = useState<any[]>([]);
@@ -2504,6 +2704,67 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     });
   };
 
+  const isFounder = (session?.user as any)?.handle === "Rohit_7779";
+
+  const handleOpenFounderGrantModal = (handle: string) => {
+    setFounderGrantTarget(handle);
+    setFounderGrantAmount("");
+    setFounderGrantError(null);
+    setIsFounderGrantModalOpen(true);
+  };
+
+  const handleFounderGrantSubmit = async () => {
+    if (!founderGrantTarget || !founderGrantAmount) return;
+    
+    setIsFounderGrantLoading(true);
+    setFounderGrantError(null);
+    
+    try {
+      const res = await fetch("/api/admin/points/grant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipientHandle: founderGrantTarget,
+          amount: founderGrantAmount,
+        }),
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) {
+        setFounderGrantError(data.error || "Failed to grant points.");
+      } else {
+        setIsFounderGrantModalOpen(false);
+        
+        // Show our gorgeous new Q-Link theme transaction popup!
+        setTransactionNotification({
+          show: true,
+          type: "credit",
+          amount: parseInt(founderGrantAmount, 10),
+          title: "Quantum Currency Transmitted",
+          message: `Successfully granted +${founderGrantAmount} QP to @${founderGrantTarget}!`,
+          txHash: "TX-" + Math.random().toString(36).substring(2, 10).toUpperCase(),
+        });
+
+        // Autoclose transaction popup after 3.5s
+        setTimeout(() => {
+          setTransactionNotification(prev => prev ? { ...prev, show: false } : null);
+        }, 3500);
+
+        // Instantly reload user data / feed
+        try {
+          await updateSession();
+          await fetchDirectoryLatestPosts();
+          await fetchIdConsolePosts();
+        } catch {}
+      }
+    } catch {
+      setFounderGrantError("Network error. Please try again.");
+    } finally {
+      setIsFounderGrantLoading(false);
+    }
+  };
+
   // PWA install / create-shortcut prompt
   const [installPromptEvent, setInstallPromptEvent] = useState<any | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
@@ -3930,14 +4191,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               Create a shortcut to Q-link Chat
             </p>
             <p className="mt-2 text-[11px] text-slate-200/85">
-              Install this app on your device for a faster, full-screen experience. It
-              works like a native app and keeps your Quantum ID at one tap.
+              Install this app on your device for the ultimate full-screen experience, zero browser throttling, and 100% reliable background notifications.
             </p>
+            <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2 text-[10px] text-amber-300/90 leading-relaxed">
+              <strong>⚠️ Warning:</strong> Skipping installation may block real-time lock-screen chat alerts, especially on **iOS (Safari)** where Web Push notifications are exclusively supported for Home Screen apps!
+            </div>
             {!installPromptEvent && (
-              <p className="mt-1 text-[10px] text-amber-300/80">
-                If the Install button is disabled, your browser doesn't support
-                one-tap installation here. You can still add this site to your
-                home screen from the browser menu.
+              <p className="mt-2 text-[10px] text-slate-400">
+                To install manually: open your browser options menu and tap <strong>"Add to Home Screen"</strong>.
               </p>
             )}
             <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
@@ -3965,6 +4226,86 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           </div>
         </div>
       )}
+
+      {showNotificationHelpModal && (
+        <div className="pointer-events-auto fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/85 backdrop-blur-md px-4">
+          <div className="relative w-full max-w-sm rounded-2xl border border-amber-500/40 bg-slate-950 p-[1px] shadow-[0_0_30px_rgba(245,158,11,0.25)] animate-in fade-in zoom-in-95 duration-200 animate-in-fix">
+            <div className="rounded-2xl bg-slate-950/95 p-5 text-slate-100">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-300">
+                  🔔 Notifications Blocked
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowNotificationHelpModal(false)}
+                  className="text-xs text-slate-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <p className="mt-3 text-[11px] text-slate-300 leading-relaxed">
+                Your browser or system settings are blocking Q-Link notifications. Follow these instructions to enable native-app-style real-time alerts:
+              </p>
+
+              {/* Platform Selector Tabs */}
+              <div className="mt-4 space-y-3 max-h-[50vh] overflow-y-auto pr-1 text-left scrollbar-hide">
+                {/* Windows Desktop Section */}
+                <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-2.5 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-cyan-300">
+                    <span>💻</span>
+                    <span>Windows / Desktop Browsers</span>
+                  </div>
+                  <ol className="list-decimal pl-4 text-[10px] text-slate-300 space-y-1">
+                    <li>Click the <strong>🔒 lock icon</strong> (or settings icon) directly to the left of the URL in the address bar.</li>
+                    <li>Find <strong>Notifications</strong> in the dropdown menu.</li>
+                    <li>Change the state from "Block" to <strong>"Allow"</strong>.</li>
+                    <li>Reload the page to apply settings.</li>
+                  </ol>
+                </div>
+
+                {/* Android Section */}
+                <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-2.5 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-300">
+                    <span>🤖</span>
+                    <span>Android (Chrome)</span>
+                  </div>
+                  <ol className="list-decimal pl-4 text-[10px] text-slate-300 space-y-1">
+                    <li>Long-press the Q-Link home screen app icon and select <strong>App info</strong> (or tap the ⓘ icon).</li>
+                    <li>Tap <strong>Notifications</strong> and switch it to <strong>Allow Notifications</strong>.</li>
+                    <li>Ensure "Allow sound and vibration" is checked for the highest priority alerts!</li>
+                  </ol>
+                </div>
+
+                {/* iOS Section */}
+                <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-2.5 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-fuchsia-300">
+                    <span>🍎</span>
+                    <span>iOS iPhone (Safari PWA)</span>
+                  </div>
+                  <ol className="list-decimal pl-4 text-[10px] text-slate-300 space-y-1">
+                    <li>Ensure you have added Q-Link to your Home Screen (using safari share menu).</li>
+                    <li>Open your iPhone <strong>Settings App</strong>.</li>
+                    <li>Scroll down to the bottom list, select <strong>Q-Link PWA</strong>.</li>
+                    <li>Tap <strong>Notifications</strong> and toggle <strong>Allow Notifications</strong> to <strong>On</strong>.</li>
+                  </ol>
+                </div>
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowNotificationHelpModal(false)}
+                  className="rounded-full bg-slate-800 px-4 py-1.5 text-[11px] font-semibold text-slate-200 hover:bg-slate-700 hover:text-white"
+                >
+                  Understood
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showMoreCategories && (
         <div className="pointer-events-auto fixed inset-0 z-40 flex items-center justify-center bg-slate-950/80 px-4 sm:px-0">
           <div className="relative w-full max-w-sm max-h-[70vh] rounded-3xl border border-cyan-400/40 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-[1px] shadow-[0_0_25px_rgba(56,189,248,0.7)] overflow-hidden">
@@ -4845,7 +5186,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
       
         {/* Main Chat Container - Full Width */}
-        <div className={`flex w-full flex-1 glass-panel neon-border relative px-4 py-5 sm:px-6 md:px-8 lg:px-10 sm:py-6 md:py-8 ${isChatFull ? "h-full min-h-0 overflow-hidden" : "h-auto min-h-screen overflow-y-visible"}`}
+        <div 
+          className={`flex w-full flex-1 glass-panel-responsive neon-border-responsive relative px-0 py-0 sm:px-6 md:px-8 lg:px-10 sm:py-6 md:py-8 ${isChatFull ? "h-full min-h-0 overflow-hidden" : "h-auto min-h-screen overflow-y-visible"} ${isGlowActive ? "glow-active" : ""}`}
+          onTouchStart={() => setIsGlowActive(true)}
+          onTouchEnd={() => setIsGlowActive(false)}
+          onTouchCancel={() => setIsGlowActive(false)}
           style={{
             scrollBehavior: 'smooth',
             overscrollBehaviorY: 'contain',
@@ -4919,6 +5264,61 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 0 8px 30px rgba(0, 0, 0, 0.4),
                 0 0 60px rgba(56, 189, 248, 0.15),
                 inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            }
+          }
+
+          /* Responsive glass-panel for mobile edge-to-edge stretching */
+          .glass-panel-responsive {
+            background: transparent;
+            border-radius: 0px !important;
+            border: none !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+          }
+          .neon-border-responsive {
+            position: relative;
+          }
+          .neon-border-responsive::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            background: conic-gradient(from 180deg at 50% 50%,
+                rgba(56, 189, 248, 0.25),
+                rgba(251, 113, 133, 0.55),
+                rgba(129, 140, 248, 0.45),
+                rgba(56, 189, 248, 0.25));
+            opacity: 0;
+            transition: opacity 350ms cubic-bezier(0.4, 0, 0.2, 1);
+            filter: blur(16px);
+            pointer-events: none;
+            display: block !important; /* Enable on all screen sizes! */
+          }
+          /* Desktop-only hover and active glow states */
+          @media (hover: hover) {
+            .neon-border-responsive:hover::before,
+            .neon-border-responsive:active::before {
+              opacity: 1;
+            }
+          }
+
+          /* Mobile/Desktop manual touch glow state (triggered instantly by React touch events) */
+          .neon-border-responsive.glow-active::before {
+            opacity: 1;
+          }
+
+          @media (min-width: 640px) {
+            .glass-panel-responsive {
+              background: rgba(15, 23, 42, 0.75);
+              border-radius: 1.5rem !important;
+              border: 1px solid rgba(148, 163, 184, 0.4) !important;
+              box-shadow:
+                0 0 0 1px rgba(148, 163, 184, 0.15),
+                0 18px 60px rgba(15, 23, 42, 0.85) !important;
+              backdrop-filter: blur(22px) saturate(160%) !important;
+            }
+            .neon-border-responsive::before {
+              filter: blur(12px); /* Standard desktop blur */
             }
           }
         `}</style>
@@ -5245,6 +5645,43 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-[10px] text-slate-500">Dark / Light mode</span>
                             <ThemeToggle />
+                          </div>
+                        </div>
+
+                        {/* Notifications Toggle Section */}
+                        <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-medium text-slate-200">PWA Notifications</span>
+                            <span className="text-[11px] text-slate-300">Web Push 🔔</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] text-slate-500">Lock-screen chat alerts</span>
+                            <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                              <button
+                                type="button"
+                                onClick={() => togglePushNotifications(false)}
+                                className={
+                                  "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
+                                  (!isPushEnabled
+                                    ? "bg-slate-200 text-slate-950 shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                                    : "text-slate-300 hover:text-slate-100")
+                                }
+                              >
+                                Off
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => togglePushNotifications(true)}
+                                className={
+                                  "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
+                                  (isPushEnabled
+                                    ? "bg-cyan-500/80 text-slate-950 shadow-[0_0_8px_rgba(6,182,212,0.4)]"
+                                    : "text-slate-300 hover:text-slate-100")
+                                }
+                              >
+                                On
+                              </button>
+                            </div>
                           </div>
                         </div>
 
@@ -6286,16 +6723,30 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         {req.status}
                       </span>
                       {req.status === "ACCEPTED" && req.toUser?.handle && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openChatWithPeer(req.toUser.handle);
-                          }}
-                          className="inline-flex items-center rounded-full border border-cyan-400/70 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-200 hover:bg-cyan-500/20"
-                        >
-                          Chat
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          {isFounder && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenFounderGrantModal(req.toUser.handle);
+                              }}
+                              className="inline-flex items-center rounded-full border border-fuchsia-400/80 bg-fuchsia-500/10 px-2 py-0.5 text-[10px] font-semibold text-fuchsia-200 hover:bg-fuchsia-500/20 shadow-[0_0_10px_rgba(240,46,170,0.2)] active:scale-95 transition-all"
+                            >
+                              💎 Give QP
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openChatWithPeer(req.toUser.handle);
+                            }}
+                            className="inline-flex items-center rounded-full border border-cyan-400/70 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-200 hover:bg-cyan-500/20"
+                          >
+                            Chat
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -6467,6 +6918,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       )}
                       {req.status === "ACCEPTED" && req.fromUser?.handle && (
                         <div className="flex items-center gap-2 pt-1">
+                          {isFounder && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenFounderGrantModal(req.fromUser.handle);
+                              }}
+                              className="inline-flex items-center rounded-full border border-fuchsia-400/80 bg-fuchsia-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-fuchsia-200 hover:bg-fuchsia-500/20 shadow-[0_0_10px_rgba(240,46,170,0.2)] active:scale-95 transition-all"
+                            >
+                              💎 Give QP
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={(e) => {
@@ -6500,8 +6963,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
             <div
               className={
-                "glass-panel relative z-10 rounded-2xl border bg-slate-900/80 shadow-xl fullchat-panel " +
-                (isChatFull ? "fullscreen " : "") +
+                "glass-panel relative z-10 rounded-2xl border bg-slate-900/80 shadow-xl fullchat-panel overflow-hidden " +
+                (isChatFull ? "fullscreen rounded-none border-none " : "") +
                 (isChatAnimating ? (isChatFull ? "opening" : "closing") : "") +
                 (isChatFull
                   ? "flex-1 flex h-[100dvh] min-h-0 w-full flex-col space-y-3 p-3"
@@ -6982,11 +7445,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               {!foundUser && (
                 <div
                   className={
-                    "glass-panel flex flex-col gap-3 rounded-2xl border bg-slate-900/80 p-4 text-xs text-slate-300 relative overflow-y-hidden scrollbar-hide " +
-                    (isChatFull ? "flex-1 min-h-0 mt-2" : "flex-1 min-h-0 mt-4") +
-                    (highlightChatPanel
-                      ? " glow-pulse border-cyan-400/80"
-                      : " border-slate-600/70")
+                    "glass-panel flex flex-col gap-3 text-xs text-slate-300 relative overflow-y-hidden scrollbar-hide " +
+                    (isChatFull
+                      ? "flex-1 min-h-0 mt-2 rounded-2xl border bg-slate-900/80 p-4 " +
+                        (highlightChatPanel ? "glow-pulse border-cyan-400/80" : "border-slate-600/70")
+                      : "flex-1 min-h-0 mt-4 -mx-5 -mb-5 p-4 rounded-t-2xl border-t bg-slate-900/80 " +
+                        (highlightChatPanel
+                          ? "glow-pulse border-cyan-400/80 border-x-0 border-b-0"
+                          : "border-slate-600/70 border-x-0 border-b-0"))
                   }
                   style={{
                     minHeight: isChatFull ? 'calc(100% - 40px)' : '400px',
@@ -9174,6 +9640,49 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     return (
                       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[250] w-full max-w-[340px] px-4 pointer-events-auto">
                         <style dangerouslySetInnerHTML={{__html: `
+                          @keyframes expandContainer {
+                            0% { max-width: 48px; opacity: 0; }
+                            10% { max-width: 48px; opacity: 1; }
+                            25% { max-width: 48px; opacity: 1; }
+                            40% { max-width: 340px; opacity: 1; }
+                            85% { max-width: 340px; opacity: 1; }
+                            100% { max-width: 48px; opacity: 0; }
+                          }
+                          @keyframes qLogoAnimation {
+                            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+                            12% { transform: scale(0) rotate(0deg); opacity: 0; }
+                            22% { transform: scale(1) rotate(0deg); opacity: 1; }
+                            25% { transform: scale(1) rotate(0deg); opacity: 1; }
+                            40% { transform: scale(1) rotate(360deg); opacity: 1; }
+                            85% { transform: scale(1) rotate(360deg); opacity: 1; }
+                            100% { transform: scale(0) rotate(0deg); opacity: 0; }
+                          }
+                          @keyframes tyreScale {
+                            0% { transform: scale(0); opacity: 0; }
+                            10% { transform: scale(1); opacity: 1; }
+                            85% { transform: scale(1); opacity: 1; }
+                            100% { transform: scale(0); opacity: 0; }
+                          }
+                          @keyframes translateWheel {
+                            0% { transform: translateX(-20px); }
+                            10% { transform: translateX(0); }
+                            25% { transform: translateX(0); }
+                            40% { transform: translateX(0); }
+                            85% { transform: translateX(0); }
+                            100% { transform: translateX(-20px); }
+                          }
+                          .animate-expand-container {
+                            animation: expandContainer 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                          }
+                          .animate-translate-wheel {
+                            animation: translateWheel 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                          }
+                          .animate-tyre-scale {
+                            animation: tyreScale 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                          }
+                          .animate-q-logo {
+                            animation: qLogoAnimation 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                          }
                           @keyframes shrinkWidth {
                             from { width: 100%; }
                             to { width: 0%; }
@@ -9181,68 +9690,78 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           .animate-shrink-width {
                             animation: shrinkWidth 3.5s linear forwards;
                           }
-                          @keyframes slideDown {
-                            from { transform: translateY(-40px) scale(0.95); opacity: 0; }
-                            to { transform: translateY(0) scale(1); opacity: 1; }
-                          }
-                          .animate-slide-down {
-                            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                          }
                         `}} />
-                        <div className={`relative flex items-center gap-3 rounded-2xl border bg-slate-950/95 p-3 shadow-[0_8px_30px_rgba(0,0,0,0.7)] animate-slide-down ${
+                        <div className={`relative flex items-center gap-3 rounded-2xl border backdrop-blur-xl p-2.5 shadow-[0_15px_40px_rgba(0,0,0,0.85)] animate-expand-container overflow-hidden max-w-[340px] w-full ${
                           isDowngradeTx 
-                            ? 'border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.2)]' 
-                            : 'border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.25)]'
+                            ? 'border-fuchsia-500/40 bg-slate-950/85 shadow-[0_0_25px_rgba(240,46,170,0.25)]' 
+                            : 'border-cyan-500/40 bg-slate-950/85 shadow-[0_0_25px_rgba(34,211,238,0.25)]'
                         }`}>
-                          {/* Icon */}
-                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-dashed animate-pulse ${
-                            isDowngradeTx
-                              ? 'bg-red-500/10 border-red-400/60 text-red-400'
-                              : 'bg-emerald-500/10 border-emerald-400/60 text-emerald-400'
-                          }`}>
-                            {isDowngradeTx ? (
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                              </svg>
-                            ) : (
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                              </svg>
-                            )}
-                          </div>
+                          {/* Animated Corner Tech Borders */}
+                          <div className={`absolute top-0 left-0 w-2 h-2 border-t-[1.5px] border-l-[1.5px] ${isDowngradeTx ? 'border-fuchsia-400' : 'border-cyan-400'}`} />
+                          <div className={`absolute top-0 right-0 w-2 h-2 border-t-[1.5px] border-r-[1.5px] ${isDowngradeTx ? 'border-fuchsia-400' : 'border-cyan-400'}`} />
+                          
+                          {/* Scanline Effect */}
+                          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none opacity-20" />
 
-                          {/* Content */}
-                          <div className="flex-1 min-w-0 text-left">
-                            <div className="flex items-baseline justify-between gap-2">
-                              <span className={`text-[9px] font-black uppercase tracking-wider ${
-                                isDowngradeTx ? 'text-red-400' : 'text-emerald-400'
-                              }`}>
-                                {transactionNotification.title}
-                              </span>
-                              <span className="text-[6px] font-mono text-slate-500 uppercase tracking-widest shrink-0">
-                                {transactionNotification.txHash}
-                              </span>
+                          {/* Cyber Tyre Wheel (rolling in/out) */}
+                          <div className="relative shrink-0 w-8.5 h-8.5 flex items-center justify-center animate-translate-wheel z-20">
+                            {/* Tyre Container (handles scaling/opacity timeline) */}
+                            <div className="absolute inset-0 animate-tyre-scale">
+                              {/* Outer Spinning Cyber Tyre (already spinning on appear!) */}
+                              <div className={`absolute inset-0 rounded-full border-[2px] border-dashed animate-[spin_2.5s_linear_infinite] ${
+                                isDowngradeTx ? 'border-fuchsia-400/80 bg-fuchsia-500/5' : 'border-cyan-400/80 bg-cyan-500/5'
+                              }`} />
+                              
+                              {/* Inner Tech Ring (spinning infinitely reverse!) */}
+                              <div className={`absolute inset-[3px] rounded-full border border-dotted animate-[spin_4s_linear_infinite_reverse] ${
+                                isDowngradeTx ? 'border-fuchsia-300/60' : 'border-cyan-300/60'
+                              }`} />
                             </div>
-                            <p className="mt-0.5 text-[8.5px] text-slate-300 leading-tight">
-                              {transactionNotification.message}
-                            </p>
+                            
+                            {/* Central Q logo (appears chronologically, rotates during roll-forward) */}
+                            <div className={`relative z-10 font-black text-sm tracking-wider font-mono select-none animate-q-logo drop-shadow-[0_0_5px_rgba(34,211,238,0.6)] ${
+                              isDowngradeTx ? 'text-fuchsia-400 drop-shadow-[0_0_5px_rgba(240,46,170,0.6)]' : 'text-cyan-400'
+                            }`}>
+                              Q
+                            </div>
                           </div>
 
-                          {/* Value */}
-                          <div className={`shrink-0 flex flex-col items-end justify-center px-2 py-0.5 rounded-lg border ${
-                            isDowngradeTx
-                              ? 'bg-red-950/20 border-red-500/15 text-red-300'
-                              : 'bg-emerald-950/20 border-emerald-500/15 text-emerald-300'
-                          }`}>
-                            <span className="text-[5px] font-bold uppercase tracking-widest text-slate-400 block leading-none">Value</span>
-                            <span className="text-[10px] font-black tracking-wider font-mono mt-0.5 leading-none">
-                              {isDowngradeTx ? 'RESET' : `${transactionNotification.type === 'credit' ? '+' : '-'}${transactionNotification.amount}QP`}
-                            </span>
+                          {/* Content Mask (revealing text) */}
+                          <div className="flex-1 overflow-hidden min-w-0 pr-1">
+                            <div className="w-[245px] flex items-center justify-between gap-3 text-left">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-baseline justify-between gap-2">
+                                  <span className={`text-[9px] font-black uppercase tracking-[0.2em] font-mono ${
+                                    isDowngradeTx ? 'text-fuchsia-400' : 'text-cyan-400'
+                                  }`}>
+                                    {transactionNotification.title}
+                                  </span>
+                                  <span className="text-[6px] font-mono text-slate-500 uppercase tracking-widest shrink-0">
+                                    {transactionNotification.txHash}
+                                  </span>
+                                </div>
+                                <p className="mt-0.5 text-[8.5px] text-slate-300 leading-tight">
+                                  {transactionNotification.message}
+                                </p>
+                              </div>
+
+                              {/* Value */}
+                              <div className={`shrink-0 flex flex-col items-end justify-center px-2 py-0.5 rounded-lg border ${
+                                isDowngradeTx
+                                  ? 'bg-fuchsia-950/20 border-fuchsia-500/20 text-fuchsia-300 shadow-[0_0_8px_rgba(240,46,170,0.15)]'
+                                  : 'bg-cyan-950/20 border-cyan-500/20 text-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.15)]'
+                              }`}>
+                                <span className="text-[5px] font-bold uppercase tracking-widest text-slate-400 block leading-none">Quantum</span>
+                                <span className="text-[10px] font-black tracking-wider font-mono mt-0.5 leading-none">
+                                  {isDowngradeTx ? 'RESET' : `${transactionNotification.type === 'credit' ? '+' : '-'}${transactionNotification.amount} QP`}
+                                </span>
+                              </div>
+                            </div>
                           </div>
 
                           {/* Progress */}
                           <div className={`absolute bottom-0 inset-x-0 h-[2.5px] rounded-b-2xl animate-shrink-width ${
-                            isDowngradeTx ? 'bg-red-500' : 'bg-emerald-500'
+                            isDowngradeTx ? 'bg-fuchsia-500 shadow-[0_0_8px_rgba(240,46,170,0.6)]' : 'bg-cyan-500 shadow-[0_0_8px_rgba(34,211,238,0.6)]'
                           }`} />
                         </div>
                       </div>
@@ -9724,12 +10243,180 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       )}
       </div>
 
+      {/* Founder Grant Modal */}
+      {isFounder && isFounderGrantModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-[420px] rounded-3xl border border-cyan-500/40 bg-slate-950/95 p-6 text-left shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-scale-up mx-4">
+            {/* Tech Corner Borders */}
+            <div className="absolute top-0 left-0 w-3.5 h-3.5 border-t-2 border-l-2 border-cyan-400 rounded-tl-3xl" />
+            <div className="absolute top-0 right-0 w-3.5 h-3.5 border-t-2 border-r-2 border-cyan-400 rounded-tr-3xl" />
+            <div className="absolute bottom-0 left-0 w-3.5 h-3.5 border-b-2 border-l-2 border-cyan-400 rounded-bl-3xl" />
+            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 border-b-2 border-r-2 border-cyan-400 rounded-br-3xl" />
+
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setIsFounderGrantModalOpen(false)}
+              className="absolute right-4 top-4 z-50 flex h-8.5 w-8.5 items-center justify-center rounded-full border border-slate-800 bg-slate-900/90 text-slate-400 hover:text-cyan-400 hover:border-cyan-400/50 hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all shadow-md"
+              aria-label="Close modal"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Header */}
+            <div className="flex items-center gap-3 border-b border-slate-800/80 pb-4 pr-8">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 animate-pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="h-5.5 w-5.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
+                  Quantum Grant
+                </h3>
+                <p className="text-[10px] text-slate-400">Founder Privilege: Infinite QP Transmit</p>
+              </div>
+            </div>
+
+            {/* Recipient info & Input */}
+            <div className="my-5 space-y-4">
+              <div className="rounded-2xl bg-cyan-950/10 border border-cyan-500/15 p-4 text-[10px] text-slate-300">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-slate-400 font-medium">RECIPIENT CODESET</span>
+                  <span className="font-mono text-cyan-300 font-bold">@{founderGrantTarget}</span>
+                </div>
+                <div className="h-[1px] bg-cyan-500/10 my-2" />
+                <p className="text-[9px] text-slate-400 leading-normal">
+                  As the Elite Founder, you possess raw network authorization keys to transmit un-mined Quantum Currency directly into this peer's account.
+                </p>
+              </div>
+
+              {/* Amount Input */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Transmit Amount (QP)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={founderGrantAmount}
+                    onChange={(e) => setFounderGrantAmount(e.target.value)}
+                    placeholder="Enter QP amount"
+                    className="w-full rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-3 text-xs font-mono text-slate-100 placeholder-slate-600 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
+                  />
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[9px] font-black tracking-widest text-cyan-500/80 font-mono">
+                    QP
+                  </div>
+                </div>
+              </div>
+
+              {/* Presets */}
+              <div className="space-y-1.5">
+                <span className="text-[8px] font-bold uppercase tracking-wider text-slate-500">
+                  Quick Presets
+                </span>
+                <div className="grid grid-cols-4 gap-2">
+                  {[10, 50, 100, 500].map((amt) => (
+                    <button
+                      key={amt}
+                      type="button"
+                      onClick={() => setFounderGrantAmount(amt.toString())}
+                      className="rounded-xl border border-slate-800/80 bg-slate-900/40 py-1.5 text-[10px] font-bold font-mono text-slate-300 hover:border-cyan-500/30 hover:bg-cyan-500/10 hover:text-cyan-200 transition duration-200 active:scale-95"
+                    >
+                      +{amt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {founderGrantError && (
+                <div className="rounded-2xl border border-red-500/20 bg-red-950/15 p-3 text-[10px] text-red-300 font-medium">
+                  {founderGrantError}
+                </div>
+              )}
+            </div>
+
+            {/* Action buttons */}
+            <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-slate-800/80">
+              <button
+                type="button"
+                onClick={() => setIsFounderGrantModalOpen(false)}
+                className="rounded-2xl border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-300 transition active:scale-95 text-center hover:text-slate-100 hover:border-slate-600"
+              >
+                Abort
+              </button>
+
+              <button
+                type="button"
+                onClick={handleFounderGrantSubmit}
+                disabled={isFounderGrantLoading || !founderGrantAmount}
+                className="relative overflow-hidden rounded-2xl border border-cyan-500/60 bg-gradient-to-r from-cyan-950 via-cyan-900 to-blue-950 px-6 py-2.5 text-[10px] font-bold uppercase tracking-wider text-cyan-200 hover:border-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.25)] hover:shadow-[0_0_30px_rgba(34,211,238,0.45)] transition duration-300 active:scale-95 text-center flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isFounderGrantLoading ? (
+                  <>
+                    <span className="h-3 w-3 animate-spin rounded-full border border-cyan-200 border-t-transparent" />
+                    Transmitting...
+                  </>
+                ) : (
+                  "Authorize & Transmit"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Global transaction notification popup */}
       {!showStore && transactionNotification?.show && (() => {
         const isDowngradeTx = transactionNotification.amount === 0 && transactionNotification.type === 'debit';
         return (
           <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-[340px] px-4 pointer-events-auto">
             <style dangerouslySetInnerHTML={{__html: `
+              @keyframes expandContainer {
+                0% { max-width: 48px; opacity: 0; }
+                10% { max-width: 48px; opacity: 1; }
+                25% { max-width: 48px; opacity: 1; }
+                40% { max-width: 340px; opacity: 1; }
+                85% { max-width: 340px; opacity: 1; }
+                100% { max-width: 48px; opacity: 0; }
+              }
+              @keyframes qLogoAnimation {
+                0% { transform: scale(0) rotate(0deg); opacity: 0; }
+                12% { transform: scale(0) rotate(0deg); opacity: 0; }
+                22% { transform: scale(1) rotate(0deg); opacity: 1; }
+                25% { transform: scale(1) rotate(0deg); opacity: 1; }
+                40% { transform: scale(1) rotate(360deg); opacity: 1; }
+                85% { transform: scale(1) rotate(360deg); opacity: 1; }
+                100% { transform: scale(0) rotate(0deg); opacity: 0; }
+              }
+              @keyframes tyreScale {
+                0% { transform: scale(0); opacity: 0; }
+                10% { transform: scale(1); opacity: 1; }
+                85% { transform: scale(1); opacity: 1; }
+                100% { transform: scale(0); opacity: 0; }
+              }
+              @keyframes translateWheel {
+                0% { transform: translateX(-20px); }
+                10% { transform: translateX(0); }
+                25% { transform: translateX(0); }
+                40% { transform: translateX(0); }
+                85% { transform: translateX(0); }
+                100% { transform: translateX(-20px); }
+              }
+              .animate-expand-container {
+                animation: expandContainer 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              }
+              .animate-translate-wheel {
+                animation: translateWheel 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              }
+              .animate-tyre-scale {
+                animation: tyreScale 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              }
+              .animate-q-logo {
+                animation: qLogoAnimation 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              }
               @keyframes shrinkWidth {
                 from { width: 100%; }
                 to { width: 0%; }
@@ -9737,68 +10424,78 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               .animate-shrink-width {
                 animation: shrinkWidth 3.5s linear forwards;
               }
-              @keyframes slideDown {
-                from { transform: translateY(-40px) scale(0.95); opacity: 0; }
-                to { transform: translateY(0) scale(1); opacity: 1; }
-              }
-              .animate-slide-down {
-                animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-              }
             `}} />
-            <div className={`relative flex items-center gap-3 rounded-2xl border bg-slate-950/95 p-3 shadow-[0_8px_30px_rgba(0,0,0,0.7)] animate-slide-down ${
+            <div className={`relative flex items-center gap-3 rounded-2xl border backdrop-blur-xl p-2.5 shadow-[0_15px_40px_rgba(0,0,0,0.85)] animate-expand-container overflow-hidden max-w-[340px] w-full ${
               isDowngradeTx 
-                ? 'border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.25)]' 
-                : 'border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.25)]'
+                ? 'border-fuchsia-500/40 bg-slate-950/85 shadow-[0_0_25px_rgba(240,46,170,0.25)]' 
+                : 'border-cyan-500/40 bg-slate-950/85 shadow-[0_0_25px_rgba(34,211,238,0.25)]'
             }`}>
-              {/* Icon */}
-              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-dashed animate-pulse ${
-                isDowngradeTx
-                  ? 'bg-red-500/10 border-red-400/60 text-red-400'
-                  : 'bg-emerald-500/10 border-emerald-400/60 text-emerald-400'
-              }`}>
-                {isDowngradeTx ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                )}
-              </div>
+              {/* Animated Corner Tech Borders */}
+              <div className={`absolute top-0 left-0 w-2 h-2 border-t-[1.5px] border-l-[1.5px] ${isDowngradeTx ? 'border-fuchsia-400' : 'border-cyan-400'}`} />
+              <div className={`absolute top-0 right-0 w-2 h-2 border-t-[1.5px] border-r-[1.5px] ${isDowngradeTx ? 'border-fuchsia-400' : 'border-cyan-400'}`} />
+              
+              {/* Scanline Effect */}
+              <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none opacity-20" />
 
-              {/* Content */}
-              <div className="flex-1 min-w-0 text-left">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className={`text-[9px] font-black uppercase tracking-wider ${
-                    isDowngradeTx ? 'text-red-400' : 'text-emerald-400'
-                  }`}>
-                    {transactionNotification.title}
-                  </span>
-                  <span className="text-[6px] font-mono text-slate-500 uppercase tracking-widest shrink-0">
-                    {transactionNotification.txHash}
-                  </span>
+              {/* Cyber Tyre Wheel (rolling in/out) */}
+              <div className="relative shrink-0 w-8.5 h-8.5 flex items-center justify-center animate-translate-wheel z-20">
+                {/* Tyre Container (handles scaling/opacity timeline) */}
+                <div className="absolute inset-0 animate-tyre-scale">
+                  {/* Outer Spinning Cyber Tyre (already spinning on appear!) */}
+                  <div className={`absolute inset-0 rounded-full border-[2px] border-dashed animate-[spin_2.5s_linear_infinite] ${
+                    isDowngradeTx ? 'border-fuchsia-400/80 bg-fuchsia-500/5' : 'border-cyan-400/80 bg-cyan-500/5'
+                  }`} />
+                  
+                  {/* Inner Tech Ring (spinning infinitely reverse!) */}
+                  <div className={`absolute inset-[3px] rounded-full border border-dotted animate-[spin_4s_linear_infinite_reverse] ${
+                    isDowngradeTx ? 'border-fuchsia-300/60' : 'border-cyan-300/60'
+                  }`} />
                 </div>
-                <p className="mt-0.5 text-[8.5px] text-slate-300 leading-tight">
-                  {transactionNotification.message}
-                </p>
+                
+                {/* Central Q logo (appears chronologically, rotates during roll-forward) */}
+                <div className={`relative z-10 font-black text-sm tracking-wider font-mono select-none animate-q-logo drop-shadow-[0_0_5px_rgba(34,211,238,0.6)] ${
+                  isDowngradeTx ? 'text-fuchsia-400 drop-shadow-[0_0_5px_rgba(240,46,170,0.6)]' : 'text-cyan-400'
+                }`}>
+                  Q
+                </div>
               </div>
 
-              {/* Value */}
-              <div className={`shrink-0 flex flex-col items-end justify-center px-2 py-0.5 rounded-lg border ${
-                isDowngradeTx
-                  ? 'bg-red-950/20 border-red-500/15 text-red-300'
-                  : 'bg-emerald-950/20 border-emerald-500/15 text-emerald-300'
-              }`}>
-                <span className="text-[5px] font-bold uppercase tracking-widest text-slate-400 block leading-none">Value</span>
-                <span className="text-[10px] font-black tracking-wider font-mono mt-0.5 leading-none">
-                  {isDowngradeTx ? 'RESET' : `${transactionNotification.type === 'credit' ? '+' : '-'}${transactionNotification.amount}QP`}
-                </span>
+              {/* Content Mask (revealing text) */}
+              <div className="flex-1 overflow-hidden min-w-0 pr-1">
+                <div className="w-[245px] flex items-center justify-between gap-3 text-left">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className={`text-[9px] font-black uppercase tracking-[0.2em] font-mono ${
+                        isDowngradeTx ? 'text-fuchsia-400' : 'text-cyan-400'
+                      }`}>
+                        {transactionNotification.title}
+                      </span>
+                      <span className="text-[6px] font-mono text-slate-500 uppercase tracking-widest shrink-0">
+                        {transactionNotification.txHash}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[8.5px] text-slate-300 leading-tight">
+                      {transactionNotification.message}
+                    </p>
+                  </div>
+
+                  {/* Value */}
+                  <div className={`shrink-0 flex flex-col items-end justify-center px-2 py-0.5 rounded-lg border ${
+                    isDowngradeTx
+                      ? 'bg-fuchsia-950/20 border-fuchsia-500/20 text-fuchsia-300 shadow-[0_0_8px_rgba(240,46,170,0.15)]'
+                      : 'bg-cyan-950/20 border-cyan-500/20 text-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.15)]'
+                  }`}>
+                    <span className="text-[5px] font-bold uppercase tracking-widest text-slate-400 block leading-none">Quantum</span>
+                    <span className="text-[10px] font-black tracking-wider font-mono mt-0.5 leading-none">
+                      {isDowngradeTx ? 'RESET' : `${transactionNotification.type === 'credit' ? '+' : '-'}${transactionNotification.amount} QP`}
+                    </span>
+                  </div>
+                </div>
               </div>
 
               {/* Progress */}
               <div className={`absolute bottom-0 inset-x-0 h-[2.5px] rounded-b-2xl animate-shrink-width ${
-                isDowngradeTx ? 'bg-red-500' : 'bg-emerald-500'
+                isDowngradeTx ? 'bg-fuchsia-500 shadow-[0_0_8px_rgba(240,46,170,0.6)]' : 'bg-cyan-500 shadow-[0_0_8px_rgba(34,211,238,0.6)]'
               }`} />
             </div>
           </div>

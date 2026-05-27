@@ -30,6 +30,7 @@ model User {
 
   accounts              Account[]
   sessions              Session[]
+  pushSubscriptions     PushSubscription[]
   messages              Message[]      @relation("UserMessages")
   friendRequestsSent     FriendRequest[] @relation("FriendRequestsFrom")
   friendRequestsReceived FriendRequest[] @relation("FriendRequestsTo")
@@ -200,4 +201,16 @@ model OtpCode {
   code      String
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }

@@ -70,6 +70,38 @@ export async function POST(request: Request) {
       },
     });
 
+    // Fire push notifications asynchronously in the background so it doesn't block the API response time
+    try {
+      const pushSubscriptions = await (prisma as any).pushSubscription.findMany({
+        where: { userId: peer.id },
+      });
+
+      if (pushSubscriptions && pushSubscriptions.length > 0) {
+        const senderHandle = (session.user as any).handle || "Someone";
+        const payload = {
+          title: `New Message from @${senderHandle}`,
+          body: content.trim().length > 100 ? `${content.trim().substring(0, 100)}...` : content.trim(),
+          url: `/?chat=${senderHandle}`,
+        };
+
+        const { sendPushNotification } = await import("@/lib/push");
+        
+        // We don't await the outer Promise.allSettled to respond instantly to the user
+        Promise.allSettled(
+          pushSubscriptions.map((sub: any) =>
+            sendPushNotification(sub, payload).catch((err: any) => {
+              // Automatically prune expired/invalid notification endpoints
+              if (err.statusCode === 410 || err.statusCode === 404) {
+                (prisma as any).pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
+              }
+            })
+          )
+        ).catch((err) => console.error("[PUSH ERROR]", err));
+      }
+    } catch (pushErr) {
+      console.error("[PUSH ERROR IN SEND ROUTE]", pushErr);
+    }
+
     return NextResponse.json({ message });
   } catch (err) {
     console.error("[chat/send]", err);
