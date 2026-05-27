@@ -492,16 +492,30 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
 
     try {
-      const registration = await navigator.serviceWorker.ready;
+      // Get the registration directly or wait for ready safely
+      let registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) {
+        registration = await navigator.serviceWorker.ready;
+      }
 
       if (enable) {
         // 1. Request Permission
         let permission = Notification.permission;
+        
+        // Optimistically set to true if permission is already granted
+        if (permission === "granted") {
+          setIsPushEnabled(true);
+        }
+
         if (permission === "default") {
           permission = await Notification.requestPermission();
+          if (permission === "granted") {
+            setIsPushEnabled(true);
+          }
         }
 
         if (permission !== "granted") {
+          setIsPushEnabled(false);
           setShowNotificationHelpModal(true);
           return;
         }
@@ -512,48 +526,68 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         let subscription = await registration.pushManager.getSubscription();
         if (!subscription) {
           const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
-          subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey,
-          });
+          try {
+            subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey,
+            });
+          } catch (err) {
+            console.error("[Push Toggle] Failed to subscribe locally:", err);
+            setIsPushEnabled(false);
+            return;
+          }
         }
 
-        // 3. Save to backend
-        const res = await fetch("/api/push/subscribe", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(subscription),
-        });
+        // Ensure state is true
+        setIsPushEnabled(true);
 
-        if (res.ok) {
-          setIsPushEnabled(true);
-          console.log("[Push Toggle] Successfully subscribed!");
-        } else {
-          console.error("[Push Toggle] Backend registration failed.");
-        }
-      } else {
-        // Unsubscribe
-        const subscription = await registration.pushManager.getSubscription();
-        if (subscription) {
-          // 1. Unsubscribe locally
-          await subscription.unsubscribe();
-          
-          // 2. Delete on backend
-          await fetch("/api/push/subscribe", {
-            method: "DELETE",
+        // 3. Save to backend asynchronously without blocking UI response
+        try {
+          const res = await fetch("/api/push/subscribe", {
+            method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ endpoint: subscription.endpoint }),
+            body: JSON.stringify(subscription),
           });
+
+          if (!res.ok) {
+            console.error("[Push Toggle] Backend registration failed status:", res.status);
+          } else {
+            console.log("[Push Toggle] Successfully synchronized subscription with backend!");
+          }
+        } catch (backendErr) {
+          console.error("[Push Toggle] Backend network error:", backendErr);
         }
+      } else {
+        // Optimistically set to false immediately for instantaneous UI response!
         setIsPushEnabled(false);
-        console.log("[Push Toggle] Successfully unsubscribed!");
+
+        // Unsubscribe asynchronously in the background
+        try {
+          const subscription = await registration.pushManager.getSubscription();
+          if (subscription) {
+            // 1. Unsubscribe locally
+            await subscription.unsubscribe();
+            
+            // 2. Delete on backend
+            await fetch("/api/push/subscribe", {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ endpoint: subscription.endpoint }),
+            });
+          }
+          console.log("[Push Toggle] Successfully unsubscribed in background!");
+        } catch (unsubErr) {
+          console.error("[Push Toggle] Error during unsubscribe background cleanup:", unsubErr);
+        }
       }
     } catch (error) {
       console.error("[Push Toggle] Error toggling push notifications:", error);
+      // Revert state on unexpected core error
+      setIsPushEnabled(false);
     }
   };
 
