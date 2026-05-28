@@ -729,6 +729,39 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     };
   }, [status, session?.user?.id]);
 
+  // Dynamically clear PWA App Badges and active push notification toasts when app is focused/opened
+  useEffect(() => {
+    const clearBadgesAndNotifications = async () => {
+      if (typeof window !== "undefined") {
+        if ("clearAppBadge" in navigator) {
+          navigator.clearAppBadge().catch((err) => console.warn("[Badge] Error clearing badge:", err));
+        }
+        
+        // Also clear active notifications if service worker is active
+        if ("serviceWorker" in navigator) {
+          try {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg) {
+              const notifications = await reg.getNotifications();
+              notifications.forEach((n) => n.close());
+            }
+          } catch (err) {
+            console.warn("[Badge] Error closing notifications:", err);
+          }
+        }
+      }
+    };
+
+    // Clear on initial app load
+    void clearBadgesAndNotifications();
+
+    // Clear whenever user switches back / focuses the tab
+    window.addEventListener("focus", clearBadgesAndNotifications);
+    return () => {
+      window.removeEventListener("focus", clearBadgesAndNotifications);
+    };
+  }, []);
+
   // Lightbox for viewing attachments fullscreen inside the app
   const [lightboxImageUrl, setLightboxImageUrl] = useState<string | null>(null);
   const [lightboxImageName, setLightboxImageName] = useState<string | null>(null);
