@@ -64,11 +64,10 @@ export async function middleware(request: NextRequest) {
 
     // Check if this is a protected route
     if (isProtectedRoute(pathname)) {
-      // Validate JWT token from session cookie
+      // Validate JWT token from session cookie (dynamically handles secure and non-secure cookies)
       const token = await getToken({
         req: request,
         secret: JWT_SECRET,
-        cookieName: '__Secure-next-auth.session-token',
       });
 
       // No token = unauthorized
