@@ -483,8 +483,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [isChatFull, setIsChatFull] = useState(false);
   const [isGlowActive, setIsGlowActive] = useState(false);
   const [isPushEnabled, setIsPushEnabled] = useState(false);
-  const [showNotificationHelpModal, setShowNotificationHelpModal] = useState(false);
-  const [blockedPermissionState, setBlockedPermissionState] = useState<"default" | "denied">("denied");
 
   const togglePushNotifications = async (enable: boolean) => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -506,19 +504,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         // Optimistically set to true if permission is already granted
         if (permission === "granted") {
           setIsPushEnabled(true);
-        }
-
-        if (permission === "default") {
-          permission = await Notification.requestPermission();
-          if (permission === "granted") {
-            setIsPushEnabled(true);
+        } else {
+          // Always call native requestPermission to prompt browser or Android OS settings
+          try {
+            permission = await Notification.requestPermission();
+            if (permission === "granted") {
+              setIsPushEnabled(true);
+            }
+          } catch (err) {
+            console.warn("[Push Toggle] requestPermission error:", err);
           }
         }
 
         if (permission !== "granted") {
           setIsPushEnabled(false);
-          setBlockedPermissionState(permission as "default" | "denied");
-          setShowNotificationHelpModal(true);
           return;
         }
 
@@ -4289,112 +4288,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         </div>
       )}
 
-      {showNotificationHelpModal && (
-        <div className="pointer-events-auto fixed inset-0 z-[1100] flex items-center justify-center bg-slate-950/85 backdrop-blur-md px-4">
-          <div className={`relative w-full max-w-sm rounded-2xl border bg-slate-950 p-[1px] shadow-2xl animate-in fade-in zoom-in-95 duration-200 animate-in-fix ${
-            blockedPermissionState === "default" ? "border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.25)]" : "border-amber-500/40 shadow-[0_0_30px_rgba(245,158,11,0.25)]"
-          }`}>
-            <div className="rounded-2xl bg-slate-950/95 p-5 text-slate-100">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span className={`text-[11px] font-semibold uppercase tracking-[0.18em] ${
-                  blockedPermissionState === "default" ? "text-cyan-300" : "text-amber-300"
-                }`}>
-                  {blockedPermissionState === "default" ? "🔔 Permission Ignored" : "🔔 Notifications Blocked"}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowNotificationHelpModal(false)}
-                  className="text-xs text-slate-400 hover:text-white"
-                >
-                  ✕
-                </button>
-              </div>
 
-              {blockedPermissionState === "default" ? (
-                <div className="space-y-4 mt-3">
-                  <p className="text-[11px] text-slate-300 leading-relaxed">
-                    It looks like you ignored or dismissed the browser's permission prompt. 
-                    To protect your screen from spam, modern browsers temporarily suppress showing the prompt again.
-                  </p>
-                  
-                  <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-3 space-y-2">
-                    <div className="flex items-center gap-1.5 text-[11px] font-semibold text-cyan-300">
-                      <span>🔒</span>
-                      <span>How to instantly enable notifications:</span>
-                    </div>
-                    <ol className="list-decimal pl-4 text-[10px] text-slate-300 space-y-1.5 leading-relaxed">
-                      <li>Look at your browser's address bar at the very top of the screen.</li>
-                      <li>Click the **🔒 lock icon** (or settings icon) directly to the left of the website URL: <span className="text-cyan-400 font-mono">q-link-v3-0.vercel.app</span></li>
-                      <li>Find **Notifications** in the list and toggle the switch to **"Allow"**.</li>
-                      <li>Simply **reload/refresh** the page and turn on notifications again!</li>
-                    </ol>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4 mt-3">
-                  <p className="text-[11px] text-slate-300 leading-relaxed">
-                    Your browser or system settings are blocking Q-Link notifications. Follow these instructions to enable native-app-style real-time alerts:
-                  </p>
-
-                  {/* Platform Selector Tabs */}
-                  <div className="space-y-3 max-h-[40vh] overflow-y-auto pr-1 text-left scrollbar-hide">
-                    {/* Windows Desktop Section */}
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-2.5 space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-cyan-300">
-                        <span>💻</span>
-                        <span>Windows / Desktop Browsers</span>
-                      </div>
-                      <ol className="list-decimal pl-4 text-[10px] text-slate-300 space-y-1">
-                        <li>Click the <strong>🔒 lock icon</strong> (or settings icon) directly to the left of the URL in the address bar.</li>
-                        <li>Find <strong>Notifications</strong> in the dropdown menu.</li>
-                        <li>Change the state from "Block" to <strong>"Allow"</strong>.</li>
-                        <li>Reload the page to apply settings.</li>
-                      </ol>
-                    </div>
-
-                    {/* Android Section */}
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-2.5 space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-300">
-                        <span>🤖</span>
-                        <span>Android (Chrome)</span>
-                      </div>
-                      <ol className="list-decimal pl-4 text-[10px] text-slate-300 space-y-1">
-                        <li>Long-press the Q-Link home screen app icon and select <strong>App info</strong> (or tap the ⓘ icon).</li>
-                        <li>Tap <strong>Notifications</strong> and switch it to <strong>Allow Notifications</strong>.</li>
-                        <li>Ensure "Allow sound and vibration" is checked for the highest priority alerts!</li>
-                      </ol>
-                    </div>
-
-                    {/* iOS Section */}
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-2.5 space-y-1.5">
-                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-fuchsia-300">
-                        <span>🍎</span>
-                        <span>iOS iPhone (Safari PWA)</span>
-                      </div>
-                      <ol className="list-decimal pl-4 text-[10px] text-slate-300 space-y-1">
-                        <li>Ensure you have added Q-Link to your Home Screen (using safari share menu).</li>
-                        <li>Open your iPhone <strong>Settings App</strong>.</li>
-                        <li>Scroll down to the bottom list, select <strong>Q-Link PWA</strong>.</li>
-                        <li>Tap <strong>Notifications</strong> and toggle <strong>Allow Notifications</strong> to <strong>On</strong>.</li>
-                      </ol>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowNotificationHelpModal(false)}
-                  className="rounded-full bg-slate-800 px-4 py-1.5 text-[11px] font-semibold text-slate-200 hover:bg-slate-700 hover:text-white"
-                >
-                  Understood
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showMoreCategories && (
         <div className="pointer-events-auto fixed inset-0 z-40 flex items-center justify-center bg-slate-950/80 px-4 sm:px-0">
