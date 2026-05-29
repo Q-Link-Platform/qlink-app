@@ -501,6 +501,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         // 1. Request Permission
         let permission = Notification.permission;
         
+        if (permission === "denied") {
+          alert("🔔 Notifications are blocked in your browser settings.\n\nPlease click the 🔒 lock icon (or settings icon) directly to the left of the website URL in your address bar and set Notifications to 'Allow', then try again!");
+          setIsPushEnabled(false);
+          return;
+        }
+
         // Optimistically set to true if permission is already granted
         if (permission === "granted") {
           setIsPushEnabled(true);
@@ -782,6 +788,33 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [showSettings, setShowSettings] = useState(false);
   const [settingsScreen, setSettingsScreen] = useState("main");
   const settingsClickTimeRef = useRef<number>(0);
+
+  // Synchronize Push Notifications button state dynamically whenever settings modal is opened
+  useEffect(() => {
+    if (showSettings) {
+      const syncPushEnabledState = async () => {
+        if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+          setIsPushEnabled(false);
+          return;
+        }
+
+        try {
+          const registration = await navigator.serviceWorker.getRegistration();
+          if (registration && Notification.permission === "granted") {
+            const subscription = await registration.pushManager.getSubscription();
+            setIsPushEnabled(!!subscription);
+          } else {
+            setIsPushEnabled(false);
+          }
+        } catch (err) {
+          console.warn("[Push Sync] Error checking subscription status:", err);
+          setIsPushEnabled(false);
+        }
+      };
+
+      void syncPushEnabledState();
+    }
+  }, [showSettings]);
   
   // Privacy visibility states
   const [emailVisibility, setEmailVisibility] = useState<"public" | "private">("private");
