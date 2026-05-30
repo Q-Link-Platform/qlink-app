@@ -501,25 +501,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         // 1. Request Permission
         let permission = Notification.permission;
         
-        if (permission === "denied") {
-          alert("🔔 Notifications are blocked in your browser settings.\n\nPlease click the 🔒 lock icon (or settings icon) directly to the left of the website URL in your address bar and set Notifications to 'Allow', then try again!");
-          setIsPushEnabled(false);
-          return;
-        }
-
-        // Optimistically set to true if permission is already granted
-        if (permission === "granted") {
-          setIsPushEnabled(true);
-        } else {
-          // Always call native requestPermission to prompt browser or Android OS settings
-          try {
-            permission = await Notification.requestPermission();
-            if (permission === "granted") {
-              setIsPushEnabled(true);
-            }
-          } catch (err) {
-            console.warn("[Push Toggle] requestPermission error:", err);
+        // Always call native requestPermission to prompt the browser directly
+        try {
+          permission = await Notification.requestPermission();
+          if (permission === "granted") {
+            setIsPushEnabled(true);
           }
+        } catch (err) {
+          console.warn("[Push Toggle] requestPermission error:", err);
         }
 
         if (permission !== "granted") {
