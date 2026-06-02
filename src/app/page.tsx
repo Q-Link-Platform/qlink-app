@@ -96,7 +96,7 @@ function StableImage(props: {
         src={props.src}
         alt={props.alt}
         className={
-          "block h-full w-full " +
+          "block h-full w-full max-h-full max-w-full m-auto " +
           (loaded ? "opacity-100" : "opacity-0") +
           (props.className ? ` ${props.className}` : "")
         }
