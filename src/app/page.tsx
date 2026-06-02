@@ -96,10 +96,11 @@ function StableImage(props: {
         src={props.src}
         alt={props.alt}
         className={
-          "block h-full w-full object-contain " +
+          "block h-full w-full " +
           (loaded ? "opacity-100" : "opacity-0") +
           (props.className ? ` ${props.className}` : "")
         }
+        style={{ objectFit: "contain" }}
         loading="lazy"
         decoding="async"
         onLoad={() => setLoaded(true)}
