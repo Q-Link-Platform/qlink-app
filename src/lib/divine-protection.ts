@@ -2,16 +2,16 @@
 export const DIVINE_PROTECTION = {
   // Ganesh Mantra for removing obstacles
   GANESH_MANTRA: "ॐ गं गणपतये नमः",
-  
+
   // Hanuman Mantra for strength and protection
   HANUMAN_MANTRA: "ॐ हनुमते नमः",
-  
+
   // Ram Mantra for righteousness and success
   RAM_MANTRA: "ॐ श्री रामचंद्राय नमः",
-  
+
   // Combined protection mantra
   DIVINE_SHIELD: "ॐ गं गणपतये नमः ॐ हनुमते नमः ॐ श्री रामचंद्राय नमः",
-  
+
   // Success and prosperity mantra
   PROSPERITY_MANTRA: "ॐ श्री महालक्ष्म्यै नमः"
 };
@@ -19,7 +19,7 @@ export const DIVINE_PROTECTION = {
 // Divine protection levels
 export const PROTECTION_LEVELS = {
   BASIC: 'basic',
-  INTERMEDIATE: 'intermediate', 
+  INTERMEDIATE: 'intermediate',
   ADVANCED: 'advanced',
   DIVINE: 'divine'
 };

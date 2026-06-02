@@ -25,11 +25,13 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      checks: process.env.NODE_ENV === "production" ? ["state"] : [],
     }),
     AzureADProvider({
       clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID!,
       clientSecret: process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET!,
       tenantId: process.env.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID,
+      checks: process.env.NODE_ENV === "production" ? ["state"] : [],
     }),
     GitHubProvider({
       clientId: process.env.GITHUB_ID!,
@@ -274,7 +276,7 @@ export const authOptions: NextAuthOptions = {
         // 1. Session Mismatch Check:
         // If user doesn't exist, or their stored database sessionToken differs from the token they logged in with,
         // it means they logged in on a new device/browser, invalidating this old session!
-        if (dbUser && dbUser.sessionToken && dbUser.sessionToken !== token.sessionToken) {
+        if (process.env.NODE_ENV !== "development" && dbUser && dbUser.sessionToken && dbUser.sessionToken !== token.sessionToken) {
           console.log(`[SESSION ENFORCER] Invalidating session for user ID: ${token.id}. Reason: Mismatched session token.`);
           return { expires: new Date(0).toISOString() } as any;
         }

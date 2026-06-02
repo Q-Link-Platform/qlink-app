@@ -148,7 +148,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\bhave\\OneDrive\\roy\\Q-Link\\app\\src\\lib\\generated\\attachmentsClient",
+      "value": "C:\\Users\\bhave\\OneDrive\\Work\\Q-Link\\app\\src\\lib\\generated\\attachmentsClient",
       "fromEnvVar": null
     },
     "config": {
@@ -162,7 +162,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\bhave\\OneDrive\\roy\\Q-Link\\app\\prisma\\attachments.schema.prisma",
+    "sourceFilePath": "C:\\Users\\bhave\\OneDrive\\Work\\Q-Link\\app\\prisma\\attachments.schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
