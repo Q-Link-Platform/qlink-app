@@ -2121,41 +2121,58 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           return;
         }
 
+        setIdConsolePostStatus("Preparing upload…");
+        const signRes = await fetch("/api/posts/upload", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            requestSignedUrl: true,
+            kind: postMediaKind,
+            filename: postMediaFile.name,
+            mimeType: postMediaFile.type || "application/octet-stream",
+            size: postMediaFile.size,
+          }),
+        });
+
+        if (!signRes.ok) {
+          const err = await signRes.json().catch(() => ({}));
+          setIdConsolePostStatus(err?.error || "Preparation failed");
+          return;
+        }
+
+        const signData = await signRes.json();
+        const { signedUrl, attachment } = signData;
+
         setIdConsolePostStatus("Uploading…");
-        const form = new FormData();
-        form.append("kind", postMediaKind);
-        form.append("file", postMediaFile);
+        const directUploadSuccess = await new Promise<boolean>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("PUT", signedUrl);
+          xhr.setRequestHeader("Content-Type", postMediaFile.type || "application/octet-stream");
+          xhr.upload.onprogress = (e) => {
+            if (!e.lengthComputable) return;
+            const pct = Math.max(0, Math.min(100, Math.round((e.loaded / e.total) * 100)));
+            setIdConsoleUploadProgress(pct);
+          };
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(true);
+            } else {
+              reject(new Error("Direct upload failed"));
+            }
+          };
+          xhr.onerror = () => reject(new Error("Direct upload failed"));
+          xhr.send(postMediaFile);
+        }).catch((e) => {
+          setIdConsolePostStatus(e?.message || "Upload failed");
+          return null;
+        });
 
-        const uploadData: { attachment?: { id?: string; kind?: string } } | null =
-          await new Promise<{ attachment?: { id?: string; kind?: string } }>((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", "/api/posts/upload");
-            xhr.responseType = "json";
-            xhr.upload.onprogress = (e) => {
-              if (!e.lengthComputable) return;
-              const pct = Math.max(0, Math.min(100, Math.round((e.loaded / e.total) * 100)));
-              setIdConsoleUploadProgress(pct);
-            };
-            xhr.onload = () => {
-              if (xhr.status >= 200 && xhr.status < 300) {
-                resolve((xhr.response || {}) as any);
-              } else {
-                const errMsg = (xhr.response as any)?.error;
-                reject(new Error(typeof errMsg === "string" ? errMsg : "Upload failed"));
-              }
-            };
-            xhr.onerror = () => reject(new Error("Upload failed"));
-            xhr.send(form);
-          }).catch((e) => {
-            setIdConsolePostStatus(e?.message || "Upload failed");
-            return null;
-          });
+        if (!directUploadSuccess) return;
 
-        if (!uploadData) return;
-
-        attachmentId = uploadData?.attachment?.id || null;
-        attachmentKind =
-          uploadData?.attachment?.kind === "video" ? "video" : "image";
+        attachmentId = attachment?.id || null;
+        attachmentKind = attachment?.kind === "video" ? "video" : "image";
       }
 
       setIdConsolePostStatus("Posting…");

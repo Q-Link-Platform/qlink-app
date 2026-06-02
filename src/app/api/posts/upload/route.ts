@@ -35,6 +35,112 @@ export async function POST(request: Request) {
       );
     }
 
+    const contentType = request.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const body: {
+        requestSignedUrl?: boolean;
+        kind?: "image" | "video";
+        filename?: string;
+        mimeType?: string;
+        size?: number;
+      } = await request.json();
+
+      if (body.requestSignedUrl) {
+        const kind = body.kind;
+        const size = body.size;
+        const originalName = body.filename || "upload";
+        const mimeType = body.mimeType || "application/octet-stream";
+
+        if (!kind || typeof kind !== "string" || !["image", "video"].includes(kind)) {
+          return NextResponse.json(
+            { error: "Invalid kind; must be 'image' or 'video'" },
+            { status: 400 },
+          );
+        }
+
+        if (typeof size !== "number" || size <= 0) {
+          return NextResponse.json({ error: "Invalid file size" }, { status: 400 });
+        }
+
+        if (kind === "video") {
+          if (size > MAX_VIDEO_BYTES) {
+            return NextResponse.json(
+              { error: "Video too large (max 45MB)" },
+              { status: 400 },
+            );
+          }
+        } else {
+          if (size > MAX_IMAGE_BYTES) {
+            return NextResponse.json(
+              { error: "Image too large (max 3MB)" },
+              { status: 400 },
+            );
+          }
+        }
+
+        const ext = originalName.includes(".") ? originalName.split(".").pop() : undefined;
+        const objectKeyBase = crypto.randomUUID();
+        const objectKeyName = ext ? `${objectKeyBase}.${ext}` : objectKeyBase;
+        const prefix = kind === "video" ? videosPrefix : imagesPrefix;
+        const objectKey = `${prefix}/${objectKeyName}`;
+
+        const signResult = await supabasePostsAdmin.storage
+          .from(bucket)
+          .createSignedUploadUrl(objectKey);
+
+        if (signResult.error) {
+          console.error("[posts/upload] Supabase sign upload URL error", signResult.error);
+          return NextResponse.json(
+            { error: signResult.error.message || "Failed to generate upload URL" },
+            { status: 500 },
+          );
+        }
+
+        const meId = (session.user as any).id as string;
+
+        const attachment = await prismaAttachments.attachment.create({
+          data: {
+            messageId: null,
+            roomId: null,
+            senderId: meId,
+            postId: null,
+            kind,
+            bucket,
+            objectKey,
+            originalName,
+            mimeType,
+            sizeBytes: BigInt(size),
+            status: "pending",
+          },
+          select: {
+            id: true,
+            kind: true,
+            bucket: true,
+            objectKey: true,
+            originalName: true,
+            mimeType: true,
+            createdAt: true,
+          },
+        });
+
+        await prismaAttachments.attachmentLog.create({
+          data: {
+            attachmentId: attachment.id,
+            event: "prepare-upload",
+          },
+        });
+
+        return NextResponse.json({
+          signedUrl: signResult.data.signedUrl,
+          token: signResult.data.token,
+          attachment: {
+            ...attachment,
+            size,
+          },
+        });
+      }
+    }
+
     const formData = await request.formData();
     const kind = formData.get("kind"); // image | video
     const file = formData.get("file");
