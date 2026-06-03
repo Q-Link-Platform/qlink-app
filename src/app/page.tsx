@@ -4974,7 +4974,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                                   {post?.media?.url && post?.media?.kind === "image" && (
                                     <div className="mt-2 overflow-hidden rounded-xl border border-slate-800/70 bg-slate-950">
-                                      <div className="mx-auto w-full max-w-[720px] bg-slate-950 h-64 sm:h-72 md:h-80">
+                                      <div className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center">
                                         <StableImage src={post.media.url} alt="Post media" />
                                       </div>
                                     </div>
@@ -4982,7 +4982,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                                   {post?.media?.url && post?.media?.kind === "video" && (
                                     <div className="mt-2 overflow-hidden rounded-xl border border-slate-800/70 bg-slate-950">
-                                      <div className="mx-auto w-full max-w-[720px] bg-slate-950 h-64 sm:h-72 md:h-80">
+                                      <div className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center">
                                         <SmartVideo
                                           src={post.media.url}
                                           className="h-full w-full"
@@ -9461,7 +9461,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               {p?.media?.url && p?.media?.kind === "image" ? (
                                 <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-950">
                                   <div
-                                    className="mx-auto w-full max-w-[720px] bg-slate-950 h-64 sm:h-72 md:h-80"
+                                    className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center"
                                   >
                                     <StableImage src={p.media.url} alt="Post media" />
                                   </div>
@@ -9469,7 +9469,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               ) : p?.media?.url && p?.media?.kind === "video" ? (
                                 <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-950">
                                   <div
-                                    className="mx-auto w-full max-w-[720px] bg-slate-950 h-64 sm:h-72 md:h-80"
+                                    className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center"
                                   >
                                     <SmartVideo
                                       src={p.media.url}
