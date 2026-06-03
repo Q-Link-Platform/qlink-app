@@ -343,7 +343,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000);
 
     const post = await (prisma as any).post.create({
       data: {
