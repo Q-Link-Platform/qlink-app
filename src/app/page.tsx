@@ -175,11 +175,12 @@ function SmartVideo(props: {
       <video
         ref={ref}
         src={props.src}
-        controls={!props.autoplayMuted}
+        controls={true}
         preload={props.preload || "metadata"}
         playsInline
         muted={!!props.autoplayMuted}
-        className={(props.className ? props.className + " " : "") + "block h-full w-full"}
+        className={(props.className ? props.className + " " : "") + "block h-full w-full max-h-full max-w-full m-auto"}
+        style={{ objectFit: "contain" }}
         onLoadedData={() => setLoaded(true)}
       />
     </div>
@@ -9296,7 +9297,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         <video
                           src={idConsoleLocalPreviewUrl}
                           controls
-                          className="block w-full max-h-[360px] bg-slate-950/80"
+                          className="block w-full max-h-[360px] bg-slate-950/80 max-h-[360px] max-w-full m-auto"
+                          style={{ objectFit: "contain" }}
                         />
                       </div>
                     ) : null}
