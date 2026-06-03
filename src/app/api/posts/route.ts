@@ -34,11 +34,7 @@ async function getSignedMediaUrl(params: {
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || !(session.user as any).id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const meId = (session.user as any).id as string;
+    const meId = (session?.user as any)?.id as string | undefined;
 
     const url = new URL(request.url);
     const mode = url.searchParams.get("mode");
@@ -196,47 +192,48 @@ export async function GET(request: Request) {
     );
 
     let followingSet = new Set<string>();
-    try {
-      const follows: Array<{ followingId: string }> = await (prisma as any).follow.findMany({
-        where: {
-          followerId: meId,
-          followingId: { in: authorIds },
-        },
-        select: { followingId: true },
-      });
-      followingSet = new Set(follows.map((f) => f.followingId));
-    } catch (err) {
-      console.warn("[posts] follow table lookup failed; defaulting to no-follow visibility", err);
-      followingSet = new Set<string>();
+    if (meId) {
+      try {
+        const follows: Array<{ followingId: string }> = await (prisma as any).follow.findMany({
+          where: {
+            followerId: meId,
+            followingId: { in: authorIds },
+          },
+          select: { followingId: true },
+        });
+        followingSet = new Set(follows.map((f) => f.followingId));
+      } catch (err) {
+        console.warn("[posts] follow table lookup failed; defaulting to no-follow visibility", err);
+      }
     }
 
     let friendSet = new Set<string>();
-    try {
-      const accepted: Array<{ fromUserId: string; toUserId: string }> = await (prisma as any).friendRequest.findMany({
-        where: {
-          status: "ACCEPTED",
-          OR: [
-            { fromUserId: meId, toUserId: { in: authorIds } },
-            { toUserId: meId, fromUserId: { in: authorIds } },
-          ],
-        },
-        select: { fromUserId: true, toUserId: true },
-      });
+    if (meId) {
+      try {
+        const accepted: Array<{ fromUserId: string; toUserId: string }> = await (prisma as any).friendRequest.findMany({
+          where: {
+            status: "ACCEPTED",
+            OR: [
+              { fromUserId: meId, toUserId: { in: authorIds } },
+              { toUserId: meId, fromUserId: { in: authorIds } },
+            ],
+          },
+          select: { fromUserId: true, toUserId: true },
+        });
 
-      friendSet = new Set<string>();
-      for (const fr of accepted) {
-        friendSet.add(fr.fromUserId === meId ? fr.toUserId : fr.fromUserId);
+        for (const fr of accepted) {
+          friendSet.add(fr.fromUserId === meId ? fr.toUserId : fr.fromUserId);
+        }
+      } catch (err) {
+        console.warn("[posts] friendRequest table lookup failed; defaulting to no-friends visibility", err);
       }
-    } catch (err) {
-      console.warn("[posts] friendRequest table lookup failed; defaulting to no-friends visibility", err);
-      friendSet = new Set<string>();
     }
 
     const visible = (posts as Array<{ authorId: string; audience: string }>).filter((p) => {
-      if (p.authorId === meId) return true;
+      if (meId && p.authorId === meId) return true;
       if (p.audience === "GLOBAL" || p.audience === "ALL") return true;
-      if (p.audience === "FOLLOWERS") return followingSet.has(p.authorId);
-      if (p.audience === "FRIENDS") return friendSet.has(p.authorId);
+      if (meId && p.audience === "FOLLOWERS") return followingSet.has(p.authorId);
+      if (meId && p.audience === "FRIENDS") return friendSet.has(p.authorId);
       return false;
     });
 
