@@ -118,35 +118,40 @@ function SmartVideo(props: {
   const { ref, inView, ratio } = useInView<HTMLVideoElement>({ rootMargin: "250px 0px" });
   const [loaded, setLoaded] = useState(false);
 
+  const shouldPlay = inView && ratio >= 0.6;
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
     if (!props.autoplayMuted) return;
 
-    // Only play when the video is mostly visible to avoid multiple playing at once.
-    if (inView && ratio >= 0.6) {
+    if (shouldPlay) {
       try {
         el.muted = true;
         el.loop = true;
+        if (el.paused) {
+          requestAnimationFrame(() => {
+            try {
+              void el.play();
+            } catch {
+              // ignore
+            }
+          });
+        }
       } catch {
         // ignore
       }
-      requestAnimationFrame(() => {
-        try {
-          void el.play();
-        } catch {
-          // ignore
-        }
-      });
     } else {
       try {
-        el.pause();
+        if (!el.paused) {
+          el.pause();
+        }
       } catch {
         // ignore
       }
     }
-  }, [inView, ratio, props.autoplayMuted, ref]);
+  }, [shouldPlay, props.autoplayMuted, ref]);
 
   return (
     <div className="relative h-full w-full">
@@ -1155,6 +1160,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   }, []);
 
   const [showDirectory, setShowDirectory] = useState(false);
+  const [showDirectoryMediaOnly, setShowDirectoryMediaOnly] = useState(false);
+  const [mediaFilterTab, setMediaFilterTab] = useState<'all' | 'shorts' | 'posts' | 'tweets'>('all');
   const [directoryItems, setDirectoryItems] = useState<DirectoryItem[] | null>(null);
   const [directoryLoading, setDirectoryLoading] = useState(false);
   const [directoryError, setDirectoryError] = useState<string | null>(null);
@@ -4557,7 +4564,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         style={{ backdropFilter: 'blur(6px)' }}
         onMouseDown={() => {
           setIsConsoleAnimating(true);
-          setTimeout(() => setShowDirectory(false), 600);
+          setTimeout(() => {
+            setShowDirectory(false);
+            setShowDirectoryMediaOnly(false);
+            setMediaFilterTab('all');
+          }, 600);
         }}
         >
           <div className={`relative w-[98vw] max-w-none h-[98dvh] flex flex-col rounded-3xl border border-cyan-400/40 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-[1px] shadow-[0_0_30px_rgba(34,211,238,0.7)] transition-all duration-600 ${
@@ -4582,7 +4593,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               type="button"
               onClick={() => {
                 setIsConsoleAnimating(true);
-                setTimeout(() => setShowDirectory(false), 600);
+                setTimeout(() => {
+                  setShowDirectory(false);
+                  setShowDirectoryMediaOnly(false);
+                  setMediaFilterTab('all');
+                }, 600);
               }}
               className={`absolute top-2 right-3 z-50 flex h-8 w-8 items-center justify-center rounded-full border border-slate-600/60 bg-slate-900/90 text-slate-300 shadow-lg backdrop-blur-sm hover:border-red-400/70 hover:bg-red-500/10 hover:text-red-200 hover:shadow-red-500/25 active:scale-90 sm:top-2 sm:right-4 sm:h-9 sm:w-9 ${
                 showDirectory ? (isConsoleAnimating ? 'close-button-enter' : '') : 'close-button-exit'
@@ -4631,8 +4646,32 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 )}
 
                 {!directoryLoading && !directoryError && directoryItems && directoryItems.length > 0 && (
-                  <>
-                    {directoryItems.some((item) => item.isRedTick) && (
+                  (() => {
+                    const allFeedPosts = (directoryItems || [])
+                      .filter((item) => {
+                        const posts = directoryLatestPostsByAuthorId?.[item.id] || [];
+                        return posts.length > 0;
+                      })
+                      .flatMap((item) => {
+                        const posts = directoryLatestPostsByAuthorId?.[item.id] || [];
+                        return posts.map((post) => ({
+                          ...post,
+                          author: item,
+                        }));
+                      })
+                      .sort((a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime());
+
+                    const filteredFeedPosts = allFeedPosts.filter((post) => {
+                      if (mediaFilterTab === 'all') return true;
+                      if (mediaFilterTab === 'shorts') return post.attachmentKind === 'video';
+                      if (mediaFilterTab === 'posts') return post.attachmentKind === 'image';
+                      if (mediaFilterTab === 'tweets') return post.attachmentKind !== 'video' && post.attachmentKind !== 'image';
+                      return true;
+                    });
+
+                    return (
+                      <>
+                    {!showDirectoryMediaOnly && directoryItems.some((item) => item.isRedTick) && (
                       <div className="space-y-2">
                         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-red-200/90">
                           Elite Founder IDs
@@ -4679,7 +4718,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </div>
                     )}
 
-                    {directoryItems.some((item) => item.blueTickStatus === 'SAPPHIRE') && (
+                    {!showDirectoryMediaOnly && directoryItems.some((item) => item.blueTickStatus === 'SAPPHIRE') && (
                       <div className="space-y-2">
                         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300">
                           Sapphire VIP IDs
@@ -4726,7 +4765,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </div>
                     )}
 
-                    {directoryItems.some((item) => item.blueTickStatus === 'verified') && (
+                    {!showDirectoryMediaOnly && directoryItems.some((item) => item.blueTickStatus === 'verified') && (
                       <div className="space-y-2">
                         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-200/90">
                           Blue Tick Verified IDs
@@ -4796,7 +4835,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                     <div className="space-y-2">
                       <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                        All Quantum IDs
+                        {showDirectoryMediaOnly ? "Quantum Media Feed" : "All Quantum IDs"}
                       </p>
                       <div className="flex gap-2">
                         <button
@@ -4819,6 +4858,32 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </span>
                             <span className="text-[10px] font-medium text-slate-200/90">
                               Live
+                            </span>
+                          </span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDirectoryMediaOnly(!showDirectoryMediaOnly);
+                          }}
+                          className={`group relative flex-1 overflow-hidden rounded-2xl border px-3 py-2 text-left text-[11px] font-bold uppercase transition duration-300 active:scale-95 cursor-pointer ${
+                            showDirectoryMediaOnly
+                              ? "border-amber-400/85 bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-rose-500/15 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.4)]"
+                              : "border-fuchsia-500/40 bg-gradient-to-r from-indigo-500/10 via-fuchsia-500/10 to-pink-500/10 text-fuchsia-200 hover:border-fuchsia-400/80 hover:from-indigo-500/15 hover:to-pink-500/15 shadow-[0_0_15px_rgba(219,39,119,0.25)]"
+                          }`}
+                        >
+                          <span className="pointer-events-none absolute -left-16 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-fuchsia-500/20 blur-2xl transition group-hover:bg-fuchsia-500/30" />
+                          <span className="pointer-events-none absolute -right-16 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-amber-500/20 blur-2xl transition group-hover:bg-amber-500/30" />
+                          <span className="relative flex items-center justify-between gap-3">
+                            <span className="flex items-center gap-1.5">
+                              <span className="relative flex h-2 w-2 items-center justify-center">
+                                <span className={`absolute inline-flex h-full w-full rounded-full opacity-60 animate-ping ${showDirectoryMediaOnly ? "bg-amber-400" : "bg-fuchsia-400"}`} />
+                                <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${showDirectoryMediaOnly ? "bg-amber-300" : "bg-fuchsia-300"}`} />
+                              </span>
+                              <span className="tracking-[0.11em]">
+                                {showDirectoryMediaOnly ? "← All ID Cards" : "Shorts • Posts • Tweets"}
+                              </span>
                             </span>
                           </span>
                         </button>
@@ -4853,11 +4918,72 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </button>
                       </div>
 
+                      {/* Media Filter Sub-Navigation */}
+                      {showDirectoryMediaOnly && (
+                        <div className="flex flex-col gap-3 pb-3 mb-2 border-b border-slate-800/80 sticky top-0 bg-slate-950/95 z-30 pt-1 backdrop-blur-md">
+                          <div className="flex items-center justify-between">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowDirectoryMediaOnly(false);
+                                setMediaFilterTab('all');
+                              }}
+                              className="group flex items-center gap-2 rounded-full border border-slate-700/60 bg-slate-900/40 px-3 py-1.5 text-[11px] font-semibold text-slate-300 transition duration-300 hover:border-cyan-400/80 hover:bg-cyan-500/10 hover:text-cyan-200 active:scale-95 shadow-[0_0_15px_rgba(34,211,238,0.1)] cursor-pointer"
+                            >
+                              <span className="text-[12px] transition group-hover:-translate-x-0.5">←</span>
+                              <span>Back to IDs</span>
+                            </button>
+                            
+                            <div className="flex items-center gap-1.5 rounded-full border border-amber-500/35 bg-amber-500/5 px-2.5 py-0.5 text-[10px] font-bold text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.15)] animate-pulse">
+                              <span className="relative flex h-1.5 w-1.5">
+                                <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping"></span>
+                                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-300"></span>
+                              </span>
+                              <span>MEDIA ACTIVE</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                            {[
+                              { id: 'all', label: 'All Feed', icon: '🌐', color: 'cyan' },
+                              { id: 'shorts', label: 'Shorts', icon: '🎬', color: 'amber' },
+                              { id: 'posts', label: 'Posts', icon: '📷', color: 'rose' },
+                              { id: 'tweets', label: 'Tweets', icon: '💬', color: 'indigo' }
+                            ].map((tab) => {
+                              const isActive = mediaFilterTab === tab.id;
+                              let activeClass = "";
+                              let inactiveClass = "border-slate-800 bg-slate-900/40 text-slate-400 hover:border-slate-700 hover:text-slate-200";
+                              
+                              if (isActive) {
+                                if (tab.color === 'cyan') activeClass = "border-cyan-400/80 bg-cyan-500/15 text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.25)]";
+                                else if (tab.color === 'amber') activeClass = "border-amber-400/80 bg-amber-500/15 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.25)]";
+                                else if (tab.color === 'rose') activeClass = "border-rose-400/80 bg-rose-500/15 text-rose-200 shadow-[0_0_12px_rgba(244,63,94,0.25)]";
+                                else if (tab.color === 'indigo') activeClass = "border-indigo-400/80 bg-indigo-500/15 text-indigo-200 shadow-[0_0_12px_rgba(99,102,241,0.25)]";
+                              }
+                              
+                              return (
+                                <button
+                                  key={tab.id}
+                                  type="button"
+                                  onClick={() => setMediaFilterTab(tab.id as any)}
+                                  className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer ${
+                                    isActive ? activeClass : inactiveClass
+                                  }`}
+                                >
+                                  <span>{tab.icon}</span>
+                                  <span>{tab.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="space-y-1.5">
-                        {directoryItems.map((item) => (
+                        {!showDirectoryMediaOnly && directoryItems.map((item) => (
                           <div
                             key={item.id}
-                            className="rounded-2xl border border-slate-700/70 bg-slate-900/80 px-3 py-2 text-[11px] text-slate-200 hover:border-cyan-400/70 hover:bg-slate-900/95"
+                            className="rounded-2xl border border-slate-700/70 bg-slate-900/80 px-3 py-2 text-[11px] text-slate-200 hover:border-cyan-400/70 hover:bg-slate-900/95 transition-[border-color,background-color] duration-300 smooth-gpu-card"
                           >
                             <div className="flex items-center justify-between gap-3">
                               <div className="flex items-center gap-3 min-w-0">
@@ -5206,6 +5332,291 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             })()}
                           </div>
                         ))}
+
+                        {/* Dedicated Content-First Media Feed (Media Active Mode) */}
+                        {showDirectoryMediaOnly && (
+                          filteredFeedPosts.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-16 text-center bg-slate-900/30 rounded-3xl border border-slate-800/80 p-8 shadow-inner">
+                              <span className="text-4xl mb-3 animate-pulse">🔍</span>
+                              <p className="text-[12px] font-bold text-cyan-300 uppercase tracking-widest">
+                                No {mediaFilterTab === 'all' ? 'posts' : mediaFilterTab} Found
+                              </p>
+                              <p className="text-[10px] text-slate-400 mt-1 max-w-[280px] mx-auto leading-relaxed">
+                                Nobody has uploaded any {mediaFilterTab === 'all' ? 'content' : mediaFilterTab} in this category yet.
+                              </p>
+                            </div>
+                          ) : (
+                            filteredFeedPosts.map((post) => {
+                              const item = post.author;
+                              const timeAgo = formatTimeAgo(post?.createdAt);
+                              const isVid = post?.attachmentKind === "video";
+                              const isImg = post?.attachmentKind === "image";
+                              let label = "💬 Tweet";
+                              let badgeClass = "border-indigo-500/40 bg-indigo-500/10 text-indigo-300 shadow-[0_0_10px_rgba(99,102,241,0.2)]";
+                              if (isVid) {
+                                label = "🎬 Shorts";
+                                badgeClass = "border-amber-500/40 bg-amber-500/10 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]";
+                              } else if (isImg) {
+                                label = "📷 Post";
+                                badgeClass = "border-cyan-500/40 bg-cyan-500/10 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]";
+                              }
+                              
+                              return (
+                                <div
+                                  key={post.id}
+                                  style={{ overflowAnchor: "none" }}
+                                  className="rounded-3xl border border-slate-700/60 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-4 hover:border-cyan-400/50 transition-[border-color,box-shadow] duration-300 shadow-xl group/card relative overflow-hidden smooth-gpu-card"
+                                  onClick={() => trackPostView(post.id)}
+                                >
+                                  {/* Aura Ambient Background Glow on Hover */}
+                                  <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/0 via-fuchsia-500/0 to-cyan-500/0 opacity-0 group-hover/card:opacity-[0.03] transition-opacity duration-500 pointer-events-none" />
+
+                                  {/* Header: Profile Info + Label */}
+                                  <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-800/80 mb-3.5">
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                      <div className="relative h-6.5 w-6.5 rounded-full overflow-hidden flex-shrink-0 bg-slate-800 border border-slate-700">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30 flex items-center justify-center text-[9.5px] font-bold text-white uppercase">
+                                          {(item?.handle?.[0] || item?.name?.[0] || '?').toUpperCase()}
+                                        </div>
+                                        {isValidImageUrl(item?.image) && (
+                                          <img
+                                            src={getHighResProfilePic(item.image)}
+                                            alt={item.name || item.handle || 'User'}
+                                            className="absolute inset-0 h-full w-full object-cover rounded-full"
+                                            referrerPolicy="no-referrer"
+                                            onError={(e) => {
+                                              (e.target as HTMLImageElement).style.display = 'none';
+                                            }}
+                                          />
+                                        )}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <div className="flex items-center gap-1">
+                                          <p className="truncate text-[11px] font-bold text-cyan-200 hover:text-cyan-100 transition">
+                                            @{item.handle}
+                                          </p>
+                                          {item.blueTickStatus === "SAPPHIRE" && (
+                                            <span className="flex h-3 w-3 items-center justify-center rounded-full bg-sky-500/20 border border-sky-400/80 text-[6.5px] font-bold text-sky-300 shadow-[0_0_8px_rgba(56,189,248,0.4)]">
+                                              ✓
+                                            </span>
+                                          )}
+                                          {item.isRedTick && (
+                                            <span className="flex h-3 w-3 items-center justify-center rounded-full bg-red-500/25 border border-red-400/80 text-[6.5px] font-bold text-red-300 shadow-[0_0_8px_rgba(248,113,113,0.4)]">
+                                              ✓
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className="text-[9.5px] text-slate-400 flex items-center gap-1 font-medium font-sans">
+                                          {item.name || 'Verified User'} • {timeAgo}
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                      <span className={`rounded-full border px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ${badgeClass}`}>
+                                        {label}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Text content */}
+                                  {post?.text && (
+                                    <p className="whitespace-pre-wrap text-[11.5px] text-slate-100 leading-relaxed mb-3.5 font-normal px-0.5 font-sans">
+                                      {post.text}
+                                    </p>
+                                  )}
+
+                                  {/* Image Attachment */}
+                                  {post?.media?.url && post?.media?.kind === "image" && (
+                                    <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 mb-3.5 relative shadow-lg">
+                                      <div className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center">
+                                        <StableImage src={post.media.url} alt="Post media" />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Video Attachment */}
+                                  {post?.media?.url && post?.media?.kind === "video" && (
+                                    <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 mb-3.5 relative shadow-lg">
+                                      <div className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center">
+                                        <SmartVideo
+                                          src={post.media.url}
+                                          className="h-full w-full"
+                                          preload="metadata"
+                                          autoplayMuted
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Action buttons */}
+                                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800/80 pt-3 mt-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const currentUserId = (session?.user as any)?.id;
+                                          const postAuthorId = post.authorId;
+                                          if (postAuthorId === currentUserId) {
+                                            alert('You cannot follow your own post');
+                                            return;
+                                          }
+                                          handleFollow(postAuthorId);
+                                        }}
+                                        disabled={!(session?.user as any)?.id || engagementLoading[post.authorId]?.follow}
+                                        className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer ${
+                                          followStatus[post.authorId]
+                                            ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.15)]'
+                                            : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-cyan-400/60 hover:text-cyan-200'
+                                        } ${engagementLoading[post.authorId]?.follow ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                      >
+                                        {engagementLoading[post.authorId]?.follow ? '...' : (followStatus[post.authorId] ? 'Following' : 'Follow')}
+                                      </button>
+                                      
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleReaction(post.id, 1);
+                                        }}
+                                        disabled={!(session?.user as any)?.id || engagementLoading[post.id]?.reaction}
+                                        className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer ${
+                                          postReactions[post.id]?.userReaction === 1
+                                            ? 'bg-pink-500/20 border-pink-400/60 text-pink-300 shadow-[0_0_10px_rgba(244,63,94,0.15)]'
+                                            : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-pink-400/60 hover:text-pink-200'
+                                        } ${engagementLoading[post.id]?.reaction ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                      >
+                                        {engagementLoading[post.id]?.reaction ? '...' : (
+                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                                        )}
+                                      </button>
+                                      
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleReaction(post.id, -1);
+                                        }}
+                                        disabled={!(session?.user as any)?.id || engagementLoading[post.id]?.reaction}
+                                        className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer ${
+                                          postReactions[post.id]?.userReaction === -1
+                                            ? 'bg-orange-500/20 border-orange-400/60 text-orange-300 shadow-[0_0_10px_rgba(245,158,11,0.15)]'
+                                            : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-pink-400/60 hover:text-pink-200'
+                                        } ${engagementLoading[post.id]?.reaction ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                      >
+                                        {engagementLoading[post.id]?.reaction ? '...' : (
+                                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.28a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"/></svg>
+                                        )}
+                                      </button>
+                                      
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setDirectoryOpenCommentsPostId((cur) => cur === post.id ? null : post.id);
+                                          if (!directoryOpenCommentsPostId || directoryOpenCommentsPostId !== post.id) {
+                                            fetchComments(post.id);
+                                          }
+                                        }}
+                                        className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer ${
+                                          directoryOpenCommentsPostId === post.id
+                                            ? 'bg-blue-500/20 border-blue-400/60 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.15)]'
+                                            : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-blue-400/60 hover:text-blue-200'
+                                        }`}
+                                      >
+                                        Comment
+                                      </button>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold tracking-wider">
+                                      <span>{postReactions[post.id]?.likes || post?._count?.reactions || 0} LIKES</span>
+                                      <span>•</span>
+                                      <span>{post?._count?.comments || 0} COMMENTS</span>
+                                    </div>
+                                  </div>
+
+                                  {/* Comments Section */}
+                                  {directoryOpenCommentsPostId === post.id && (
+                                    <div className="mt-3.5 rounded-2xl border border-slate-700/60 bg-slate-950/70 p-3 shadow-inner">
+                                      <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Comments</p>
+                                      
+                                      {/* Comment Input */}
+                                      {(session?.user as any)?.id && (
+                                        <div className="flex gap-2">
+                                          <input
+                                            type="text"
+                                            value={commentInputs[post.id] || ''}
+                                            onChange={(e) => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                            onKeyPress={(e) => {
+                                              if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleAddComment(post.id);
+                                              }
+                                            }}
+                                            placeholder="Add a comment..."
+                                            className="flex-1 rounded-xl border border-slate-600/70 bg-slate-900/80 px-3 py-1.5 text-[10.5px] text-slate-100 outline-none ring-0 transition focus:border-blue-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(59,130,246,0.6)]"
+                                            disabled={engagementLoading[post.id]?.comment}
+                                          />
+                                          <button
+                                            onClick={() => handleAddComment(post.id)}
+                                            disabled={!commentInputs[post.id]?.trim() || engagementLoading[post.id]?.comment}
+                                            className="rounded-xl border border-slate-600/70 bg-slate-900/80 px-3 py-1.5 text-[10px] font-bold text-slate-200 transition hover:border-blue-400 hover:bg-slate-900 focus:border-blue-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(59,130,246,0.6)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                          >
+                                            {engagementLoading[post.id]?.comment ? '...' : 'Post'}
+                                          </button>
+                                        </div>
+                                      )}
+
+                                      {/* Comments List */}
+                                      <div className="mt-3.5 space-y-2 max-h-60 overflow-y-auto scrollbar-hide">
+                                        {commentsLoading[post.id] ? (
+                                          <p className="text-[10px] text-slate-400 text-center py-2">Loading comments...</p>
+                                        ) : postComments[post.id]?.length > 0 ? (
+                                          postComments[post.id].map((comment) => (
+                                            <div key={comment.id} className="rounded-xl border border-slate-700/50 bg-slate-900/40 p-2.5">
+                                              <div className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-2">
+                                                  <div className="relative h-4.5 w-4.5 rounded-full overflow-hidden flex-shrink-0 bg-slate-800">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30 flex items-center justify-center text-[7px] font-bold text-white uppercase">
+                                                      {(comment.author.handle?.[0] || comment.author.name?.[0] || '?').toUpperCase()}
+                                                    </div>
+                                                    {isValidImageUrl(comment.author.image) && (
+                                                      <img
+                                                        src={getHighResProfilePic(comment.author.image)}
+                                                        alt={comment.author.name || 'User'}
+                                                        className="absolute inset-0 h-full w-full object-cover rounded-full"
+                                                        referrerPolicy="no-referrer"
+                                                        onError={(e) => {
+                                                          (e.target as HTMLImageElement).style.display = 'none';
+                                                        }}
+                                                      />
+                                                    )}
+                                                  </div>
+                                                  <span className="text-[9.5px] font-bold text-slate-300">
+                                                    {comment.author.name || comment.author.handle || 'Anonymous'}
+                                                  </span>
+                                                </div>
+                                                <span className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider">
+                                                  {formatTimeAgo(comment.createdAt)}
+                                                </span>
+                                              </div>
+                                              <p className="mt-1 text-[10px] text-slate-200 leading-relaxed font-normal">
+                                                {comment.content}
+                                              </p>
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <p className="text-[10px] text-slate-400 text-center py-2 font-medium">No comments yet. Be the first to comment!</p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })
+                          )
+                        )}
                       </div>
 
                       {directoryPostsLoading && (
@@ -5216,7 +5627,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       )}
                     </div>
                   </>
-                )}
+                );
+              })()
+            )}
 
                 {!directoryLoading && !directoryError && (!directoryItems || directoryItems.length === 0) && (
                   <p className="text-[11px] text-slate-500">No quantum IDs are visible in the directory yet.</p>

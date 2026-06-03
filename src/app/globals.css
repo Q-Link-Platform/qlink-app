@@ -2309,6 +2309,12 @@ html.black .glass-panel {
 .custom-directory-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(34, 211, 238, 0.25) transparent;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  will-change: scroll-position;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .custom-directory-scroll::-webkit-scrollbar {
@@ -2327,4 +2333,12 @@ html.black .glass-panel {
 
 .custom-directory-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(34, 211, 238, 0.5);
+}
+
+.smooth-gpu-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
