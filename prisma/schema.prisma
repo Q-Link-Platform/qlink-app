@@ -27,6 +27,7 @@ model User {
   sessionToken  String?
   hasClaimedReferral Boolean  @default(false)
   referredById       String?
+  publicKeyString    String?
 
   accounts              Account[]
   sessions              Session[]

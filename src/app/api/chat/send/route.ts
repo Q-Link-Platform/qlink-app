@@ -78,9 +78,14 @@ export async function POST(request: Request) {
 
       if (pushSubscriptions && pushSubscriptions.length > 0) {
         const senderHandle = (session.user as any).handle || "Someone";
+        const isEncrypted = content.trim().startsWith('{"__e2e"');
+        const notificationBody = isEncrypted
+          ? "🔒 End-to-End Encrypted Message"
+          : (content.trim().length > 100 ? `${content.trim().substring(0, 100)}...` : content.trim());
+
         const payload = {
           title: `New Message from @${senderHandle}`,
-          body: content.trim().length > 100 ? `${content.trim().substring(0, 100)}...` : content.trim(),
+          body: notificationBody,
           url: `/?chat=${senderHandle}`,
         };
 

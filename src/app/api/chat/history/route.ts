@@ -107,6 +107,7 @@ export async function GET(request: Request) {
         name: peer.name,
         email: peer.email,
         image: peer.image,
+        publicKeyString: peer.publicKeyString,
       },
       messages: messagesWithAttachments,
     });

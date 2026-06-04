@@ -287,6 +287,7 @@ export const authOptions: NextAuthOptions = {
           sUser.blue_tick_status = dbUser.blue_tick_status ?? "NONE";
           sUser.aura_percentage = dbUser.aura_percentage ?? 0;
           sUser.image = dbUser.image ?? sUser.image ?? null;
+          sUser.publicKeyString = dbUser.publicKeyString ?? null;
 
           // 2. Handle Logic:
           let handle = dbUser.handle;

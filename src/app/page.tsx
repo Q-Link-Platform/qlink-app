@@ -375,6 +375,7 @@ type ChatMessage = {
   content: string;
   createdAt: string;
   senderId: string;
+  isEncrypted?: boolean;
 };
 
 type IncomingRequest = {
@@ -458,6 +459,31 @@ export default function Home() {
   );
 }
 
+const decryptMessageList = async (
+  messages: ChatMessage[],
+  peerPublicKey: string | null
+): Promise<ChatMessage[]> => {
+  try {
+    const { decryptMessage } = await import("@/lib/e2e-crypto");
+    return await Promise.all(
+      messages.map(async (m) => {
+        const isEncrypted = m.content.trim().startsWith('{"__e2e"');
+        if (isEncrypted) {
+          if (peerPublicKey) {
+            const decrypted = await decryptMessage(m.content, peerPublicKey);
+            return { ...m, content: decrypted, isEncrypted: true };
+          }
+          return { ...m, content: "🔒 [Encrypted Message - Key Unavailable]", isEncrypted: true };
+        }
+        return m;
+      })
+    );
+  } catch (e) {
+    console.error("[E2E] Batch decryption failed:", e);
+    return messages;
+  }
+};
+
 function HomeInner({ passiveTouchRef, androidScrollRef }: { 
   passiveTouchRef?: React.Ref<HTMLDivElement>;
   androidScrollRef?: React.Ref<HTMLDivElement>;
@@ -487,6 +513,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [incomingError, setIncomingError] = useState<string | null>(null);
 
   const [activePeerHandle, setActivePeerHandle] = useState<string | null>(null);
+  const [activePeerPublicKey, setActivePeerPublicKey] = useState<string | null>(null);
   const [chatRoomId, setChatRoomId] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
@@ -2089,6 +2116,48 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id]);
 
+  // Initialize E2E Encryption Keys on login
+  useEffect(() => {
+    if (!effectiveSession?.user) return;
+
+    const setupE2EKeys = async () => {
+      try {
+        const { initE2EKeys } = await import("@/lib/e2e-crypto");
+        const publicKeyString = await initE2EKeys();
+        
+        if (!publicKeyString) return;
+
+        const serverPublicKey = (effectiveSession.user as any).publicKeyString;
+        
+        // If the server doesn't have our public key, or the key we have locally doesn't match the server
+        if (!serverPublicKey || serverPublicKey !== publicKeyString) {
+          console.log("[E2E] Syncing public key with the server...");
+          const res = await fetch("/api/user/public-key", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ publicKeyString }),
+          });
+          if (res.ok) {
+            console.log("[E2E] Public key successfully uploaded to the server.");
+            if (typeof updateSession === "function") {
+              updateSession();
+            }
+          } else {
+            console.warn("[E2E] Failed to upload public key:", res.statusText);
+          }
+        } else {
+          console.log("[E2E] Public key is already in sync with the server.");
+        }
+      } catch (err) {
+        console.error("[E2E] Setup error:", err);
+      }
+    };
+
+    setupE2EKeys();
+  }, [effectiveSession?.user, updateSession]);
+
   // Delayed loading indicator - only show "Loading..." after 300ms to prevent flash
   useEffect(() => {
     if (!idConsolePostsLoading) {
@@ -3089,15 +3158,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         );
         if (!res.ok) return;
         const data = await res.json();
+        const peerKey = data.peer?.publicKeyString || null;
+        const rawMessages = (data.messages as ChatMessage[]) || [];
+        const decryptedMessages = await decryptMessageList(rawMessages, peerKey);
+
         if (cancelled) return;
         setChatRoomId((data.roomId as string) || null);
-        const newMessages = ((data.messages as ChatMessage[]) || []).map((m) => ({
-          ...m,
-          createdAt: m.createdAt,
-        }));
+        setActivePeerPublicKey(peerKey);
         setChatMessages((prev) => {
           const seen = new Set(prev.map((m) => m.id));
-          const unique = newMessages.filter((m) => !seen.has(m.id));
+          const unique = decryptedMessages.filter((m) => !seen.has(m.id));
           return [...prev, ...unique];
         });
       } catch {
@@ -3913,8 +3983,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
 
       const data = await res.json();
+      const peerKey = data.peer?.publicKeyString || null;
+      const rawMessages = (data.messages as ChatMessage[]) || [];
+      const decryptedMessages = await decryptMessageList(rawMessages, peerKey);
+
       setChatRoomId((data.roomId as string) || null);
-      const initialMessages = ((data.messages as ChatMessage[]) || []).map((m) => ({
+      setActivePeerPublicKey(peerKey);
+      const initialMessages = decryptedMessages.map((m) => ({
         ...m,
         createdAt: m.createdAt,
       }));
@@ -3978,10 +4053,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setChatError(null);
 
     try {
+      let contentToSend = text;
+      if (activePeerPublicKey) {
+        try {
+          const { encryptMessage } = await import("@/lib/e2e-crypto");
+          contentToSend = await encryptMessage(text, activePeerPublicKey);
+        } catch (e) {
+          console.error("[E2E] Message encryption failed, sending plain text", e);
+        }
+      }
+
       const res = await fetch("/api/chat/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toHandle: activePeerHandle, content: text }),
+        body: JSON.stringify({ toHandle: activePeerHandle, content: contentToSend }),
       });
 
       if (!res.ok) {
@@ -3991,7 +4076,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
 
       const data = await res.json();
-      const message = data.message as ChatMessage;
+      const rawMessage = data.message as ChatMessage;
+      const decryptedArray = await decryptMessageList([rawMessage], activePeerPublicKey);
+      const message = decryptedArray[0];
+
       setChatMessages((prev) => {
         // Avoid duplicate if polling already added this message
         if (prev.some((m) => m.id === message.id)) return prev;
@@ -8081,8 +8169,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             >
                               {/* Text content */}
                               {displayContent && (
-                                <p className="break-words">
-                                  {renderMessageText(displayContent, !!isMe)}
+                                <p className="break-words flex items-center flex-wrap gap-1">
+                                  {m.isEncrypted && (
+                                    <span 
+                                      title="End-to-End Encrypted" 
+                                      className={`inline-flex items-center text-[11px] mr-0.5 select-none ${isMe ? "text-slate-950/60" : "text-cyan-400/80"}`}
+                                    >
+                                      🔒
+                                    </span>
+                                  )}
+                                  <span>{renderMessageText(displayContent, !!isMe)}</span>
                                 </p>
                               )}
 
