@@ -588,6 +588,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [isGlitching, setIsGlitching] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const dragCounterRef = useRef(0);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   const togglePushNotifications = async (enable: boolean) => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -2578,6 +2579,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [aspect, setAspect] = useState<number | undefined>(undefined);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any | null>(null);
 
+  // Auto-scroll chat panel to bottom
+  const scrollToBottom = () => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+    const timer = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timer);
+  }, [chatMessages, pendingImagePreviewUrl, activePeerHandle]);
+
   const handleAttachButtonClick = () => {
     if (!activePeerHandle || isUploadingAttachment) return;
     setAttachmentError(null);
@@ -2731,8 +2745,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           });
           
           setTimeout(() => {
-            if (chatPanelRef.current) {
-              chatPanelRef.current.scrollTop = chatPanelRef.current.scrollHeight;
+            if (chatScrollRef.current) {
+              chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
             }
           }, 100);
         }
@@ -8296,7 +8310,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   </div>
 
                   {/* Scrollable middle: errors + messages + pending preview at bottom */}
-                  <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide">
+                  <div ref={chatScrollRef} className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide">
                     {chatError && (
                       <p className="mt-1 text-[11px] text-rose-300">{chatError}</p>
                     )}
