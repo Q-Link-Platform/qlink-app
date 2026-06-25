@@ -2579,6 +2579,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [aspect, setAspect] = useState<number | undefined>(undefined);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any | null>(null);
 
+  const prevPendingImageUrlRef = useRef<string | null>(null);
+  const prevPeerHandleRef = useRef<string | null>(null);
+
   // Auto-scroll chat panel to bottom
   const scrollToBottom = () => {
     if (chatScrollRef.current) {
@@ -2587,9 +2590,22 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   };
 
   useEffect(() => {
-    scrollToBottom();
-    const timer = setTimeout(scrollToBottom, 100);
-    return () => clearTimeout(timer);
+    const el = chatScrollRef.current;
+    if (!el) return;
+
+    const isPeerChange = activePeerHandle !== prevPeerHandleRef.current;
+    prevPeerHandleRef.current = activePeerHandle;
+
+    const isImageTransition = pendingImagePreviewUrl && !prevPendingImageUrlRef.current;
+    prevPendingImageUrlRef.current = pendingImagePreviewUrl;
+
+    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+
+    if (isPeerChange || isImageTransition || isNearBottom) {
+      scrollToBottom();
+      const timer = setTimeout(scrollToBottom, 60);
+      return () => clearTimeout(timer);
+    }
   }, [chatMessages, pendingImagePreviewUrl, activePeerHandle]);
 
   const handleAttachButtonClick = () => {
@@ -3308,6 +3324,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         setChatMessages((prev) => {
           const seen = new Set(prev.map((m) => m.id));
           const unique = decryptedMessages.filter((m) => !seen.has(m.id));
+          if (unique.length === 0) return prev;
           return [...prev, ...unique];
         });
       } catch {
