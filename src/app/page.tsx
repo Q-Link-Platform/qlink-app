@@ -8734,65 +8734,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       })}
                     </div>
 
+                    {/* Dynamic scroll spacer when pending image preview is shown */}
+                    {pendingImagePreviewUrl && pendingImageFile && (
+                      <div className="h-[210px] w-full shrink-0 pointer-events-none" />
+                    )}
                   </div>
-
-                  {/* Pending image preview pinned statically above input box */}
-                  {pendingImagePreviewUrl && pendingImageFile && (
-                    <div
-                      ref={pendingImageRef}
-                      className="mt-2 rounded-2xl border border-slate-600/40 bg-[#09111c]/50 backdrop-blur-[2px] p-2 text-[11px] text-slate-200 shrink-0 shadow-[0_0_20px_rgba(0,0,0,0.4)] z-[50] relative"
-                    >
-                      <p className="mb-1 text-[10px] uppercase tracking-[0.18em] text-slate-400">
-                        Pending image
-                      </p>
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                        <div className="overflow-hidden rounded-xl border border-slate-700/70 bg-slate-950/80">
-                          <img
-                            src={pendingImagePreviewUrl}
-                            alt="Pending attachment"
-                            className="max-h-40 w-full object-contain sm:max-h-48 sm:w-64"
-                          />
-                        </div>
-                        <div className="flex flex-1 flex-col items-stretch gap-1 sm:items-end">
-                          <div className="w-full truncate text-left text-[10px] text-slate-400 sm:text-right">
-                            {pendingImageFile.name}
-                          </div>
-                          <div className="flex justify-start gap-2 sm:justify-end">
-                            <button
-                              type="button"
-                              disabled={isUploadingAttachment}
-                              onClick={() => {
-                                setPendingImageFile(null);
-                                setPendingImagePreviewUrl(null);
-                                setAttachmentError(null);
-                                if (imageVideoInputRef.current) imageVideoInputRef.current.value = "";
-                                if (fileInputRef.current) fileInputRef.current.value = "";
-                              }}
-                              className="inline-flex items-center justify-center rounded-full border border-rose-500/50 bg-slate-900 px-3 py-1 text-[11px] font-medium text-rose-300 hover:border-rose-400/80 hover:text-rose-200 hover:bg-rose-500/10 disabled:opacity-60 transition-all"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="button"
-                              disabled={isUploadingAttachment}
-                              onClick={handleOpenImageEditor}
-                              className="inline-flex items-center justify-center rounded-full border border-slate-500/80 bg-slate-900 px-3 py-1 text-[11px] font-medium text-slate-100 hover:border-cyan-400/80 hover:text-cyan-200 hover:bg-cyan-500/10 disabled:opacity-60 transition-all"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              disabled={isUploadingAttachment || !activePeerHandle}
-                              onClick={handleSendPendingImage}
-                              className="inline-flex items-center justify-center rounded-full border border-cyan-400/80 bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-3 py-1 text-[11px] font-medium text-slate-950 shadow-[0_0_12px_rgba(34,211,238,0.7)] disabled:opacity-60 hover:shadow-[0_0_18px_rgba(34,211,238,0.9)] transition-all"
-                            >
-                              {isUploadingAttachment ? "Sending…" : "Send"}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   {isEditingImage && pendingImagePreviewUrl && (
                     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/95 px-4">
@@ -8872,12 +8818,68 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </div>
                       </div>
                     </div>
-                  )}
-
+                  )}                  <div className="relative z-[9999] -mx-1.5 sm:-mx-2.5">
+                    {/* Pending image preview pinned statically above input box */}
+                    {pendingImagePreviewUrl && pendingImageFile && (
+                      <div
+                        ref={pendingImageRef}
+                        className="absolute bottom-[calc(100%+8px)] left-1.5 right-1.5 sm:left-2.5 sm:right-2.5 z-[50] rounded-2xl border border-slate-600/40 bg-[#09111c]/60 backdrop-blur-md p-2 text-[11px] text-slate-200 shadow-[0_0_25px_rgba(0,0,0,0.5)] transition-all"
+                      >
+                        <p className="mb-1 text-[10px] uppercase tracking-[0.18em] text-slate-400 font-semibold">
+                          Pending image
+                        </p>
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <div className="overflow-hidden rounded-xl border border-slate-700/70 bg-slate-950/80">
+                            <img
+                              src={pendingImagePreviewUrl}
+                              alt="Pending attachment"
+                              className="max-h-40 w-full object-contain sm:max-h-48 sm:w-64"
+                            />
+                          </div>
+                          <div className="flex flex-1 flex-col items-stretch gap-1 sm:items-end">
+                            <div className="w-full truncate text-left text-[10px] text-slate-400 sm:text-right">
+                              {pendingImageFile.name}
+                            </div>
+                            <div className="flex justify-start gap-2 sm:justify-end">
+                              <button
+                                type="button"
+                                disabled={isUploadingAttachment}
+                                onClick={() => {
+                                  setPendingImageFile(null);
+                                  setPendingImagePreviewUrl(null);
+                                  setAttachmentError(null);
+                                  if (imageVideoInputRef.current) imageVideoInputRef.current.value = "";
+                                  if (fileInputRef.current) fileInputRef.current.value = "";
+                                }}
+                                className="inline-flex items-center justify-center rounded-full border border-rose-500/50 bg-slate-950 px-3 py-1 text-[11px] font-medium text-rose-300 hover:border-rose-400/80 hover:text-rose-200 hover:bg-rose-500/10 disabled:opacity-60 transition-all"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isUploadingAttachment}
+                                onClick={handleOpenImageEditor}
+                                className="inline-flex items-center justify-center rounded-full border border-slate-500/80 bg-slate-950 px-3 py-1 text-[11px] font-medium text-slate-100 hover:border-cyan-400/80 hover:text-cyan-200 hover:bg-cyan-500/10 disabled:opacity-60 transition-all"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isUploadingAttachment || !activePeerHandle}
+                                onClick={handleSendPendingImage}
+                                className="inline-flex items-center justify-center rounded-full border border-cyan-400/80 bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-3 py-1 text-[11px] font-medium text-slate-950 shadow-[0_0_12px_rgba(34,211,238,0.7)] disabled:opacity-60 hover:shadow-[0_0_18px_rgba(34,211,238,0.9)] transition-all"
+                              >
+                                {isUploadingAttachment ? "Sending…" : "Send"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                   <form
                     onSubmit={handleChatSubmit}
-                    className="flex items-center gap-1.5 pt-0 relative z-[9999] -mx-1.5 sm:-mx-2.5"
+                    className="flex items-center gap-1.5 pt-0 relative z-[9999] w-full"
                   >
                     <input
                       ref={fileInputRef}
@@ -9074,6 +9076,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </>
                     )}
                   </form>
+                  </div>
                   {attachmentError && (
                     <p className="mt-1 text-[10px] text-rose-300">
                       {attachmentError}
