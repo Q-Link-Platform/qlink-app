@@ -484,6 +484,68 @@ const decryptMessageList = async (
   }
 };
 
+const playSciFiSound = (action: "on" | "off") => {
+  if (typeof window === "undefined") return;
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    
+    if (action === "on") {
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc1.type = "sine";
+      osc2.type = "triangle";
+      
+      osc1.frequency.setValueAtTime(220, now);
+      osc1.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+      
+      osc2.frequency.setValueAtTime(220, now);
+      osc2.frequency.exponentialRampToValueAtTime(1760, now + 0.15);
+      
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.25);
+      osc2.stop(now + 0.25);
+    } else {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = "sawtooth";
+      
+      osc.frequency.setValueAtTime(660, now);
+      osc.frequency.exponentialRampToValueAtTime(110, now + 0.2);
+      
+      gain.gain.setValueAtTime(0.04, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(400, now);
+      
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start(now);
+      osc.stop(now + 0.3);
+    }
+  } catch (e) {
+    console.debug("[Audio] Failed to play sci-fi sound:", e);
+  }
+};
+
 function HomeInner({ passiveTouchRef, androidScrollRef }: { 
   passiveTouchRef?: React.Ref<HTMLDivElement>;
   androidScrollRef?: React.Ref<HTMLDivElement>;
@@ -522,6 +584,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [isChatFull, setIsChatFull] = useState(false);
   const [isGlowActive, setIsGlowActive] = useState(false);
   const [isPushEnabled, setIsPushEnabled] = useState(false);
+  const [isE2EEnabled, setIsE2EEnabled] = useState(false);
+  const [isGlitching, setIsGlitching] = useState(false);
 
   const togglePushNotifications = async (enable: boolean) => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -651,20 +715,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const pendingImageRef = useRef<HTMLDivElement | null>(null);
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
 
-  // Enable global scrolling - scroll from anywhere on the page
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      if (mainScrollRef.current) {
-        mainScrollRef.current.scrollTop += e.deltaY;
-      }
-    };
+  // Disabled manual global wheel listener: It was manually updating scrollTop on every wheel event,
+  // causing double-scrolling and layout jitter/scrollbar jumping. The browser now handles scroll
+  // naturally on #main-scroll-container.
 
-    window.addEventListener('wheel', handleWheel, { passive: true });
-
-    return () => {
-      window.removeEventListener('wheel', handleWheel);
-    };
-  }, []);
 
   // Helper to convert VAPID public key from Base64 URL to Uint8Array required by pushManager
   const urlBase64ToUint8Array = (base64String: string) => {
@@ -2122,33 +2176,58 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     const setupE2EKeys = async () => {
       try {
-        const { initE2EKeys } = await import("@/lib/e2e-crypto");
-        const publicKeyString = await initE2EKeys();
+        const serverPublicKey = (effectiveSession.user as any).publicKeyString;
+        const serverEncryptedPrivateKey = (effectiveSession.user as any).encryptedPrivateKey;
+        const masterSeed = (effectiveSession.user as any).e2eMasterSeed;
+
+        const { initE2EKeys, backupPrivateKey } = await import("@/lib/e2e-crypto");
+        const publicKeyString = await initE2EKeys(
+          serverEncryptedPrivateKey,
+          serverPublicKey,
+          masterSeed
+        );
         
         if (!publicKeyString) return;
 
-        const serverPublicKey = (effectiveSession.user as any).publicKeyString;
-        
-        // If the server doesn't have our public key, or the key we have locally doesn't match the server
-        if (!serverPublicKey || serverPublicKey !== publicKeyString) {
-          console.log("[E2E] Syncing public key with the server...");
-          const res = await fetch("/api/user/public-key", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ publicKeyString }),
-          });
-          if (res.ok) {
-            console.log("[E2E] Public key successfully uploaded to the server.");
-            if (typeof updateSession === "function") {
-              updateSession();
+        // Determine if we need to upload a backup or update keys
+        const needsPublicKeyUpload = !serverPublicKey || serverPublicKey !== publicKeyString;
+        const needsBackupUpload = !serverEncryptedPrivateKey && !!masterSeed;
+
+        if (needsPublicKeyUpload || needsBackupUpload) {
+          console.log("[E2E] Syncing keys with the server...");
+          
+          let encryptedPrivateKey: string | undefined = undefined;
+          if (masterSeed) {
+            // Attempt to generate a backup of the private key
+            const backupStr = await backupPrivateKey(masterSeed);
+            if (backupStr) {
+              encryptedPrivateKey = backupStr;
             }
-          } else {
-            console.warn("[E2E] Failed to upload public key:", res.statusText);
+          }
+
+          // Only upload if we have a new public key or if we successfully created a backup
+          if (needsPublicKeyUpload || encryptedPrivateKey) {
+            const res = await fetch("/api/user/public-key", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ 
+                publicKeyString,
+                ...(encryptedPrivateKey ? { encryptedPrivateKey } : {})
+              }),
+            });
+            if (res.ok) {
+              console.log("[E2E] Keys successfully synced/backed up to the server.");
+              if (typeof updateSession === "function") {
+                updateSession();
+              }
+            } else {
+              console.warn("[E2E] Failed to sync keys:", res.statusText);
+            }
           }
         } else {
-          console.log("[E2E] Public key is already in sync with the server.");
+          console.log("[E2E] E2E keys and backups are in sync with the server.");
         }
       } catch (err) {
         console.error("[E2E] Setup error:", err);
@@ -4054,7 +4133,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     try {
       let contentToSend = text;
-      if (activePeerPublicKey) {
+      if (activePeerPublicKey && isE2EEnabled) {
         try {
           const { encryptMessage } = await import("@/lib/e2e-crypto");
           contentToSend = await encryptMessage(text, activePeerPublicKey);
@@ -5739,9 +5818,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             scrollBehavior: 'smooth',
             overscrollBehaviorY: 'contain',
             WebkitOverflowScrolling: 'touch',
-            scrollSnapType: 'y proximity',
-            scrollPaddingTop: '0px',
-            scrollPaddingBottom: '0px'
           }}>
         <style jsx>{`
           @keyframes glow-pulse {
@@ -6219,6 +6295,53 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 className={
                                   "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
                                   (isPushEnabled
+                                    ? "bg-cyan-500/80 text-slate-950 shadow-[0_0_8px_rgba(6,182,212,0.4)]"
+                                    : "text-slate-300 hover:text-slate-100")
+                                }
+                              >
+                                On
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* E2E Encryption Toggle Section */}
+                        <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-medium text-slate-200">E2E Encryption Shield</span>
+                            <span className={`text-[11px] font-semibold transition ${isE2EEnabled ? "text-cyan-300" : "text-slate-400"}`}>
+                              {isE2EEnabled ? "● Active" : "● Standard"}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] text-slate-500">Standard mode is optimized for messaging performance</span>
+                            <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!isE2EEnabled) return;
+                                  setIsE2EEnabled(false);
+                                  playSciFiSound("off");
+                                }}
+                                className={
+                                  "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
+                                  (!isE2EEnabled
+                                    ? "bg-slate-200 text-slate-950 shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                                    : "text-slate-300 hover:text-slate-100")
+                                }
+                              >
+                                Off
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (isE2EEnabled) return;
+                                  setIsE2EEnabled(true);
+                                  playSciFiSound("on");
+                                }}
+                                className={
+                                  "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
+                                  (isE2EEnabled
                                     ? "bg-cyan-500/80 text-slate-950 shadow-[0_0_8px_rgba(6,182,212,0.4)]"
                                     : "text-slate-300 hover:text-slate-100")
                                 }

@@ -91,17 +91,22 @@ export async function POST(request: Request) {
 
         const { sendPushNotification } = await import("@/lib/push");
         
-        // We don't await the outer Promise.allSettled to respond instantly to the user
-        Promise.allSettled(
+        // We await the Promise.allSettled to ensure Vercel completes sending push notifications before returning the response
+        await Promise.allSettled(
           pushSubscriptions.map((sub: any) =>
-            sendPushNotification(sub, payload).catch((err: any) => {
+            sendPushNotification(sub, payload).catch(async (err: any) => {
               // Automatically prune expired/invalid notification endpoints
               if (err.statusCode === 410 || err.statusCode === 404) {
-                (prisma as any).pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
+                try {
+                  await (prisma as any).pushSubscription.delete({ where: { id: sub.id } });
+                  console.log(`[PUSH] Pruned expired subscription: ${sub.id}`);
+                } catch (dbErr) {
+                  console.error(`[PUSH] Failed to prune subscription: ${sub.id}`, dbErr);
+                }
               }
             })
           )
-        ).catch((err) => console.error("[PUSH ERROR]", err));
+        );
       }
     } catch (pushErr) {
       console.error("[PUSH ERROR IN SEND ROUTE]", pushErr);

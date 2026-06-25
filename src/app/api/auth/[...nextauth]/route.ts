@@ -1,4 +1,5 @@
 import NextAuth from "next-auth";
+import crypto from "crypto";
 import GoogleProvider from "next-auth/providers/google";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import GitHubProvider from "next-auth/providers/github";
@@ -288,6 +289,13 @@ export const authOptions: NextAuthOptions = {
           sUser.aura_percentage = dbUser.aura_percentage ?? 0;
           sUser.image = dbUser.image ?? sUser.image ?? null;
           sUser.publicKeyString = dbUser.publicKeyString ?? null;
+          sUser.encryptedPrivateKey = dbUser.encryptedPrivateKey ?? null;
+          
+          // Securely derive user-specific E2E Master Seed from user ID and server secret
+          sUser.e2eMasterSeed = crypto
+            .createHmac("sha256", process.env.NEXTAUTH_SECRET || "fallback-secret-for-dev-only-change-in-production")
+            .update(dbUser.id)
+            .digest("hex");
 
           // 2. Handle Logic:
           let handle = dbUser.handle;

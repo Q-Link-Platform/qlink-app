@@ -50,15 +50,20 @@ export async function POST(request: Request) {
 
           const { sendPushNotification } = await import("@/lib/push");
 
-          Promise.allSettled(
+          await Promise.allSettled(
             pushSubscriptions.map((sub: any) =>
-              sendPushNotification(sub, payload).catch((err: any) => {
+              sendPushNotification(sub, payload).catch(async (err: any) => {
                 if (err.statusCode === 410 || err.statusCode === 404) {
-                  (prisma as any).pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
+                  try {
+                    await (prisma as any).pushSubscription.delete({ where: { id: sub.id } });
+                    console.log(`[PUSH] Pruned expired subscription: ${sub.id}`);
+                  } catch (dbErr) {
+                    console.error(`[PUSH] Failed to prune subscription: ${sub.id}`, dbErr);
+                  }
                 }
               })
             )
-          ).catch((err) => console.error("[PUSH ERROR]", err));
+          );
         }
       } catch (pushErr) {
         console.error("[PUSH ERROR IN DECIDE ROUTE]", pushErr);

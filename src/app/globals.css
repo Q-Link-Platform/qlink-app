@@ -2336,8 +2336,6 @@ html.black .glass-panel {
 }
 
 .smooth-gpu-card {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 600px;
   transform: translateZ(0);
   backface-visibility: hidden;
   will-change: transform;

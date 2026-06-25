@@ -28,6 +28,7 @@ model User {
   hasClaimedReferral Boolean  @default(false)
   referredById       String?
   publicKeyString    String?
+  encryptedPrivateKey String?
 
   accounts              Account[]
   sessions              Session[]

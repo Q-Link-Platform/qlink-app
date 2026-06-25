@@ -14,7 +14,7 @@ export async function POST(request: Request) {
 
     const userId = (session.user as any).id as string;
     const body = await request.json().catch(() => ({} as any));
-    const { publicKeyString } = body;
+    const { publicKeyString, encryptedPrivateKey } = body;
 
     if (typeof publicKeyString !== "string") {
       return NextResponse.json(
@@ -23,14 +23,25 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update the user's public key in the database
+    if (encryptedPrivateKey !== undefined && typeof encryptedPrivateKey !== "string") {
+      return NextResponse.json(
+        { error: "Invalid encryptedPrivateKey format" },
+        { status: 400 }
+      );
+    }
+
+    // Update the user's public key and encrypted private key backup in the database
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { publicKeyString },
+      data: {
+        publicKeyString,
+        ...(encryptedPrivateKey !== undefined ? { encryptedPrivateKey } : {}),
+      },
       select: {
         id: true,
         handle: true,
         publicKeyString: true,
+        encryptedPrivateKey: true,
       },
     });
 

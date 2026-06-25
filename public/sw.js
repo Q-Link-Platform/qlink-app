@@ -27,16 +27,20 @@ self.addEventListener("push", (event) => {
     };
 
     const promise = (async () => {
-      // 1. Show the notification
-      await self.registration.showNotification(title || "Q-link Alert", options);
+      try {
+        // 1. Show the notification
+        await self.registration.showNotification(title || "Q-link Alert", options);
 
-      // 2. Query all currently showing notifications to compute the count
-      const activeNotifications = await self.registration.getNotifications();
-      const count = activeNotifications.length;
+        // 2. Query all currently showing notifications to compute the count
+        const activeNotifications = await self.registration.getNotifications();
+        const count = activeNotifications.length;
 
-      // 3. Update the App Badge
-      if (navigator && "setAppBadge" in navigator) {
-        await navigator.setAppBadge(count);
+        // 3. Update the App Badge
+        if (typeof navigator !== "undefined" && navigator && "setAppBadge" in navigator) {
+          await navigator.setAppBadge(count);
+        }
+      } catch (err) {
+        console.error("Error inside push event handler promise:", err);
       }
     })();
 
@@ -52,33 +56,37 @@ self.addEventListener("notificationclick", (event) => {
   const targetUrl = event.notification.data?.url || "/";
 
   const promise = (async () => {
-    // 1. Update the app badge with the remaining active notifications count
-    const activeNotifications = await self.registration.getNotifications();
-    const count = activeNotifications.length;
-    if (navigator && "setAppBadge" in navigator) {
-      if (count > 0) {
-        await navigator.setAppBadge(count);
-      } else {
-        await navigator.clearAppBadge();
-      }
-    }
-
-    // 2. Open or focus the client window
-    const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    for (const client of clientList) {
-      if (client.url.includes(self.location.origin) && "focus" in client) {
-        // Send a message to the client to handle navigation if needed
-        try {
-          client.postMessage({ type: "NAVIGATE", url: targetUrl });
-        } catch (e) {
-          console.error("Failed to post message to client:", e);
+    try {
+      // 1. Update the app badge with the remaining active notifications count
+      const activeNotifications = await self.registration.getNotifications();
+      const count = activeNotifications.length;
+      if (typeof navigator !== "undefined" && navigator && "setAppBadge" in navigator) {
+        if (count > 0) {
+          await navigator.setAppBadge(count);
+        } else {
+          await navigator.clearAppBadge();
         }
-        return client.focus();
       }
-    }
-    // If no window is open, open a new one
-    if (self.clients.openWindow) {
-      return self.clients.openWindow(targetUrl);
+
+      // 2. Open or focus the client window
+      const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const client of clientList) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          // Send a message to the client to handle navigation if needed
+          try {
+            client.postMessage({ type: "NAVIGATE", url: targetUrl });
+          } catch (e) {
+            console.error("Failed to post message to client:", e);
+          }
+          return client.focus();
+        }
+      }
+      // If no window is open, open a new one
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+    } catch (err) {
+      console.error("Error inside notificationclick event handler promise:", err);
     }
   })();
 
