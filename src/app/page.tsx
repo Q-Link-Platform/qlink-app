@@ -8740,7 +8740,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   {pendingImagePreviewUrl && pendingImageFile && (
                     <div
                       ref={pendingImageRef}
-                      className="mt-2 rounded-2xl border border-slate-600/70 bg-slate-900/90 p-2 text-[11px] text-slate-200 shrink-0 shadow-[0_0_20px_rgba(0,0,0,0.4)] z-[50] relative"
+                      className="mt-2 rounded-2xl border border-slate-600/40 bg-[#09111c]/50 backdrop-blur-[2px] p-2 text-[11px] text-slate-200 shrink-0 shadow-[0_0_20px_rgba(0,0,0,0.4)] z-[50] relative"
                     >
                       <p className="mb-1 text-[10px] uppercase tracking-[0.18em] text-slate-400">
                         Pending image
