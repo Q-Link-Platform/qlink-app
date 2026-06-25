@@ -586,6 +586,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [isPushEnabled, setIsPushEnabled] = useState(false);
   const [isE2EEnabled, setIsE2EEnabled] = useState(false);
   const [isGlitching, setIsGlitching] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const dragCounterRef = useRef(0);
 
   const togglePushNotifications = async (enable: boolean) => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -2748,12 +2750,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     mediaRecorder.stop();
   };
 
-  const handleAttachmentSelected = async (
-    e: ChangeEvent<HTMLInputElement>,
+  const processSelectedFile = async (
+    selected: File,
     kind: "file" | "video" | "image_video",
   ) => {
-    const selected = e.target.files?.[0];
-    if (!selected || !activePeerHandle) return;
+    if (!activePeerHandle) return;
 
     // Detect actual target upload kind based on selection
     let targetKind: "file" | "video" = "file";
@@ -2783,11 +2784,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       setIsEditingImage(false);
       setAttachmentError(null);
       setShowAttachMenu(false);
-      try {
-        e.target.value = "";
-      } catch {
-        // ignore reset issues
-      }
       return;
     }
 
@@ -2824,11 +2820,62 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       setAttachmentError("Unable to upload attachment. Please try again.");
     } finally {
       setIsUploadingAttachment(false);
-      try {
-        e.target.value = "";
-      } catch {
-        // ignore reset issues
-      }
+    }
+  };
+
+  const handleAttachmentSelected = async (
+    e: ChangeEvent<HTMLInputElement>,
+    kind: "file" | "video" | "image_video",
+  ) => {
+    const selected = e.target.files?.[0];
+    if (!selected || !activePeerHandle) return;
+
+    await processSelectedFile(selected, kind);
+
+    try {
+      e.target.value = "";
+    } catch {
+      // ignore reset issues
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    if (!activePeerHandle) return;
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current += 1;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDraggingFile(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!activePeerHandle) return;
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current -= 1;
+    if (dragCounterRef.current === 0) {
+      setIsDraggingFile(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    if (!activePeerHandle) return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    if (!activePeerHandle) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(false);
+    dragCounterRef.current = 0;
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      await processSelectedFile(file, "image_video");
     }
   };
 
@@ -7619,6 +7666,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           {/* RIGHT: CONNECT FLOW / CHAT */}
           <section
             ref={chatPanelRef}
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
             className={
               "relative overflow-hidden scrollbar-hide " +
               (isChatFull
@@ -7626,6 +7677,49 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 : "flex h-auto min-h-full flex-1 flex-col px-4 lg:px-6 py-4")
             }
           >
+            {isDraggingFile && (
+              <div
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className="absolute inset-0 z-[200] flex flex-col items-center justify-center bg-slate-950/85 backdrop-blur-md border-2 border-dashed border-cyan-400/80 rounded-2xl m-3 sm:m-4 animate-float-in"
+              >
+                {/* Tech corner elements */}
+                <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-cyan-400 pointer-events-none" />
+                <div className="absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-cyan-400 pointer-events-none" />
+                <div className="absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-cyan-400 pointer-events-none" />
+                <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-cyan-400 pointer-events-none" />
+
+                {/* Glowing Drop Area Icon */}
+                <div className="relative mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-cyan-500/40 bg-cyan-500/10 shadow-[0_0_20px_rgba(6,182,212,0.3)] animate-pulse pointer-events-none">
+                  <svg
+                    className="h-8 w-8 text-cyan-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.8}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 16.5 4.5H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Z"
+                    />
+                  </svg>
+                </div>
+
+                <h3 className="text-sm font-black uppercase tracking-[0.25em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300 pointer-events-none">
+                  Quantum Link Upload
+                </h3>
+                <p className="mt-2 text-xs text-slate-300 text-center font-medium px-6 pointer-events-none">
+                  Drop files here to send securely to @{activePeerHandle}
+                </p>
+                <span className="mt-1 text-[9px] font-mono text-slate-500 uppercase tracking-widest pointer-events-none">
+                  Maximum file size: 50MB
+                </span>
+              </div>
+            )}
+
             <div className="glow-ping pointer-events-none absolute inset-0 rounded-2xl" />
 
             <div
