@@ -3108,10 +3108,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     const handleClose = () => setContextMenu(null);
 
     const handleGlobalContextMenu = (e: MouseEvent) => {
+      e.preventDefault(); // Block native browser context menu app-wide
       const target = e.target as HTMLElement;
       const bubble = target.closest("[data-message-bubble]");
       if (bubble) {
-        e.preventDefault();
         setContextMenu(null);
         
         const messageId = bubble.getAttribute("data-message-id") || "";
