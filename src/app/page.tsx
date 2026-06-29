@@ -3157,18 +3157,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setSelectedMessageIds(new Set(chatMessages.map((m) => m.id)));
   };
 
-  const isSelectionModeRef = useRef(isSelectionMode);
-  useEffect(() => {
-    isSelectionModeRef.current = isSelectionMode;
-  }, [isSelectionMode]);
-
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (target.closest("[data-context-menu]")) {
         return;
       }
-      if (isSelectionModeRef.current) {
+      if (isSelectionMode) {
         const bubble = target.closest("[data-message-bubble]");
         if (bubble) {
           e.preventDefault();
@@ -3282,7 +3277,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchcancel", handleTouchEnd);
     };
-  }, []);
+  }, [isSelectionMode]);
 
   const handleOpenImageEditor = () => {
     if (!pendingImageFile || !pendingImagePreviewUrl) return;
@@ -8740,6 +8735,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         return (
                           <div
                             key={m.id}
+                            data-message-bubble
+                            data-message-id={m.id}
+                            data-message-isme={String(!!isMe)}
+                            data-message-content={m.content}
                             className="flex items-center w-full transition-all duration-300 ease-out"
                           >
                             {/* Glowing Checkbox */}
@@ -8767,10 +8766,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             {/* Bubble Alignments */}
                             <div className={`flex-1 flex ${isMe ? "justify-end" : "justify-start"}`}>
                               <div
-                                data-message-bubble
-                                data-message-id={m.id}
-                                data-message-isme={String(!!isMe)}
-                                data-message-content={m.content}
                                 style={{ WebkitTouchCallout: "none" }}
                                 className={
                                   isMe
