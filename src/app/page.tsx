@@ -2755,9 +2755,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         }
 
         if (data.message) {
+          const fullMessage = {
+            ...data.message,
+            attachments: data.attachment
+              ? [
+                  {
+                    ...data.attachment,
+                    sizeBytes: String(data.attachment.size),
+                  },
+                ]
+              : [],
+          };
           setChatMessages((prev) => {
-            if (prev.some((m) => m.id === data.message.id)) return prev;
-            return [...prev, data.message as ChatMessage];
+            if (prev.some((m) => m.id === fullMessage.id)) return prev;
+            return [...prev, fullMessage as ChatMessage];
           });
           
           setTimeout(() => {
@@ -2840,10 +2851,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
 
       if (data.message) {
+        const fullMessage = {
+          ...data.message,
+          attachments: data.attachment
+            ? [
+                {
+                  ...data.attachment,
+                  sizeBytes: String(data.attachment.size),
+                },
+              ]
+            : [],
+        };
         setChatMessages((prev) => {
-          // Avoid duplicate if polling already added this message
-          if (prev.some((m) => m.id === data.message.id)) return prev;
-          return [...prev, data.message as ChatMessage];
+          if (prev.some((m) => m.id === fullMessage.id)) return prev;
+          return [...prev, fullMessage as ChatMessage];
         });
       }
     } catch {
@@ -2934,10 +2955,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
 
       if (data.message) {
+        const fullMessage = {
+          ...data.message,
+          attachments: data.attachment
+            ? [
+                {
+                  ...data.attachment,
+                  sizeBytes: String(data.attachment.size),
+                },
+              ]
+            : [],
+        };
         setChatMessages((prev) => {
-          // Avoid duplicate if polling already added this message
-          if (prev.some((m) => m.id === data.message.id)) return prev;
-          return [...prev, data.message as ChatMessage];
+          if (prev.some((m) => m.id === fullMessage.id)) return prev;
+          return [...prev, fullMessage as ChatMessage];
         });
       }
 
