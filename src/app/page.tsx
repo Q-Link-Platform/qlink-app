@@ -3160,11 +3160,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (target.closest("[data-context-menu]")) {
+      const isContextMenuClick = target && typeof target.closest === "function" && target.closest("[data-context-menu]");
+      if (isContextMenuClick) {
         return;
       }
       if (isSelectionMode) {
-        const bubble = target.closest("[data-message-bubble]");
+        const bubble = target && typeof target.closest === "function" ? target.closest("[data-message-bubble]") : null;
         if (bubble) {
           e.preventDefault();
           e.stopPropagation();
@@ -3187,10 +3188,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     const handleGlobalContextMenu = (e: MouseEvent) => {
       e.preventDefault(); // Block native browser context menu app-wide
       const target = e.target as HTMLElement;
-      if (target.closest("[data-context-menu]")) {
+      const isContextMenuClick = target && typeof target.closest === "function" && target.closest("[data-context-menu]");
+      if (isContextMenuClick) {
         return;
       }
-      const bubble = target.closest("[data-message-bubble]");
+      const bubble = target && typeof target.closest === "function" ? target.closest("[data-message-bubble]") : null;
       if (bubble) {
         setContextMenu(null);
         
@@ -3218,7 +3220,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     const handleTouchStart = (e: TouchEvent) => {
       const target = e.target as HTMLElement;
-      const bubble = target.closest("[data-message-bubble]");
+      const bubble = target && typeof target.closest === "function" ? target.closest("[data-message-bubble]") : null;
       if (bubble) {
         touchStarted = true;
         const touch = e.touches[0];
