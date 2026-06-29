@@ -8631,11 +8631,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         )}
                     </p>
                     <div className="flex items-center gap-2">
-                      {chatRoomId && (
-                        <span className="hidden text-[10px] text-slate-500 sm:inline">
-                          room: {chatRoomId.slice(0, 8)}…
-                        </span>
-                      )}
                       <button
                         type="button"
                         onClick={toggleChatFull}
