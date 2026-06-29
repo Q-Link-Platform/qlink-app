@@ -9182,33 +9182,23 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       <div
                         className="absolute bottom-[calc(100%+8px)] left-1.5 right-1.5 sm:left-2.5 sm:right-2.5 z-[50] rounded-2xl border border-cyan-500/40 bg-[#09111c]/95 p-3 text-[11px] text-slate-200 shadow-[0_0_30px_rgba(6,182,212,0.35)] backdrop-blur-md transition-all duration-300 animate-slide-up flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
                       >
-                        {/* Title & Telemetry */}
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-cyan-950/50 border border-cyan-400/50 text-cyan-400 animate-pulse">
-                            <span className="font-mono text-xs font-black">!</span>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-400 font-mono">
-                              Secure Node Selection
-                            </p>
-                            <p className="text-[9px] text-slate-400 font-mono mt-0.5 uppercase tracking-wider">
-                              {selectedMessageIds.size} Node(s) Selected / Active Session
-                            </p>
-                          </div>
+                        {/* Title & Selection Count */}
+                        <div className="flex items-center gap-2 px-1">
+                          <div className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#22d3ee]" />
+                          <span className="text-xs font-bold text-slate-200 font-sans tracking-wide">
+                            {selectedMessageIds.size} message{selectedMessageIds.size !== 1 ? "s" : ""} selected
+                          </span>
                         </div>
 
                         {/* Actions Panel */}
-                        <div className="flex items-center justify-end gap-2.5 flex-wrap">
+                        <div className="flex items-center justify-end gap-2 flex-wrap">
                           {/* Select All */}
                           <button
                             type="button"
                             onClick={handleSelectAll}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1.5 text-[10px] font-bold text-slate-300 uppercase tracking-widest font-mono hover:border-cyan-500/50 hover:text-cyan-300 active:scale-95 transition-all duration-150"
+                            className="px-3.5 py-1.5 rounded-xl border border-slate-800 bg-slate-900/40 text-[10px] font-bold text-slate-300 uppercase tracking-wider transition hover:border-cyan-500/30 hover:text-cyan-400 active:scale-95 duration-150"
                           >
-                            <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2z" />
-                            </svg>
-                            <span>Select All</span>
+                            Select All
                           </button>
 
                           {/* Delete Selected (only if there are own messages selected) */}
@@ -9220,12 +9210,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 (m) => selectedMessageIds.has(m.id) && m.senderId === meId
                               ).length === 0
                             }
-                            className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-950/20 px-3 py-1.5 text-[10px] font-bold text-rose-400 uppercase tracking-widest font-mono hover:bg-rose-950/50 hover:text-rose-300 disabled:opacity-30 disabled:pointer-events-none active:scale-95 transition-all duration-150 shadow-[0_0_10px_rgba(244,63,94,0.1)] hover:shadow-[0_0_15px_rgba(244,63,94,0.3)]"
+                            className="px-3.5 py-1.5 rounded-xl border border-rose-500/25 bg-rose-500/5 text-[10px] font-bold text-rose-400 uppercase tracking-wider transition hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-300 disabled:opacity-20 disabled:pointer-events-none active:scale-95 duration-150 shadow-[0_0_8px_rgba(244,63,94,0.05)] hover:shadow-[0_0_12px_rgba(244,63,94,0.15)]"
                           >
-                            <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            <span>Delete Selected</span>
+                            Delete Selected
                           </button>
 
                           {/* Cancel / Dismiss */}
@@ -9235,9 +9222,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               setIsSelectionMode(false);
                               setSelectedMessageIds(new Set());
                             }}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950/80 px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono hover:border-slate-500 hover:text-slate-200 active:scale-95 transition-all duration-150"
+                            className="px-3.5 py-1.5 rounded-xl border border-slate-800 bg-slate-900/40 text-[10px] font-bold text-slate-400 uppercase tracking-wider transition hover:border-slate-700 hover:text-slate-200 active:scale-95 duration-150"
                           >
-                            <span>Cancel</span>
+                            Cancel
                           </button>
                         </div>
                       </div>
