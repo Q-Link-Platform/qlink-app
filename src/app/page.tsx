@@ -3121,10 +3121,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       return;
     }
 
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete the ${ownMessagesCount} message(s) you sent for everyone?`
-    );
-    if (!confirmDelete) return;
+
 
     try {
       const res = await fetch("/api/chat/delete-bulk", {
