@@ -3164,8 +3164,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest("[data-context-menu]")) {
+        return;
+      }
       if (isSelectionModeRef.current) {
-        const target = e.target as HTMLElement;
         const bubble = target.closest("[data-message-bubble]");
         if (bubble) {
           e.preventDefault();
@@ -3189,6 +3192,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     const handleGlobalContextMenu = (e: MouseEvent) => {
       e.preventDefault(); // Block native browser context menu app-wide
       const target = e.target as HTMLElement;
+      if (target.closest("[data-context-menu]")) {
+        return;
+      }
       const bubble = target.closest("[data-message-bubble]");
       if (bubble) {
         setContextMenu(null);
@@ -11173,6 +11179,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
         return (
           <div
+            data-context-menu
             style={{
               position: "fixed",
               top: topPos,
