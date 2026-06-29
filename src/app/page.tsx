@@ -3106,11 +3106,96 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   useEffect(() => {
     const handleClose = () => setContextMenu(null);
+
+    const handleGlobalContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const bubble = target.closest("[data-message-bubble]");
+      if (bubble) {
+        e.preventDefault();
+        setContextMenu(null);
+        
+        const messageId = bubble.getAttribute("data-message-id") || "";
+        const isMe = bubble.getAttribute("data-message-isme") === "true";
+        const content = bubble.getAttribute("data-message-content") || "";
+
+        // Add a micro-delay to prevent immediate closure if clicked coordinates propagate
+        setTimeout(() => {
+          setContextMenu({
+            x: e.clientX,
+            y: e.clientY,
+            messageId,
+            isMe,
+            content,
+          });
+        }, 10);
+      } else {
+        setContextMenu(null);
+      }
+    };
+
+    let touchTimer: NodeJS.Timeout | null = null;
+    let touchStarted = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      const target = e.target as HTMLElement;
+      const bubble = target.closest("[data-message-bubble]");
+      if (bubble) {
+        touchStarted = true;
+        const touch = e.touches[0];
+        const clientX = touch.clientX;
+        const clientY = touch.clientY;
+        const messageId = bubble.getAttribute("data-message-id") || "";
+        const isMe = bubble.getAttribute("data-message-isme") === "true";
+        const content = bubble.getAttribute("data-message-content") || "";
+
+        if (touchTimer) clearTimeout(touchTimer);
+        touchTimer = setTimeout(() => {
+          if (touchStarted) {
+            if (typeof navigator !== "undefined" && navigator.vibrate) {
+              navigator.vibrate(50);
+            }
+            setContextMenu({
+              x: clientX,
+              y: clientY,
+              messageId,
+              isMe,
+              content,
+            });
+          }
+        }, 600);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      touchStarted = false;
+      if (touchTimer) {
+        clearTimeout(touchTimer);
+        touchTimer = null;
+      }
+    };
+
+    const handleTouchMove = () => {
+      touchStarted = false;
+      if (touchTimer) {
+        clearTimeout(touchTimer);
+        touchTimer = null;
+      }
+    };
+
     window.addEventListener("click", handleClose);
-    window.addEventListener("contextmenu", handleClose);
+    window.addEventListener("contextmenu", handleGlobalContextMenu);
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+
     return () => {
       window.removeEventListener("click", handleClose);
-      window.removeEventListener("contextmenu", handleClose);
+      window.removeEventListener("contextmenu", handleGlobalContextMenu);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchcancel", handleTouchEnd);
     };
   }, []);
 
@@ -8571,10 +8656,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                           >
                             <div
-                              onContextMenu={(e) => handleMessageContextMenu(e, m.id, !!isMe, m.content)}
-                              onTouchStart={(e) => handleMessageTouchStart(e, m.id, !!isMe, m.content)}
-                              onTouchEnd={handleMessageTouchEnd}
-                              onTouchMove={handleMessageTouchMove}
+                              data-message-bubble
+                              data-message-id={m.id}
+                              data-message-isme={String(!!isMe)}
+                              data-message-content={m.content}
                               style={{ WebkitTouchCallout: "none" }}
                               className={
                                 isMe
