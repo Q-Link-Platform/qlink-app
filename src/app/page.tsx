@@ -2579,6 +2579,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [aspect, setAspect] = useState<number | undefined>(undefined);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any | null>(null);
 
+  // Message Context Menu state & touch long-press tracking
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    messageId: string;
+    isMe: boolean;
+    content: string;
+  } | null>(null);
+  const touchTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartedRef = useRef<boolean>(false);
+
   const prevPendingImageUrlRef = useRef<string | null>(null);
   const prevPeerHandleRef = useRef<string | null>(null);
 
@@ -2990,6 +3001,119 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   };
 
+  // Chat message context menu & long-press event handlers
+  const handleMessageContextMenu = (
+    e: React.MouseEvent,
+    messageId: string,
+    isMe: boolean,
+    content: string
+  ) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      messageId,
+      isMe,
+      content,
+    });
+  };
+
+  const handleMessageTouchStart = (
+    e: React.TouchEvent,
+    messageId: string,
+    isMe: boolean,
+    content: string
+  ) => {
+    touchStartedRef.current = true;
+    const clientX = e.touches[0].clientX;
+    const clientY = e.touches[0].clientY;
+    if (touchTimerRef.current) clearTimeout(touchTimerRef.current);
+    touchTimerRef.current = setTimeout(() => {
+      if (touchStartedRef.current) {
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          navigator.vibrate(50);
+        }
+        setContextMenu({
+          x: clientX,
+          y: clientY,
+          messageId,
+          isMe,
+          content,
+        });
+      }
+    }, 600);
+  };
+
+  const handleMessageTouchEnd = () => {
+    touchStartedRef.current = false;
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
+  };
+
+  const handleMessageTouchMove = () => {
+    touchStartedRef.current = false;
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const res = await fetch("/api/chat/delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ messageId }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Delete failed" }));
+        alert(`Delete failed: ${err.error || "Unknown error"}`);
+        return;
+      }
+
+      setChatMessages((prev) => prev.filter((m) => m.id !== messageId));
+    } catch (err) {
+      console.error("[Delete Message] Error:", err);
+      alert("Failed to delete message due to network error.");
+    } finally {
+      setContextMenu(null);
+    }
+  };
+
+  const handleCopyMessageText = (content: string) => {
+    let textToCopy = content;
+    try {
+      if (content.startsWith('{"__e2e":true')) {
+        const parsed = JSON.parse(content);
+        textToCopy = parsed.ciphertext || content;
+      }
+    } catch {
+      // ignore
+    }
+
+    textToCopy = textToCopy.replace(/^\[(FILE|VIDEO) attachment\]\s*/i, "");
+
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(textToCopy);
+    }
+    setContextMenu(null);
+  };
+
+  useEffect(() => {
+    const handleClose = () => setContextMenu(null);
+    window.addEventListener("click", handleClose);
+    window.addEventListener("contextmenu", handleClose);
+    return () => {
+      window.removeEventListener("click", handleClose);
+      window.removeEventListener("contextmenu", handleClose);
+    };
+  }, []);
+
   const handleOpenImageEditor = () => {
     if (!pendingImageFile || !pendingImagePreviewUrl) return;
     setIsEditingImage(true);
@@ -3353,10 +3477,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         setChatRoomId((data.roomId as string) || null);
         setActivePeerPublicKey(peerKey);
         setChatMessages((prev) => {
-          const seen = new Set(prev.map((m) => m.id));
+          const decryptedIds = new Set(decryptedMessages.map((m) => m.id));
+          const filteredPrev = prev.filter(
+            (m) => decryptedIds.has(m.id) || m.id.startsWith("temp-")
+          );
+          const seen = new Set(filteredPrev.map((m) => m.id));
           const unique = decryptedMessages.filter((m) => !seen.has(m.id));
-          if (unique.length === 0) return prev;
-          return [...prev, ...unique];
+          
+          if (unique.length === 0 && filteredPrev.length === prev.length) {
+            return prev;
+          }
+          return [...filteredPrev, ...unique];
         });
       } catch {
         // ignore; next poll will try again
@@ -8440,10 +8571,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                           >
                             <div
+                              onContextMenu={(e) => handleMessageContextMenu(e, m.id, !!isMe, m.content)}
+                              onTouchStart={(e) => handleMessageTouchStart(e, m.id, !!isMe, m.content)}
+                              onTouchEnd={handleMessageTouchEnd}
+                              onTouchMove={handleMessageTouchMove}
+                              style={{ WebkitTouchCallout: "none" }}
                               className={
                                 isMe
-                                  ? "max-w-[75%] rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-3 py-2 text-slate-950 shadow-[0_0_18px_rgba(56,189,248,0.7)]"
-                                  : "max-w-[75%] rounded-2xl rounded-bl-sm bg-slate-800/90 px-3 py-2 text-slate-100 shadow-sm"
+                                  ? "max-w-[75%] rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-3 py-2 text-slate-950 shadow-[0_0_18px_rgba(56,189,248,0.7)] select-none cursor-pointer"
+                                  : "max-w-[75%] rounded-2xl rounded-bl-sm bg-slate-800/90 px-3 py-2 text-slate-100 shadow-sm select-none cursor-pointer"
                               }
                             >
                               {/* Text content */}
@@ -10746,6 +10882,80 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               <div className={`absolute bottom-0 inset-x-0 h-[2.5px] rounded-b-2xl animate-shrink-width ${
                 isDowngradeTx ? 'bg-fuchsia-500 shadow-[0_0_8px_rgba(240,46,170,0.6)]' : 'bg-cyan-500 shadow-[0_0_8px_rgba(34,211,238,0.6)]'
               }`} />
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Premium Sci-Fi WhatsApp-style Context Menu */}
+      {contextMenu && (() => {
+        const menuWidth = 170;
+        const menuHeight = 110;
+        let topPos = contextMenu.y - 10;
+        let leftPos = contextMenu.x;
+        let translateY = "-100%";
+
+        if (typeof window !== "undefined") {
+          if (leftPos - menuWidth/2 < 10) {
+            leftPos = menuWidth/2 + 10;
+          } else if (leftPos + menuWidth/2 > window.innerWidth - 10) {
+            leftPos = window.innerWidth - menuWidth/2 - 10;
+          }
+          if (topPos - menuHeight < 10) {
+            topPos = contextMenu.y + 15;
+            translateY = "0%";
+          }
+        }
+
+        return (
+          <div
+            style={{
+              position: "fixed",
+              top: topPos,
+              left: leftPos,
+              transform: `translate(-50%, ${translateY})`,
+              zIndex: 9999,
+            }}
+            className="animate-fade-in min-w-[170px] overflow-hidden rounded-2xl border border-cyan-500/30 bg-[#09111c]/95 p-1.5 shadow-[0_0_25px_rgba(6,182,212,0.25)] backdrop-blur-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header Info (Sci-fi Theme) */}
+            <div className="border-b border-slate-800 px-2.5 py-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono">
+              Message Ops
+            </div>
+
+            <div className="mt-1 space-y-0.5">
+              {/* Copy Button */}
+              {!/\[(FILE|VIDEO) attachment\]/i.test(contextMenu.content) && (
+                <button
+                  type="button"
+                  onClick={() => handleCopyMessageText(contextMenu.content)}
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold text-slate-300 transition duration-150 hover:bg-slate-800/80 hover:text-cyan-300 active:scale-95"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+                  </svg>
+                  <span>Copy Text</span>
+                </button>
+              )}
+
+              {/* Delete Button (Only for Sender) */}
+              {contextMenu.isMe ? (
+                <button
+                  type="button"
+                  onClick={() => handleDeleteMessage(contextMenu.messageId)}
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold text-rose-400 transition duration-150 hover:bg-rose-950/40 hover:text-rose-300 active:scale-95"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>Delete Message</span>
+                </button>
+              ) : (
+                <div className="px-2.5 py-2 text-[10px] italic text-slate-500 font-mono">
+                  Read Only
+                </div>
+              )}
             </div>
           </div>
         );
