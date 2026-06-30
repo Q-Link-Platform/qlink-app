@@ -10,6 +10,7 @@ import {
   KeyboardEvent,
 } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import AuraHelpModal from "@/components/AuraHelpModal";
 import SimpleModal from "@/components/SimpleModal";
 import PortalModal from "@/components/PortalModal";
@@ -6500,7 +6501,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               isChatFull ? "hidden" : "space-y-4 sm:space-y-6 px-4 lg:px-6 py-4"
             }
           >
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={openDirectory}
@@ -6517,6 +6518,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 </span>
                 Quantum Link Console
               </button>
+
+              <Link
+                href="/about"
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-800 bg-slate-900/40 px-3 py-1 text-[11.5px] font-semibold text-slate-300 hover:border-cyan-400/50 hover:text-cyan-300 transition-all duration-300"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee]" />
+                About
+              </Link>
+
               <button
                 type="button"
                 onClick={() => {
