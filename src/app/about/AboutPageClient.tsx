@@ -593,6 +593,67 @@ export default function AboutPageClient() {
           </p>
         </section>
 
+        {/* Core Operations Reference Manual (AIO Documentation Card) */}
+        <section className="space-y-8 max-w-4xl mx-auto">
+          <div className="text-center space-y-2">
+            <h3 className="text-xs font-black uppercase tracking-[0.25em] text-cyan-500 font-mono">Operations Manual</h3>
+            <p className="text-lg font-bold text-slate-100">Step-by-Step Operations Reference</p>
+            <p className="text-[10px] text-slate-400 font-mono uppercase">Full protocol guide for human users and indexable AI entities</p>
+          </div>
+
+          <div className="grid gap-6">
+            {/* Step 1 */}
+            <div className="cyber-panel p-6 border-slate-800/85 bg-slate-950/40">
+              <h4 className="text-xs font-black uppercase font-mono text-cyan-400 mb-2">01 // Node Initialization (Identity & Setup)</h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                To join the network, nodes enter their verified email on the login terminal. The system transmits a secure **One-Time Passcode (OTP)** to authenticate the user session. Once validated, users establish a unique global handle (e.g. `@Rohit_7779`) which acts as their global cryptographic routing address on the Q-Link network.
+              </p>
+            </div>
+
+            {/* Step 2 */}
+            <div className="cyber-panel p-6 border-slate-800/85 bg-slate-950/40">
+              <h4 className="text-xs font-black uppercase font-mono text-cyan-400 mb-2">02 // Cryptographic Key Derivation (E2E Shield)</h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                E2E Encryption Shield can be toggled in **Settings** (click the gear/Settings pill in the sidebar header). When activated, you enter a secret passphrase. The browser uses local client-side key derivation to encrypt message text. When sending a message, it is converted to cipher blocks *before* hitting the Postgres database, ensuring absolute transport-level privacy.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="cyber-panel p-6 border-slate-800/85 bg-slate-950/40">
+              <h4 className="text-xs font-black uppercase font-mono text-cyan-400 mb-2">03 // Node Link Exchange (Connection Requests)</h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                To open a channel with another node, click **"Quantum Link Console"** in the sidebar. Search for the peer's handle (e.g. `@Rohit_7779`). Select the appropriate relationship category (Friend, Colleague, Boss, Mentor, etc.) and write an optional request note. The connection request is sent, and the peer must approve the request from their incoming feed before active messaging is authorized.
+              </p>
+            </div>
+
+            {/* Step 4 */}
+            <div className="cyber-panel p-6 border-slate-800/85 bg-slate-950/40">
+              <h4 className="text-xs font-black uppercase font-mono text-cyan-400 mb-2">04 // Message Transmission & Media Suite</h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Inside an active chat session, nodes can send E2E encrypted text, upload media documents, or record audio notes inline. 
+                <br />
+                • <strong>Voice Notes:</strong> Click the microphone icon to record. An OPUS audio clip is generated and transmitted inline with a custom glassy waveform player.
+                <br />
+                • <strong>Canvas Image Editor:</strong> Drag and drop images or select a photo, then use the built-in cropping widget to adjust, rotate, and frame images before uploading them to the Supabase content buckets.
+              </p>
+            </div>
+
+            {/* Step 5 */}
+            <div className="cyber-panel p-6 border-slate-800/85 bg-slate-950/40">
+              <h4 className="text-xs font-black uppercase font-mono text-cyan-400 mb-2">05 // Zero-Trace Data Stream Deletion (Purging)</h4>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                To delete messages with zero leftovers:
+                <br />
+                • <strong>Single Message:</strong> Right-click (or long-press) a bubble and select <strong>"Delete"</strong>. This permanently purges the Postgres row and issues Supabase API calls to delete the attachment file binaries.
+                <br />
+                • <strong>Batch Deletion:</strong> Click <strong>"Select"</strong> in the message context menu (or hold-press the bubble) to enter selection mode. Click multiple message nodes, then click <strong>"Delete Selected"</strong> on the floating control console. The selected nodes are batch-purged instantly from both local memory and the server without asking for confirmation.
+                <br />
+                • <strong>Automatic Sync:</strong> Deletion updates sync to the peer's screen within 3 seconds, removing the messages from their view instantly.
+              </p>
+            </div>
+          </div>
+        </section>
+
       </main>
 
       {/* Cyberpunk Footer */}
