@@ -4864,6 +4864,50 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   };
 
+  // ── Timestamp helpers ──────────────────────────────────────────────────────
+  const formatDateLabel = (iso: string): string => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const msgDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    if (msgDay.getTime() === today.getTime()) return "Today";
+    if (msgDay.getTime() === yesterday.getTime()) return "Yesterday";
+    return d.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
+  };
+
+  const formatMsgDateFull = (iso: string): string => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const msgDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    if (msgDay.getTime() === today.getTime()) {
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+    return (
+      d.toLocaleDateString([], { day: "numeric", month: "short" }) +
+      " · " +
+      d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    );
+  };
+
+  const isSameDay = (isoA: string, isoB: string): boolean => {
+    const a = new Date(isoA);
+    const b = new Date(isoB);
+    if (isNaN(a.getTime()) || isNaN(b.getTime())) return true;
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
+  };
+  // ──────────────────────────────────────────────────────────────────────────
+
   return (
     <main
       ref={mainScrollRef}
@@ -8697,8 +8741,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </p>
                       )}
 
-                      {chatMessages.map((m) => {
+                      {chatMessages.map((m, msgIdx) => {
                         const isMe = meId && m.senderId === meId;
+                        const prevMsg = msgIdx > 0 ? chatMessages[msgIdx - 1] : null;
+                        const showDateSep = !prevMsg || !isSameDay(prevMsg.createdAt, m.createdAt);
 
                         const attachments = (m as any).attachments as
                           | {
@@ -8737,14 +8783,25 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         const isSelected = selectedMessageIds.has(m.id);
 
                         return (
-                          <div
-                            key={m.id}
-                            data-message-bubble
-                            data-message-id={m.id}
-                            data-message-isme={String(!!isMe)}
-                            data-message-content={m.content}
-                            className="flex items-center w-full transition-all duration-300 ease-out"
-                          >
+                          <React.Fragment key={m.id}>
+                            {/* ── Date Separator ──────────────────────────────── */}
+                            {showDateSep && (
+                              <div className="flex items-center gap-3 py-3 select-none">
+                                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700/50 to-transparent" />
+                                <span className="px-3 py-1 rounded-full border border-cyan-500/20 bg-cyan-950/20 text-[9px] font-bold uppercase tracking-[0.18em] text-cyan-500/80 font-mono shadow-[0_0_10px_rgba(6,182,212,0.15)] backdrop-blur-sm">
+                                  {formatDateLabel(m.createdAt)}
+                                </span>
+                                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-700/50 to-transparent" />
+                              </div>
+                            )}
+                            {/* ── Message Row ─────────────────────────────────── */}
+                            <div
+                              data-message-bubble
+                              data-message-id={m.id}
+                              data-message-isme={String(!!isMe)}
+                              data-message-content={m.content}
+                              className="flex items-center w-full transition-all duration-300 ease-out"
+                            >
                             {/* Glowing Checkbox */}
                             <div 
                               className="flex items-center justify-center transition-all duration-300 ease-out overflow-hidden"
@@ -9090,10 +9147,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                   </div>
                                 </div>
                               )}
+
+                              {/* ── Bubble Timestamp ────────────────────────── */}
+                              {m.createdAt && (
+                                <p className={`mt-1.5 text-[9px] font-mono tracking-wide select-none text-right ${
+                                  isMe ? "text-slate-900/50" : "text-slate-500/80"
+                                }`}>
+                                  {formatMsgDateFull(m.createdAt)}
+                                </p>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      );
+                          </div>
+                          </React.Fragment>
+                        );
                       })}
                     </div>
 
