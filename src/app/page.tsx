@@ -980,7 +980,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [manualStopAnimation, setManualStopAnimation] = useState(false);
+  const [manualStopAnimation, setManualStopAnimation] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("qlink_manual_stop_ai_animation") === "true";
+    }
+    return false;
+  });
 
   // Phone/No account modal states
   const [showNoAccountModal, setShowNoAccountModal] = useState(false);
@@ -8753,8 +8758,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         onClick={toggleChatFull}
                         className={
                           "rounded-full border bg-slate-900 px-2 py-0.5 text-[10px] text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 fullchat-toggle " +
-                          (highlightFullChat
-                            ? "glow-pulse border-cyan-400/80"
+                          (highlightFullChat || (activePeerHandle && !isChatFull)
+                            ? "glow-pulse border-cyan-400/80 shadow-[0_0_10px_rgba(34,211,238,0.4)]"
                             : "border-slate-600/70 ") +
                           (isChatFull ? "fullchat-x-blink" : "")
                         }
@@ -9738,7 +9743,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       <button
                         onClick={() => {
                           setShowAIHelpButton(true);
-                          setManualStopAnimation(false); // Reset manual stop when manually triggering
+                          setManualStopAnimation(false);
+                          localStorage.setItem("qlink_manual_stop_ai_animation", "false");
                         }}
                         className="select-none group relative h-8 w-8 rounded-full border border-cyan-400/60 bg-[#09111c]/95 shadow-[0_0_10px_rgba(34,211,238,0.25)] transition-all duration-300 hover:border-cyan-400/80 hover:shadow-[0_0_15px_rgba(34,211,238,0.5)] flex items-center justify-center"
                       >
@@ -9809,6 +9815,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 setShowCloseModal(false);
                                 setShowAIHelpButton(false);
                                 setManualStopAnimation(true);
+                                localStorage.setItem("qlink_manual_stop_ai_animation", "true");
                               }}
                               className="flex-1 rounded-xl border border-red-500/80 bg-red-500/20 px-3 py-1.5 text-xs font-bold text-red-300 hover:bg-red-500 hover:text-white transition-all duration-200"
                             >
