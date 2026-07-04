@@ -1,22 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { isAdmin as checkIsAdmin } from "@/lib/admin";
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, targetUserId, action, reason } = await request.json();
-    
-    if (!userId || !targetUserId || !action) {
-      return NextResponse.json({ error: 'User ID, target user ID, and action required' }, { status: 400 });
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !(session.user as any).id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Only allow admin or privileged users to verify/reject
-    // For now, we'll check if the user has admin privileges (you can adjust this logic)
-    const adminUser = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true, handle: true }
-    });
+    const { targetUserId, action, reason } = await request.json();
+    
+    if (!targetUserId || !action) {
+      return NextResponse.json({ error: 'Target user ID and action required' }, { status: 400 });
+    }
 
-    if (!adminUser || !isAdmin(adminUser)) {
+    const meId = (session.user as any).id as string;
+
+    // Only allow admin or privileged users to verify/reject
+    const authorized = await checkIsAdmin(meId);
+    if (!authorized) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
     }
 
@@ -106,6 +111,19 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !(session.user as any).id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const meId = (session.user as any).id as string;
+
+    // Only allow admin or privileged users to view applications
+    const authorized = await checkIsAdmin(meId);
+    if (!authorized) {
+      return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') as 'pending' | 'verified' | 'rejected' | 'all';
 
@@ -144,18 +162,6 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-function isAdmin(user: { email?: string | null; handle?: string | null }): boolean {
-  // For now, only allow specific admin users
-  // You can adjust this based on your admin system
-  const adminEmails = [
-    'admin@qlink.com',
-    'support@qlink.com',
-    // Add your admin emails here
-  ];
-  
-  return adminEmails.includes(user?.email || '');
 }
 
 function calculateAuraPercentage(points: number): number {

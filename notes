@@ -1,0 +1,272 @@
+"use client";
+
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { 
+  Search, Phone, Video, MoreVertical, Send, Smile, Paperclip, 
+  Check, CheckCheck, Shield, AlertTriangle, MessageSquare, 
+  UserPlus, ThumbsUp, Heart, Laugh, Wow, Sad, Trash2, Reply, 
+  Copy, Forward, Pin, Image as ImageIcon, FileText, Music, 
+  User, Settings, Bell, Circle, HelpCircle, LogOut, ChevronRight,
+  Sparkles, Hash, Layers, Info, Filter, ArrowLeft, Maximize2, X
+} from 'lucide-react';
+
+// ==========================================
+// TYPES & INTERFACES
+// ==========================================
+interface UserProfile {
+  id: string;
+  name: string;
+  handle: string;
+  avatar: string;
+  status: 'online' | 'offline' | 'away';
+  customStatus?: string;
+  isBlueTick: boolean;
+  role: 'USER' | 'ADMIN';
+}
+
+interface MessageAttachment {
+  id: string;
+  type: 'image' | 'file' | 'audio' | 'video';
+  url: string;
+  name: string;
+  size: string;
+}
+
+interface Message {
+  id: string;
+  senderId: string;
+  text: string;
+  timestamp: string;
+  status: 'sending' | 'sent' | 'delivered' | 'read';
+  reactions: { type: string; count: number; users: string[] }[];
+  replyToId?: string;
+  attachments?: MessageAttachment[];
+}
+
+interface ChatRoom {
+  id: string;
+  type: 'direct' | 'group' | 'channel';
+  name: string;
+  avatar: string;
+  unreadCount: number;
+  lastMessage?: string;
+  lastMessageTime?: string;
+  isPinned: boolean;
+  participants: UserProfile[];
+}
+
+// ==========================================
+// MOCK DATA ENGINE
+// ==========================================
+const CURRENT_USER: UserProfile = {
+  id: 'me_99',
+  name: 'Rohit Sharma',
+  handle: 'rohit_7779',
+  avatar: 'https://unsplash.com',
+  status: 'online',
+  isBlueTick: true,
+  role: 'ADMIN'
+};
+
+const INITIAL_ROOMS: ChatRoom[] = [
+  {
+    id: 'room_1',
+    type: 'direct',
+    name: 'Aanya Verma',
+    avatar: 'https://unsplash.com',
+    unreadCount: 3,
+    lastMessage: 'Let\'s review the security audit configurations tomorrow.',
+    lastMessageTime: '10:42 AM',
+    isPinned: true,
+    participants: [
+      { id: 'user_1', name: 'Aanya Verma', handle: 'aanya_v', avatar: '', status: 'online', isBlueTick: false, role: 'USER' }
+    ]
+  },
+  {
+    id: 'room_2',
+    type: 'group',
+    name: 'Alpha Engineering Squad 🚀',
+    avatar: 'https://unsplash.com',
+    unreadCount: 0,
+    lastMessage: 'Zod schemas are completely updated across backend modules.',
+    lastMessageTime: 'Yesterday',
+    isPinned: true,
+    participants: []
+  },
+  {
+    id: 'room_3',
+    type: 'channel',
+    name: 'Product Announcements 📢',
+    avatar: 'https://unsplash.com',
+    unreadCount: 12,
+    lastMessage: 'Version 2.4.0 is now live on the production environments.',
+    lastMessageTime: '2 days ago',
+    isPinned: false,
+    participants: []
+  }
+];
+
+const INITIAL_MESSAGES: Record<string, Message[]> = {
+  'room_1': [
+    { id: 'm1', senderId: 'user_1', text: 'Hey there! Did you take a look at the Next.js API authorization vulnerability report?', timestamp: '10:30 AM', status: 'read', reactions: [{ type: '👍', count: 1, users: ['me_99'] }] },
+    { id: 'm2', senderId: 'me_99', text: 'Yes, just finished reviewing it. The BOLA/IDOR holes are now fully closed using explicit server role validation checks.', timestamp: '10:35 AM', status: 'read', reactions: [] },
+    { id: 'm3', senderId: 'user_1', text: 'Awesome! Did you configure rate limits through Upstash Redis as well?', timestamp: '10:38 AM', status: 'read', reactions: [{ type: '🔥', count: 2, users: ['me_99', 'user_2'] }] },
+    { id: 'm4', senderId: 'me_99', text: 'Implemented sliding window logic directly in the Edge middleware layer. Completely safe from brute force now.', timestamp: '10:40 AM', status: 'read', reactions: [] },
+    { id: 'm5', senderId: 'user_1', text: 'Perfect. Let\'s review the security audit configurations tomorrow.', timestamp: '10:42 AM', status: 'delivered', reactions: [] }
+  ],
+  'room_2': [
+    { id: 'mg1', senderId: 'user_2', text: 'Team, we need strict payload validation on public intake schemas.', timestamp: 'Yesterday', status: 'read', reactions: [] },
+    { id: 'mg2', senderId: 'me_99', text: 'Zod schemas are completely updated across backend modules.', timestamp: 'Yesterday', status: 'read', reactions: [{ type: '🚀', count: 4, users: ['user_1', 'user_2', 'user_3'] }] }
+  ]
+};
+
+export default function AdvancedChatApp() {
+  // Navigation & Core Visibility States
+  const [activeTab, setActiveTab] = useState<'chats' | 'channels' | 'settings'>('chats');
+  const [rooms, setRooms] = useState<ChatRoom[]>(INITIAL_ROOMS);
+  const [activeRoomId, setActiveRoomId] = useState<string>('room_1');
+  const [messages, setMessages] = useState<Record<string, Message[]>>(INITIAL_MESSAGES);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Message Input Workspace States
+  const [inputValue, setInputValue] = useState('');
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+  const [isAttachmentMenuOpen, setIsAttachmentMenuOpen] = useState(false);
+  
+  // UI Panels Layout Controls
+  const [showInfoSidebar, setShowInfoSidebar] = useState(false);
+  const [mobileActiveView, setMobileActiveView] = useState<'list' | 'chat'>('list');
+  const [contextMenuMessage, setContextMenuMessage] = useState<{ id: string; x: number; y: number } | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll mechanics when active stream changes
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, activeRoomId]);
+
+  // Handle global UI window mouse clicks to safely discard popups
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      setContextMenuMessage(null);
+    };
+    window.addEventListener('click', handleGlobalClick);
+    return () => window.removeEventListener('click', handleGlobalClick);
+  }, []);
+
+  const activeRoom = useMemo(() => rooms.find(r => r.id === activeRoomId), [rooms, activeRoomId]);
+  
+  const filteredRooms = useMemo(() => {
+    return rooms.filter(room => {
+      if (activeTab === 'chats' && room.type === 'channel') return false;
+      if (activeTab === 'channels' && room.type !== 'channel') return false;
+      return room.name.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+  }, [rooms, activeTab, searchQuery]);
+
+  // ==========================================
+  // ACTION DISPATCHERS
+  // ==========================================
+  const handleSendMessage = () => {
+    if (!inputValue.trim()) return;
+
+    const newMessage: Message = {
+      id: `msg_${Date.now()}`,
+      senderId: CURRENT_USER.id,
+      text: inputValue.trim(),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: 'sending',
+      reactions: [],
+      replyToId: replyingTo?.id
+    };
+
+    // Update active stream state
+    setMessages(prev => ({
+      ...prev,
+      [activeRoomId]: [...(prev[activeRoomId] || []), newMessage]
+    }));
+
+    // Update operational room listings parameters concurrently
+    setRooms(prev => prev.map(room => {
+      if (room.id === activeRoomId) {
+        return {
+          ...room,
+          lastMessage: newMessage.text,
+          lastMessageTime: newMessage.timestamp
+        };
+      }
+      return room;
+    }));
+
+    setInputValue('');
+    setReplyingTo(null);
+
+    // Simulate standard mock network propagation delay states
+    setTimeout(() => {
+      setMessages(prev => ({
+        ...prev,
+        [activeRoomId]: (prev[activeRoomId] || []).map(m => 
+          m.id === newMessage.id ? { ...m, status: 'sent' } : m
+        )
+      }));
+    }, 600);
+
+    setTimeout(() => {
+      setMessages(prev => ({
+        ...prev,
+        [activeRoomId]: (prev[activeRoomId] || []).map(m => 
+          m.id === newMessage.id ? { ...m, status: 'read' } : m
+        )
+      }));
+    }, 1500);
+  };
+
+  const handleAddReaction = (messageId: string, emoji: string) => {
+    setMessages(prev => ({
+      ...prev,
+      [activeRoomId]: (prev[activeRoomId] || []).map(msg => {
+        if (msg.id !== messageId) return msg;
+        
+        const existingReaction = msg.reactions.find(r => r.type === emoji);
+        if (existingReaction) {
+          if (existingReaction.users.includes(CURRENT_USER.id)) {
+            // Remove reaction if user clicks it again
+            return {
+              ...msg,
+              reactions: msg.reactions.map(r => 
+                r.type === emoji 
+                  ? { ...r, count: r.count - 1, users: r.users.filter(u => u !== CURRENT_USER.id) }
+                  : r
+              ).filter(r => r.count > 0)
+            };
+          } else {
+            // Add user to existing reaction list
+            return {
+              ...msg,
+              reactions: msg.reactions.map(r => 
+                r.type === emoji ? { ...r, count: r.count + 1, users: [...r.users, CURRENT_USER.id] } : r
+              )
+            };
+          }
+        } else {
+          // Setup new structural structural record layout
+          return {
+            ...msg,
+            reactions: [...msg.reactions, { type: emoji, count: 1, users: [CURRENT_USER.id] }]
+          };
+        }
+      })
+    }));
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    setMessages(prev => ({
+      ...prev,
+      [activeRoomId]: (prev[activeRoomId] || []).filter(m => m.id !== messageId)
+    }));
+  };
+
+  return (
+Use code with caution.{/* ==========================================COMPONENT 1: CORE APP WORKSPACE SIDEBAR (Instagram Style)========================================== */}<buttononClick={() => setActiveTab('chats')}className={relative group flex items-center justify-center h-12 rounded-xl transition-all duration-200 ${activeTab === 'chats' ? 'bg-indigo-600/10 text-indigo-400' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'}}>{activeTab === 'chats' && }Direct Messages<buttononClick={() => setActiveTab('channels')}className={relative group flex items-center justify-center h-12 rounded-xl transition-all duration-200 ${activeTab === 'channels' ? 'bg-indigo-600/10 text-indigo-400' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'}}>{activeTab === 'channels' && }Channels & Spaces<buttononClick={() => setActiveTab('settings')}className={relative group flex items-center justify-center h-12 w-full rounded-xl transition-all duration-200 ${activeTab === 'settings' ? 'bg-indigo-600/10 text-indigo-400' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'}}>{/* ==========================================COMPONENT 2: NAVIGATION THREADS FEED LISTING (WhatsApp Web Style)========================================== */}<aside className={w-full md:w-80 lg:w-96 bg-slate-950 border-r border-slate-900 flex-col shrink-0 ${mobileActiveView === 'list' ? 'flex' : 'hidden md:flex'}}>{activeTab}Secured<inputtype="text"placeholder="Search conversations, tags..."value={searchQuery}onChange={(e) => setSearchQuery(e.target.value)}className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800/80 rounded-xl text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 transition-all text-slate-200"/>{filteredRooms.length === 0 ? (No active threads matches search criteria.) : (filteredRooms.map(room => {const isSelected = room.id === activeRoomId;return (<divkey={room.id}onClick={() => {setActiveRoomId(room.id);setMobileActiveView('chat');}}className={flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${isSelected ? 'bg-slate-900 border border-slate-800/60 shadow-sm' : 'hover:bg-slate-900/40 border border-transparent'}}>{room.type === 'direct' && ()}{room.name}{room.lastMessageTime}{room.lastMessage || 'No communication records'}{room.unreadCount > 0 && ({room.unreadCount})});}))}{/* ==========================================COMPONENT 3: MAIN DYNAMIC CONVERSATION INTERFACE (Facebook Messenger Style)========================================== */}<main className={flex-1 bg-slate-900/30 flex flex-col min-w-0 relative ${mobileActiveView === 'chat' ? 'flex' : 'hidden md:flex'}}>{/* Active Session Header Controls */}{/* Dynamic Live Messaging Pipeline Grid /}{/ Security Transport System Validation Notice banner */}Messages are validated natively via server cryptographic routines against unauthorized spoofing.{(messages[activeRoomId] || []).map((msg) => {const isMe = msg.senderId === CURRENT_USER.id;return (<divkey={msg.id}className={group flex items-start gap-3 max-w-xl ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto'}}>{/* Profile Placeholder configuration */}{!isMe && ()}{/* Context Reply Reference Node Box */}{msg.replyToId && (Replying to thread item context)}{/* Operational Payload Content Block wrapper layout */}<divonContextMenu={(e) => {e.preventDefault();setContextMenuMessage({ id: msg.id, x: e.clientX, y: e.clientY });}}className={p-3 rounded-2xl text-sm relative tracking-normal leading-relaxed group transition-shadow ${ isMe  ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-tr-none shadow-md shadow-indigo-600/5'  : 'bg-slate-900 text-slate-200 border border-slate-800/80 rounded-tl-none' }}>{msg.text}{/* Floating Context Metadata Metrics inside frame container */}{msg.timestamp}{isMe && (msg.status === 'read' ?  : )}{/* Fast Overlay Emoji Reacts Row */}{['👍', '❤️', '🔥'].map(emoji => (<buttonkey={emoji}onClick={() => handleAddReaction(msg.id, emoji)}className="hover:scale-125 transition-transform px-0.5 text-xs">{emoji}))}{/* Render Persistent Saved Live User Reactions Array badges */}{msg.reactions.length > 0 && ({msg.reactions.map((react, i) => (<spankey={i}onClick={() => handleAddReaction(msg.id, react.type)}className="text-[10px] bg-slate-900/90 border border-slate-800 px-1.5 py-0.5 rounded-full cursor-pointer hover:bg-slate-800 transition-colors font-mono">{react.type} {react.count}))})});})}{/* Global Dynamic Cursor Context Menu Overlay system */}{contextMenuMessage && (<divstyle={{ top: contextMenuMessage.y, left: contextMenuMessage.x }}className="fixed z-50 bg-slate-900 border border-slate-800 rounded-xl shadow-xl p-1.5 w-44 flex flex-col text-xs text-slate-300"onClick={(e) => e.stopPropagation()}><buttononClick={() => {const target = (messages[activeRoomId] || []).find(m => m.id === contextMenuMessage.id);if (target) setReplyingTo(target);setContextMenuMessage(null);}}className="flex items-center gap-2 p-2 hover:bg-slate-800 rounded-lg text-left w-full transition-colors"> Reply to Context<buttononClick={() => {const target = (messages[activeRoomId] || []).find(m => m.id === contextMenuMessage.id);if (target) navigator.clipboard.writeText(target.text);setContextMenuMessage(null);}}className="flex items-center gap-2 p-2 hover:bg-slate-800 rounded-lg text-left w-full transition-colors"> Copy String Payload<buttononClick={() => {handleDeleteMessage(contextMenuMessage.id);setContextMenuMessage(null);}}className="flex items-center gap-2 p-2 hover:bg-rose-500/10 text-rose-400 rounded-lg text-left w-full transition-colors"> Delete Message)}{/* ==========================================COMPONENT 4: INTERACTIVE INPUT DOCK PANEL (Instagram/Threads Style)========================================== /}{/ Active Reply State Banner */}{replyingTo && (Replying to: "{replyingTo.text}"<button onClick={() => setReplyingTo(null)} className="text-slate-400 hover:text-slate-200">)}

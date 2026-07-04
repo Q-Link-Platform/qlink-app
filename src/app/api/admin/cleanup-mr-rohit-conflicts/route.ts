@@ -2,16 +2,22 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { isAdmin } from "@/lib/admin";
 
 // Dev/admin-only endpoint to clean up stray friend requests
 // involving temporary mr_rohit_* handles created during VIP handle migration.
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    const email = (session?.user as any)?.email as string | undefined;
+    if (!session || !session.user || !(session.user as any).id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    // Only allow the real VIP owner to run this
-    if (!session || !email || email.toLowerCase() !== "rohiterrors@gmail.com") {
+    const meId = (session.user as any).id as string;
+
+    // Only allow admins to run this cleanup
+    const authorized = await isAdmin(meId);
+    if (!authorized) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

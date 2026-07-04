@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { prismaAttachments } from "@/lib/prismaAttachments";
 import { supabasePostsAdmin } from "@/lib/supabasePosts";
+import { createPostSchema, validateRequest } from "@/lib/validation";
 
 export const runtime = "nodejs";
 
@@ -316,32 +317,10 @@ export async function POST(request: Request) {
 
     const meId = (session.user as any).id as string;
 
-    const body: {
-      text?: string | null;
-      audience?: Audience;
-      attachmentId?: string | null;
-      attachmentKind?: "image" | "video" | null;
-    } = await request.json();
-
-    const audience: Audience = isAudience(body.audience) ? body.audience : "GLOBAL";
-    const text = typeof body.text === "string" ? body.text.trim() : "";
-
-    const attachmentId =
-      typeof body.attachmentId === "string" && body.attachmentId.length
-        ? body.attachmentId
-        : null;
-
-    const attachmentKind =
-      body.attachmentKind === "image" || body.attachmentKind === "video"
-        ? body.attachmentKind
-        : null;
-
-    if (!text && !attachmentId) {
-      return NextResponse.json(
-        { error: "Post must include text or media" },
-        { status: 400 },
-      );
-    }
+    const body = await request.json();
+    
+    // Validate request body using Zod schema
+    const { text, audience, attachmentId, attachmentKind } = validateRequest(createPostSchema, body);
 
     const expiresAt = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000);
 
@@ -387,6 +366,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ post });
   } catch (err: any) {
+    // Handle validation errors
+    if (err.message && err.message.includes('Validation failed')) {
+      const errorData = JSON.parse(err.message);
+      return NextResponse.json(errorData, { status: 400 });
+    }
+    
     console.error("[posts] POST Unhandled error", err);
     // Handle database connection and table errors gracefully
     if (err?.code === 'P1001' || err?.message?.includes('Can\'t reach database server') || 

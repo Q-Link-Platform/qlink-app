@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { isAdmin } from "@/lib/admin";
 
 function calculateAuraPercentage(points: number): number {
   if (points < 5) return 0;
@@ -20,12 +21,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
-    const myHandle = (session.user as any).handle;
+    const meId = (session.user as any).id as string;
     
-    // 2. Strict Elite Founder Authorization Barrier
-    if (myHandle !== "Rohit_7779") {
+    // 2. Strict Admin Authorization Barrier
+    const authorized = await isAdmin(meId);
+    if (!authorized) {
       return NextResponse.json(
-        { error: "Forbidden: Only the Elite Founder & CEO can transmit unlimited Quantum Currency." },
+        { error: "Forbidden: Only admins can grant Quantum Points." },
         { status: 403 }
       );
     }

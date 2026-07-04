@@ -591,6 +591,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const dragCounterRef = useRef(0);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
+  // States for the Secure Message Sharing feature
+  const [shareToastText, setShareToastText] = useState<string | null>(null);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+
   const togglePushNotifications = async (enable: boolean) => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
       alert("Push notifications are not supported on this browser.");
@@ -1361,6 +1365,49 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   useEffect(() => {
     setCanUseDom(true);
   }, []);
+
+  // Secure Message Sharing: Handle shared message links on mount/auth
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (status !== "authenticated") return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const chatParam = urlParams.get("chat");
+    const messageIdParam = urlParams.get("messageId");
+
+    if (chatParam) {
+      openChatWithPeer(chatParam);
+      if (messageIdParam) {
+        setHighlightedMessageId(messageIdParam);
+        // Clear query parameters from URL so refreshes don't re-trigger
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+  }, [status]);
+
+  // Secure Message Sharing: Handle scrolling and highlighting for shared message
+  useEffect(() => {
+    if (!highlightedMessageId || chatMessages.length === 0) return;
+
+    const hasMessage = chatMessages.some((m) => m.id === highlightedMessageId);
+    if (!hasMessage) return;
+
+    const timer = setTimeout(() => {
+      const targetEl = document.querySelector(`[data-message-id="${highlightedMessageId}"]`);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        
+        // Clear highlight state after 3 seconds
+        const clearTimer = setTimeout(() => {
+          setHighlightedMessageId(null);
+        }, 3000);
+        return () => clearTimeout(clearTimer);
+      }
+    }, 450);
+
+    return () => clearTimeout(timer);
+  }, [chatMessages, highlightedMessageId]);
 
   // Quantum Referral Tracking core Algorithm
   useEffect(() => {
@@ -3105,6 +3152,22 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(textToCopy);
+    }
+    setContextMenu(null);
+  };
+
+  const handleShareMessage = (messageId: string) => {
+    if (!activePeerHandle) return;
+    const shareUrl = `${window.location.origin}/?chat=${encodeURIComponent(activePeerHandle)}&messageId=${encodeURIComponent(messageId)}`;
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        setShareToastText("Share link copied!");
+        setTimeout(() => {
+          setShareToastText(null);
+        }, 2000);
+      }).catch((err) => {
+        console.error("Clipboard copy failed:", err);
+      });
     }
     setContextMenu(null);
   };
@@ -8781,6 +8844,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         );
 
                         const isSelected = selectedMessageIds.has(m.id);
+                        const isHighlighted = highlightedMessageId === m.id;
 
                         return (
                           <React.Fragment key={m.id}>
@@ -8830,8 +8894,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 style={{ WebkitTouchCallout: "none" }}
                                 className={
                                   isMe
-                                    ? `max-w-[75%] rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-3 py-2 text-slate-950 shadow-[0_0_18px_rgba(56,189,248,0.7)] select-none cursor-pointer transition-all duration-200 ${isSelected ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98]" : ""}`
-                                    : `max-w-[75%] rounded-2xl rounded-bl-sm bg-slate-800/90 px-3 py-2 text-slate-100 shadow-sm select-none cursor-pointer transition-all duration-200 ${isSelected ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98]" : ""}`
+                                    ? `max-w-[75%] rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-3 py-2 text-slate-950 select-none cursor-pointer transition-all duration-500 ${
+                                        isHighlighted
+                                          ? "shadow-[0_0_30px_#22d3ee,0_0_15px_#38bdf8] ring-2 ring-cyan-200 ring-offset-2 ring-offset-slate-950 scale-[1.03]"
+                                          : isSelected
+                                          ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-[0_0_18px_rgba(56,189,248,0.7)]"
+                                          : "shadow-[0_0_18px_rgba(56,189,248,0.7)]"
+                                      }`
+                                    : `max-w-[75%] rounded-2xl rounded-bl-sm bg-slate-800/90 px-3 py-2 text-slate-100 select-none cursor-pointer transition-all duration-500 ${
+                                        isHighlighted
+                                          ? "bg-slate-700/95 ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 shadow-[0_0_25px_rgba(34,211,238,0.6)] scale-[1.03]"
+                                          : isSelected
+                                          ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-md"
+                                          : "shadow-sm"
+                                      }`
                                 }
                               >
                               {/* Text content */}
@@ -11263,6 +11339,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 </button>
               )}
 
+              {/* Share Link Button */}
+              <button
+                type="button"
+                onClick={() => handleShareMessage(contextMenu.messageId)}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold text-slate-300 transition duration-150 hover:bg-slate-800/80 hover:text-cyan-300 active:scale-95"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 10.742l4.618-2.3a3 3 0 100-1.748l-4.618-2.3a3 3 0 100 5.696v0z" />
+                </svg>
+                <span>Share Link</span>
+              </button>
+
               {/* Select Button */}
               <button
                 type="button"
@@ -11300,6 +11388,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           </div>
         );
       })()}
+
+      {/* Glowing Cyberpunk Notification Toast */}
+      {shareToastText && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] animate-fade-in px-4 py-2 rounded-full border border-cyan-500/30 bg-[#09111c]/90 text-cyan-400 text-xs font-mono font-bold tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.4)] backdrop-blur-md flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
+          {shareToastText}
+        </div>
+      )}
     </main>
   );
 }

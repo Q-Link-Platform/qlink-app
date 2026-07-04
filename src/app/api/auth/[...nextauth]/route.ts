@@ -126,7 +126,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // Update session every 24 hours
   },
-  secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-dev-only-change-in-production",
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/",
     error: "/",

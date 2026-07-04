@@ -1,8 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
 // JWT Secret from environment
 const JWT_SECRET = process.env.NEXTAUTH_SECRET!;
+
+// Rate limiting configuration (Upstash Redis)
+let ratelimit: Ratelimit | null = null;
+
+// Fallback in-memory rate limiting (simple map-based)
+const memoryRateLimit = new Map<string, { count: number; resetTime: number }>();
+
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  try {
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+
+    ratelimit = new Ratelimit({
+      redis: redis,
+      limiter: Ratelimit.slidingWindow(10, '10 s'),
+      analytics: true,
+    });
+  } catch (error) {
+    console.warn('⚠️ Upstash Redis connection failed, falling back to memory rate limiting:', error);
+  }
+} else {
+  console.warn('⚠️ Using in-memory rate limiting (Upstash credentials not set)');
+}
 
 // Protected routes that require authentication (Millionaire Level Security)
 const PROTECTED_ROUTES = [
@@ -56,6 +83,69 @@ export async function middleware(request: NextRequest) {
   try {
     const { pathname } = request.nextUrl;
 
+    // Rate limiting for API routes (DDoS Protection)
+    if (pathname.startsWith('/api/')) {
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? 
+                 request.headers.get('x-real-ip') ?? 
+                 '127.0.0.1';
+      
+      let success = true;
+      let limit = 10;
+      let remaining = 10;
+      let reset = Date.now() + 10000;
+
+      if (ratelimit) {
+        // Use Upstash Redis rate limiting
+        const result = await ratelimit.limit(ip);
+        success = result.success;
+        limit = result.limit;
+        remaining = result.remaining;
+        reset = result.reset;
+      } else {
+        // Fallback to in-memory rate limiting
+        const now = Date.now();
+        const window = 10000; // 10 seconds
+        const record = memoryRateLimit.get(ip);
+
+        if (record && now < record.resetTime) {
+          record.count++;
+          remaining = Math.max(0, limit - record.count);
+          if (record.count > limit) {
+            success = false;
+            reset = record.resetTime;
+          }
+        } else {
+          memoryRateLimit.set(ip, { count: 1, resetTime: now + window });
+          remaining = limit - 1;
+        }
+
+        // Cleanup old entries periodically
+        if (Math.random() < 0.01) {
+          for (const [key, value] of memoryRateLimit.entries()) {
+            if (now >= value.resetTime) {
+              memoryRateLimit.delete(key);
+            }
+          }
+        }
+      }
+
+      if (!success) {
+        console.log('🚫 Rate limit exceeded for IP:', ip);
+        return NextResponse.json(
+          { error: 'Too many requests. Please slow down.' },
+          {
+            status: 429,
+            headers: {
+              'X-RateLimit-Limit': limit.toString(),
+              'X-RateLimit-Remaining': remaining.toString(),
+              'X-RateLimit-Reset': reset.toString(),
+              'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
+            },
+          }
+        );
+      }
+    }
+
     // 🙏 Divine Protection Activation - Signature Feature
     console.log('🙏 Divine Protection Active for:', pathname);
     console.log('🕉️ Ganesh Mantra: ॐ गं गणपतये नमः');
@@ -94,6 +184,44 @@ export async function middleware(request: NextRequest) {
     response.headers.set('X-Divine-Protection', 'active');
     response.headers.set('X-Divine-Mantra', 'ॐ गं गणपतये नमः');
     response.headers.set('X-Auth-Protected', isProtectedRoute(pathname) ? 'true' : 'false');
+
+    // ==========================================
+    // SECURITY HEADERS (XSS & Attack Protection)
+    // ==========================================
+    
+    // Content Security Policy - Prevents XSS attacks
+    // Allows necessary resources while blocking malicious scripts
+    const cspDirectives = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' data: https: blob:",
+      "font-src 'self' https://fonts.gstatic.com",
+      "connect-src 'self' https://*.supabase.co https://*.upstash.io",
+      "frame-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests"
+    ].join('; ');
+    
+    response.headers.set('Content-Security-Policy', cspDirectives);
+    
+    // Prevent clickjacking attacks
+    response.headers.set('X-Frame-Options', 'DENY');
+    
+    // Prevent MIME type sniffing
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    
+    // Enable XSS protection (modern browsers have this built-in, but for older browsers)
+    response.headers.set('X-XSS-Protection', '1; mode=block');
+    
+    // Referrer policy - Control what information is sent in Referer header
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    
+    // Permissions policy - Control which browser features can be used
+    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
     return response;
 

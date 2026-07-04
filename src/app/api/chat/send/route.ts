@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { sendMessageSchema, validateRequest } from "@/lib/validation";
 
 function buildRoomId(a: string, b: string) {
   return [a, b].sort().join(":");
@@ -14,15 +15,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { toHandle, content } = await request.json();
-
-    if (!toHandle || typeof toHandle !== "string") {
-      return NextResponse.json({ error: "Missing toHandle" }, { status: 400 });
-    }
-
-    if (!content || typeof content !== "string" || !content.trim()) {
-      return NextResponse.json({ error: "Message content is required" }, { status: 400 });
-    }
+    const body = await request.json();
+    
+    // Validate request body using Zod schema
+    const { toHandle, content, encrypted, iv } = validateRequest(sendMessageSchema, body);
 
     const meId = (session.user as any).id as string;
 
@@ -113,7 +109,13 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ message });
-  } catch (err) {
+  } catch (err: any) {
+    // Handle validation errors
+    if (err.message && err.message.includes('Validation failed')) {
+      const errorData = JSON.parse(err.message);
+      return NextResponse.json(errorData, { status: 400 });
+    }
+    
     console.error("[chat/send]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
