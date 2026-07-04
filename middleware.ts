@@ -21,7 +21,7 @@ if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) 
 
     ratelimit = new Ratelimit({
       redis: redis,
-      limiter: Ratelimit.slidingWindow(10, '10 s'),
+      limiter: Ratelimit.slidingWindow(100, '10 s'),
       analytics: true,
     });
   } catch (error) {
@@ -90,8 +90,8 @@ export async function middleware(request: NextRequest) {
                  '127.0.0.1';
       
       let success = true;
-      let limit = 10;
-      let remaining = 10;
+      let limit = 100;
+      let remaining = 100;
       let reset = Date.now() + 10000;
 
       if (ratelimit) {
