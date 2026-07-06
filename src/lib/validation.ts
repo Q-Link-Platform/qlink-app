@@ -7,8 +7,7 @@ import { z } from 'zod';
 export const sendMessageSchema = z.object({
   toHandle: z.string()
     .min(1, 'Recipient handle is required')
-    .max(50, 'Handle too long')
-    .regex(/^[a-zA-Z0-9_]+$/, 'Handle can only contain letters, numbers, and underscores'),
+    .max(50, 'Handle too long'),
   content: z.string()
     .min(1, 'Message content is required')
     .max(10000, 'Message too long (max 10,000 characters)'),
@@ -62,8 +61,7 @@ export const commentSchema = z.object({
 export const friendRequestSchema = z.object({
   toHandle: z.string()
     .min(1, 'Recipient handle is required')
-    .max(50, 'Handle too long')
-    .regex(/^[a-zA-Z0-9_]+$/, 'Handle can only contain letters, numbers, and underscores'),
+    .max(50, 'Handle too long'),
 });
 
 export const decideFriendRequestSchema = z.object({
