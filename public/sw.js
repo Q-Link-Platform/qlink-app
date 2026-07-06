@@ -9,22 +9,34 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("push", (event) => {
   if (!event.data) return;
 
+  let title = "Q-link Alert";
+  let body = "";
+  let icon = "/logo-256.png";
+  let url = "/";
+
   try {
     const payload = event.data.json();
-    const { title, body, icon, url } = payload;
+    title = payload.title || title;
+    body = payload.body || body;
+    icon = payload.icon || icon;
+    url = payload.url || url;
+  } catch (e) {
+    // Fallback if payload is not valid JSON
+    body = event.data.text() || "";
+  }
 
-    const options = {
-      body: body || "",
-      icon: icon || "/logo-256.png",
-      badge: "/logo-256.png", // Small icon shown in Android notification bar
-      data: {
-        url: url || "/"
-      },
-      vibrate: [100, 50, 100], // Vibration pattern
-      actions: [
-        { action: "open", title: "Open Q-link" }
-      ]
-    };
+  const options = {
+    body: body,
+    icon: icon,
+    badge: "/logo-256.png", // Small icon shown in Android notification bar
+    data: {
+      url: url
+    },
+    vibrate: [100, 50, 100], // Vibration pattern
+    actions: [
+      { action: "open", title: "Open Q-link" }
+    ]
+  };
 
     const promise = (async () => {
       try {

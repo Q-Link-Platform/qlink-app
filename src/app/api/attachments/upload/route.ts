@@ -205,6 +205,47 @@ export async function POST(request: Request) {
       // We do not fail the whole request because the file is already stored and message created.
     }
 
+    // Fire push notifications in the background
+    try {
+      const pushSubscriptions = await (prisma as any).pushSubscription.findMany({
+        where: { userId: peer.id },
+      });
+
+      if (pushSubscriptions && pushSubscriptions.length > 0) {
+        const senderHandle = (session.user as any).handle || "Someone";
+        const notificationBody = kind === "image"
+          ? `📷 Sent an image: ${originalName}`
+          : kind === "video"
+            ? `🎥 Sent a video: ${originalName}`
+            : `📁 Sent a file: ${originalName}`;
+
+        const payload = {
+          title: `New Message from @${senderHandle}`,
+          body: notificationBody,
+          url: `/?chat=${senderHandle}`,
+        };
+
+        const { sendPushNotification } = await import("@/lib/push");
+        
+        await Promise.allSettled(
+          pushSubscriptions.map((sub: any) =>
+            sendPushNotification(sub, payload).catch(async (err: any) => {
+              if (err.statusCode === 410 || err.statusCode === 404) {
+                try {
+                  await (prisma as any).pushSubscription.delete({ where: { id: sub.id } });
+                  console.log(`[PUSH] Pruned expired subscription: ${sub.id}`);
+                } catch (dbErr) {
+                  console.error(`[PUSH] Failed to prune subscription: ${sub.id}`, dbErr);
+                }
+              }
+            })
+          )
+        );
+      }
+    } catch (pushErr) {
+      console.error("[PUSH ERROR IN ATTACHMENTS UPLOAD]", pushErr);
+    }
+
     return NextResponse.json({
       message,
       attachment: {
