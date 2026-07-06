@@ -662,6 +662,43 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [shareToastText, setShareToastText] = useState<string | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
 
+  // Unread message tracking (Set of user handles)
+  const [unreadSenders, setUnreadSenders] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("qlink_unread_senders");
+        if (stored) {
+          return new Set(JSON.parse(stored));
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return new Set<string>();
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("qlink_unread_senders", JSON.stringify(Array.from(unreadSenders)));
+    } catch {
+      // ignore
+    }
+  }, [unreadSenders]);
+
+  // Clear unread state for the active chat peer
+  useEffect(() => {
+    if (activePeerHandle) {
+      setUnreadSenders((prev) => {
+        if (prev.has(activePeerHandle)) {
+          const next = new Set(prev);
+          next.delete(activePeerHandle);
+          return next;
+        }
+        return prev;
+      });
+    }
+  }, [activePeerHandle]);
+
   const togglePushNotifications = async (enable: boolean) => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
       alert("Push notifications are not supported on this browser.");
@@ -895,6 +932,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         } catch (e) {
           console.error("Error parsing targetUrl:", e);
         }
+      } else if (event.data && event.data.type === "NEW_MESSAGE_RECEIVED") {
+        const from = event.data.fromHandle;
+        if (from && from !== activePeerHandle) {
+          setUnreadSenders((prev) => {
+            const next = new Set(prev);
+            next.add(from);
+            return next;
+          });
+        }
       }
     };
 
@@ -906,38 +952,58 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     };
   }, [status, session?.user?.id]);
 
-  // Dynamically clear PWA App Badges and active push notification toasts when app is focused/opened
+  // Dynamically clear PWA App Badges, capture unread sender IDs, and close active push notifications
   useEffect(() => {
-    const clearBadgesAndNotifications = async () => {
+    const clearBadgesAndSyncUnread = async () => {
       if (typeof window !== "undefined") {
         if ("clearAppBadge" in navigator) {
           navigator.clearAppBadge().catch((err) => console.warn("[Badge] Error clearing badge:", err));
         }
         
-        // Also clear active notifications if service worker is active
         if ("serviceWorker" in navigator) {
           try {
             const reg = await navigator.serviceWorker.getRegistration();
             if (reg) {
               const notifications = await reg.getNotifications();
-              notifications.forEach((n) => n.close());
+              const handlesToAdd: string[] = [];
+              notifications.forEach((n) => {
+                const targetUrl = n.data?.url;
+                if (targetUrl) {
+                  try {
+                    const urlObj = new URL(targetUrl, window.location.origin);
+                    const h = urlObj.searchParams.get("chat");
+                    if (h && h !== activePeerHandle) {
+                      handlesToAdd.push(h);
+                    }
+                  } catch {
+                    // ignore
+                  }
+                }
+                n.close(); // Close the notification
+              });
+
+              if (handlesToAdd.length > 0) {
+                setUnreadSenders((prev) => {
+                  const next = new Set(prev);
+                  handlesToAdd.forEach((h) => next.add(h));
+                  return next;
+                });
+              }
             }
           } catch (err) {
-            console.warn("[Badge] Error closing notifications:", err);
+            console.warn("[Badge] Error syncing notifications:", err);
           }
         }
       }
     };
 
-    // Clear on initial app load
-    void clearBadgesAndNotifications();
+    void clearBadgesAndSyncUnread();
 
-    // Clear whenever user switches back / focuses the tab
-    window.addEventListener("focus", clearBadgesAndNotifications);
+    window.addEventListener("focus", clearBadgesAndSyncUnread);
     return () => {
-      window.removeEventListener("focus", clearBadgesAndNotifications);
+      window.removeEventListener("focus", clearBadgesAndSyncUnread);
     };
-  }, []);
+  }, [activePeerHandle]);
 
   // Lightbox for viewing attachments fullscreen inside the app
   const [lightboxImageUrl, setLightboxImageUrl] = useState<string | null>(null);
@@ -7978,8 +8044,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     }}
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-xs text-slate-200">
+                      <p className="truncate text-xs text-slate-200 flex items-center">
                         @{req.toUser?.handle || "unknown"}
+                        {req.toUser?.handle && unreadSenders.has(req.toUser.handle) && (
+                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse ml-1.5" title="New Message!" />
+                        )}
                       </p>
                       <p className="truncate text-[11px] text-slate-500">
                         {(req.categories || []).join(" · ")}
@@ -8011,16 +8080,25 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               💎 Give QP
                             </button>
                           )}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openChatWithPeer(req.toUser.handle);
-                            }}
-                            className="inline-flex items-center rounded-full border border-cyan-400/70 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium text-cyan-200 hover:bg-cyan-500/20"
-                          >
-                            Chat
-                          </button>
+                          {(() => {
+                            const isUnread = req.toUser?.handle && unreadSenders.has(req.toUser.handle);
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openChatWithPeer(req.toUser.handle);
+                                }}
+                                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium transition-all ${
+                                  isUnread
+                                    ? "border-orange-500 bg-orange-500/20 text-orange-200 shadow-[0_0_12px_rgba(249,115,22,0.4)] animate-pulse"
+                                    : "border-cyan-400/70 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
+                                }`}
+                              >
+                                Chat
+                              </button>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>
@@ -8137,8 +8215,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="truncate text-[11px] text-slate-200">
+                          <p className="truncate text-[11px] text-slate-200 flex items-center">
                             @{req.fromUser?.handle || "unknown"}
+                            {req.fromUser?.handle && unreadSenders.has(req.fromUser.handle) && (
+                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse ml-1.5" title="New Message!" />
+                            )}
                           </p>
                           <p className="truncate text-[10px] text-slate-500">
                             {(req.categories || []).join(" · ")}
@@ -8205,16 +8286,25 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               💎 Give QP
                             </button>
                           )}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openChatWithPeer(req.fromUser?.handle || "");
-                            }}
-                            className="inline-flex items-center rounded-full border border-cyan-400/70 bg-cyan-500/10 px-2.5 py-0.5 text-[10px] font-medium text-cyan-200 hover:bg-cyan-500/20"
-                          >
-                            Chat
-                          </button>
+                          {(() => {
+                            const isUnread = req.fromUser?.handle && unreadSenders.has(req.fromUser.handle);
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openChatWithPeer(req.fromUser?.handle || "");
+                                }}
+                                className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-all ${
+                                  isUnread
+                                    ? "border-orange-500 bg-orange-500/20 text-orange-200 shadow-[0_0_12px_rgba(249,115,22,0.4)] animate-pulse"
+                                    : "border-cyan-400/70 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
+                                }`}
+                              >
+                                Chat
+                              </button>
+                            );
+                          })()}
                         </div>
                       )}
                     </div>

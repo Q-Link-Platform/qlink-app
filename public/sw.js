@@ -39,27 +39,45 @@ self.addEventListener("push", (event) => {
   };
 
     const promise = (async () => {
+    try {
+      // 1. Show the notification
+      await self.registration.showNotification(title || "Q-link Alert", options);
+
+      // 2. Query all currently showing notifications to compute the count
+      const activeNotifications = await self.registration.getNotifications();
+      const count = activeNotifications.length;
+
+      // 3. Update the App Badge
+      if (typeof navigator !== "undefined" && navigator && "setAppBadge" in navigator) {
+        await navigator.setAppBadge(count);
+      }
+
+      // 4. Extract senderHandle and notify all open client windows
       try {
-        // 1. Show the notification
-        await self.registration.showNotification(title || "Q-link Alert", options);
-
-        // 2. Query all currently showing notifications to compute the count
-        const activeNotifications = await self.registration.getNotifications();
-        const count = activeNotifications.length;
-
-        // 3. Update the App Badge
-        if (typeof navigator !== "undefined" && navigator && "setAppBadge" in navigator) {
-          await navigator.setAppBadge(count);
+        const urlObj = new URL(url, self.location.origin);
+        const senderHandle = urlObj.searchParams.get("chat");
+        if (senderHandle) {
+          const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+          clientList.forEach((client) => {
+            try {
+              client.postMessage({
+                type: "NEW_MESSAGE_RECEIVED",
+                fromHandle: senderHandle,
+              });
+            } catch (e) {
+              // ignore
+            }
+          });
         }
       } catch (err) {
-        console.error("Error inside push event handler promise:", err);
+        console.error("Error sending message to clients on push:", err);
       }
-    })();
+    } catch (err) {
+      console.error("Error inside push event handler promise:", err);
+    }
+  })();
 
-    event.waitUntil(promise);
-  } catch (error) {
-    console.error("Error displaying push notification:", error);
-  }
+  event.waitUntil(promise);
 });
 
 self.addEventListener("notificationclick", (event) => {
