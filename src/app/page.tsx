@@ -547,6 +547,73 @@ const playSciFiSound = (action: "on" | "off") => {
   }
 };
 
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve) => {
+    // Skip if not an image or is an animated gif
+    if (!file.type.startsWith("image/") || file.type === "image/gif") {
+      resolve(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = document.createElement("img");
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+
+        // Limit dimensions to a max of 1600px to ensure file stays well under 4MB
+        const MAX_WIDTH = 1600;
+        const MAX_HEIGHT = 1600;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert to JPEG with a quality of 0.8 to optimize size with low distortion
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            const name = file.name.substring(0, file.name.lastIndexOf(".")) || file.name;
+            const compressedFile = new File([blob], `${name}.jpg`, {
+              type: "image/jpeg",
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          "image/jpeg",
+          0.8
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+};
+
 function HomeInner({ passiveTouchRef, androidScrollRef }: { 
   passiveTouchRef?: React.Ref<HTMLDivElement>;
   androidScrollRef?: React.Ref<HTMLDivElement>;
@@ -3005,8 +3072,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setAttachmentError(null);
 
     try {
+      const compressedFile = await compressImage(pendingImageFile);
       const formData = new FormData();
-      formData.append("file", pendingImageFile);
+      formData.append("file", compressedFile);
       formData.append("kind", "file");
       formData.append("toHandle", activePeerHandle);
 
