@@ -2964,6 +2964,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
 
     // Non-image files or videos: keep existing behaviour (immediate upload)
+    const MAX_UPLOAD_LIMIT = 4.5 * 1024 * 1024; // 4.5MB Vercel limit
+    if (selected.size > MAX_UPLOAD_LIMIT) {
+      setAttachmentError(`File is too large (${(selected.size / (1024 * 1024)).toFixed(1)}MB). Vercel server limit is 4.5MB.`);
+      return;
+    }
+
     setIsUploadingAttachment(true);
     setAttachmentError(null);
 
@@ -2981,6 +2987,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
+        if (res.status === 413) {
+          setAttachmentError("File is too large to upload. Vercel server limit is 4.5MB.");
+          return;
+        }
         setAttachmentError(data.error || "Unable to upload attachment.");
         return;
       }
@@ -3086,6 +3096,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
+        if (res.status === 413) {
+          setAttachmentError("File is too large to upload. Vercel server limit is 4.5MB.");
+          return;
+        }
         setAttachmentError(data.error || "Unable to upload attachment.");
         return;
       }
