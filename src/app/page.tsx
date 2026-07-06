@@ -662,24 +662,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [shareToastText, setShareToastText] = useState<string | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
 
-  // Unread message tracking (Set of user handles)
-  const [unreadSenders, setUnreadSenders] = useState<Set<string>>(() => {
+  // Unread message tracking (Array of user handles)
+  const [unreadSenders, setUnreadSenders] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       try {
         const stored = localStorage.getItem("qlink_unread_senders");
         if (stored) {
-          return new Set(JSON.parse(stored));
+          return JSON.parse(stored);
         }
       } catch {
         // ignore
       }
     }
-    return new Set<string>();
+    return [];
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem("qlink_unread_senders", JSON.stringify(Array.from(unreadSenders)));
+      localStorage.setItem("qlink_unread_senders", JSON.stringify(unreadSenders));
     } catch {
       // ignore
     }
@@ -689,10 +689,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   useEffect(() => {
     if (activePeerHandle) {
       setUnreadSenders((prev) => {
-        if (prev.has(activePeerHandle)) {
-          const next = new Set(prev);
-          next.delete(activePeerHandle);
-          return next;
+        if (prev.includes(activePeerHandle)) {
+          return prev.filter((h) => h !== activePeerHandle);
         }
         return prev;
       });
@@ -936,9 +934,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         const from = event.data.fromHandle;
         if (from && from !== activePeerHandle) {
           setUnreadSenders((prev) => {
-            const next = new Set(prev);
-            next.add(from);
-            return next;
+            if (prev.includes(from)) return prev;
+            return [...prev, from];
           });
         }
       }
@@ -984,9 +981,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
               if (handlesToAdd.length > 0) {
                 setUnreadSenders((prev) => {
-                  const next = new Set(prev);
-                  handlesToAdd.forEach((h) => next.add(h));
-                  return next;
+                  const filtered = prev.filter((h) => !handlesToAdd.includes(h));
+                  return [...filtered, ...handlesToAdd];
                 });
               }
             }
@@ -3869,6 +3865,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             return prev;
           }
           return [...filteredPrev, ...unique];
+        });
+
+        // Instant clear from unread list when history is successfully synced
+        setUnreadSenders((prev) => {
+          if (prev.includes(activePeerHandle)) {
+            return prev.filter((h) => h !== activePeerHandle);
+          }
+          return prev;
         });
       } catch {
         // ignore; next poll will try again
@@ -8046,7 +8050,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     <div className="min-w-0">
                       <p className="truncate text-xs text-slate-200 flex items-center">
                         @{req.toUser?.handle || "unknown"}
-                        {req.toUser?.handle && unreadSenders.has(req.toUser.handle) && (
+                        {req.toUser?.handle && unreadSenders.includes(req.toUser.handle) && (
                           <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse ml-1.5" title="New Message!" />
                         )}
                       </p>
@@ -8081,7 +8085,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </button>
                           )}
                           {(() => {
-                            const isUnread = req.toUser?.handle && unreadSenders.has(req.toUser.handle);
+                            const isUnread = req.toUser?.handle && unreadSenders.includes(req.toUser.handle);
                             return (
                               <button
                                 type="button"
@@ -8217,7 +8221,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         <div className="min-w-0">
                           <p className="truncate text-[11px] text-slate-200 flex items-center">
                             @{req.fromUser?.handle || "unknown"}
-                            {req.fromUser?.handle && unreadSenders.has(req.fromUser.handle) && (
+                            {req.fromUser?.handle && unreadSenders.includes(req.fromUser.handle) && (
                               <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse ml-1.5" title="New Message!" />
                             )}
                           </p>
@@ -8287,7 +8291,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </button>
                           )}
                           {(() => {
-                            const isUnread = req.fromUser?.handle && unreadSenders.has(req.fromUser.handle);
+                            const isUnread = req.fromUser?.handle && unreadSenders.includes(req.fromUser.handle);
                             return (
                               <button
                                 type="button"
