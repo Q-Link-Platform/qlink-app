@@ -3755,6 +3755,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    const isElectron = window.navigator.userAgent.toLowerCase().includes("electron");
+    if (isElectron) return;
+
     const seenKey = "qc_pwa_install_seen_v1";
     const installedOrSkipped = window.localStorage.getItem(seenKey);
 
