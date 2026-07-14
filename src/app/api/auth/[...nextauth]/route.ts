@@ -274,13 +274,11 @@ export const authOptions: NextAuthOptions = {
           where: { id: token.id as string },
         });
 
-        // 1. Session Mismatch Check:
-        // If user doesn't exist, or their stored database sessionToken differs from the token they logged in with,
-        // it means they logged in on a new device/browser, invalidating this old session!
-        if (process.env.NODE_ENV !== "development" && dbUser && dbUser.sessionToken && dbUser.sessionToken !== token.sessionToken) {
-          console.log(`[SESSION ENFORCER] Invalidating session for user ID: ${token.id}. Reason: Mismatched session token.`);
-          return { expires: new Date(0).toISOString() } as any;
-        }
+        // 1. Session Mismatch Check (Disabled to allow concurrent multi-device logins on PC, Android, and iOS):
+        // if (process.env.NODE_ENV !== "development" && dbUser && dbUser.sessionToken && dbUser.sessionToken !== token.sessionToken) {
+        //   console.log(`[SESSION ENFORCER] Invalidating session for user ID: ${token.id}. Reason: Mismatched session token.`);
+        //   return { expires: new Date(0).toISOString() } as any;
+        // }
 
         if (dbUser) {
           // Expose database real-time attributes to session

@@ -28,14 +28,36 @@ export async function GET() {
       },
     });
 
-    const shaped = requests.map((r) => ({
-      id: r.id,
-      status: r.status,
-      categories: r.categories.split(",").filter(Boolean),
-      message: r.message,
-      createdAt: r.createdAt,
-      fromUser: r.fromUser,
-    }));
+    const shaped = await Promise.all(
+      requests.map(async (r) => {
+        let latestMessage = null;
+        if (r.status === "ACCEPTED" && r.fromUser) {
+          const roomId = [toUserId, r.fromUserId].sort().join(":");
+          const msg = await prisma.message.findFirst({
+            where: { roomId },
+            orderBy: { createdAt: "desc" },
+            select: { id: true, createdAt: true, senderId: true },
+          });
+          if (msg) {
+            latestMessage = {
+              id: msg.id,
+              createdAt: msg.createdAt.toISOString(),
+              senderId: msg.senderId,
+            };
+          }
+        }
+
+        return {
+          id: r.id,
+          status: r.status,
+          categories: r.categories.split(",").filter(Boolean),
+          message: r.message,
+          createdAt: r.createdAt,
+          fromUser: r.fromUser,
+          latestMessage,
+        };
+      })
+    );
 
     return NextResponse.json({ requests: shaped });
   } catch (err) {

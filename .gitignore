@@ -43,3 +43,5 @@ next-env.d.ts
 # generated prisma client
 /src/lib/generated/
 
+# Compiled desktop installer binaries
+public/downloads/Q-Link-Setup.exe

@@ -3652,6 +3652,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   // PWA install / create-shortcut prompt
   const [installPromptEvent, setInstallPromptEvent] = useState<any | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [isWindowsClient, setIsWindowsClient] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && navigator.userAgent.indexOf("Win") !== -1) {
+      setIsWindowsClient(true);
+    }
+  }, []);
 
   // Authenticated: load outgoing & incoming requests once on auth
   useEffect(() => {
@@ -3799,12 +3806,35 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     let cancelled = false;
 
     const refresh = async () => {
+      const myId = (session?.user as any)?.id;
+
       try {
         const outRes = await fetch("/api/friends/outgoing");
         if (outRes.ok) {
           const outData = await outRes.json();
           if (!cancelled) {
-            setOutgoing((outData.requests || []) as OutgoingRequest[]);
+            const requests = (outData.requests || []) as OutgoingRequest[];
+            setOutgoing(requests);
+
+            // Sync unread status from latestMessage
+            requests.forEach((req: any) => {
+              if (req.status === "ACCEPTED" && req.toUser?.handle && req.latestMessage) {
+                const peerHandle = req.toUser.handle;
+                const latestMsg = req.latestMessage;
+                const key = `qlink_last_msg_id_${peerHandle}`;
+                const storedId = localStorage.getItem(key);
+                if (!storedId) {
+                  localStorage.setItem(key, latestMsg.id);
+                } else if (storedId !== latestMsg.id) {
+                  if (latestMsg.senderId !== myId && peerHandle !== activePeerHandle) {
+                    setUnreadSenders((prev) => {
+                      if (prev.includes(peerHandle)) return prev;
+                      return [...prev, peerHandle];
+                    });
+                  }
+                }
+              }
+            });
           }
         }
       } catch {
@@ -3816,7 +3846,28 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         if (inRes.ok) {
           const inData = await inRes.json();
           if (!cancelled) {
-            setIncoming((inData.requests || []) as IncomingRequest[]);
+            const requests = (inData.requests || []) as IncomingRequest[];
+            setIncoming(requests);
+
+            // Sync unread status from latestMessage
+            requests.forEach((req: any) => {
+              if (req.status === "ACCEPTED" && req.fromUser?.handle && req.latestMessage) {
+                const peerHandle = req.fromUser.handle;
+                const latestMsg = req.latestMessage;
+                const key = `qlink_last_msg_id_${peerHandle}`;
+                const storedId = localStorage.getItem(key);
+                if (!storedId) {
+                  localStorage.setItem(key, latestMsg.id);
+                } else if (storedId !== latestMsg.id) {
+                  if (latestMsg.senderId !== myId && peerHandle !== activePeerHandle) {
+                    setUnreadSenders((prev) => {
+                      if (prev.includes(peerHandle)) return prev;
+                      return [...prev, peerHandle];
+                    });
+                  }
+                }
+              }
+            });
           }
         }
       } catch {
@@ -3831,7 +3882,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       cancelled = true;
       clearInterval(id);
     };
-  }, [status]);
+  }, [status, activePeerHandle, session?.user?.id]);
 
   // Lightweight "realtime" polling: keep conversation in sync
   useEffect(() => {
@@ -3866,6 +3917,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           }
           return [...filteredPrev, ...unique];
         });
+
+        // Update last seen message ID to local storage
+        if (decryptedMessages.length > 0) {
+          const lastMsg = decryptedMessages[decryptedMessages.length - 1];
+          localStorage.setItem(`qlink_last_msg_id_${activePeerHandle}`, lastMsg.id);
+        }
 
         // Instant clear from unread list when history is successfully synced
         setUnreadSenders((prev) => {
@@ -4705,6 +4762,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         return true;
       });
       setChatMessages(uniqueMessages);
+      
+      // Update last seen message ID to local storage
+      if (uniqueMessages.length > 0) {
+        const lastMsg = uniqueMessages[uniqueMessages.length - 1];
+        localStorage.setItem(`qlink_last_msg_id_${peerHandle}`, lastMsg.id);
+      }
+      
+      // Clear from unread state
+      setUnreadSenders((prev) => {
+        if (prev.includes(peerHandle)) {
+          return prev.filter((h) => h !== peerHandle);
+        }
+        return prev;
+      });
     } catch {
       setChatError("Unable to load conversation.");
       setChatMessages([]);
@@ -5165,6 +5236,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               </p>
             )}
             <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+              {isWindowsClient && (
+                <a
+                  href="/downloads/Q-Link-Setup.exe"
+                  download="Q-Link-Setup.exe"
+                  className="inline-flex flex-1 items-center justify-center rounded-full bg-cyan-500 px-3 py-1 font-semibold text-slate-950 hover:bg-cyan-400 responsive-button text-overflow-fix text-center decoration-0"
+                  style={{ textDecoration: 'none' }}
+                >
+                  Download Windows App (.exe)
+                </a>
+              )}
               <button
                 type="button"
                 onClick={handleInstallClick}
@@ -5172,11 +5253,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 className={
                   "inline-flex flex-1 items-center justify-center rounded-full px-3 py-1 font-medium responsive-button text-overflow-fix " +
                   (installPromptEvent
-                    ? "bg-cyan-500 text-slate-950 hover:bg-cyan-400"
+                    ? (isWindowsClient ? "bg-slate-800 text-slate-200 hover:bg-slate-700" : "bg-cyan-500 text-slate-950 hover:bg-cyan-400")
                     : "bg-slate-700 text-slate-400 cursor-not-allowed")
                 }
               >
-                Install app
+                {isWindowsClient ? "Install Web App" : "Install app"}
               </button>
               <button
                 type="button"
