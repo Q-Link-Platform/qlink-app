@@ -719,8 +719,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     if (typeof window === "undefined") return;
     const count = unreadSenders.length;
 
-    // 1. Web/PWA App Badge Support
-    if ("setAppBadge" in navigator) {
+    // 1. Web/PWA App Badge Support (Skip in Electron to prevent overwriting custom blue badge)
+    if ("setAppBadge" in navigator && !isElectron) {
       if (count > 0) {
         navigator.setAppBadge(count).catch((err) => console.warn("[Badge] setAppBadge error:", err));
       } else {
@@ -773,7 +773,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         win.electronAPI.updateBadgeCount(0, null);
       }
     }
-  }, [unreadSenders]);
+  }, [unreadSenders, isElectron]);
 
   const toggleDesktopNotifications = async (enable: boolean) => {
     if (!enable) {
