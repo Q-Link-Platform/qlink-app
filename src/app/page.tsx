@@ -791,23 +791,27 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           console.warn("[Desktop Toggle] requestPermission error:", err);
         }
       }
-
-      if (permission === "granted") {
-        setDesktopNotificationsEnabled(true);
-        localStorage.setItem("qlink_desktop_notifications_enabled", "true");
-      } else {
-        alert("Notification permission was denied. Please enable notifications in your system or browser settings.");
-        setDesktopNotificationsEnabled(false);
-        localStorage.setItem("qlink_desktop_notifications_enabled", "false");
-      }
-    } else {
-      alert("Notifications are not supported on this device.");
     }
+
+    setDesktopNotificationsEnabled(true);
+    localStorage.setItem("qlink_desktop_notifications_enabled", "true");
   };
 
   const triggerDesktopNotification = (peerHandle: string) => {
+    if (isElectron && desktopNotificationsEnabled) {
+      const win = window as any;
+      if (win.electronAPI && typeof win.electronAPI.showNotification === "function") {
+        try {
+          win.electronAPI.showNotification("Q-Link", `New message from ${peerHandle}`, peerHandle);
+          return;
+        } catch (e) {
+          console.error("Failed to show Electron native notification:", e);
+        }
+      }
+    }
+
     if (
-      isElectron &&
+      !isElectron &&
       desktopNotificationsEnabled &&
       typeof window !== "undefined" &&
       "Notification" in window &&
@@ -819,18 +823,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           icon: "/logo-256.png"
         });
         notif.onclick = () => {
-          const win = window as any;
-          if (win.electronAPI && typeof win.electronAPI.focusWindow === "function") {
-            win.electronAPI.focusWindow();
-          }
           setActivePeerHandle(peerHandle);
           setIsChatFull(true);
         };
       } catch (e) {
-        console.error("Error showing desktop notification:", e);
+        console.error("Error showing fallback HTML5 notification:", e);
       }
     }
   };
+
 
   const togglePushNotifications = async (enable: boolean) => {
     // No-op inside Electron — desktop notifications are always-on natively
@@ -1149,6 +1150,23 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       window.removeEventListener("focus", handleFocus);
     };
   }, [activePeerHandle]);
+
+  useEffect(() => {
+    const win = window as any;
+    if (win.electronAPI && typeof win.electronAPI.onNotificationClicked === "function") {
+      const unsubscribe = win.electronAPI.onNotificationClicked((data: { peerHandle: string }) => {
+        if (data && data.peerHandle) {
+          setActivePeerHandle(data.peerHandle);
+          setIsChatFull(true);
+        }
+      });
+      return () => {
+        if (typeof unsubscribe === "function") {
+          unsubscribe();
+        }
+      };
+    }
+  }, []);
 
   // Lightbox for viewing attachments fullscreen inside the app
   const [lightboxImageUrl, setLightboxImageUrl] = useState<string | null>(null);
