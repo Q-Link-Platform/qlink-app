@@ -795,6 +795,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     setDesktopNotificationsEnabled(true);
     localStorage.setItem("qlink_desktop_notifications_enabled", "true");
+
+    // Trigger a native test notification to verify OS alerts work
+    const win = window as any;
+    if (win.electronAPI && typeof win.electronAPI.showNotification === "function") {
+      try {
+        win.electronAPI.showNotification(
+          "Q-Link Notifications Enabled",
+          "You will now receive desktop alerts for incoming messages."
+        );
+      } catch (e) {
+        console.error("Failed to show native test notification:", e);
+      }
+    }
   };
 
   const triggerDesktopNotification = (peerHandle: string) => {
