@@ -633,6 +633,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   } : null;
   
   const effectiveSession = session || mockSession;
+  const myId = (effectiveSession?.user as any)?.id;
   const [mode, setMode] = useState<ViewMode>("home");
 
   const [outgoing, setOutgoing] = useState<OutgoingRequest[]>([]);
@@ -3957,8 +3958,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     let cancelled = false;
 
     const refresh = async () => {
-      const myId = (session?.user as any)?.id;
-
       try {
         const outRes = await fetch("/api/friends/outgoing");
         if (outRes.ok) {
@@ -3977,7 +3976,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 if (!storedId) {
                   localStorage.setItem(key, latestMsg.id);
                 } else if (storedId !== latestMsg.id) {
-                  if (latestMsg.senderId !== myId && peerHandle !== activePeerHandle) {
+                  const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
+                  if (latestMsg.senderId !== myId && (peerHandle !== activePeerHandle || isAppHidden)) {
                     setUnreadSenders((prev) => {
                       if (prev.includes(peerHandle)) return prev;
                       return [...prev, peerHandle];
@@ -4012,7 +4012,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 if (!storedId) {
                   localStorage.setItem(key, latestMsg.id);
                 } else if (storedId !== latestMsg.id) {
-                  if (latestMsg.senderId !== myId && peerHandle !== activePeerHandle) {
+                  const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
+                  if (latestMsg.senderId !== myId && (peerHandle !== activePeerHandle || isAppHidden)) {
                     setUnreadSenders((prev) => {
                       if (prev.includes(peerHandle)) return prev;
                       return [...prev, peerHandle];
@@ -4037,7 +4038,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       cancelled = true;
       clearInterval(id);
     };
-  }, [status, activePeerHandle, session?.user?.id]);
+  }, [status, activePeerHandle, session?.user?.id, desktopNotificationsEnabled]);
 
   // Lightweight "realtime" polling: keep conversation in sync
   useEffect(() => {
@@ -4067,6 +4068,22 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           const seen = new Set(filteredPrev.map((m) => m.id));
           const unique = decryptedMessages.filter((m) => !seen.has(m.id));
           
+          if (unique.length > 0) {
+            const latestMsg = unique[unique.length - 1];
+            if (latestMsg.senderId !== myId) {
+              const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
+              if (isAppHidden) {
+                setTimeout(() => {
+                  triggerDesktopNotification(activePeerHandle);
+                  setUnreadSenders((prevUnread) => {
+                    if (prevUnread.includes(activePeerHandle)) return prevUnread;
+                    return [...prevUnread, activePeerHandle];
+                  });
+                }, 0);
+              }
+            }
+          }
+
           if (unique.length === 0 && filteredPrev.length === prev.length) {
             return prev;
           }
@@ -4079,13 +4096,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           localStorage.setItem(`qlink_last_msg_id_${activePeerHandle}`, lastMsg.id);
         }
 
-        // Instant clear from unread list when history is successfully synced
-        setUnreadSenders((prev) => {
-          if (prev.includes(activePeerHandle)) {
-            return prev.filter((h) => h !== activePeerHandle);
-          }
-          return prev;
-        });
+        // Instant clear from unread list when history is successfully synced (only if window is focused)
+        const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
+        if (!isAppHidden) {
+          setUnreadSenders((prev) => {
+            if (prev.includes(activePeerHandle)) {
+              return prev.filter((h) => h !== activePeerHandle);
+            }
+            return prev;
+          });
+        }
       } catch {
         // ignore; next poll will try again
       }
@@ -4099,7 +4119,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       cancelled = true;
       clearInterval(id);
     };
-  }, [activePeerHandle]);
+  }, [activePeerHandle, desktopNotificationsEnabled]);
 
   useEffect(() => {
     if (status !== "loading") {
