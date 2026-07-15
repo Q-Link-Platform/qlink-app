@@ -652,6 +652,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [isChatFull, setIsChatFull] = useState(false);
   const [isGlowActive, setIsGlowActive] = useState(false);
   const [isPushEnabled, setIsPushEnabled] = useState(false);
+  // Detect if running inside the Electron desktop app (has our preload bridge)
+  const [isElectron] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return !!(window as any).electronAPI;
+  });
   const [isE2EEnabled, setIsE2EEnabled] = useState(false);
   const [isGlitching, setIsGlitching] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
@@ -697,7 +702,71 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   }, [activePeerHandle]);
 
+  // Dynamic App Badge & Electron taskbar overlay syncing
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const count = unreadSenders.length;
+
+    // 1. Web/PWA App Badge Support
+    if ("setAppBadge" in navigator) {
+      if (count > 0) {
+        navigator.setAppBadge(count).catch((err) => console.warn("[Badge] setAppBadge error:", err));
+      } else {
+        navigator.clearAppBadge().catch((err) => console.warn("[Badge] clearAppBadge error:", err));
+      }
+    }
+
+    // 2. Electron-specific Taskbar Overlay Icon Badge
+    const win = window as any;
+    if (win.electronAPI && typeof win.electronAPI.updateBadgeCount === "function") {
+      if (count > 0) {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = 32;
+          canvas.height = 32;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            // Draw medium blue circular background
+            ctx.fillStyle = "#2563eb"; // Medium blue color
+            ctx.beginPath();
+            ctx.arc(16, 16, 15, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Draw white count text
+            ctx.fillStyle = "#ffffff";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            if (count > 99) {
+              ctx.font = "bold 11px Arial, sans-serif";
+              ctx.fillText("99+", 16, 16);
+            } else if (count > 9) {
+              ctx.font = "bold 13px Arial, sans-serif";
+              ctx.fillText(count.toString(), 16, 16);
+            } else {
+              ctx.font = "bold 17px Arial, sans-serif";
+              ctx.fillText(count.toString(), 16, 16);
+            }
+
+            const dataUrl = canvas.toDataURL("image/png");
+            win.electronAPI.updateBadgeCount(count, dataUrl);
+          } else {
+            win.electronAPI.updateBadgeCount(count, null);
+          }
+        } catch (e) {
+          console.error("Failed to generate taskbar badge canvas:", e);
+          win.electronAPI.updateBadgeCount(count, null);
+        }
+      } else {
+        win.electronAPI.updateBadgeCount(0, null);
+      }
+    }
+  }, [unreadSenders]);
+
   const togglePushNotifications = async (enable: boolean) => {
+    // No-op inside Electron — desktop notifications are always-on natively
+    if (typeof window !== "undefined" && !!(window as any).electronAPI) return;
+
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
       alert("Push notifications are not supported on this browser.");
       return;
@@ -844,6 +913,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Register PWA Service Worker & Subscribe to Web Push Notifications
   useEffect(() => {
+    // Skip Web Push entirely inside the Electron desktop app — native notifications handle this
+    if (typeof window !== "undefined" && !!(window as any).electronAPI) return;
+
     if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
       console.warn("PWA Service Worker or Web Push is not supported by this browser.");
       return;
@@ -995,9 +1067,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     void clearBadgesAndSyncUnread();
 
-    window.addEventListener("focus", clearBadgesAndSyncUnread);
+    const handleFocus = () => {
+      clearBadgesAndSyncUnread();
+      const win = window as any;
+      if (win.electronAPI && typeof win.electronAPI.focusWindow === "function") {
+        win.electronAPI.focusWindow();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
     return () => {
-      window.removeEventListener("focus", clearBadgesAndSyncUnread);
+      window.removeEventListener("focus", handleFocus);
     };
   }, [activePeerHandle]);
 
@@ -7030,42 +7110,65 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           </div>
                         </div>
 
-                        {/* Notifications Toggle Section */}
-                        <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-medium text-slate-200">PWA Notifications</span>
-                            <span className="text-[11px] text-slate-300">Web Push 🔔</span>
-                          </div>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-[10px] text-slate-500">Lock-screen chat alerts</span>
-                            <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
-                              <button
-                                type="button"
-                                onClick={() => togglePushNotifications(false)}
-                                className={
-                                  "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
-                                  (!isPushEnabled
-                                    ? "bg-slate-200 text-slate-950 shadow-[0_0_8px_rgba(255,255,255,0.4)]"
-                                    : "text-slate-300 hover:text-slate-100")
-                                }
-                              >
-                                Off
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => togglePushNotifications(true)}
-                                className={
-                                  "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
-                                  (isPushEnabled
-                                    ? "bg-cyan-500/80 text-slate-950 shadow-[0_0_8px_rgba(6,182,212,0.4)]"
-                                    : "text-slate-300 hover:text-slate-100")
-                                }
-                              >
-                                On
-                              </button>
+                        {/* Notifications Section — smart: Desktop vs PWA/Web */}
+                        {isElectron ? (
+                          /* ── ELECTRON DESKTOP: Native Windows Notifications ── */
+                          <div className="space-y-2 rounded-xl border border-blue-500/30 bg-blue-950/20 px-3 py-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-medium text-slate-200">Desktop Notifications</span>
+                              <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-semibold text-blue-300 border border-blue-500/40">
+                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                                Native
+                              </span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <span className="text-[10px] text-slate-400 leading-relaxed">
+                                Windows native notifications are <span className="text-blue-300 font-medium">always active</span> for the desktop app. Clicking a notification will instantly restore and focus Q-Link.
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 pt-0.5">
+                              <div className="flex h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(37,99,235,0.8)] animate-pulse" />
+                              <span className="text-[10px] text-blue-300/80">Taskbar badge auto-updates with unread count</span>
                             </div>
                           </div>
-                        </div>
+                        ) : (
+                          /* ── BROWSER / PWA: Web Push Notifications ── */
+                          <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[11px] font-medium text-slate-200">PWA Notifications</span>
+                              <span className="text-[11px] text-slate-300">Web Push 🔔</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[10px] text-slate-500">Lock-screen chat alerts</span>
+                              <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => togglePushNotifications(false)}
+                                  className={
+                                    "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
+                                    (!isPushEnabled
+                                      ? "bg-slate-200 text-slate-950 shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                                      : "text-slate-300 hover:text-slate-100")
+                                  }
+                                >
+                                  Off
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => togglePushNotifications(true)}
+                                  className={
+                                    "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
+                                    (isPushEnabled
+                                      ? "bg-cyan-500/80 text-slate-950 shadow-[0_0_8px_rgba(6,182,212,0.4)]"
+                                      : "text-slate-300 hover:text-slate-100")
+                                  }
+                                >
+                                  On
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {/* E2E Encryption Toggle Section */}
                         <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
