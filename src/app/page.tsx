@@ -679,11 +679,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [shareToastText, setShareToastText] = useState<string | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
 
-  // Unread message tracking (Array of user handles)
-  const [unreadSenders, setUnreadSenders] = useState<string[]>(() => {
+  // Unread message tracking (Array of { id, sender } objects to prevent duplicates and race conditions)
+  interface UnreadMessage {
+    id: string;
+    sender: string;
+  }
+
+  const [unreadMessages, setUnreadMessages] = useState<UnreadMessage[]>(() => {
     if (typeof window !== "undefined") {
       try {
-        const stored = localStorage.getItem("qlink_unread_senders");
+        const stored = localStorage.getItem("qlink_unread_messages");
         if (stored) {
           return JSON.parse(stored);
         }
@@ -696,18 +701,23 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   useEffect(() => {
     try {
-      localStorage.setItem("qlink_unread_senders", JSON.stringify(unreadSenders));
+      localStorage.setItem("qlink_unread_messages", JSON.stringify(unreadMessages));
     } catch {
       // ignore
     }
-  }, [unreadSenders]);
+  }, [unreadMessages]);
+
+  // Derived state to keep compatibility with existing UI includes check
+  const unreadSenders = React.useMemo(() => {
+    return Array.from(new Set(unreadMessages.map((m) => m.sender)));
+  }, [unreadMessages]);
 
   // Clear unread state for the active chat peer
   useEffect(() => {
     if (activePeerHandle) {
-      setUnreadSenders((prev) => {
-        if (prev.includes(activePeerHandle)) {
-          return prev.filter((h) => h !== activePeerHandle);
+      setUnreadMessages((prev) => {
+        if (prev.some((m) => m.sender === activePeerHandle)) {
+          return prev.filter((m) => m.sender !== activePeerHandle);
         }
         return prev;
       });
@@ -717,7 +727,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   // Dynamic App Badge & Electron taskbar overlay syncing
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const count = unreadSenders.length;
+    const count = unreadMessages.length;
 
     // 1. Web/PWA App Badge Support (Skip in Electron to prevent overwriting custom blue badge)
     if ("setAppBadge" in navigator && !isElectron) {
@@ -773,7 +783,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         win.electronAPI.updateBadgeCount(0, null);
       }
     }
-  }, [unreadSenders, isElectron]);
+  }, [unreadMessages, isElectron]);
 
   const toggleDesktopNotifications = async (enable: boolean) => {
     if (!enable) {
@@ -1088,7 +1098,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       } else if (event.data && event.data.type === "NEW_MESSAGE_RECEIVED") {
         const from = event.data.fromHandle;
         if (from && from !== activePeerHandle) {
-          setUnreadSenders((prev) => [...prev, from]);
+          setUnreadMessages((prev) => {
+            const msgId = event.data.messageId || `sw-${Date.now()}`;
+            if (prev.some((m) => m.id === msgId)) return prev;
+            return [...prev, { id: msgId, sender: from }];
+          });
         }
       }
     };
@@ -1132,9 +1146,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               });
 
               if (handlesToAdd.length > 0) {
-                setUnreadSenders((prev) => {
-                  const filtered = prev.filter((h) => !handlesToAdd.includes(h));
-                  return [...filtered, ...handlesToAdd];
+                setUnreadMessages((prev) => {
+                  const filtered = prev.filter((m) => !handlesToAdd.includes(m.sender));
+                  const newMsgs = handlesToAdd.map((h, idx) => ({ id: `notif-${h}-${idx}-${Date.now()}`, sender: h }));
+                  return [...filtered, ...newMsgs];
                 });
               }
             }
@@ -1150,12 +1165,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     const handleFocus = () => {
       clearBadgesAndSyncUnread();
       if (activePeerHandle) {
-        setUnreadSenders((prev) => {
-          if (prev.includes(activePeerHandle)) {
-            return prev.filter((h) => h !== activePeerHandle);
-          }
-          return prev;
-        });
+        setUnreadMessages((prev) => prev.filter((m) => m.sender !== activePeerHandle));
       }
       const win = window as any;
       if (win.electronAPI && typeof win.electronAPI.focusWindow === "function") {
@@ -4014,7 +4024,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 } else if (storedId !== latestMsg.id) {
                   const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
                   if (latestMsg.senderId !== myId && (peerHandle !== activePeerHandle || isAppHidden)) {
-                    setUnreadSenders((prev) => [...prev, peerHandle]);
+                    setUnreadMessages((prev) => {
+                      if (prev.some((m) => m.id === latestMsg.id)) return prev;
+                      return [...prev, { id: latestMsg.id, sender: peerHandle }];
+                    });
                     triggerDesktopNotification(peerHandle);
                     localStorage.setItem(key, latestMsg.id);
                   }
@@ -4047,7 +4060,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 } else if (storedId !== latestMsg.id) {
                   const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
                   if (latestMsg.senderId !== myId && (peerHandle !== activePeerHandle || isAppHidden)) {
-                    setUnreadSenders((prev) => [...prev, peerHandle]);
+                    setUnreadMessages((prev) => {
+                      if (prev.some((m) => m.id === latestMsg.id)) return prev;
+                      return [...prev, { id: latestMsg.id, sender: peerHandle }];
+                    });
                     triggerDesktopNotification(peerHandle);
                     localStorage.setItem(key, latestMsg.id);
                   }
@@ -4951,13 +4967,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         localStorage.setItem(`qlink_last_msg_id_${peerHandle}`, lastMsg.id);
       }
       
-      // Clear from unread state
-      setUnreadSenders((prev) => {
-        if (prev.includes(peerHandle)) {
-          return prev.filter((h) => h !== peerHandle);
-        }
-        return prev;
-      });
+      setUnreadMessages((prev) => prev.filter((m) => m.sender !== peerHandle));
     } catch {
       setChatError("Unable to load conversation.");
       setChatMessages([]);
