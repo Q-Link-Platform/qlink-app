@@ -1088,10 +1088,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       } else if (event.data && event.data.type === "NEW_MESSAGE_RECEIVED") {
         const from = event.data.fromHandle;
         if (from && from !== activePeerHandle) {
-          setUnreadSenders((prev) => {
-            if (prev.includes(from)) return prev;
-            return [...prev, from];
-          });
+          setUnreadSenders((prev) => [...prev, from]);
         }
       }
     };
@@ -4017,10 +4014,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 } else if (storedId !== latestMsg.id) {
                   const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
                   if (latestMsg.senderId !== myId && (peerHandle !== activePeerHandle || isAppHidden)) {
-                    setUnreadSenders((prev) => {
-                      if (prev.includes(peerHandle)) return prev;
-                      return [...prev, peerHandle];
-                    });
+                    setUnreadSenders((prev) => [...prev, peerHandle]);
                     triggerDesktopNotification(peerHandle);
                     localStorage.setItem(key, latestMsg.id);
                   }
@@ -4053,10 +4047,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 } else if (storedId !== latestMsg.id) {
                   const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
                   if (latestMsg.senderId !== myId && (peerHandle !== activePeerHandle || isAppHidden)) {
-                    setUnreadSenders((prev) => {
-                      if (prev.includes(peerHandle)) return prev;
-                      return [...prev, peerHandle];
-                    });
+                    setUnreadSenders((prev) => [...prev, peerHandle]);
                     triggerDesktopNotification(peerHandle);
                     localStorage.setItem(key, latestMsg.id);
                   }
