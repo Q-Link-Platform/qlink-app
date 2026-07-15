@@ -657,6 +657,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     if (typeof window === "undefined") return false;
     return !!(window as any).electronAPI;
   });
+  const [desktopNotificationsEnabled, setDesktopNotificationsEnabled] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("qlink_desktop_notifications_enabled");
+        return stored === "true";
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
   const [isE2EEnabled, setIsE2EEnabled] = useState(false);
   const [isGlitching, setIsGlitching] = useState(false);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
@@ -762,6 +773,63 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     }
   }, [unreadSenders]);
+
+  const toggleDesktopNotifications = async (enable: boolean) => {
+    if (!enable) {
+      setDesktopNotificationsEnabled(false);
+      localStorage.setItem("qlink_desktop_notifications_enabled", "false");
+      return;
+    }
+
+    if (typeof window !== "undefined" && "Notification" in window) {
+      let permission = Notification.permission;
+      if (permission === "default" || permission === "denied") {
+        try {
+          permission = await Notification.requestPermission();
+        } catch (err) {
+          console.warn("[Desktop Toggle] requestPermission error:", err);
+        }
+      }
+
+      if (permission === "granted") {
+        setDesktopNotificationsEnabled(true);
+        localStorage.setItem("qlink_desktop_notifications_enabled", "true");
+      } else {
+        alert("Notification permission was denied. Please enable notifications in your system or browser settings.");
+        setDesktopNotificationsEnabled(false);
+        localStorage.setItem("qlink_desktop_notifications_enabled", "false");
+      }
+    } else {
+      alert("Notifications are not supported on this device.");
+    }
+  };
+
+  const triggerDesktopNotification = (peerHandle: string) => {
+    if (
+      isElectron &&
+      desktopNotificationsEnabled &&
+      typeof window !== "undefined" &&
+      "Notification" in window &&
+      Notification.permission === "granted"
+    ) {
+      try {
+        const notif = new Notification("Q-Link", {
+          body: `New message from ${peerHandle}`,
+          icon: "/logo-256.png"
+        });
+        notif.onclick = () => {
+          const win = window as any;
+          if (win.electronAPI && typeof win.electronAPI.focusWindow === "function") {
+            win.electronAPI.focusWindow();
+          }
+          setActivePeerHandle(peerHandle);
+          setIsChatFull(true);
+        };
+      } catch (e) {
+        console.error("Error showing desktop notification:", e);
+      }
+    }
+  };
 
   const togglePushNotifications = async (enable: boolean) => {
     // No-op inside Electron — desktop notifications are always-on natively
@@ -3914,6 +3982,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       if (prev.includes(peerHandle)) return prev;
                       return [...prev, peerHandle];
                     });
+                    triggerDesktopNotification(peerHandle);
+                    localStorage.setItem(key, latestMsg.id);
                   }
                 }
               }
@@ -3947,6 +4017,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       if (prev.includes(peerHandle)) return prev;
                       return [...prev, peerHandle];
                     });
+                    triggerDesktopNotification(peerHandle);
+                    localStorage.setItem(key, latestMsg.id);
                   }
                 }
               }
@@ -7112,8 +7184,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                         {/* Notifications Section — smart: Desktop vs PWA/Web */}
                         {isElectron ? (
-                          /* ── ELECTRON DESKTOP: Native Windows Notifications ── */
-                          <div className="space-y-2 rounded-xl border border-blue-500/30 bg-blue-950/20 px-3 py-2">
+                          /* ── ELECTRON DESKTOP: Native Windows Notifications Toggle ── */
+                          <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
                             <div className="flex items-center justify-between">
                               <span className="text-[11px] font-medium text-slate-200">Desktop Notifications</span>
                               <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-semibold text-blue-300 border border-blue-500/40">
@@ -7121,14 +7193,34 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 Native
                               </span>
                             </div>
-                            <div className="flex items-start gap-2">
-                              <span className="text-[10px] text-slate-400 leading-relaxed">
-                                Windows native notifications are <span className="text-blue-300 font-medium">always active</span> for the desktop app. Clicking a notification will instantly restore and focus Q-Link.
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 pt-0.5">
-                              <div className="flex h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(37,99,235,0.8)] animate-pulse" />
-                              <span className="text-[10px] text-blue-300/80">Taskbar badge auto-updates with unread count</span>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[10px] text-slate-500">System alert toast on incoming message</span>
+                              <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleDesktopNotifications(false)}
+                                  className={
+                                    "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
+                                    (!desktopNotificationsEnabled
+                                      ? "bg-slate-200 text-slate-950 shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                                      : "text-slate-300 hover:text-slate-100")
+                                  }
+                                >
+                                  Off
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleDesktopNotifications(true)}
+                                  className={
+                                    "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
+                                    (desktopNotificationsEnabled
+                                      ? "bg-cyan-500/80 text-slate-950 shadow-[0_0_8px_rgba(6,182,212,0.4)]"
+                                      : "text-slate-300 hover:text-slate-100")
+                                  }
+                                >
+                                  On
+                                </button>
+                              </div>
                             </div>
                           </div>
                         ) : (
