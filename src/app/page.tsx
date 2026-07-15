@@ -738,8 +738,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           canvas.height = 32;
           const ctx = canvas.getContext("2d");
           if (ctx) {
-            // Draw dark charcoal circular background
-            ctx.fillStyle = "#1f2937"; // Dark charcoal color
+            // Draw medium blue circular background
+            ctx.fillStyle = "#2563eb"; // Medium blue color
             ctx.beginPath();
             ctx.arc(16, 16, 15, 0, 2 * Math.PI);
             ctx.fill();
