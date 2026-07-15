@@ -1152,6 +1152,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     const handleFocus = () => {
       clearBadgesAndSyncUnread();
+      if (activePeerHandle) {
+        setUnreadSenders((prev) => {
+          if (prev.includes(activePeerHandle)) {
+            return prev.filter((h) => h !== activePeerHandle);
+          }
+          return prev;
+        });
+      }
       const win = window as any;
       if (win.electronAPI && typeof win.electronAPI.focusWindow === "function") {
         win.electronAPI.focusWindow();
@@ -4113,15 +4121,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           localStorage.setItem(`qlink_last_msg_id_${activePeerHandle}`, lastMsg.id);
         }
 
-        // Instant clear from unread list when history is successfully synced (only if window is focused)
-        if (!isAppHidden) {
-          setUnreadSenders((prev) => {
-            if (prev.includes(activePeerHandle)) {
-              return prev.filter((h) => h !== activePeerHandle);
-            }
-            return prev;
-          });
-        }
+
       } catch {
         // ignore; next poll will try again
       }
