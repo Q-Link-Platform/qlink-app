@@ -811,15 +811,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   };
 
   const triggerDesktopNotification = (peerHandle: string) => {
-    console.log("[Notification Trigger] Called for:", peerHandle, {
-      isElectron,
-      desktopNotificationsEnabled
-    });
     if (isElectron && desktopNotificationsEnabled) {
       const win = window as any;
       if (win.electronAPI && typeof win.electronAPI.showNotification === "function") {
         try {
-          console.log("[Notification Trigger] Dispatching to native Electron IPC channel...");
           win.electronAPI.showNotification("Q-Link", `New message from ${peerHandle}`, peerHandle);
           return;
         } catch (e) {
@@ -836,7 +831,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       Notification.permission === "granted"
     ) {
       try {
-        console.log("[Notification Trigger] Dispatching to HTML5 fallback Notification...");
         const notif = new Notification("Q-Link", {
           body: `New message from ${peerHandle}`,
           icon: "/logo-256.png"
@@ -4014,15 +4008,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   localStorage.setItem(key, latestMsg.id);
                 } else if (storedId !== latestMsg.id) {
                   const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
-                  console.log("[Refresh Outgoing] ID changed:", storedId, "->", latestMsg.id, {
-                    senderId: latestMsg.senderId,
-                    myId,
-                    peerHandle,
-                    activePeerHandle,
-                    isAppHidden
-                  });
                   if (latestMsg.senderId !== myId && (peerHandle !== activePeerHandle || isAppHidden)) {
-                    console.log("[Refresh Outgoing] Match! Triggering alert...");
                     setUnreadSenders((prev) => {
                       if (prev.includes(peerHandle)) return prev;
                       return [...prev, peerHandle];
@@ -4058,15 +4044,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   localStorage.setItem(key, latestMsg.id);
                 } else if (storedId !== latestMsg.id) {
                   const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
-                  console.log("[Refresh Incoming] ID changed:", storedId, "->", latestMsg.id, {
-                    senderId: latestMsg.senderId,
-                    myId,
-                    peerHandle,
-                    activePeerHandle,
-                    isAppHidden
-                  });
                   if (latestMsg.senderId !== myId && (peerHandle !== activePeerHandle || isAppHidden)) {
-                    console.log("[Refresh Incoming] Match! Triggering alert...");
                     setUnreadSenders((prev) => {
                       if (prev.includes(peerHandle)) return prev;
                       return [...prev, peerHandle];
@@ -4123,16 +4101,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           
           if (unique.length > 0) {
             const latestMsg = unique[unique.length - 1];
-            console.log("[Poll History] New message in history!", {
-              id: latestMsg.id,
-              senderId: latestMsg.senderId,
-              myId
-            });
             if (latestMsg.senderId !== myId) {
               const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
-              console.log("[Poll History] Sender match! isAppHidden:", isAppHidden);
               if (isAppHidden) {
-                console.log("[Poll History] App is hidden/minimized. Triggering native alert...");
                 setTimeout(() => {
                   triggerDesktopNotification(activePeerHandle);
                   setUnreadSenders((prevUnread) => {
