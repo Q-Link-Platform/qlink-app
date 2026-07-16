@@ -249,9 +249,9 @@ export default function AboutPageClient() {
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M0 3.449L9.75 2.1v9.45H0V3.449zM0 12.45h9.75v9.45L0 20.551v-8.102zM10.95 1.95L24 0v11.55H10.95V1.95zM10.95 12.45H24v11.55l-13.05-1.95v-9.6z"/>
                   </svg>
-                  <span className="font-bold text-xs font-mono uppercase tracking-wider">Windows Desktop App</span>
+                  <span className="font-bold text-sm md:text-base font-mono uppercase tracking-wider">Windows Desktop App</span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className="text-xs md:text-sm text-slate-400 leading-relaxed">
                   Enjoy native Windows Toast Notifications, Close-to-Tray background execution, automatic deep-link protocol unlocking, and superior performance.
                 </p>
               </div>
@@ -260,7 +260,7 @@ export default function AboutPageClient() {
                 <a
                   href="/downloads/Q-Link-Setup.exe"
                   download="Q-Link-Setup.exe"
-                  className="w-full py-2.5 rounded-xl bg-cyan-500 text-slate-950 text-xs font-bold tracking-wider hover:opacity-90 transition duration-200 inline-flex items-center justify-center gap-2"
+                  className="w-full py-2.5 rounded-xl bg-cyan-500 text-slate-950 text-sm font-bold tracking-wider hover:opacity-90 transition duration-200 inline-flex items-center justify-center gap-2"
                 >
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -269,8 +269,8 @@ export default function AboutPageClient() {
                 </a>
 
                 {/* Compatibility Info */}
-                <div className="text-[9px] font-mono text-slate-500 bg-slate-950/80 p-2.5 rounded-lg border border-slate-900 leading-relaxed">
-                  <div className="flex items-center gap-1.5 text-cyan-400 font-bold mb-1 uppercase">
+                <div className="text-xs font-mono text-slate-400 bg-slate-950/80 p-3.5 rounded-xl border border-slate-900 leading-relaxed">
+                  <div className="flex items-center gap-1.5 text-cyan-400 font-bold mb-1 uppercase tracking-wider text-[10px] md:text-xs">
                     <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
                     System Compatibility
                   </div>
@@ -290,9 +290,9 @@ export default function AboutPageClient() {
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
-                  <span className="font-bold text-xs font-mono uppercase tracking-wider">Progressive Web App (PWA)</span>
+                  <span className="font-bold text-sm md:text-base font-mono uppercase tracking-wider">Progressive Web App (PWA)</span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className="text-xs md:text-sm text-slate-400 leading-relaxed">
                   Install Q-Link directly on your Android, iOS, macOS, Linux, or 32-bit Windows system via your browser. Full offline loading and lightweight footprints.
                 </p>
               </div>
@@ -301,7 +301,7 @@ export default function AboutPageClient() {
                 <button
                   type="button"
                   onClick={handleInstallPwa}
-                  className={`w-full py-2.5 rounded-xl text-xs font-bold tracking-wider transition duration-200 inline-flex items-center justify-center gap-2 ${
+                  className={`w-full py-2.5 rounded-xl text-sm font-bold tracking-wider transition duration-200 inline-flex items-center justify-center gap-2 ${
                     isPwaInstallable
                       ? "bg-slate-100 text-slate-950 hover:bg-slate-200"
                       : "bg-slate-900 text-slate-400 border border-slate-800 hover:text-slate-200"
@@ -314,8 +314,8 @@ export default function AboutPageClient() {
                 </button>
 
                 {/* Compatibility Info */}
-                <div className="text-[9px] font-mono text-slate-500 bg-slate-950/80 p-2.5 rounded-lg border border-slate-900 leading-relaxed">
-                  <div className="flex items-center gap-1.5 text-emerald-400 font-bold mb-1 uppercase">
+                <div className="text-xs font-mono text-slate-400 bg-slate-950/80 p-3.5 rounded-xl border border-slate-900 leading-relaxed">
+                  <div className="flex items-center gap-1.5 text-emerald-400 font-bold mb-1 uppercase tracking-wider text-[10px] md:text-xs">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     Cross-Platform Support
                   </div>
