@@ -236,8 +236,8 @@ export default function AboutPageClient() {
         {/* Download & Installation Console */}
         <section className="cyber-panel p-6 md:p-8 max-w-3xl mx-auto space-y-6 border-cyan-500/10 bg-slate-950/30">
           <div className="text-center md:text-left space-y-1">
-            <h4 className="text-xs font-black uppercase tracking-wider text-cyan-400 font-mono">Terminal Downloads</h4>
-            <p className="text-lg font-bold text-slate-100">Get the Q-Link Client</p>
+            <h4 className="text-sm md:text-base font-black uppercase tracking-wider text-cyan-400 font-mono">Terminal Downloads</h4>
+            <p className="text-2xl md:text-3xl font-black text-slate-100">Get the Q-Link Client</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
