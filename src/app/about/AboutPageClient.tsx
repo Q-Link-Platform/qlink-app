@@ -246,12 +246,19 @@ export default function AboutPageClient() {
             <div className="p-5 rounded-2xl bg-slate-950/60 border border-slate-900 flex flex-col justify-between space-y-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-cyan-400">
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="2" y="2" width="9.5" height="9.5" rx="0.5" />
-                    <rect x="12.5" y="2" width="9.5" height="9.5" rx="0.5" />
-                    <rect x="2" y="12.5" width="9.5" height="9.5" rx="0.5" />
-                    <rect x="12.5" y="12.5" width="9.5" height="9.5" rx="0.5" />
-                  </svg>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Windows 10 Logo */}
+                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M0 3.449L9.75 2.1v9.45H0V3.449zM0 12.45h9.75v9.45L0 20.551v-8.102zM10.95 1.95L24 0v11.55H10.95V1.95zM10.95 12.45H24v11.55l-13.05-1.95v-9.6z"/>
+                    </svg>
+                    {/* Windows 11 Logo */}
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                      <rect x="0" y="0" width="11" height="11" rx="0.5" />
+                      <rect x="13" y="0" width="11" height="11" rx="0.5" />
+                      <rect x="0" y="13" width="11" height="11" rx="0.5" />
+                      <rect x="13" y="13" width="11" height="11" rx="0.5" />
+                    </svg>
+                  </div>
                   <span className="font-bold text-sm md:text-base font-mono uppercase tracking-wider">Windows Desktop App</span>
                 </div>
                 <p className="text-xs md:text-sm text-slate-400 leading-relaxed">
