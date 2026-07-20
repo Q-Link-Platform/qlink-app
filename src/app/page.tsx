@@ -1817,27 +1817,90 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setCardShineY(50);
   };
 
-  // Keep our own presence "online" while the app is open
+  // Keep our own presence "online" based on active interaction and visibility state
   useEffect(() => {
-    let stopped = false;
+    if (typeof window === "undefined") return;
 
-    const sendPing = async () => {
+    let stopped = false;
+    let lastActivityTime = Date.now();
+
+    // Handler to register user activity
+    const recordActivity = () => {
+      lastActivityTime = Date.now();
+    };
+
+    // Events to track user interaction (works on Mobile touch and Desktop mouse/keyboard)
+    const activityEvents = ["mousemove", "mousedown", "keydown", "touchstart", "touchmove", "scroll"];
+    
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, recordActivity, { passive: true });
+    });
+
+    const sendPing = async (forceOffline = false) => {
       try {
-        await fetch("/api/presence/ping", { method: "POST" });
+        await fetch("/api/presence/ping", { 
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ offline: forceOffline })
+        });
       } catch {
         // ignore presence ping errors
       }
+    };
+
+    const runPingCycle = async () => {
+      if (stopped) return;
+
+      const now = Date.now();
+      const isVisible = document.visibilityState === "visible";
+      const isWithinActiveWindow = now - lastActivityTime <= 60_000; // 1 minute idle timeout
+
+      if (isVisible && isWithinActiveWindow) {
+        // User is active and tab is open, send online heartbeat
+        await sendPing(false);
+      } else {
+        // Tab is hidden or user has been idle, send offline heartbeat
+        await sendPing(true);
+      }
 
       if (!stopped) {
-        // refresh roughly every 15 seconds
-        setTimeout(sendPing, 15_000);
+        // Ping every 15 seconds
+        setTimeout(runPingCycle, 15_000);
       }
     };
 
-    sendPing();
+    // Send immediate ping on load
+    runPingCycle();
+
+    // Listen to visibility change event (tab minimize, mobile background, phone lock)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        // Instantly force offline state on the server
+        sendPing(true);
+      } else {
+        // Instantly restore online state when tab becomes visible again
+        lastActivityTime = Date.now(); // reset activity timer
+        sendPing(false);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Safety events for page unloading / closing tab
+    const handleUnload = () => {
+      sendPing(true);
+    };
+    window.addEventListener("pagehide", handleUnload);
+    window.addEventListener("beforeunload", handleUnload);
 
     return () => {
       stopped = true;
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", handleUnload);
+      window.removeEventListener("beforeunload", handleUnload);
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, recordActivity);
+      });
     };
   }, []);
 
