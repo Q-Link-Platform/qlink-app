@@ -1991,6 +1991,9 @@ html.black .glass-panel {
   filter: blur(16px);
   mix-blend-mode: screen;
   pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform, filter;
 }
 
 .founder-vip-aurora-inner {
@@ -2225,6 +2228,9 @@ html.black .glass-panel {
   filter: blur(16px);
   mix-blend-mode: screen;
   pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform, filter;
 }
 
 .founder-vip-sapphire-inner {

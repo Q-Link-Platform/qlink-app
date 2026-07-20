@@ -5350,8 +5350,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       await signOut({ redirect: false });
       // Clear any local storage if needed
       localStorage.clear();
-      // Optionally redirect to home or login page
-      window.location.href = '/';
+      
+      // Notify Electron desktop main process to clear local config token, cookies, and lock
+      if (typeof window !== "undefined" && (window as any).electronAPI?.logout) {
+        (window as any).electronAPI.logout();
+      } else {
+        // Web redirect fallback
+        window.location.href = '/';
+      }
     } catch (error) {
       console.error('Sign out error:', error);
     }
