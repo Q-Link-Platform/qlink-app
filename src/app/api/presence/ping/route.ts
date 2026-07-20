@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       // Ignore parsing errors for backward compatibility
     }
 
-    const now = offline ? new Date(0) : new Date();
+    const now = offline ? new Date(Date.now() - 40_000) : new Date();
 
     const result = await prisma.user.updateMany({
       where: { id: userId },

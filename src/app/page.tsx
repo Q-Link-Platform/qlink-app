@@ -2041,7 +2041,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         if (prevOnline === null) {
           // first load for this peer
           lastOnlineRef.current = nowOnline;
-          setShowOfflineTransitionName(!nowOnline);
+          setShowOfflineTransitionName(false);
         } else {
           if (prevOnline && !nowOnline) {
             setShowOfflineTransitionName(true);
