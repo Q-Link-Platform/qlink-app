@@ -55,7 +55,7 @@ export async function GET(
     const lastSeen = effectiveLastSeenDate.getTime();
     const lastTyping = user.lastTypingAt ? user.lastTypingAt.getTime() : null;
 
-    const online = now - lastSeen <= 10_000; // 10 seconds window
+    const online = now - lastSeen <= 35_000; // 35 seconds window (robust presence matching 15s client ping)
 
     const typing =
       !!viewerHandle &&

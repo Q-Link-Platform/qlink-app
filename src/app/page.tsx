@@ -1829,8 +1829,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
 
       if (!stopped) {
-        // refresh roughly every 20 seconds
-        setTimeout(sendPing, 20_000);
+        // refresh roughly every 15 seconds
+        setTimeout(sendPing, 15_000);
       }
     };
 
@@ -2991,24 +2991,59 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   };
 
+  // Keep track of which peer we have completed the initial scroll-to-bottom for
+  const initialScrollDoneRef = useRef<string | null>(null);
+
   useEffect(() => {
     const el = chatScrollRef.current;
     if (!el) return;
 
-    const isPeerChange = activePeerHandle !== prevPeerHandleRef.current;
-    prevPeerHandleRef.current = activePeerHandle;
-
-    const isImageTransition = pendingImagePreviewUrl && !prevPendingImageUrlRef.current;
-    prevPendingImageUrlRef.current = pendingImagePreviewUrl;
-
-    const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 150;
-
-    if (isPeerChange || isImageTransition || isNearBottom) {
-      scrollToBottom();
-      const timer = setTimeout(scrollToBottom, 60);
-      return () => clearTimeout(timer);
+    const peer = activePeerHandle;
+    if (!peer) {
+      initialScrollDoneRef.current = null;
+      return;
     }
-  }, [chatMessages, pendingImagePreviewUrl, activePeerHandle]);
+
+    // 1. If we switched peers, reset the initial scroll tracker and force scroll to bottom
+    if (initialScrollDoneRef.current !== peer) {
+      scrollToBottom();
+      // Use multiple staggered timeouts to allow incoming message HTML to completely render in DOM
+      const t1 = setTimeout(scrollToBottom, 50);
+      const t2 = setTimeout(scrollToBottom, 150);
+      const t3 = setTimeout(scrollToBottom, 350);
+      
+      if (chatMessages.length > 0) {
+        initialScrollDoneRef.current = peer;
+      }
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
+    }
+
+    // 2. If messages loaded for the first time for this peer, trigger the scroll anchor
+    if (chatMessages.length > 0 && initialScrollDoneRef.current !== peer) {
+      initialScrollDoneRef.current = peer;
+      scrollToBottom();
+      const t = setTimeout(scrollToBottom, 100);
+      return () => clearTimeout(t);
+    }
+
+    // 3. For any subsequent updates (e.g. new messages, images, typing status)
+    if (chatMessages.length > 0) {
+      const lastMessage = chatMessages[chatMessages.length - 1];
+      const meId = (session?.user as any)?.id as string | undefined;
+      const sentByMe = Boolean(meId && lastMessage.senderId === meId);
+      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 250; // generous 250px boundary
+
+      if (sentByMe || isNearBottom || pendingImagePreviewUrl) {
+        scrollToBottom();
+        const t = setTimeout(scrollToBottom, 60);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [chatMessages, pendingImagePreviewUrl, activePeerHandle, session?.user]);
 
   const handleAttachButtonClick = () => {
     if (!activePeerHandle || isUploadingAttachment) return;
