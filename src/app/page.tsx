@@ -1380,18 +1380,28 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Install button click handler
   const handleInstallClick = () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult: any) => {
+    const promptEvent = installPromptEvent || deferredPrompt;
+    if (promptEvent) {
+      promptEvent.prompt();
+      promptEvent.userChoice.then((choiceResult: any) => {
         if (choiceResult.outcome === 'accepted') {
           console.log('User accepted install prompt');
         } else {
           console.log('User dismissed install prompt');
         }
+        setInstallPromptEvent(null);
         setDeferredPrompt(null);
         setShowInstallButton(false);
       });
     }
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("qc_pwa_install_seen_v1", "dismissed");
+      }
+    } catch {
+      // ignore
+    }
+    setShowInstallPrompt(false);
   };
 
   // Onboarding state for new users
@@ -5411,28 +5421,29 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     >
       <div style={{ width: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: isChatFull ? '100%' : 'auto', flex: isChatFull ? '1' : 'unset' }}>
       {showInstallPrompt && (
-        <div className="pointer-events-auto fixed inset-0 z-40 flex items-center justify-center bg-slate-950/80 px-4 sm:px-0">
-          <div className="max-w-sm rounded-2xl border border-cyan-400/60 bg-slate-950/95 px-5 py-4 text-xs text-slate-100 shadow-2xl">
-            <p className="text-[11px] font-semibold text-cyan-200">
+        <div className="pointer-events-auto fixed inset-0 z-45 flex items-center justify-center bg-slate-950/80 px-4">
+          <div className="max-w-md w-full rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-5 text-xs text-slate-100 shadow-[0_0_50px_rgba(6,182,212,0.25)] backdrop-blur-md">
+            <p className="text-sm font-bold text-cyan-400 font-mono uppercase tracking-wider">
               Create a shortcut to Q-link Chat
             </p>
-            <p className="mt-2 text-[11px] text-slate-200/85">
+            <p className="mt-2 text-xs text-slate-300 leading-relaxed">
               Install this app on your device for the ultimate full-screen experience, zero browser throttling, and 100% reliable background notifications.
             </p>
-            <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/10 p-2 text-[10px] text-amber-300/90 leading-relaxed">
-              <strong>⚠️ Warning:</strong> Skipping installation may block real-time lock-screen chat alerts, especially on **iOS (Safari)** where Web Push notifications are exclusively supported for Home Screen apps!
+            <div className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-[11px] text-amber-400/90 leading-relaxed">
+              <strong>⚠️ Warning:</strong> Skipping installation may block real-time lock-screen chat alerts, especially on <strong>iOS (Safari)</strong> where Web Push notifications are exclusively supported for Home Screen apps!
             </div>
             {!installPromptEvent && (
-              <p className="mt-2 text-[10px] text-slate-400">
-                To install manually: open your browser options menu and tap <strong>"Add to Home Screen"</strong>.
+              <p className="mt-2 text-[10px] text-slate-400 font-mono">
+                To install manually: open your browser options menu and tap <strong>&quot;Add to Home Screen&quot;</strong>.
               </p>
             )}
-            <div className="mt-3 flex flex-wrap gap-2 text-[11px]">
+            <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
               {isWindowsClient && (
                 <a
                   href="/downloads/Q-Link-Setup.exe"
                   download="Q-Link-Setup.exe"
-                  className="inline-flex flex-1 items-center justify-center rounded-full bg-cyan-500 px-3 py-1 font-semibold text-slate-950 hover:bg-cyan-400 responsive-button text-overflow-fix text-center decoration-0"
+                  onClick={handleSkipInstall}
+                  className="flex-1 inline-flex items-center justify-center rounded-xl bg-cyan-500 px-3 py-2.5 text-center font-bold text-slate-950 hover:bg-cyan-400 transition duration-200 text-xs tracking-wide shadow-[0_0_15px_rgba(6,182,212,0.3)]"
                   style={{ textDecoration: 'none' }}
                 >
                   Download Windows App (.exe)
@@ -5443,10 +5454,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 onClick={handleInstallClick}
                 disabled={!installPromptEvent}
                 className={
-                  "inline-flex flex-1 items-center justify-center rounded-full px-3 py-1 font-medium responsive-button text-overflow-fix " +
+                  "flex-1 inline-flex items-center justify-center rounded-xl px-3 py-2.5 text-center font-bold text-xs tracking-wide transition duration-200 " +
                   (installPromptEvent
-                    ? (isWindowsClient ? "bg-slate-800 text-slate-200 hover:bg-slate-700" : "bg-cyan-500 text-slate-950 hover:bg-cyan-400")
-                    : "bg-slate-700 text-slate-400 cursor-not-allowed")
+                    ? (isWindowsClient ? "bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white" : "bg-cyan-500 text-slate-950 hover:bg-cyan-400")
+                    : "bg-slate-900 text-slate-500 border border-slate-800/80 cursor-not-allowed")
                 }
               >
                 {isWindowsClient ? "Install Web App" : "Install app"}
@@ -5454,7 +5465,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               <button
                 type="button"
                 onClick={handleSkipInstall}
-                className="inline-flex items-center justify-center rounded-full border border-slate-600/60 bg-slate-900/60 px-3 py-1 text-slate-200 hover:bg-slate-800/80 responsive-button text-overflow-fix"
+                className="flex-1 inline-flex items-center justify-center rounded-xl border border-slate-700/60 bg-slate-900/60 px-3 py-2.5 text-center font-bold text-slate-200 hover:bg-slate-800/80 transition duration-200 text-xs tracking-wide"
               >
                 Continue in browser
               </button>
