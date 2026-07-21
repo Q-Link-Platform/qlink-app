@@ -7178,11 +7178,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               isChatFull
                 ? "hidden"
                 : isFocusMode
-                ? "fixed inset-0 z-[9999] bg-slate-950/95 overflow-y-auto px-4 py-6 md:px-8 md:py-10 flex flex-col items-center"
+                ? "fixed inset-0 z-[9999] bg-slate-950/95 overflow-y-auto px-4 py-8 md:px-12 md:py-16 flex flex-col items-center"
                 : "space-y-4 sm:space-y-6 px-4 lg:px-6 py-4"
             }
           >
-            <div className={isFocusMode ? "w-full max-w-3xl space-y-4 sm:space-y-6 relative" : "contents"}>
+            <div className={isFocusMode ? "w-full max-w-6xl space-y-4 sm:space-y-6 relative" : "contents"}>
               {!isFocusMode && (
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <button
@@ -8335,11 +8335,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               </>
             )}
 
-            {/* Your Quantum ID + outgoing requests */}
             <div
               ref={quantumIdRef}
               className={
-                "mt-4 space-y-4 rounded-2xl border border-slate-600/60 bg-slate-900/70 p-4 text-sm text-slate-300 transition-shadow " +
+                (isFocusMode
+                  ? "mt-4 space-y-6 rounded-3xl border border-cyan-500/35 bg-slate-900/50 p-8 text-base text-slate-200 transition-shadow "
+                  : "mt-4 space-y-4 rounded-2xl border border-slate-600/60 bg-slate-900/70 p-4 text-sm text-slate-300 transition-shadow ") +
                 (highlightQuantumId
                   ? "glow-pulse border-cyan-400/80"
                   : "")
@@ -8495,7 +8496,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               <div
                 ref={requestsRef}
                 className={
-                "mt-2 space-y-1 max-h-40 overflow-y-auto scrollbar-hide " +
+                "mt-2 space-y-1 overflow-y-auto scrollbar-hide " +
+                (isFocusMode ? "max-h-[35vh] " : "max-h-40 ") +
                 (highlightRequests
                   ? "glow-pulse border border-cyan-400/80 rounded-xl"
                   : "")
@@ -8681,7 +8683,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     No one has requested to connect yet.
                   </p>
                 )}
-                <div className="space-y-1 mt-2 max-h-52 overflow-y-auto incoming-requests-scroll pr-1">
+                <div className={`space-y-1 mt-2 ${isFocusMode ? "max-h-[55vh]" : "max-h-52"} overflow-y-auto incoming-requests-scroll pr-1`}>
                   {incoming.map((req) => (
                     <div
                       key={req.id}
