@@ -8302,34 +8302,38 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               </div>
             )}
 
-            <div className="space-y-3 sm:space-y-4">
-              <h1 className="text-balance text-4xl font-semibold tracking-tight text-slate-50 sm:text-5xl md:text-6xl">
-                Talk to anyone on Earth
-                <span className="block bg-gradient-to-r from-cyan-300 via-fuchsia-400 to-indigo-300 bg-clip-text text-transparent">
-                  with a single ID.
-                </span>
-              </h1>
-              <p className="max-w-lg text-base text-slate-300/90 sm:text-lg leading-relaxed">
-                Share your quantum chat ID, send a relationship request, and
-                open a secure, near-instant channel to your co-founders,
-                family, investors and more.
-              </p>
-            </div>
+            {!isFocusMode && (
+              <>
+                <div className="space-y-3 sm:space-y-4">
+                  <h1 className="text-balance text-4xl font-semibold tracking-tight text-slate-50 sm:text-5xl md:text-6xl">
+                    Talk to anyone on Earth
+                    <span className="block bg-gradient-to-r from-cyan-300 via-fuchsia-400 to-indigo-300 bg-clip-text text-transparent">
+                      with a single ID.
+                    </span>
+                  </h1>
+                  <p className="max-w-lg text-base text-slate-300/90 sm:text-lg leading-relaxed">
+                    Share your quantum chat ID, send a relationship request, and
+                    open a secure, near-instant channel to your co-founders,
+                    family, investors and more.
+                  </p>
+                </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400/90 sm:text-sm">
-              <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/40 bg-slate-900/50 px-2.5 py-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Live presence
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/40 bg-slate-900/50 px-2.5 py-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-                Encrypted DMs
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/40 bg-slate-900/50 px-2.5 py-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
-                Global handles
-              </span>
-            </div>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400/90 sm:text-sm">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/40 bg-slate-900/50 px-2.5 py-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Live presence
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/40 bg-slate-900/50 px-2.5 py-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
+                    Encrypted DMs
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/40 bg-slate-900/50 px-2.5 py-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
+                    Global handles
+                  </span>
+                </div>
+              </>
+            )}
 
             {/* Your Quantum ID + outgoing requests */}
             <div
