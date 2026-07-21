@@ -8482,7 +8482,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               <div
                 ref={requestsRef}
                 className={
-                "mt-2 space-y-1 overflow-y-auto scrollbar-hide " +
+                "mt-2 space-y-1 overflow-y-auto scrollbar-hide smooth-gpu-scroll " +
                 (isFocusMode ? "max-h-[35vh] " : "max-h-40 ") +
                 (highlightRequests
                   ? "glow-pulse border border-cyan-400/80 rounded-xl"
@@ -8669,7 +8669,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     No one has requested to connect yet.
                   </p>
                 )}
-                <div className={`space-y-1 mt-2 ${isFocusMode ? "max-h-[55vh]" : "max-h-52"} overflow-y-auto incoming-requests-scroll pr-1`}>
+                <div className={`space-y-1 mt-2 ${isFocusMode ? "max-h-[55vh]" : "max-h-52"} overflow-y-auto incoming-requests-scroll smooth-gpu-scroll pr-1`}>
                   {incoming.map((req) => (
                     <div
                       key={req.id}
