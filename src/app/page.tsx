@@ -8504,9 +8504,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   <div
                     key={req.id}
                     className={
-                      "flex items-center justify-between gap-2 rounded-xl bg-slate-900/90 px-2 py-1.5 " +
+                      "flex items-center justify-between gap-2 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2 transition-all duration-200 hover:shadow-[0_0_15px_rgba(6,182,212,0.08)] " +
                       (req.status === "ACCEPTED" && req.toUser?.handle
-                        ? "cursor-pointer hover:bg-slate-800/90"
+                        ? "cursor-pointer hover:bg-slate-900/60 hover:border-cyan-500/35 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)]"
                         : "")
                     }
                     onClick={() => {
@@ -8674,9 +8674,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     <div
                       key={req.id}
                       className={
-                        "flex flex-col gap-1 rounded-xl bg-slate-900/90 px-2 py-1.5 " +
+                        "flex flex-col gap-1 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2 transition-all duration-200 hover:shadow-[0_0_15px_rgba(6,182,212,0.08)] " +
                         (req.status === "ACCEPTED" && req.fromUser?.handle
-                          ? "cursor-pointer hover:bg-slate-800/90"
+                          ? "cursor-pointer hover:bg-slate-900/60 hover:border-cyan-500/35 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)]"
                           : "")
                       }
                       onClick={() => {
