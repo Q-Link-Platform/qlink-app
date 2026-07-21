@@ -7164,11 +7164,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               isChatFull
                 ? "hidden"
                 : isFocusMode
-                ? "fixed inset-0 z-[9999] bg-slate-950/95 overflow-y-auto px-4 py-8 md:px-12 md:py-12 flex flex-col items-center"
+                ? "fixed inset-0 z-[9999] bg-slate-950/95 overflow-y-auto px-0 py-0 flex flex-col"
                 : "space-y-4 sm:space-y-6 px-4 lg:px-6 py-4"
             }
           >
-            <div className={isFocusMode ? "w-full max-w-[92vw] space-y-4 sm:space-y-6 relative flex flex-col" : "contents"}>
+            <div className={isFocusMode ? "w-full min-h-screen relative flex flex-col" : "contents"}>
               {!isFocusMode && (
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <button
@@ -8325,7 +8325,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               ref={quantumIdRef}
               className={
                 (isFocusMode
-                  ? "mt-4 space-y-6 rounded-3xl border border-cyan-500/35 bg-slate-900/50 p-6 sm:p-10 w-full text-base text-slate-200 transition-shadow "
+                  ? "mt-0 space-y-8 rounded-none border-none bg-slate-900/50 backdrop-blur-md p-8 sm:p-12 md:p-16 pt-24 w-full flex-1 flex flex-col text-base text-slate-200 transition-shadow "
                   : "mt-4 space-y-4 rounded-2xl border border-slate-600/60 bg-slate-900/70 p-4 text-sm text-slate-300 transition-shadow ") +
                 (highlightQuantumId
                   ? "glow-pulse border-cyan-400/80"
