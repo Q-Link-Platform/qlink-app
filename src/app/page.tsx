@@ -7178,74 +7178,77 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               isChatFull
                 ? "hidden"
                 : isFocusMode
-                ? "space-y-4 sm:space-y-6 px-4 lg:px-6 py-4 max-w-3xl w-full"
+                ? "fixed inset-0 z-[9999] bg-slate-950/95 overflow-y-auto px-4 py-6 md:px-8 md:py-10 flex flex-col items-center"
                 : "space-y-4 sm:space-y-6 px-4 lg:px-6 py-4"
             }
           >
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={openDirectory}
-                className={
-                  "inline-flex items-center gap-2 rounded-full border bg-cyan-500/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-cyan-100/80 transition hover:border-cyan-300 hover:bg-cyan-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 animate-[pulse_2.4s_ease-in-out_infinite] " +
-                  (highlightConsole
-                    ? "border-cyan-300 glow-pulse"
-                    : "border-cyan-400/40")
-                }
-              >
-                <span className="relative flex h-2 w-2 items-center justify-center">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400/70 opacity-60 animate-ping" />
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cyan-300" />
-                </span>
-                Quantum Link Console
-              </button>
+            <div className={isFocusMode ? "w-full max-w-3xl space-y-4 sm:space-y-6 relative" : "contents"}>
+              {!isFocusMode && (
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={openDirectory}
+                    className={
+                      "inline-flex items-center gap-2 rounded-full border bg-cyan-500/5 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-cyan-100/80 transition hover:border-cyan-300 hover:bg-cyan-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 animate-[pulse_2.4s_ease-in-out_infinite] " +
+                      (highlightConsole
+                        ? "border-cyan-300 glow-pulse"
+                        : "border-cyan-400/40")
+                    }
+                  >
+                    <span className="relative flex h-2 w-2 items-center justify-center">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400/70 opacity-60 animate-ping" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cyan-300" />
+                    </span>
+                    Quantum Link Console
+                  </button>
 
-              <Link
-                href="/about"
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-800 bg-slate-900/40 px-3 py-1 text-[11.5px] font-semibold text-slate-300 hover:border-cyan-400/50 hover:text-cyan-300 transition-all duration-300"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee]" />
-                About
-              </Link>
+                  <Link
+                    href="/about"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-slate-800 bg-slate-900/40 px-3 py-1 text-[11.5px] font-semibold text-slate-300 hover:border-cyan-400/50 hover:text-cyan-300 transition-all duration-300"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee]" />
+                    About
+                  </Link>
 
-              <button
-                type="button"
-                onClick={() => {
-                  // Prevent rapid double-clicks causing flicker
-                  const now = Date.now();
-                  if (now - settingsClickTimeRef.current < 400) return;
-                  settingsClickTimeRef.current = now;
-                  // eslint-disable-next-line no-console
-                  console.log("[Settings] pill clicked");
-                  setIsSettingsAnimating(true);
-                  setShowSettings((prev) => !prev);
-                  setSettingsScreen("main");
-                }}
-                className={
-                  "inline-flex items-center gap-1 rounded-full border bg-slate-900/70 px-3 py-1 text-[11px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 " +
-                  (highlightSettingsPill
-                    ? "border-cyan-400 glow-pulse"
-                    : "border-slate-600/70")
-                }
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-                Settings
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Prevent rapid double-clicks causing flicker
+                      const now = Date.now();
+                      if (now - settingsClickTimeRef.current < 400) return;
+                      settingsClickTimeRef.current = now;
+                      // eslint-disable-next-line no-console
+                      console.log("[Settings] pill clicked");
+                      setIsSettingsAnimating(true);
+                      setShowSettings((prev) => !prev);
+                      setSettingsScreen("main");
+                    }}
+                    className={
+                      "inline-flex items-center gap-1 rounded-full border bg-slate-900/70 px-3 py-1 text-[11px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 " +
+                      (highlightSettingsPill
+                        ? "border-cyan-400 glow-pulse"
+                        : "border-slate-600/70")
+                    }
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                    Settings
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => setIsFocusMode((prev) => !prev)}
-                className={
-                  "inline-flex items-center gap-1 rounded-full border bg-slate-900/70 px-3 py-1 text-[11px] font-medium transition-all focus-glow-btn " +
-                  (isFocusMode
-                    ? "border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
-                    : "border-cyan-500/50 text-cyan-400 hover:border-cyan-400 hover:text-cyan-200")
-                }
-              >
-                <span className={`h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee]`} />
-                {isFocusMode ? "Focus Mode: On" : "Focus Mode"}
-              </button>
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsFocusMode((prev) => !prev)}
+                    className={
+                      "inline-flex items-center gap-1 rounded-full border bg-slate-900/70 px-3 py-1 text-[11px] font-medium transition-all focus-glow-btn " +
+                      (isFocusMode
+                        ? "border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                        : "border-cyan-500/50 text-cyan-400 hover:border-cyan-400 hover:text-cyan-200")
+                    }
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee]`} />
+                    {isFocusMode ? "Focus Mode: On" : "Focus Mode"}
+                  </button>
+                </div>
+              )}
 
             {(showSettings || isSettingsAnimating) && (
               (canUseDom
@@ -8790,7 +8793,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 </div>
               </div>
             </div>
-          </section>
+
+            {isFocusMode && (
+              <button
+                type="button"
+                onClick={() => setIsFocusMode(false)}
+                className="fixed top-4 right-4 z-[10000] rounded-full border bg-slate-950 px-4 py-2 text-xs font-semibold tracking-wider text-cyan-300 border-cyan-400 focus-glow-btn flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee]" />
+                Exit Focus Mode
+              </button>
+            )}
+          </div>
+        </section>
 
           {/* RIGHT: CONNECT FLOW / CHAT */}
           <section
