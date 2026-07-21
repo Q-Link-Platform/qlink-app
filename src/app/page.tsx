@@ -1209,6 +1209,27 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   // Welcome screen logo viewer state (right top corner)
   const [showWelcomeLogoViewer, setShowWelcomeLogoViewer] = useState(false);
   const [welcomeLogoViewerImage, setWelcomeLogoViewerImage] = useState<string>("/logo-square.png");
+
+  // Focus Mode (Zen Mode) state
+  const [isFocusMode, setIsFocusMode] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return localStorage.getItem("qlink_focus_mode") === "true";
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  // Sync Focus Mode to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("qlink_focus_mode", String(isFocusMode));
+    } catch (err) {
+      console.warn("Failed to save focus mode settings:", err);
+    }
+  }, [isFocusMode]);
   
   // Settings animation state
   const [isSettingsAnimating, setIsSettingsAnimating] = useState(false);
@@ -7144,13 +7165,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           className={
             isChatFull
               ? "relative grid h-full min-h-0 gap-8 overflow-hidden"
+              : isFocusMode
+              ? "relative flex justify-center w-full h-auto min-h-full overflow-y-visible"
               : "relative grid w-full h-auto min-h-full gap-0 overflow-y-visible lg:grid-cols-2 lg:items-start"
           }
         >
           {/* LEFT: HOME / STATUS */}
           <section
             className={
-              isChatFull ? "hidden" : "space-y-4 sm:space-y-6 px-4 lg:px-6 py-4"
+              (isChatFull || isFocusMode) ? "hidden" : "space-y-4 sm:space-y-6 px-4 lg:px-6 py-4"
             }
           >
             <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -7201,6 +7224,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
                 Settings
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsFocusMode((prev) => !prev)}
+                className={
+                  "inline-flex items-center gap-1 rounded-full border bg-slate-900/70 px-3 py-1 text-[11px] font-medium transition-all hover:border-cyan-400/70 " +
+                  (isFocusMode
+                    ? "border-cyan-400 text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.25)]"
+                    : "border-slate-600/70 text-slate-200")
+                }
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${isFocusMode ? 'bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee]' : 'bg-slate-400'}`} />
+                Zen Mode
               </button>
             </div>
 
@@ -8760,6 +8797,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               "relative overflow-hidden scrollbar-hide " +
               (isChatFull
                 ? "fixed inset-0 z-[9999] flex h-[100dvh] w-screen"
+                : isFocusMode
+                ? "flex h-auto min-h-full flex-1 flex-col px-4 lg:px-6 py-4 max-w-3xl w-full"
                 : "flex h-auto min-h-full flex-1 flex-col px-4 lg:px-6 py-4")
             }
           >
@@ -9359,7 +9398,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           <span className="text-slate-400">{`Chat with @${activePeerHandle}`}</span>
                         )}
                     </p>
-                    <div className="flex items-center gap-2">
+                     <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsFocusMode((prev) => !prev)}
+                        className={
+                          "rounded-full border bg-slate-900 px-2.5 py-0.5 text-[10px] hover:border-cyan-400/70 transition-all " +
+                          (isFocusMode
+                            ? "border-cyan-400 text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.25)]"
+                            : "border-slate-600/70 text-slate-200")
+                        }
+                      >
+                        {isFocusMode ? "🧘 Zen Mode: On" : "🧘 Zen Mode"}
+                      </button>
+
                       <button
                         type="button"
                         onClick={toggleChatFull}
