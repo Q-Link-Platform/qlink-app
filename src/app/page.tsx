@@ -1211,25 +1211,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [welcomeLogoViewerImage, setWelcomeLogoViewerImage] = useState<string>("/logo-square.png");
 
   // Focus Mode (Zen Mode) state
-  const [isFocusMode, setIsFocusMode] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        return localStorage.getItem("qlink_focus_mode") === "true";
-      } catch {
-        return false;
-      }
-    }
-    return false;
-  });
-
-  // Sync Focus Mode to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem("qlink_focus_mode", String(isFocusMode));
-    } catch (err) {
-      console.warn("Failed to save focus mode settings:", err);
-    }
-  }, [isFocusMode]);
+  const [isFocusMode, setIsFocusMode] = useState<boolean>(false);
   
   // Settings animation state
   const [isSettingsAnimating, setIsSettingsAnimating] = useState(false);
