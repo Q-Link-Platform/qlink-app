@@ -6888,7 +6888,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       
         {/* Main Chat Container - Full Width */}
         <div 
-          className={`flex w-full flex-1 glass-panel-responsive neon-border-responsive relative px-0 py-0 sm:px-6 md:px-8 lg:px-10 sm:py-6 md:py-8 ${isChatFull ? "h-full min-h-0 overflow-hidden" : "h-auto min-h-screen overflow-y-visible"} ${isGlowActive ? "glow-active" : ""}`}
+          className={
+            isFocusMode
+              ? "flex w-full flex-1 relative px-0 py-0 h-auto min-h-screen overflow-y-visible"
+              : `flex w-full flex-1 glass-panel-responsive neon-border-responsive relative px-0 py-0 sm:px-6 md:px-8 lg:px-10 sm:py-6 md:py-8 ${isChatFull ? "h-full min-h-0 overflow-hidden" : "h-auto min-h-screen overflow-y-visible"} ${isGlowActive ? "glow-active" : ""}`
+          }
           onTouchStart={() => setIsGlowActive(true)}
           onTouchEnd={() => setIsGlowActive(false)}
           onTouchCancel={() => setIsGlowActive(false)}
