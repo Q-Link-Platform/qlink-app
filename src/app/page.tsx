@@ -1826,6 +1826,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     let stopped = false;
     let lastActivityTime = Date.now();
+    let lastSentOnline: boolean | null = null;
+    let lastPingTime = 0;
 
     // Handler to register user activity
     const recordActivity = () => {
@@ -1846,6 +1848,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ offline: forceOffline })
         });
+        lastSentOnline = !forceOffline;
+        lastPingTime = Date.now();
       } catch {
         // ignore presence ping errors
       }
@@ -1859,16 +1863,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       const isWithinActiveWindow = now - lastActivityTime <= 60_000; // 1 minute idle timeout
 
       if (isVisible && isWithinActiveWindow) {
-        // User is active and tab is open, send online heartbeat
-        await sendPing(false);
+        // User is active and tab is visible: ping only if we haven't in 15 seconds OR if our last state was offline
+        if (lastSentOnline !== true || now - lastPingTime >= 15_000) {
+          await sendPing(false);
+        }
       } else {
-        // Tab is hidden or user has been idle, send offline heartbeat
-        await sendPing(true);
+        // User is offline/idle: send offline ping ONCE to transition status immediately
+        if (lastSentOnline === true || lastSentOnline === null) {
+          await sendPing(true);
+        }
       }
 
       if (!stopped) {
-        // Ping every 15 seconds
-        setTimeout(runPingCycle, 15_000);
+        // Check state every 5 seconds for fast response, but only send requests on changes/heartbeats
+        setTimeout(runPingCycle, 5_000);
       }
     };
 
@@ -1878,12 +1886,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     // Listen to visibility change event (tab minimize, mobile background, phone lock)
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
-        // Instantly force offline state on the server
-        sendPing(true);
+        if (lastSentOnline === true || lastSentOnline === null) {
+          sendPing(true);
+        }
       } else {
         // Instantly restore online state when tab becomes visible again
         lastActivityTime = Date.now(); // reset activity timer
-        sendPing(false);
+        if (lastSentOnline !== true) {
+          sendPing(false);
+        }
       }
     };
 
@@ -1891,7 +1902,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     // Safety events for page unloading / closing tab
     const handleUnload = () => {
-      sendPing(true);
+      if (lastSentOnline === true || lastSentOnline === null) {
+        sendPing(true);
+      }
     };
     window.addEventListener("pagehide", handleUnload);
     window.addEventListener("beforeunload", handleUnload);
