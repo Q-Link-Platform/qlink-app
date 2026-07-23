@@ -5238,10 +5238,26 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const formatLastOnlineTime = (date: Date | null) => {
     if (!date) return "";
     try {
-      return date.toLocaleTimeString(undefined, {
+      const now = new Date();
+      const isToday =
+        date.getDate() === now.getDate() &&
+        date.getMonth() === now.getMonth() &&
+        date.getFullYear() === now.getFullYear();
+
+      const timeStr = date.toLocaleTimeString(undefined, {
         hour: "numeric",
         minute: "2-digit",
       });
+
+      if (isToday) {
+        return `today at ${timeStr}`;
+      } else {
+        const dateStr = date.toLocaleDateString(undefined, {
+          month: "short",
+          day: "numeric",
+        });
+        return `${dateStr} at ${timeStr}`;
+      }
     } catch {
       return "";
     }
@@ -8338,7 +8354,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               ref={quantumIdRef}
               className={
                 (isFocusMode
-                  ? "mt-0 space-y-8 rounded-none border-none bg-slate-900/50 backdrop-blur-md p-8 sm:p-12 md:p-16 pt-24 w-full flex-1 flex flex-col text-base text-slate-200 transition-shadow "
+                  ? "mt-0 space-y-4 rounded-none border-none bg-slate-900 p-2 sm:p-4 md:p-6 pt-16 w-full flex-1 flex flex-col text-base text-slate-200 transition-shadow "
                   : "mt-4 space-y-4 rounded-2xl border border-slate-600/60 bg-slate-900/70 p-4 text-sm text-slate-300 transition-shadow ") +
                 (highlightQuantumId
                   ? "glow-pulse border-cyan-400/80"
@@ -8682,7 +8698,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     No one has requested to connect yet.
                   </p>
                 )}
-                <div className={`space-y-1 mt-2 ${isFocusMode ? "max-h-[55vh]" : "max-h-52"} overflow-y-auto incoming-requests-scroll smooth-gpu-scroll pr-1`}>
+                <div className={`space-y-1 mt-2 ${isFocusMode ? "flex-1" : "max-h-52"} overflow-y-auto incoming-requests-scroll pr-1`} style={{ WebkitOverflowScrolling: 'touch' }}>
                   {incoming.map((req) => (
                     <div
                       key={req.id}
