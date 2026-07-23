@@ -17,19 +17,20 @@ export async function GET(
   const viewerHandle = ((session.user as any).handle as string | undefined) || null;
 
   const { handle: rawHandle } = await params;
-  const trimmed = (rawHandle || "").trim();
-  if (!rawHandle) {
-    // If handle is missing, report a neutral "recently seen" state so
-    // the frontend presence poller stays stable in demos/testing.
-    const now = new Date();
-    return NextResponse.json({ online: true, lastSeenAt: now, typing: false });
+  let cleanHandle = (rawHandle || "").trim();
+  if (cleanHandle.startsWith("@")) {
+    cleanHandle = cleanHandle.substring(1);
+  }
+
+  if (!cleanHandle) {
+    return NextResponse.json({ online: false, lastSeenAt: null, typing: false });
   }
 
   try {
     const user = await prisma.user.findFirst({
       where: {
         handle: {
-          equals: rawHandle,
+          equals: cleanHandle,
           mode: "insensitive",
         },
       },
@@ -42,17 +43,22 @@ export async function GET(
     });
 
     if (!user) {
-      // If the user handle does not exist, treat them as recently seen
-      // instead of returning an error, so indicators still render in
-      // simple two-user demos even when lookup fails.
-      const now = new Date();
-      console.log("[presence] user not found for handle:", rawHandle, "-> fallback online");
-      return NextResponse.json({ online: true, lastSeenAt: now, typing: false });
+      // If the user handle does not exist, correctly return offline state rather than a fake online fallback
+      return NextResponse.json({ online: false, lastSeenAt: null, typing: false });
     }
 
     const now = Date.now();
-    const effectiveLastSeenDate = user.lastSeenAt ?? new Date();
-    const lastSeen = effectiveLastSeenDate.getTime();
+    
+    // If the user has never logged in/pinged presence (lastSeenAt is null), correctly report offline
+    if (!user.lastSeenAt) {
+      return NextResponse.json({
+        online: false,
+        lastSeenAt: null,
+        typing: false,
+      });
+    }
+
+    const lastSeen = user.lastSeenAt.getTime();
     const lastTyping = user.lastTypingAt ? user.lastTypingAt.getTime() : null;
 
     const online = now - lastSeen <= 35_000; // 35 seconds window (robust presence matching 15s client ping)
@@ -66,7 +72,7 @@ export async function GET(
 
     return NextResponse.json({
       online,
-      lastSeenAt: effectiveLastSeenDate,
+      lastSeenAt: user.lastSeenAt,
       typing,
     });
   } catch {
