@@ -17,8 +17,7 @@ export const sendMessageSchema = z.object({
 
 export const deleteMessageSchema = z.object({
   messageId: z.string()
-    .min(1, 'Message ID is required')
-    .uuid('Invalid message ID format'),
+    .min(1, 'Message ID is required'),
 });
 
 // ==========================================
@@ -32,7 +31,7 @@ export const createPostSchema = z.object({
   audience: z.enum(['GLOBAL', 'FOLLOWERS', 'FRIENDS', 'ALL'], {
     message: 'Invalid audience type'
   }).optional(),
-  attachmentId: z.string().uuid('Invalid attachment ID format').optional(),
+  attachmentId: z.string().optional(),
   attachmentKind: z.enum(['image', 'video'], {
     message: 'Invalid attachment kind'
   }).optional(),
@@ -41,14 +40,14 @@ export const createPostSchema = z.object({
 });
 
 export const reactionSchema = z.object({
-  postId: z.string().uuid('Invalid post ID format'),
+  postId: z.string().min(1, 'Post ID is required'),
   emoji: z.string()
     .min(1, 'Emoji is required')
     .max(10, 'Emoji too long'),
 });
 
 export const commentSchema = z.object({
-  postId: z.string().uuid('Invalid post ID format'),
+  postId: z.string().min(1, 'Post ID is required'),
   content: z.string()
     .min(1, 'Comment content is required')
     .max(1000, 'Comment too long (max 1,000 characters)'),
@@ -66,8 +65,7 @@ export const friendRequestSchema = z.object({
 
 export const decideFriendRequestSchema = z.object({
   requestId: z.string()
-    .min(1, 'Request ID is required')
-    .uuid('Invalid request ID format'),
+    .min(1, 'Request ID is required'),
   action: z.enum(['ACCEPT', 'REJECT'], {
     message: 'Action must be ACCEPT or REJECT'
   }),
@@ -98,8 +96,7 @@ export const updateProfileSchema = z.object({
 
 export const verifyBlueTickSchema = z.object({
   targetUserId: z.string()
-    .min(1, 'Target user ID is required')
-    .uuid('Invalid user ID format'),
+    .min(1, 'Target user ID is required'),
   action: z.enum(['approve', 'reject'], {
     message: 'Action must be approve or reject'
   }),
