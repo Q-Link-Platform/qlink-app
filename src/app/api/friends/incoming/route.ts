@@ -28,8 +28,19 @@ export async function GET() {
       },
     });
 
+    // Deduplicate: keep only the latest request per sender
+    const seenSenderIds = new Set<string>();
+    const uniqueRequests = [];
+    for (const r of requests) {
+      if (!r.fromUserId) continue;
+      if (!seenSenderIds.has(r.fromUserId)) {
+        seenSenderIds.add(r.fromUserId);
+        uniqueRequests.push(r);
+      }
+    }
+
     const shaped = await Promise.all(
-      requests.map(async (r) => {
+      uniqueRequests.map(async (r) => {
         let latestMessage = null;
         if (r.status === "ACCEPTED" && r.fromUser) {
           const roomId = [toUserId, r.fromUserId].sort().join(":");

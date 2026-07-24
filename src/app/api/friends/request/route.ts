@@ -39,14 +39,38 @@ export async function POST(request: Request) {
       .filter(Boolean)
       .join(",");
 
-    const friendRequest = await prisma.friendRequest.create({
-      data: {
-        fromUserId,
-        toUserId: toUser.id,
-        categories: concatenatedCategories,
-        message: typeof message === "string" && message.trim() ? message.trim() : null,
+    const existingRequest = await prisma.friendRequest.findFirst({
+      where: {
+        OR: [
+          { fromUserId, toUserId: toUser.id },
+          { fromUserId: toUser.id, toUserId: fromUserId },
+        ],
       },
+      orderBy: { createdAt: "desc" },
     });
+
+    let friendRequest;
+    if (existingRequest) {
+      friendRequest = await prisma.friendRequest.update({
+        where: { id: existingRequest.id },
+        data: {
+          fromUserId,
+          toUserId: toUser.id,
+          categories: concatenatedCategories,
+          message: typeof message === "string" && message.trim() ? message.trim() : null,
+          status: existingRequest.status === "REJECTED" ? "PENDING" : existingRequest.status,
+        },
+      });
+    } else {
+      friendRequest = await prisma.friendRequest.create({
+        data: {
+          fromUserId,
+          toUserId: toUser.id,
+          categories: concatenatedCategories,
+          message: typeof message === "string" && message.trim() ? message.trim() : null,
+        },
+      });
+    }
 
     try {
       const pushSubscriptions = await (prisma as any).pushSubscription.findMany({

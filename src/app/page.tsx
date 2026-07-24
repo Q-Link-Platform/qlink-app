@@ -3983,6 +3983,26 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   useEffect(() => {
     if (status !== "authenticated") return;
 
+    const deduplicateByFromUser = (reqs: IncomingRequest[]): IncomingRequest[] => {
+      const seen = new Set<string>();
+      return reqs.filter((r) => {
+        const idKey = r.fromUser?.id || r.id;
+        if (seen.has(idKey)) return false;
+        seen.add(idKey);
+        return true;
+      });
+    };
+
+    const deduplicateByToUser = (reqs: OutgoingRequest[]): OutgoingRequest[] => {
+      const seen = new Set<string>();
+      return reqs.filter((r) => {
+        const idKey = r.toUser?.id || r.id;
+        if (seen.has(idKey)) return false;
+        seen.add(idKey);
+        return true;
+      });
+    };
+
     const loadOutgoingAndIncoming = async () => {
       try {
         setIsLoadingOutgoing(true);
@@ -3992,7 +4012,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         const res = await fetch("/api/friends/outgoing");
         if (!res.ok) return;
         const data = await res.json();
-        setOutgoing((data.requests || []) as OutgoingRequest[]);
+        setOutgoing(deduplicateByToUser((data.requests || []) as OutgoingRequest[]));
       } catch {
         // ignore for now
       } finally {
@@ -4006,7 +4026,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           return;
         }
         const data = await res.json();
-        setIncoming((data.requests || []) as IncomingRequest[]);
+        setIncoming(deduplicateByFromUser((data.requests || []) as IncomingRequest[]));
       } catch {
         setIncomingError("Unable to load incoming requests.");
       } finally {
@@ -4169,7 +4189,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         if (inRes.ok) {
           const inData = await inRes.json();
           if (!cancelled) {
-            const requests = (inData.requests || []) as IncomingRequest[];
+            const rawReqs = (inData.requests || []) as IncomingRequest[];
+            const seen = new Set<string>();
+            const requests = rawReqs.filter((r) => {
+              const idKey = r.fromUser?.id || r.id;
+              if (seen.has(idKey)) return false;
+              seen.add(idKey);
+              return true;
+            });
             setIncoming(requests);
 
             // Sync unread status from latestMessage
