@@ -6,6 +6,7 @@ import { prismaAttachments } from "@/lib/prismaAttachments";
 import { supabaseFiles } from "@/lib/supabaseFiles";
 import { supabaseVideos } from "@/lib/supabaseVideos";
 import crypto from "crypto";
+import { touchUserPresence } from "@/lib/presence";
 
 // Force this route to run in the Node.js runtime so Buffer and Supabase JS work correctly.
 export const runtime = "nodejs";
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
     }
 
     const meId = (session.user as any).id as string;
+    touchUserPresence(meId);
 
     const peer = await prisma.user.findUnique({ where: { handle: toHandle } });
     if (!peer) {

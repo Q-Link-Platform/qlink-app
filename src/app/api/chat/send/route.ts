@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { sendMessageSchema, validateRequest } from "@/lib/validation";
+import { touchUserPresence } from "@/lib/presence";
 
 function buildRoomId(a: string, b: string) {
   return [a, b].sort().join(":");
@@ -21,6 +22,7 @@ export async function POST(request: Request) {
     const { toHandle, content, encrypted, iv } = validateRequest(sendMessageSchema, body);
 
     const meId = (session.user as any).id as string;
+    touchUserPresence(meId);
 
     const peer = await prisma.user.findUnique({ where: { handle: toHandle } });
     if (!peer) {

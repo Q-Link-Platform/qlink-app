@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prismaAttachments } from "@/lib/prismaAttachments";
 import { supabasePostsAdmin } from "@/lib/supabasePosts";
+import { touchUserPresence } from "@/lib/presence";
 
 export const runtime = "nodejs";
 
@@ -97,6 +98,7 @@ export async function POST(request: Request) {
         }
 
         const meId = (session.user as any).id as string;
+        touchUserPresence(meId);
 
         const attachment = await prismaAttachments.attachment.create({
           data: {

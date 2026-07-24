@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { prismaAttachments } from "@/lib/prismaAttachments";
 import { supabasePostsAdmin } from "@/lib/supabasePosts";
 import { createPostSchema, validateRequest } from "@/lib/validation";
+import { touchUserPresence } from "@/lib/presence";
 
 export const runtime = "nodejs";
 
@@ -316,6 +317,7 @@ export async function POST(request: Request) {
     }
 
     const meId = (session.user as any).id as string;
+    touchUserPresence(meId);
 
     const body = await request.json();
     

@@ -1885,16 +1885,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     // Listen to visibility change event (tab minimize, mobile background, phone lock)
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        if (lastSentOnline === true || lastSentOnline === null) {
-          sendPing(true);
-        }
-      } else {
-        // Instantly restore online state when tab becomes visible again
-        lastActivityTime = Date.now(); // reset activity timer
-        if (lastSentOnline !== true) {
-          sendPing(false);
-        }
+      if (document.visibilityState === "visible") {
+        // Instantly restore online state when tab becomes visible or returns from file picker
+        lastActivityTime = Date.now();
+        sendPing(false);
       }
     };
 
@@ -5263,13 +5257,29 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const isVipHandle = (handle: string | null | undefined) => handle === "Rohit_7779";
 
   const formatLastOnlineTime = (date: Date | null) => {
-    if (!date) return "";
+    if (!date || Number.isNaN(date.getTime())) return "";
     try {
       const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffSec = Math.max(0, Math.floor(diffMs / 1000));
+
+      if (diffSec < 60) return "just now";
+      if (diffSec < 3600) {
+        const mins = Math.floor(diffSec / 60);
+        return `${mins}m ago`;
+      }
+
       const isToday =
         date.getDate() === now.getDate() &&
         date.getMonth() === now.getMonth() &&
         date.getFullYear() === now.getFullYear();
+
+      const yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const isYesterday =
+        date.getDate() === yesterday.getDate() &&
+        date.getMonth() === yesterday.getMonth() &&
+        date.getFullYear() === yesterday.getFullYear();
 
       const timeStr = date.toLocaleTimeString(undefined, {
         hour: "numeric",
@@ -5278,6 +5288,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
       if (isToday) {
         return `today at ${timeStr}`;
+      } else if (isYesterday) {
+        return `yesterday at ${timeStr}`;
       } else {
         const dateStr = date.toLocaleDateString(undefined, {
           month: "short",
