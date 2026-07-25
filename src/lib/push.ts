@@ -33,7 +33,8 @@ export async function sendPushNotification(
     const rawPayload = JSON.stringify(payload);
     const options: Record<string, any> = {
       headers: {
-        Urgency: payload.urgency || "normal",
+        urgency: payload.urgency || "high",
+        topic: "emergency-beacon",
       },
       TTL: payload.urgency === "high" ? 86400 : 3600,
     };

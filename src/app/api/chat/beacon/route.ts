@@ -83,15 +83,15 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    // Dispatch push notifications asynchronously
-    Promise.allSettled(
+    // Dispatch push notifications synchronously to ensure Vercel serverless context stays alive until delivery
+    await Promise.allSettled(
       pushSubscriptions.map((sub) =>
         sendPushNotification(
           { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
           pushPayload
         )
       )
-    ).catch(() => {});
+    );
 
     return NextResponse.json({
       ok: true,

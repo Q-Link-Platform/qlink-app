@@ -97,6 +97,19 @@ export const EmergencyBeaconModal: React.FC<EmergencyBeaconModalProps> = ({
           <button
             type="button"
             onClick={() => {
+              quantumAudio.warmup();
+              quantumAudio.playEmergencyChime();
+            }}
+            className="w-full rounded-2xl border border-rose-500/50 bg-rose-950/80 py-3 text-xs font-semibold text-rose-200 transition-all hover:bg-rose-900 active:scale-95"
+          >
+            🔊 Replay Loud Alarm Sound
+          </button>
+        </div>
+
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => {
               onAcknowledge();
               onClose();
             }}
