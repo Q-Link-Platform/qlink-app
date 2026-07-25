@@ -19,6 +19,8 @@ import { SessionProvider, useSession, signIn, signOut } from "next-auth/react";
 import Cropper from "react-easy-crop";
 import { usePassiveTouchEvents, useAndroidScrollOptimization } from "@/hooks/usePassiveTouchEvents";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { quantumAudio } from "@/lib/quantumAudio";
+import { EmergencyBeaconModal } from "@/components/EmergencyBeaconModal";
 import { countries } from "@/utils/countries";
 import dynamic from "next/dynamic";
 
@@ -678,6 +680,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   // States for the Secure Message Sharing feature
   const [shareToastText, setShareToastText] = useState<string | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+
+  // States for Q-BEACON Priority Emergency Protocol
+  const [activeBeacon, setActiveBeacon] = useState<{
+    senderHandle: string;
+    senderName?: string;
+    senderImage?: string | null;
+    voiceUrl?: string | null;
+    noteText?: string | null;
+  } | null>(null);
+  const [isSendingBeacon, setIsSendingBeacon] = useState(false);
+  const [beaconStatusMsg, setBeaconStatusMsg] = useState<string | null>(null);
 
   // Unread message tracking (Array of { id, sender } objects to prevent duplicates and race conditions)
   interface UnreadMessage {
@@ -5202,6 +5215,37 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const handleChatSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await actuallySendChat();
+  };
+
+  const handleTriggerEmergencyBeacon = async () => {
+    if (!activePeerHandle) return;
+    setIsSendingBeacon(true);
+    setBeaconStatusMsg("Dispatching Priority Emergency Beacon...");
+    try {
+      quantumAudio.warmup();
+      quantumAudio.playEmergencyChime();
+      const res = await fetch("/api/chat/beacon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toHandle: activePeerHandle,
+          noteText: chatInput ? chatInput.trim() : "Urgent Emergency Beacon Pulse!",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setBeaconStatusMsg(data.error || "Failed to dispatch beacon.");
+        return;
+      }
+      setBeaconStatusMsg(`⚡ Emergency Beacon sent to @${activePeerHandle}!`);
+      setTimeout(() => setBeaconStatusMsg(null), 4000);
+      setChatInput("");
+    } catch {
+      setBeaconStatusMsg("Failed to dispatch beacon.");
+    } finally {
+      setIsSendingBeacon(false);
+    }
   };
 
   const handleChatInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -10351,6 +10395,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           />
                         </div>
 
+                        {/* Q-BEACON Emergency Priority Button */}
+                        <button
+                          type="button"
+                          disabled={!activePeerHandle || isSendingBeacon}
+                          onClick={handleTriggerEmergencyBeacon}
+                          title="⚡ Send Priority Emergency Beacon (Bypasses DND)"
+                          className="select-none inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-500/80 bg-rose-600/90 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.6)] transition hover:bg-rose-500 active:scale-95 sm:h-10 sm:w-10 disabled:opacity-40"
+                        >
+                          ⚡
+                        </button>
+
                         <button
                           type="submit"
                           disabled={!activePeerHandle || !chatInput.trim()}
@@ -10364,6 +10419,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     )}
                   </form>
                   </div>
+                  {beaconStatusMsg && (
+                    <p className="mt-1 text-[10px] font-semibold text-rose-400 animate-pulse">
+                      {beaconStatusMsg}
+                    </p>
+                  )}
                   {attachmentError && (
                     <p className="mt-1 text-[10px] text-rose-300">
                       {attachmentError}
@@ -12125,6 +12185,23 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
           {shareToastText}
         </div>
+      )}
+
+      {/* Q-BEACON Fullscreen Crimson Glassmorphic Radar Modal */}
+      {activeBeacon && (
+        <EmergencyBeaconModal
+          senderHandle={activeBeacon.senderHandle}
+          senderName={activeBeacon.senderName}
+          senderImage={activeBeacon.senderImage}
+          voiceUrl={activeBeacon.voiceUrl}
+          noteText={activeBeacon.noteText}
+          onClose={() => setActiveBeacon(null)}
+          onAcknowledge={() => {
+            if (activePeerHandle) {
+              setChatInput("🟢 I'm awake!");
+            }
+          }}
+        />
       )}
     </main>
   );

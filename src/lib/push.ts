@@ -18,6 +18,11 @@ export interface PushPayload {
   body: string;
   icon?: string;
   url?: string;
+  urgency?: "high" | "normal" | "low" | "very-low";
+  requireInteraction?: boolean;
+  vibrate?: number[];
+  tag?: string;
+  data?: Record<string, any>;
 }
 
 export async function sendPushNotification(
@@ -26,6 +31,13 @@ export async function sendPushNotification(
 ) {
   try {
     const rawPayload = JSON.stringify(payload);
+    const options: Record<string, any> = {
+      headers: {
+        Urgency: payload.urgency || "normal",
+      },
+      TTL: payload.urgency === "high" ? 86400 : 3600,
+    };
+
     await webpush.sendNotification(
       {
         endpoint: subscription.endpoint,
@@ -34,12 +46,12 @@ export async function sendPushNotification(
           auth: subscription.auth,
         },
       },
-      rawPayload
+      rawPayload,
+      options
     );
     console.log(`[web-push] Notification sent successfully to endpoint: ${subscription.endpoint}`);
   } catch (error: any) {
     console.error(`[web-push] Error sending notification to endpoint: ${subscription.endpoint}`, error);
-    // Return the raw error so parent can handle if subscription is expired (410 Gone / 404 Not Found)
     throw error;
   }
 }
