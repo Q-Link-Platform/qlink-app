@@ -47,30 +47,8 @@ export async function POST(req: NextRequest) {
     const userIds = [meId, recipient.id].sort();
     const roomId = `dm:${userIds[0]}:${userIds[1]}`;
 
-    // Rate Limit Check: Max 3 Emergency Beacons per 24 hours per recipient
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const recentBeaconsCount = await prisma.message.count({
-      where: {
-        senderId: meId,
-        roomId,
-        content: {
-          startsWith: "⚡ [Q-BEACON_EMERGENCY]:",
-        },
-        createdAt: {
-          gte: twentyFourHoursAgo,
-        },
-      },
-    });
-
-    if (recentBeaconsCount >= 3) {
-      return NextResponse.json(
-        {
-          error: "Rate limit reached: Max 3 Emergency Beacons per 24 hours per friend.",
-          quotaReached: true,
-        },
-        { status: 429 }
-      );
-    }
+    // Rate limit check bypassed for testing as requested
+    const recentBeaconsCount = 0;
 
     const beaconMessageContent = `⚡ [Q-BEACON_EMERGENCY]: ${voiceUrl || noteText || "Priority Emergency Pulse"}`;
 

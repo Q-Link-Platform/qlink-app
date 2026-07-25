@@ -29,16 +29,17 @@ self.addEventListener("push", (event) => {
     body: body,
     icon: icon,
     badge: "/logo-256.png", // Small icon shown in Android notification bar
-    data: {
-      url: url
-    },
-    vibrate: [100, 50, 100], // Vibration pattern
+    data: payload.data || { url: url },
+    vibrate: payload.vibrate || [500, 200, 500, 200, 1000], // Emergency vibration pattern
+    requireInteraction: payload.requireInteraction ?? true,
+    renotify: payload.renotify ?? true,
+    tag: payload.tag || "beacon-alert",
     actions: [
-      { action: "open", title: "Open Q-link" }
+      { action: "open", title: "⚡ RESPOND TO BEACON" }
     ]
   };
 
-    const promise = (async () => {
+  const promise = (async () => {
     try {
       // 1. Show the notification
       await self.registration.showNotification(title || "Q-link Alert", options);
@@ -52,23 +53,24 @@ self.addEventListener("push", (event) => {
         await navigator.setAppBadge(count);
       }
 
-      // 4. Extract senderHandle and notify all open client windows
+      // 4. Extract senderHandle and notify all open client windows immediately
       try {
         const urlObj = new URL(url, self.location.origin);
-        const senderHandle = urlObj.searchParams.get("chat");
-        if (senderHandle) {
-          const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-          clientList.forEach((client) => {
-            try {
-              client.postMessage({
-                type: "NEW_MESSAGE_RECEIVED",
-                fromHandle: senderHandle,
-              });
-            } catch (e) {
-              // ignore
-            }
-          });
-        }
+        const senderHandle = urlObj.searchParams.get("peer") || urlObj.searchParams.get("chat");
+        const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+        clientList.forEach((client) => {
+          try {
+            client.postMessage({
+              type: "EMERGENCY_BEACON_RECEIVED",
+              senderHandle: payload.data?.senderHandle || senderHandle,
+              voiceUrl: payload.data?.voiceUrl || null,
+              noteText: body,
+              url: url,
+            });
+          } catch (e) {
+            // ignore
+          }
+        });
       } catch (err) {
         console.error("Error sending message to clients on push:", err);
       }

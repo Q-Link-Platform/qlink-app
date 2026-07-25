@@ -692,6 +692,53 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [isSendingBeacon, setIsSendingBeacon] = useState(false);
   const [beaconStatusMsg, setBeaconStatusMsg] = useState<string | null>(null);
 
+  // Listen for Service Worker background push events (when app is open or backgrounded)
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+
+    const handleSwMessage = (event: MessageEvent) => {
+      if (event.data?.type === "EMERGENCY_BEACON_RECEIVED") {
+        const { senderHandle, noteText, voiceUrl } = event.data;
+        if (senderHandle) {
+          setActiveBeacon({
+            senderHandle: senderHandle,
+            noteText: noteText || "⚡ Urgent Priority Emergency Flash!",
+            voiceUrl: voiceUrl || null,
+          });
+          quantumAudio.warmup();
+          quantumAudio.playEmergencyChime();
+        }
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", handleSwMessage);
+    return () => {
+      navigator.serviceWorker.removeEventListener("message", handleSwMessage);
+    };
+  }, []);
+
+  // Listen for ?beacon=1&peer=handle in URL search params on launch
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("beacon") === "1") {
+        const peer = params.get("peer");
+        if (peer) {
+          setActivePeerHandle(peer);
+          setActiveBeacon({
+            senderHandle: peer,
+            noteText: "⚡ Urgent Priority Emergency Flash!",
+          });
+          quantumAudio.warmup();
+          quantumAudio.playEmergencyChime();
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // Unread message tracking (Array of { id, sender } objects to prevent duplicates and race conditions)
   interface UnreadMessage {
     id: string;
@@ -4204,6 +4251,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 const latestMsg = req.latestMessage;
                 const key = `qlink_last_msg_id_${peerHandle}`;
                 const storedId = localStorage.getItem(key);
+
+                // Q-BEACON Priority Check
+                if (latestMsg.content && latestMsg.content.includes("⚡ [Q-BEACON_EMERGENCY]:")) {
+                  const ackKey = `qlink_beacon_ack_${latestMsg.id}`;
+                  if (!localStorage.getItem(ackKey) && latestMsg.senderId !== myId) {
+                    localStorage.setItem(ackKey, "1");
+                    const rawContent = latestMsg.content.replace("⚡ [Q-BEACON_EMERGENCY]:", "").trim();
+                    setActiveBeacon({
+                      senderHandle: peerHandle,
+                      senderName: req.fromUser.name,
+                      senderImage: req.fromUser.profileImage,
+                      noteText: rawContent || "Priority Emergency Beacon!",
+                    });
+                    quantumAudio.warmup();
+                    quantumAudio.playEmergencyChime();
+                  }
+                }
+
                 if (!storedId) {
                   localStorage.setItem(key, latestMsg.id);
                 } else if (storedId !== latestMsg.id) {
@@ -4227,7 +4292,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     };
 
     refresh();
-    const id = setInterval(refresh, 5000);
+    const id = setInterval(refresh, 3000); // 3-second rapid sync
 
     return () => {
       cancelled = true;
