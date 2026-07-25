@@ -330,9 +330,9 @@ export async function POST(request: Request) {
       data: {
         author: { connect: { id: meId } },
         text: text || "",
-        audience,
-        attachmentId,
-        attachmentKind,
+        audience: audience || "GLOBAL",
+        attachmentId: attachmentId || null,
+        attachmentKind: attachmentKind || null,
         expiresAt,
       },
       include: {

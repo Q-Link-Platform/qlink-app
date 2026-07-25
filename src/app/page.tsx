@@ -2801,16 +2801,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          text: text || null,
-          audience: postAudience,
-          attachmentId,
-          attachmentKind,
+          text: text ? text.trim() : null,
+          audience: postAudience || "GLOBAL",
+          attachmentId: attachmentId || null,
+          attachmentKind: attachmentKind || null,
         }),
       });
 
       if (!createRes.ok) {
         const err = await createRes.json().catch(() => ({}));
-        setIdConsolePostStatus(err?.error || "Failed to post");
+        const detailedMsg = err?.details?.[0]?.message || err?.error || "Failed to post";
+        setIdConsolePostStatus(detailedMsg);
         return;
       }
 

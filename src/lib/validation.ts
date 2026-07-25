@@ -27,15 +27,16 @@ export const deleteMessageSchema = z.object({
 export const createPostSchema = z.object({
   text: z.string()
     .max(5000, 'Post text too long (max 5,000 characters)')
+    .nullable()
     .optional(),
   audience: z.enum(['GLOBAL', 'FOLLOWERS', 'FRIENDS', 'ALL'], {
     message: 'Invalid audience type'
-  }).optional(),
-  attachmentId: z.string().optional(),
+  }).nullable().optional(),
+  attachmentId: z.string().nullable().optional(),
   attachmentKind: z.enum(['image', 'video'], {
     message: 'Invalid attachment kind'
-  }).optional(),
-}).refine(data => data.text || data.attachmentId, {
+  }).nullable().optional(),
+}).refine(data => (data.text && data.text.trim().length > 0) || Boolean(data.attachmentId), {
   message: 'Post must include text or media attachment'
 });
 
