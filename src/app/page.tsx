@@ -739,6 +739,46 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   }, []);
 
+  // Auto-subscribe WebPush on login so devices (Android Tablet / PC) receive background VAPID beacons automatically
+  useEffect(() => {
+    if (status !== "authenticated" || typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) return;
+
+    const autoSyncPush = async () => {
+      try {
+        if (Notification.permission === "default") {
+          const perm = await Notification.requestPermission();
+          if (perm !== "granted") return;
+        }
+
+        if (Notification.permission !== "granted") return;
+
+        const registration = await navigator.serviceWorker.ready;
+        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "BMQemcbop-dfZ7bLlwyL083mRANSiRsNbggorApxFfg5U-M_KKMVpwoUdZGM4mbG5rpav7w-vZbcNhiWtW4hvQE";
+
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+          const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey,
+          });
+        }
+
+        if (subscription) {
+          await fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(subscription),
+          });
+        }
+      } catch (err) {
+        console.error("[Auto-Push-Sync] Error auto-subscribing:", err);
+      }
+    };
+
+    autoSyncPush();
+  }, [status]);
+
   // Unread message tracking (Array of { id, sender } objects to prevent duplicates and race conditions)
   interface UnreadMessage {
     id: string;
@@ -4320,6 +4360,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         if (cancelled) return;
         setChatRoomId((data.roomId as string) || null);
         setActivePeerPublicKey(peerKey);
+
+        // Q-BEACON Check in active chat
+        decryptedMessages.forEach((m) => {
+          if (m.content && m.content.includes("⚡ [Q-BEACON_EMERGENCY]:") && m.senderId !== myId) {
+            const ackKey = `qlink_beacon_ack_${m.id}`;
+            if (!localStorage.getItem(ackKey)) {
+              localStorage.setItem(ackKey, "1");
+              const rawContent = m.content.replace("⚡ [Q-BEACON_EMERGENCY]:", "").trim();
+              setActiveBeacon({
+                senderHandle: activePeerHandle,
+                noteText: rawContent || "Priority Emergency Beacon!",
+              });
+              quantumAudio.warmup();
+              quantumAudio.playEmergencyChime();
+            }
+          }
+        });
+
         setChatMessages((prev) => {
           const decryptedIds = new Set(decryptedMessages.map((m) => m.id));
           const filteredPrev = prev.filter(

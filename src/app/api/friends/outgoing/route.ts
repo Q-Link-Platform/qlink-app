@@ -43,15 +43,17 @@ export async function GET() {
       uniqueRequests.map(async (r) => {
         let latestMessage = null;
         if (r.status === "ACCEPTED" && r.toUser) {
-          const roomId = [fromUserId, r.toUserId].sort().join(":");
+          const uids = [fromUserId, r.toUserId].sort();
+          const roomId = `dm:${uids[0]}:${uids[1]}`;
           const msg = await prisma.message.findFirst({
             where: { roomId },
             orderBy: { createdAt: "desc" },
-            select: { id: true, createdAt: true, senderId: true },
+            select: { id: true, content: true, createdAt: true, senderId: true },
           });
           if (msg) {
             latestMessage = {
               id: msg.id,
+              content: msg.content,
               createdAt: msg.createdAt.toISOString(),
               senderId: msg.senderId,
             };
