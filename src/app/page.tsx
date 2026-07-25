@@ -3077,30 +3077,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       return;
     }
 
-    // 1. If we switched peers, reset the initial scroll tracker and force scroll to bottom
-    if (initialScrollDoneRef.current !== peer) {
+    // 1. If we switched peers or messages arrived for the current peer, trigger staggered scroll to bottom
+    if (initialScrollDoneRef.current !== peer && chatMessages.length > 0) {
+      initialScrollDoneRef.current = peer;
       scrollToBottom();
-      // Use multiple staggered timeouts to allow incoming message HTML to completely render in DOM
       const t1 = setTimeout(scrollToBottom, 50);
       const t2 = setTimeout(scrollToBottom, 150);
       const t3 = setTimeout(scrollToBottom, 350);
-      
-      if (chatMessages.length > 0) {
-        initialScrollDoneRef.current = peer;
-      }
+      const t4 = setTimeout(scrollToBottom, 650);
       return () => {
         clearTimeout(t1);
         clearTimeout(t2);
         clearTimeout(t3);
+        clearTimeout(t4);
       };
-    }
-
-    // 2. If messages loaded for the first time for this peer, trigger the scroll anchor
-    if (chatMessages.length > 0 && initialScrollDoneRef.current !== peer) {
-      initialScrollDoneRef.current = peer;
-      scrollToBottom();
-      const t = setTimeout(scrollToBottom, 100);
-      return () => clearTimeout(t);
     }
 
     // 3. For any subsequent updates (e.g. new messages, images, typing status)
@@ -5070,6 +5060,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setActivePeerHandle(peerHandle);
     setChatLoading(true);
     setChatError(null);
+    setPeerOnline(null);
+    setPeerLastSeen(null);
+    setShowOfflineTransitionName(false);
+    lastOnlineRef.current = null;
+    initialScrollDoneRef.current = null;
 
     try {
       const res = await fetch(
