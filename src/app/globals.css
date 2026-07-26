@@ -1904,6 +1904,7 @@ html.black .glass-panel {
   isolation: isolate;
   backface-visibility: hidden;
   -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
   contain: paint;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -2197,6 +2198,7 @@ html.black .glass-panel {
   isolation: isolate;
   backface-visibility: hidden;
   -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
   contain: paint;
   scrollbar-width: none;
   -ms-overflow-style: none;
