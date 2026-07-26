@@ -717,7 +717,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     };
   }, []);
 
-  // Listen for ?beacon=1&peer=handle in URL search params on launch
+  // Listen for ?beacon=1&peer=handle in URL search params or Electron main process emergency trigger
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -736,6 +736,25 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     } catch {
       // ignore
+    }
+
+    const win = window as any;
+    if (win.electronAPI?.onEmergencyBeaconTriggered) {
+      const unsub = win.electronAPI.onEmergencyBeaconTriggered((payload: any) => {
+        if (payload?.senderHandle) {
+          setActivePeerHandle(payload.senderHandle);
+        }
+        setActiveBeacon({
+          senderHandle: payload?.senderHandle || "Emergency",
+          senderName: payload?.senderName,
+          senderImage: payload?.senderImage,
+          voiceUrl: payload?.voiceUrl,
+          noteText: payload?.noteText || "⚡ Urgent Priority Emergency Flash!",
+        });
+        quantumAudio.warmup();
+        quantumAudio.playEmergencyChime();
+      });
+      return unsub;
     }
   }, []);
 

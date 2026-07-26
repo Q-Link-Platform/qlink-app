@@ -23,13 +23,38 @@ export const EmergencyBeaconModal: React.FC<EmergencyBeaconModalProps> = ({
   onAcknowledge,
 }) => {
   useEffect(() => {
+    // Elevate OS priority via Electron process if running in Q-Link Desktop
+    if (typeof window !== "undefined" && (window as any).electronAPI?.triggerEmergencyBeacon) {
+      (window as any).electronAPI.triggerEmergencyBeacon({
+        senderHandle,
+        senderName,
+        noteText,
+        voiceUrl,
+      });
+    }
+
     // Play dual-tone frequency sweep & voice audio snippet
     if (voiceUrl) {
       quantumAudio.playVoiceSnippet(voiceUrl);
     } else {
       quantumAudio.playEmergencyChime();
     }
-  }, [voiceUrl]);
+  }, [senderHandle, senderName, noteText, voiceUrl]);
+
+  const handleAcknowledge = () => {
+    if (typeof window !== "undefined" && (window as any).electronAPI?.acknowledgeEmergencyBeacon) {
+      (window as any).electronAPI.acknowledgeEmergencyBeacon();
+    }
+    onAcknowledge();
+    onClose();
+  };
+
+  const handleDismiss = () => {
+    if (typeof window !== "undefined" && (window as any).electronAPI?.acknowledgeEmergencyBeacon) {
+      (window as any).electronAPI.acknowledgeEmergencyBeacon();
+    }
+    onClose();
+  };
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-950/90 backdrop-blur-xl p-4 transition-all animate-in fade-in duration-300">
@@ -109,10 +134,7 @@ export const EmergencyBeaconModal: React.FC<EmergencyBeaconModalProps> = ({
         <div className="mt-3 flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
-            onClick={() => {
-              onAcknowledge();
-              onClose();
-            }}
+            onClick={handleAcknowledge}
             className="w-full rounded-2xl border border-emerald-500/50 bg-emerald-600/90 py-3.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all hover:bg-emerald-500 active:scale-95"
           >
             🟢 I'm Awake / Got It
@@ -120,7 +142,7 @@ export const EmergencyBeaconModal: React.FC<EmergencyBeaconModalProps> = ({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleDismiss}
             className="w-full rounded-2xl border border-slate-700 bg-slate-800/80 py-3.5 text-sm font-semibold text-slate-300 transition-all hover:bg-slate-700 active:scale-95"
           >
             Dismiss
