@@ -7,44 +7,48 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  if (!event.data) return;
-
-  let title = "Q-link Alert";
-  let body = "";
+  let title = "Q-Link Alert";
+  let body = "You have an incoming notification.";
   let icon = "/logo-256.png";
   let url = "/";
+  let payload = null;
 
-  try {
-    const payload = event.data.json();
-    title = payload.title || title;
-    body = payload.body || body;
-    icon = payload.icon || icon;
-    url = payload.url || url;
-  } catch (e) {
-    // Fallback if payload is not valid JSON
-    body = event.data.text() || "";
+  if (event.data) {
+    try {
+      payload = event.data.json();
+      title = payload.title || title;
+      body = payload.body || body;
+      icon = payload.icon || icon;
+      url = payload.url || url;
+    } catch (e) {
+      try {
+        body = event.data.text() || body;
+      } catch (textErr) {
+        // ignore
+      }
+    }
   }
 
   const options = {
     body: body,
     icon: icon,
-    badge: "/logo-256.png", // Small icon shown in Android notification bar
-    data: payload.data || { url: url },
-    vibrate: payload.vibrate || [500, 200, 500, 200, 1000], // Emergency vibration pattern
-    requireInteraction: payload.requireInteraction ?? true,
-    renotify: payload.renotify ?? true,
-    tag: payload.tag || "beacon-alert",
+    badge: "/logo-256.png",
+    data: (payload && payload.data) ? payload.data : { url: url },
+    vibrate: (payload && payload.vibrate) ? payload.vibrate : [500, 200, 500, 200, 1000],
+    requireInteraction: payload ? (payload.requireInteraction ?? true) : true,
+    renotify: payload ? (payload.renotify ?? true) : true,
+    tag: (payload && payload.tag) || `qlink-push-${Date.now()}`,
     actions: [
-      { action: "open", title: "⚡ RESPOND TO BEACON" }
+      { action: "open", title: "⚡ OPEN Q-LINK" }
     ]
   };
 
   const promise = (async () => {
     try {
-      // 1. Show the notification
-      await self.registration.showNotification(title || "Q-link Alert", options);
+      // 1. Always show the notification so Android Chrome never triggers fallback system notice
+      await self.registration.showNotification(title, options);
 
-      // 2. Query all currently showing notifications to compute the count
+      // 2. Query all currently showing notifications to compute badge count
       const activeNotifications = await self.registration.getNotifications();
       const count = activeNotifications.length;
 
@@ -53,7 +57,7 @@ self.addEventListener("push", (event) => {
         await navigator.setAppBadge(count);
       }
 
-      // 4. Extract senderHandle and notify all open client windows immediately
+      // 4. Notify open client windows
       try {
         const urlObj = new URL(url, self.location.origin);
         const senderHandle = urlObj.searchParams.get("peer") || urlObj.searchParams.get("chat");
@@ -62,8 +66,8 @@ self.addEventListener("push", (event) => {
           try {
             client.postMessage({
               type: "EMERGENCY_BEACON_RECEIVED",
-              senderHandle: payload.data?.senderHandle || senderHandle,
-              voiceUrl: payload.data?.voiceUrl || null,
+              senderHandle: (payload && payload.data?.senderHandle) || senderHandle,
+              voiceUrl: (payload && payload.data?.voiceUrl) || null,
               noteText: body,
               url: url,
             });
