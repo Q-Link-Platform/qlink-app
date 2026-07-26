@@ -655,11 +655,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [isChatFull, setIsChatFull] = useState(false);
   const [isGlowActive, setIsGlowActive] = useState(false);
   const [isPushEnabled, setIsPushEnabled] = useState(false);
-  // Detect if running inside the Electron desktop app (has our preload bridge)
   const [isElectron] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     return !!(window as any).electronAPI;
   });
+
+  useEffect(() => {
+    if (typeof document !== "undefined" && isElectron) {
+      document.documentElement.classList.add("is-electron");
+      document.body.classList.add("is-electron");
+    }
+  }, [isElectron]);
   const [desktopNotificationsEnabled, setDesktopNotificationsEnabled] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       try {

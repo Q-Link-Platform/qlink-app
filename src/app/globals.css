@@ -2407,3 +2407,14 @@ html.black .glass-panel {
   animation: ambient-breathe 8s infinite ease-in-out;
   pointer-events: none;
 }
+
+/* Electron Desktop App Specific Hardware Acceleration Override - Fixes Founder Card Flicker ONLY in Desktop App */
+.is-electron .founder-vip-line-full::before,
+.is-electron .founder-vip-line-full::after {
+  top: -150% !important;
+  bottom: -150% !important;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+}
