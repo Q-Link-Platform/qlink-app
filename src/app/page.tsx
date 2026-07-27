@@ -4780,20 +4780,25 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     </div>
 
                     {/* Mobile Sign-in Button */}
-                    <button
-                      onClick={() => setPhoneSignInStep("phone")}
-                      className="grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 to-slate-900/60 px-4 py-3 text-sm font-semibold text-cyan-400 hover:text-cyan-300 hover:border-cyan-400/50 hover:bg-cyan-500/10 transition-all hover:shadow-[0_0_20px_rgba(34,211,238,0.2)] active:scale-[0.98]"
-                    >
-                      <div className="flex h-5 w-5 items-center justify-center overflow-hidden">
-                        {/* Mobile Phone SVG */}
-                        <svg className="h-5 w-5 stroke-current fill-none" viewBox="0 0 24 24" strokeWidth={2}>
-                          <rect x="5" y="2" width="14" height="20" rx="2" />
-                          <line x1="12" y1="18" x2="12" y2="18.01" strokeLinecap="round" />
-                        </svg>
-                      </div>
-                      <span className="text-center pr-2">Continue with Mobile Number</span>
-                      <div></div>
-                    </button>
+                    <div className="relative group">
+                      <button
+                        disabled
+                        className="opacity-50 cursor-not-allowed grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-800 bg-slate-950 px-4 py-3 text-sm font-medium text-slate-500 transition-all relative overflow-hidden"
+                      >
+                        <div className="flex h-5 w-5 items-center justify-center overflow-hidden text-slate-400">
+                          {/* Mobile Phone SVG */}
+                          <svg className="h-5 w-5 stroke-current fill-none" viewBox="0 0 24 24" strokeWidth={2}>
+                            <rect x="5" y="2" width="14" height="20" rx="2" />
+                            <line x1="12" y1="18" x2="12" y2="18.01" strokeLinecap="round" />
+                          </svg>
+                        </div>
+                        <span className="text-center pr-2 font-medium text-slate-400">Continue with Mobile Number</span>
+                        <div></div>
+                      </button>
+                      <span className="absolute top-1/2 -translate-y-1/2 right-4 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 text-amber-300 font-bold uppercase tracking-wider text-[8px] px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.2)] animate-pulse">
+                        Coming Soon
+                      </span>
+                    </div>
                   </div>
                 </div>
               )}
