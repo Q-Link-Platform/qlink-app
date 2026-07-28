@@ -2420,3 +2420,57 @@ html.black .glass-panel {
   -webkit-backface-visibility: hidden;
   will-change: transform;
 }
+
+/* Smooth Live Continuous 120-Degree Rotation Animation */
+@keyframes smooth-rotate-120 {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(120deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-smooth-rotate-120 {
+  animation: smooth-rotate-120 3.5s ease-in-out infinite;
+}
+
+/* Smooth Live Continuous 100-Degree Rotation Animation for Microsoft Logo (slightly less rotation to balance it visually) */
+@keyframes smooth-rotate-microsoft {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(100deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-smooth-rotate-microsoft {
+  animation: smooth-rotate-microsoft 3.5s ease-in-out infinite;
+}
+
+/* Smooth Subtle Pendulum Wobble for 4-Square Microsoft Logo to maintain upright square shape */
+@keyframes smooth-rotate-45 {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-15deg);
+  }
+  75% {
+    transform: rotate(15deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-smooth-rotate-45 {
+  animation: smooth-rotate-45 3.5s ease-in-out infinite;
+}

@@ -4543,14 +4543,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           {/* Sign-in Card */}
           <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl backdrop-blur-xl">
             <button
-              className="grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition-all hover:border-slate-600 hover:bg-slate-50 hover:shadow-lg active:scale-[0.98]"
+              className="group grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition-all hover:border-slate-600 hover:bg-slate-50 hover:shadow-lg active:scale-[0.98]"
               onClick={() => signIn("google")}
             >
-              <div className="flex h-8 w-8 items-center justify-center overflow-hidden pr-1.5">
+              <div className="flex h-8 w-8 items-center justify-center overflow-visible pr-1.5">
                 <img
                   src="/google-icon.ico"
                   alt="Google"
-                  className="h-8 w-8 object-contain -ml-px"
+                  className="h-8 w-8 object-contain -ml-px animate-smooth-rotate-120"
+                  style={{ animationDelay: '0s' }}
                 />
               </div>
               <span className="text-center">Continue with Google</span>
@@ -4559,14 +4560,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
             {/* Microsoft Sign-in Button */}
             <button
-              className="mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition-all hover:border-slate-600 hover:bg-slate-50 hover:shadow-lg active:scale-[0.98]"
+              className="group mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition-all hover:border-slate-600 hover:bg-slate-50 hover:shadow-lg active:scale-[0.98]"
               onClick={() => signIn("azure-ad")}
             >
-              <div className="flex h-6 w-6 items-center justify-center overflow-hidden">
+              <div className="flex h-6 w-6 items-center justify-center overflow-visible">
                 <img
                   src="/microsoft-icon.ico"
                   alt="Microsoft"
-                  className="h-6 w-6 object-contain -ml-px"
+                  className="h-5.5 w-5.5 object-contain -ml-px animate-smooth-rotate-microsoft"
+                  style={{ animationDelay: '0.6s' }}
                 />
               </div>
               <span className="text-center whitespace-nowrap pl-3">Continue with Microsoft</span>
@@ -4575,14 +4577,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
             {/* GitHub Sign-in Button */}
             <button
-              className="mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition-all hover:border-slate-600 hover:bg-slate-50 hover:shadow-lg active:scale-[0.98]"
+              className="group mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700 bg-white px-4 py-3 text-sm font-medium text-slate-900 transition-all hover:border-slate-600 hover:bg-slate-50 hover:shadow-lg active:scale-[0.98]"
               onClick={() => signIn("github")}
             >
-              <div className="flex h-6 w-6 items-center justify-center overflow-hidden">
+              <div className="flex h-6 w-6 items-center justify-center overflow-visible">
                 <img
                   src="/github-icon.ico"
                   alt="GitHub"
-                  className="h-6 w-6 object-contain -ml-px"
+                  className="h-6 w-6 object-contain -ml-px animate-smooth-rotate-120"
+                  style={{ animationDelay: '1.2s' }}
                 />
               </div>
               <span className="text-center pr-2">Continue with GitHub</span>
