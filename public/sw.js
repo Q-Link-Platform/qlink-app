@@ -57,24 +57,26 @@ self.addEventListener("push", (event) => {
         await navigator.setAppBadge(count);
       }
 
-      // 4. Notify open client windows
+      // 4. Notify open client windows (only dispatch EMERGENCY_BEACON_RECEIVED for genuine emergency pulses)
       try {
-        const urlObj = new URL(url, self.location.origin);
-        const senderHandle = urlObj.searchParams.get("peer") || urlObj.searchParams.get("chat");
-        const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-        clientList.forEach((client) => {
-          try {
-            client.postMessage({
-              type: "EMERGENCY_BEACON_RECEIVED",
-              senderHandle: (payload && payload.data?.senderHandle) || senderHandle,
-              voiceUrl: (payload && payload.data?.voiceUrl) || null,
-              noteText: body,
-              url: url,
-            });
-          } catch (e) {
-            // ignore
-          }
-        });
+        if (payload && payload.data && payload.data.type === "EMERGENCY_BEACON") {
+          const urlObj = new URL(url, self.location.origin);
+          const senderHandle = urlObj.searchParams.get("peer") || urlObj.searchParams.get("chat");
+          const clientList = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+          clientList.forEach((client) => {
+            try {
+              client.postMessage({
+                type: "EMERGENCY_BEACON_RECEIVED",
+                senderHandle: payload.data.senderHandle || senderHandle,
+                voiceUrl: payload.data.voiceUrl || null,
+                noteText: body,
+                url: url,
+              });
+            } catch (e) {
+              // ignore
+            }
+          });
+        }
       } catch (err) {
         console.error("Error sending message to clients on push:", err);
       }
