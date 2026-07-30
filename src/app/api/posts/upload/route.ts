@@ -50,7 +50,10 @@ export async function POST(request: Request) {
         const kind = body.kind;
         const size = body.size;
         const originalName = body.filename || "upload";
-        const mimeType = body.mimeType || "application/octet-stream";
+        let mimeType = body.mimeType || "";
+        if (!mimeType || mimeType === "application/octet-stream") {
+          mimeType = kind === "video" ? "video/mp4" : "image/jpeg";
+        }
 
         if (!kind || typeof kind !== "string" || !["image", "video"].includes(kind)) {
           return NextResponse.json(

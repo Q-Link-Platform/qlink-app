@@ -2882,7 +2882,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           return;
         }
 
-        setIdConsolePostStatus("Preparing upload…");
+        const uploadMime = postMediaFile.type && postMediaFile.type !== "application/octet-stream"
+          ? postMediaFile.type
+          : (postMediaKind === "video" ? "video/mp4" : "image/jpeg");
+
         const signRes = await fetch("/api/posts/upload", {
           method: "POST",
           headers: {
@@ -2892,7 +2895,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             requestSignedUrl: true,
             kind: postMediaKind,
             filename: postMediaFile.name,
-            mimeType: postMediaFile.type || "application/octet-stream",
+            mimeType: uploadMime,
             size: postMediaFile.size,
           }),
         });
@@ -2910,7 +2913,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         const directUploadSuccess = await new Promise<boolean>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open("PUT", signedUrl);
-          xhr.setRequestHeader("Content-Type", postMediaFile.type || "application/octet-stream");
+          xhr.setRequestHeader("Content-Type", uploadMime);
           xhr.upload.onprogress = (e) => {
             if (!e.lengthComputable) return;
             const pct = Math.max(0, Math.min(100, Math.round((e.loaded / e.total) * 100)));
@@ -11569,7 +11572,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         />
                       </div>
                     ) : idConsoleLocalPreviewUrl && postMediaKind === "video" ? (
-                      <div className="mt-2 overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-950/40 relative">
+                      <div className="mt-2 overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-950/80 relative w-full">
                         <button
                           type="button"
                           onClick={() => {
@@ -11597,8 +11600,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         <video
                           src={idConsoleLocalPreviewUrl}
                           controls
-                          className="block w-full max-h-[360px] bg-slate-950/80 max-h-[360px] max-w-full m-auto"
-                          style={{ objectFit: "contain" }}
+                          playsInline
+                          preload="auto"
+                          className="block w-full h-auto max-h-[70vh] bg-slate-950 rounded-2xl object-contain"
                         />
                       </div>
                     ) : null}
