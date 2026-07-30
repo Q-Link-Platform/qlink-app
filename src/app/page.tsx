@@ -118,67 +118,33 @@ function SmartVideo(props: {
   preload?: "none" | "metadata" | "auto";
   autoplayMuted?: boolean;
 }) {
-  const { ref, inView, ratio } = useInView<HTMLVideoElement>({ rootMargin: "300px 0px" });
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const [loaded, setLoaded] = useState(false);
 
-  const shouldPlay = inView && ratio >= 0.5;
-
-  // Only trigger .load() if src actually changed to prevent resetting media stream
   useEffect(() => {
-    const el = ref.current;
+    const el = videoRef.current;
     if (!el || !props.src) return;
 
-    if (el.currentSrc !== props.src && el.src !== props.src) {
-      setLoaded(false);
-      try {
-        el.load();
-      } catch {
-        // ignore
+    setLoaded(false);
+
+    try {
+      if (el.src !== props.src) {
+        el.src = props.src;
       }
+      el.load();
+    } catch {
+      // ignore
     }
 
     const timer = setTimeout(() => {
       setLoaded(true);
-    }, 800);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [props.src]);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    if (!props.autoplayMuted) return;
-
-    if (shouldPlay) {
-      try {
-        el.muted = true;
-        el.loop = true;
-        if (el.paused) {
-          requestAnimationFrame(() => {
-            try {
-              void el.play().catch(() => {});
-            } catch {
-              // ignore
-            }
-          });
-        }
-      } catch {
-        // ignore
-      }
-    } else {
-      try {
-        if (!el.paused) {
-          el.pause();
-        }
-      } catch {
-        // ignore
-      }
-    }
-  }, [shouldPlay, props.autoplayMuted, ref]);
-
   return (
-    <div className="relative w-full h-full bg-slate-950 flex items-center justify-center overflow-hidden rounded-2xl">
+    <div className="relative w-full h-full bg-slate-950 flex items-center justify-center overflow-hidden rounded-2xl min-h-[220px]">
       {/* Loading Skeleton */}
       {!loaded && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 z-10 pointer-events-none transition-opacity duration-300">
@@ -192,10 +158,10 @@ function SmartVideo(props: {
       )}
 
       <video
-        ref={ref}
+        ref={videoRef}
         src={props.src}
         controls
-        preload={props.preload || "auto"}
+        preload={props.preload || "metadata"}
         playsInline
         muted={!!props.autoplayMuted}
         className={(props.className ? props.className + " " : "") + "w-full h-auto max-h-[75vh] object-contain rounded-2xl block relative z-0"}
