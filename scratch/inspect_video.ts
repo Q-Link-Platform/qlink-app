@@ -5,8 +5,8 @@ import { supabasePosts, supabasePostsAdmin } from "../src/lib/supabasePosts";
 const prisma = new PrismaClient();
 const prismaAttachments = new PrismaAttachmentsClient();
 
-async function testVideoUrl() {
-  console.log("=== TESTING VIDEO POST MEDIA URL ===");
+async function inspectVideo() {
+  console.log("=== DEEP VIDEO MEDIA INSPECTION ===");
 
   const post = await prisma.post.findFirst({
     where: { attachmentKind: "video" },
@@ -43,9 +43,11 @@ async function testVideoUrl() {
   console.log("Public URL:", publicUrl);
 
   if (signedUrl) {
+    console.log("\n--- Testing GET Byte Range Request on Signed URL ---");
     try {
-      console.log("\n--- Testing HEAD request to Signed URL ---");
-      const res = await fetch(signedUrl, { method: "HEAD" });
+      const res = await fetch(signedUrl, {
+        headers: { Range: "bytes=0-1024" },
+      });
       console.log("Status:", res.status, res.statusText);
       console.log("Headers:");
       res.headers.forEach((v, k) => console.log(`  ${k}: ${v}`));
@@ -55,9 +57,11 @@ async function testVideoUrl() {
   }
 
   if (publicUrl) {
+    console.log("\n--- Testing GET Byte Range Request on Public URL ---");
     try {
-      console.log("\n--- Testing HEAD request to Public URL ---");
-      const res = await fetch(publicUrl, { method: "HEAD" });
+      const res = await fetch(publicUrl, {
+        headers: { Range: "bytes=0-1024" },
+      });
       console.log("Status:", res.status, res.statusText);
       console.log("Headers:");
       res.headers.forEach((v, k) => console.log(`  ${k}: ${v}`));
@@ -67,7 +71,7 @@ async function testVideoUrl() {
   }
 }
 
-testVideoUrl()
+inspectVideo()
   .catch((e) => console.error(e))
   .finally(async () => {
     await prisma.$disconnect();

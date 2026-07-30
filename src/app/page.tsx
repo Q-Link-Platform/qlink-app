@@ -120,16 +120,32 @@ function SmartVideo(props: {
 }) {
   const { ref, inView, ratio } = useInView<HTMLVideoElement>({ rootMargin: "250px 0px" });
   const [loaded, setLoaded] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const shouldPlay = inView && ratio >= 0.6;
 
-  // Auto-dismiss loading skeleton quickly so controls are always visible and interactive
+  // Force HTML5 video element reload on src change so browser fetches byte ranges immediately
   useEffect(() => {
+    const el = ref.current;
+    if (!el || !props.src) return;
+
+    setLoaded(false);
+    setHasError(false);
+
+    try {
+      el.src = props.src;
+      el.load();
+    } catch {
+      // ignore
+    }
+
     const timer = setTimeout(() => {
       setLoaded(true);
-    }, 1000);
+    }, 1500);
+
     return () => clearTimeout(timer);
-  }, [props.src]);
+  }, [props.src, ref]);
 
   useEffect(() => {
     const el = ref.current;
@@ -164,14 +180,25 @@ function SmartVideo(props: {
     }
   }, [shouldPlay, props.autoplayMuted, ref]);
 
-  const handleMediaReady = () => {
-    setLoaded(true);
+  const togglePlay = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const el = ref.current;
+    if (!el) return;
+    if (el.paused) {
+      void el.play().then(() => setIsPlaying(true)).catch(() => {});
+    } else {
+      el.pause();
+      setIsPlaying(false);
+    }
   };
 
   return (
-    <div className="relative h-full w-full bg-slate-950 flex items-center justify-center">
-      {/* Skeleton Loading State - pointer-events-none guarantees controls are never blocked */}
-      {!loaded && (
+    <div
+      className="relative h-full w-full bg-slate-950 flex items-center justify-center cursor-pointer group overflow-hidden select-none"
+      onClick={togglePlay}
+    >
+      {/* Skeleton Loading State */}
+      {!loaded && !hasError && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 transition-opacity duration-300 z-10 pointer-events-none">
           <div className="relative w-full h-full overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 via-slate-800/40 to-slate-900/60 animate-pulse" />
@@ -183,28 +210,51 @@ function SmartVideo(props: {
               <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-bounce [animation-delay:-0.15s]" />
               <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-bounce" />
             </div>
-            <p className="text-[11px] font-medium text-fuchsia-200/80 tracking-wide">Loading video...</p>
+            <p className="text-[11px] font-medium text-fuchsia-200/80 tracking-wide">Loading Quantum Video...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Center Play Button Overlay when Paused */}
+      {!isPlaying && loaded && !hasError && (
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500/20 border border-cyan-400/50 backdrop-blur-md text-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-transform duration-200 group-hover:scale-110">
+            <svg className="w-8 h-8 translate-x-0.5 fill-current" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
           </div>
         </div>
       )}
 
       <video
         ref={ref}
+        src={props.src}
         controls={true}
-        preload="metadata"
+        preload="auto"
         playsInline
         muted={!!props.autoplayMuted}
-        className={(props.className ? props.className + " " : "") + "block h-full w-full max-h-full max-w-full m-auto relative z-0 min-h-[240px]"}
-        style={{ objectFit: "contain" }}
-        onLoadedMetadata={handleMediaReady}
-        onLoadedData={handleMediaReady}
-        onCanPlay={handleMediaReady}
-        onPlay={handleMediaReady}
-      >
-        <source src={props.src} type="video/mp4" />
-        <source src={props.src} />
-        Your browser does not support HTML5 video playback.
-      </video>
+        className={(props.className ? props.className + " " : "") + "block h-full w-full max-h-full max-w-full m-auto relative z-0 min-h-[260px] object-contain"}
+        onLoadedMetadata={() => setLoaded(true)}
+        onLoadedData={() => setLoaded(true)}
+        onCanPlay={() => setLoaded(true)}
+        onPlay={() => {
+          setLoaded(true);
+          setIsPlaying(true);
+        }}
+        onPause={() => setIsPlaying(false)}
+        onError={(e) => {
+          console.warn("[SmartVideo] Playback error on src:", props.src, e);
+          const el = ref.current;
+          if (el && !hasError) {
+            try {
+              el.load();
+            } catch {
+              setHasError(true);
+            }
+          }
+          setLoaded(true);
+        }}
+      />
     </div>
   );
 }
