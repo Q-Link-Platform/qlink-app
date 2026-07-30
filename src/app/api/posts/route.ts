@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { prismaAttachments } from "@/lib/prismaAttachments";
-import { supabasePostsAdmin } from "@/lib/supabasePosts";
+import { supabasePosts, supabasePostsAdmin } from "@/lib/supabasePosts";
 import { createPostSchema, validateRequest } from "@/lib/validation";
 import { touchUserPresence } from "@/lib/presence";
 
@@ -24,13 +24,23 @@ async function getSignedMediaUrl(params: {
   bucket: string;
   objectKey: string;
 }): Promise<string | null> {
-  if (!supabasePostsAdmin) return null;
-  const res = await supabasePostsAdmin.storage
-    .from(params.bucket)
-    .createSignedUrl(params.objectKey, 60 * 10);
+  const client = supabasePostsAdmin || supabasePosts;
+  if (!client) return null;
 
-  if (res.error || !res.data?.signedUrl) return null;
-  return res.data.signedUrl;
+  try {
+    const res = await client.storage
+      .from(params.bucket)
+      .createSignedUrl(params.objectKey, 60 * 60 * 24); // 24-hour signed link
+
+    if (res.data?.signedUrl) return res.data.signedUrl;
+
+    // Fallback: Try public URL if bucket is public or signed URL generation fails
+    const pub = client.storage.from(params.bucket).getPublicUrl(params.objectKey);
+    if (pub.data?.publicUrl) return pub.data.publicUrl;
+  } catch (err) {
+    console.error("[posts] Error in getSignedMediaUrl", err);
+  }
+  return null;
 }
 
 export async function GET(request: Request) {
@@ -41,18 +51,14 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const mode = url.searchParams.get("mode");
 
-    // Note: This is a first-pass feed implementation.
-    // We will refine visibility + pagination once follow system UI is wired.
-
     const now = new Date();
 
     if (mode === "directory_global_latest") {
       const perAuthorRaw = url.searchParams.get("perAuthor");
-      const perAuthor = perAuthorRaw ? Math.max(1, Math.min(10, Number(perAuthorRaw))) : 3;
+      const perAuthor = perAuthorRaw ? Math.max(1, Math.min(20, Number(perAuthorRaw))) : 10;
 
       const posts = await (prisma as any).post.findMany({
         where: {
-          expiresAt: { gt: now },
           audience: { in: ["GLOBAL", "ALL"] },
         },
         orderBy: { createdAt: "desc" },
@@ -121,7 +127,7 @@ export async function GET(request: Request) {
           }
 
           const normalizedKind =
-            typeof att.kind === "string" ? att.kind.toLowerCase() : att.kind;
+            typeof att.kind === "string" ? att.kind.toLowerCase() : (p.attachmentKind?.toLowerCase() || att.kind);
 
           const signedUrl = await getSignedMediaUrl({
             bucket: att.bucket as string,
@@ -129,7 +135,7 @@ export async function GET(request: Request) {
           });
 
           if (!signedUrl) {
-            console.warn("[posts] Failed to create signed URL for attachment", {
+            console.warn("[posts] Failed to create signed/public URL for attachment", {
               postId: p.id,
               attachmentId: p.attachmentId,
               bucket: att.bucket,
@@ -161,10 +167,13 @@ export async function GET(request: Request) {
 
     const posts = await (prisma as any).post.findMany({
       where: {
-        expiresAt: { gt: now },
+        OR: [
+          { audience: { in: ["GLOBAL", "ALL"] } },
+          { expiresAt: { gt: now } }
+        ]
       },
       orderBy: { createdAt: "desc" },
-      take: 50,
+      take: 100,
       include: {
         author: {
           select: {

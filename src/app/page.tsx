@@ -1723,6 +1723,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [directoryError, setDirectoryError] = useState<string | null>(null);
   const [directoryLatestPostsByAuthorId, setDirectoryLatestPostsByAuthorId] =
     useState<Record<string, any[]>>({});
+  const [directoryGlobalPosts, setDirectoryGlobalPosts] = useState<any[]>([]);
   const [directoryPostsLoading, setDirectoryPostsLoading] = useState(false);
   const [directoryPostsError, setDirectoryPostsError] = useState<string | null>(null);
   const [directoryOpenCommentsPostId, setDirectoryOpenCommentsPostId] =
@@ -2253,7 +2254,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       setDirectoryPostsLoading(true);
       setDirectoryPostsError(null);
       const postsRes = await fetch(
-        `/api/posts?mode=directory_global_latest&perAuthor=3&t=${Date.now()}`,
+        `/api/posts?mode=directory_global_latest&perAuthor=10&t=${Date.now()}`,
         { cache: "no-store" },
       );
       if (!postsRes.ok) {
@@ -2268,11 +2269,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       const postsData: { posts?: any[] } = await postsRes.json();
       const byAuthorId: Record<string, any[]> = {};
       const posts = Array.isArray(postsData.posts) ? postsData.posts : [];
+      setDirectoryGlobalPosts(posts);
 
       for (const p of posts) {
         if (!p?.authorId) continue;
         const arr = byAuthorId[p.authorId] || [];
-        if (arr.length >= 3) continue;
+        if (arr.length >= 5) continue;
         arr.push(p);
         byAuthorId[p.authorId] = arr;
       }
@@ -2280,9 +2282,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
       // Prefetch post attachment images during animation for instant display
       posts.forEach((post: any) => {
-        if (post?.attachment?.url && typeof window !== 'undefined') {
+        const mediaUrl = post?.media?.url || post?.attachment?.url;
+        if (mediaUrl && typeof window !== 'undefined') {
           const img = document.createElement('img');
-          img.src = post.attachment.url;
+          img.src = mediaUrl;
         }
       });
     } catch {
@@ -6138,25 +6141,41 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                 {!directoryLoading && !directoryError && directoryItems && directoryItems.length > 0 && (
                   (() => {
-                    const allFeedPosts = (directoryItems || [])
-                      .filter((item) => {
-                        const posts = directoryLatestPostsByAuthorId?.[item.id] || [];
-                        return posts.length > 0;
-                      })
-                      .flatMap((item) => {
-                        const posts = directoryLatestPostsByAuthorId?.[item.id] || [];
-                        return posts.map((post) => ({
-                          ...post,
-                          author: item,
-                        }));
-                      })
-                      .sort((a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime());
+                    const allFeedPosts = (() => {
+                      const rawPosts = directoryGlobalPosts.length > 0
+                        ? directoryGlobalPosts
+                        : Object.values(directoryLatestPostsByAuthorId || {}).flat();
+
+                      const authorById = new Map<string, any>(
+                        (directoryItems || []).map((item) => [item.id, item])
+                      );
+
+                      const seenIds = new Set<string>();
+                      const list: any[] = [];
+
+                      for (const p of rawPosts) {
+                        if (!p?.id || seenIds.has(p.id)) continue;
+                        seenIds.add(p.id);
+                        const authorItem = authorById.get(p.authorId) || p.author || {
+                          id: p.authorId,
+                          handle: p.author?.handle || "user",
+                          name: p.author?.name || "Verified User",
+                          image: p.author?.image || null,
+                          blueTickStatus: p.author?.blue_tick_status || "NONE",
+                          isRedTick: false,
+                        };
+                        list.push({ ...p, author: authorItem });
+                      }
+
+                      return list.sort((a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime());
+                    })();
 
                     const filteredFeedPosts = allFeedPosts.filter((post) => {
+                      const kind = (post.media?.kind || post.attachmentKind || "").toLowerCase();
                       if (mediaFilterTab === 'all') return true;
-                      if (mediaFilterTab === 'shorts') return post.attachmentKind === 'video';
-                      if (mediaFilterTab === 'posts') return post.attachmentKind === 'image';
-                      if (mediaFilterTab === 'tweets') return post.attachmentKind !== 'video' && post.attachmentKind !== 'image';
+                      if (mediaFilterTab === 'shorts') return kind === 'video';
+                      if (mediaFilterTab === 'posts') return kind === 'image';
+                      if (mediaFilterTab === 'tweets') return kind !== 'video' && kind !== 'image';
                       return true;
                     });
 
@@ -6840,8 +6859,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             filteredFeedPosts.map((post) => {
                               const item = post.author;
                               const timeAgo = formatTimeAgo(post?.createdAt);
-                              const isVid = post?.attachmentKind === "video";
-                              const isImg = post?.attachmentKind === "image";
+                              const mediaKind = (post?.media?.kind || post?.attachmentKind || "").toLowerCase();
+                              const isVid = mediaKind === "video";
+                              const isImg = mediaKind === "image";
                               let label = "💬 Tweet";
                               let badgeClass = "border-indigo-500/40 bg-indigo-500/10 text-indigo-300 shadow-[0_0_10px_rgba(99,102,241,0.2)]";
                               if (isVid) {
@@ -6918,7 +6938,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                   )}
 
                                   {/* Image Attachment */}
-                                  {post?.media?.url && post?.media?.kind === "image" && (
+                                  {post?.media?.url && (isImg || post?.media?.kind === "image") && (
                                     <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 mb-3.5 relative shadow-lg">
                                       <div className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center">
                                         <StableImage src={post.media.url} alt="Post media" />
@@ -6927,7 +6947,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                   )}
 
                                   {/* Video Attachment */}
-                                  {post?.media?.url && post?.media?.kind === "video" && (
+                                  {post?.media?.url && (isVid || post?.media?.kind === "video") && (
                                     <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 mb-3.5 relative shadow-lg">
                                       <div className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center">
                                         <SmartVideo

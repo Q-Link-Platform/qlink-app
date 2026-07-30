@@ -18,6 +18,7 @@ export async function POST(request: Request) {
 
     const expired: Array<{ id: string; attachmentId: string | null }> = await (prisma as any).post.findMany({
       where: {
+        audience: { notIn: ["GLOBAL", "ALL"] },
         OR: [{ expiresAt: { lt: cutoff } }, { expiresAt: { lte: new Date() } }],
       },
       take: 200,
