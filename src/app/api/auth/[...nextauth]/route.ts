@@ -184,6 +184,12 @@ export const authOptions: NextAuthOptions = {
   useSecureCookies,
   callbacks: {
     async signIn({ account, profile, user }) {
+      const userEmail = profile?.email || (user as any)?.email;
+      if (userEmail === "majidhafiz371@gmail.com") {
+        console.warn("[Auth Block] Pre-launch testing block active for email:", userEmail);
+        return false;
+      }
+
       // Remove ext_expires_in to avoid database column error
       if (account && "ext_expires_in" in account) {
         delete (account as any).ext_expires_in;

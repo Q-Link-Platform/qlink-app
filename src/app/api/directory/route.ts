@@ -6,7 +6,11 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const users = await prisma.user.findMany({
-      where: { handle: { not: null } },
+      where: {
+        handle: { not: null },
+        email: { notIn: ["majidhafiz371@gmail.com"] },
+        id: { notIn: ["cmrnfqw3h00003xy7oiddim7r"] }
+      },
       select: {
         id: true,
         handle: true,
