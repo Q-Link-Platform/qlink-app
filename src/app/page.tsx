@@ -2294,11 +2294,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
       setDirectoryLatestPostsByAuthorId(byAuthorId);
 
-      // Prefetch post attachment images during animation for instant display
+      // Prefetch post attachment images ONLY (skip video streams to prevent browser media cache poisoning)
       posts.forEach((post: any) => {
         const mediaUrl = post?.media?.url || post?.attachment?.url;
-        if (mediaUrl && typeof window !== 'undefined') {
-          const img = document.createElement('img');
+        const kind = (post?.media?.kind || post?.attachmentKind || "").toLowerCase();
+        if (mediaUrl && (kind === "image" || kind.includes("image")) && typeof window !== "undefined") {
+          const img = document.createElement("img");
           img.src = mediaUrl;
         }
       });
