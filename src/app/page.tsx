@@ -123,26 +123,26 @@ function SmartVideo(props: {
 
   const shouldPlay = inView && ratio >= 0.5;
 
-  // Auto-load media stream and auto-clear skeleton state
+  // Only trigger .load() if src actually changed to prevent resetting media stream
   useEffect(() => {
     const el = ref.current;
     if (!el || !props.src) return;
 
-    setLoaded(false);
-
-    try {
-      el.src = props.src;
-      el.load();
-    } catch {
-      // ignore
+    if (el.currentSrc !== props.src && el.src !== props.src) {
+      setLoaded(false);
+      try {
+        el.load();
+      } catch {
+        // ignore
+      }
     }
 
     const timer = setTimeout(() => {
       setLoaded(true);
-    }, 1000);
+    }, 800);
 
     return () => clearTimeout(timer);
-  }, [props.src, ref]);
+  }, [props.src]);
 
   useEffect(() => {
     const el = ref.current;

@@ -20,23 +20,21 @@ function isAudience(value: unknown): value is Audience {
   );
 }
 
-async function getSignedMediaUrl(params: {
-  bucket: string;
-  objectKey: string;
-}): Promise<string | null> {
+async function getSignedMediaUrl(params: { bucket: string; objectKey: string }) {
+  if (!params?.bucket || !params?.objectKey) return null;
   const client = supabasePostsAdmin || supabasePosts;
   if (!client) return null;
+
+  // Prefer getPublicUrl for direct edge CDN caching and native browser Range streaming!
+  const pub = client.storage.from(params.bucket).getPublicUrl(params.objectKey);
+  if (pub.data?.publicUrl) return pub.data.publicUrl;
 
   try {
     const res = await client.storage
       .from(params.bucket)
-      .createSignedUrl(params.objectKey, 60 * 60 * 24); // 24-hour signed link
+      .createSignedUrl(params.objectKey, 60 * 60 * 24);
 
     if (res.data?.signedUrl) return res.data.signedUrl;
-
-    // Fallback: Try public URL if bucket is public or signed URL generation fails
-    const pub = client.storage.from(params.bucket).getPublicUrl(params.objectKey);
-    if (pub.data?.publicUrl) return pub.data.publicUrl;
   } catch (err) {
     console.error("[posts] Error in getSignedMediaUrl", err);
   }
