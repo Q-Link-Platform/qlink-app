@@ -120,8 +120,17 @@ function SmartVideo(props: {
 }) {
   const { ref, inView, ratio } = useInView<HTMLVideoElement>({ rootMargin: "250px 0px" });
   const [loaded, setLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   const shouldPlay = inView && ratio >= 0.6;
+
+  // Auto-dismiss loading skeleton after max 1.5s so overlay never blocks video controls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoaded(true);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [props.src]);
 
   useEffect(() => {
     const el = ref.current;
@@ -136,7 +145,7 @@ function SmartVideo(props: {
         if (el.paused) {
           requestAnimationFrame(() => {
             try {
-              void el.play();
+              void el.play().catch(() => {});
             } catch {
               // ignore
             }
@@ -156,40 +165,63 @@ function SmartVideo(props: {
     }
   }, [shouldPlay, props.autoplayMuted, ref]);
 
+  const handleMediaReady = () => {
+    setLoaded(true);
+  };
+
   return (
-    <div className="relative h-full w-full">
-      {/* Skeleton Loading State */}
-      <div
-        className={
-          "absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 transition-opacity duration-150 z-10 " +
-          (loaded ? "opacity-0 pointer-events-none" : "opacity-100")
-        }
-      >
-        {/* Shimmer Animation */}
-        <div className="relative w-full h-full overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 via-slate-800/40 to-slate-900/60 animate-pulse" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-fuchsia-500/10 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
-        </div>
-        {/* Loading Text */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-bounce [animation-delay:-0.3s]" />
-            <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-bounce [animation-delay:-0.15s]" />
-            <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-bounce" />
+    <div className="relative h-full w-full bg-slate-950 flex items-center justify-center">
+      {/* Skeleton Loading State - pointer-events-none guarantees controls are never blocked */}
+      {!loaded && !hasError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 transition-opacity duration-300 z-10 pointer-events-none">
+          {/* Shimmer Animation */}
+          <div className="relative w-full h-full overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 via-slate-800/40 to-slate-900/60 animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-fuchsia-500/10 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
           </div>
-          <p className="text-[11px] font-medium text-fuchsia-200/80 tracking-wide">Loading video...</p>
+          {/* Loading Text */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-bounce" />
+            </div>
+            <p className="text-[11px] font-medium text-fuchsia-200/80 tracking-wide">Loading video...</p>
+          </div>
         </div>
-      </div>
+      )}
+
+      {hasError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 p-4 text-center z-10">
+          <p className="text-xs font-semibold text-rose-300">Video playback error</p>
+          <a
+            href={props.src}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 text-[10px] text-cyan-400 underline"
+          >
+            Open video in browser
+          </a>
+        </div>
+      )}
+
       <video
         ref={ref}
         src={props.src}
         controls={true}
-        preload={props.preload || "metadata"}
+        preload={props.preload || "auto"}
         playsInline
         muted={!!props.autoplayMuted}
-        className={(props.className ? props.className + " " : "") + "block h-full w-full max-h-full max-w-full m-auto"}
+        className={(props.className ? props.className + " " : "") + "block h-full w-full max-h-full max-w-full m-auto relative z-0"}
         style={{ objectFit: "contain" }}
-        onLoadedData={() => setLoaded(true)}
+        onLoadedMetadata={handleMediaReady}
+        onLoadedData={handleMediaReady}
+        onCanPlay={handleMediaReady}
+        onPlay={handleMediaReady}
+        onError={() => {
+          setHasError(true);
+          setLoaded(true);
+        }}
       />
     </div>
   );

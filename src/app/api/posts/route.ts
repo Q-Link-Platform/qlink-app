@@ -364,11 +364,11 @@ export async function POST(request: Request) {
     });
 
     if (attachmentId) {
-      // Link attachment metadata to this post in attachments DB.
+      // Link attachment metadata to this post in attachments DB and mark status uploaded.
       try {
         await (prismaAttachments as any).attachment.update({
           where: { id: attachmentId },
-          data: { postId: post.id },
+          data: { postId: post.id, status: "uploaded" },
         });
       } catch (err) {
         console.error("[posts] Failed to link attachment to post", err);
