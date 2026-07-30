@@ -187,14 +187,24 @@ export async function POST(request: Request) {
     const objectKey = `${prefix}/${objectKeyName}`;
 
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    let buffer: any = Buffer.from(arrayBuffer);
+
+    if (kind === "video") {
+      try {
+        const { relocateMoovToStart } = await import("@/lib/mp4FastStart");
+        const faststart = relocateMoovToStart(buffer);
+        buffer = Buffer.from(faststart.buffer, faststart.byteOffset, faststart.byteLength);
+      } catch (err) {
+        console.warn("[upload] FastStart relocation warning:", err);
+      }
+    }
 
     const uploadResult = await supabasePostsAdmin.storage
       .from(bucket)
-      .upload(objectKey, buffer, {
+      .upload(objectKey, new Uint8Array(buffer), {
         cacheControl: "3600",
         upsert: false,
-        contentType: file.type || undefined,
+        contentType: file.type || "video/mp4",
       });
 
     if (uploadResult.error) {
