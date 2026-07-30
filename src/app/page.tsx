@@ -232,6 +232,7 @@ function QuantumVideoPlayer(props: {
 
       <video
         ref={videoRef}
+        src={props.src}
         playsInline
         preload="auto"
         muted={isMuted}
@@ -250,11 +251,7 @@ function QuantumVideoPlayer(props: {
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onEnded={() => setIsPlaying(false)}
-      >
-        <source src={props.src} type="video/mp4" />
-        <source src={props.src} type="video/webm" />
-        <source src={props.src} />
-      </video>
+      />
 
       {/* Custom Bottom Control Bar */}
       <div
