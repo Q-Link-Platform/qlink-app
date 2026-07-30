@@ -118,20 +118,17 @@ function SmartVideo(props: {
   preload?: "none" | "metadata" | "auto";
   autoplayMuted?: boolean;
 }) {
-  const { ref, inView, ratio } = useInView<HTMLVideoElement>({ rootMargin: "250px 0px" });
+  const { ref, inView, ratio } = useInView<HTMLVideoElement>({ rootMargin: "300px 0px" });
   const [loaded, setLoaded] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [hasError, setHasError] = useState(false);
 
-  const shouldPlay = inView && ratio >= 0.6;
+  const shouldPlay = inView && ratio >= 0.5;
 
-  // Force HTML5 video element reload on src change so browser fetches byte ranges immediately
+  // Auto-load media stream and auto-clear skeleton state
   useEffect(() => {
     const el = ref.current;
     if (!el || !props.src) return;
 
     setLoaded(false);
-    setHasError(false);
 
     try {
       el.src = props.src;
@@ -142,7 +139,7 @@ function SmartVideo(props: {
 
     const timer = setTimeout(() => {
       setLoaded(true);
-    }, 1500);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [props.src, ref]);
@@ -180,80 +177,33 @@ function SmartVideo(props: {
     }
   }, [shouldPlay, props.autoplayMuted, ref]);
 
-  const togglePlay = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    const el = ref.current;
-    if (!el) return;
-    if (el.paused) {
-      void el.play().then(() => setIsPlaying(true)).catch(() => {});
-    } else {
-      el.pause();
-      setIsPlaying(false);
-    }
-  };
-
   return (
-    <div
-      className="relative h-full w-full bg-slate-950 flex items-center justify-center cursor-pointer group overflow-hidden select-none"
-      onClick={togglePlay}
-    >
-      {/* Skeleton Loading State */}
-      {!loaded && !hasError && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 transition-opacity duration-300 z-10 pointer-events-none">
-          <div className="relative w-full h-full overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 via-slate-800/40 to-slate-900/60 animate-pulse" />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-fuchsia-500/10 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+    <div className="relative w-full h-full bg-slate-950 flex items-center justify-center overflow-hidden rounded-2xl">
+      {/* Loading Skeleton */}
+      {!loaded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 z-10 pointer-events-none transition-opacity duration-300">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.3s]" />
+            <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.15s]" />
+            <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-bounce" />
           </div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-bounce [animation-delay:-0.3s]" />
-              <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-bounce [animation-delay:-0.15s]" />
-              <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-bounce" />
-            </div>
-            <p className="text-[11px] font-medium text-fuchsia-200/80 tracking-wide">Loading Quantum Video...</p>
-          </div>
-        </div>
-      )}
-
-      {/* Center Play Button Overlay when Paused */}
-      {!isPlaying && loaded && !hasError && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-cyan-500/20 border border-cyan-400/50 backdrop-blur-md text-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.5)] transition-transform duration-200 group-hover:scale-110">
-            <svg className="w-8 h-8 translate-x-0.5 fill-current" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </div>
+          <p className="text-[11px] font-semibold text-cyan-200 tracking-wide">Initializing Stream...</p>
         </div>
       )}
 
       <video
         ref={ref}
         src={props.src}
-        controls={true}
-        preload="auto"
+        controls
+        preload={props.preload || "auto"}
         playsInline
         muted={!!props.autoplayMuted}
-        className={(props.className ? props.className + " " : "") + "block h-full w-full max-h-full max-w-full m-auto relative z-0 min-h-[260px] object-contain"}
+        className={(props.className ? props.className + " " : "") + "w-full h-auto max-h-[75vh] object-contain rounded-2xl block relative z-0"}
         onLoadedMetadata={() => setLoaded(true)}
         onLoadedData={() => setLoaded(true)}
         onCanPlay={() => setLoaded(true)}
-        onPlay={() => {
-          setLoaded(true);
-          setIsPlaying(true);
-        }}
-        onPause={() => setIsPlaying(false)}
-        onError={(e) => {
-          console.warn("[SmartVideo] Playback error on src:", props.src, e);
-          const el = ref.current;
-          if (el && !hasError) {
-            try {
-              el.load();
-            } catch {
-              setHasError(true);
-            }
-          }
-          setLoaded(true);
-        }}
+        onPlay={() => setLoaded(true)}
+        onError={() => setLoaded(true)}
       />
     </div>
   );
@@ -6673,20 +6623,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                   )}
 
                                   {post?.media?.url && post?.media?.kind === "image" && (
-                                    <div className="mt-2 overflow-hidden rounded-xl border border-slate-800/70 bg-slate-950">
-                                      <div className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center">
+                                    <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg">
+                                      <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[220px] max-h-[75vh]">
                                         <StableImage src={post.media.url} alt="Post media" />
                                       </div>
                                     </div>
                                   )}
 
                                   {post?.media?.url && post?.media?.kind === "video" && (
-                                    <div className="mt-2 overflow-hidden rounded-xl border border-slate-800/70 bg-slate-950">
-                                      <div className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center">
+                                    <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg">
+                                      <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[260px] max-h-[75vh]">
                                         <SmartVideo
                                           src={post.media.url}
-                                          className="h-full w-full"
-                                          preload="metadata"
+                                          className="w-full h-auto max-h-[75vh]"
+                                          preload="auto"
                                           autoplayMuted
                                         />
                                       </div>
@@ -7003,8 +6953,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                                   {/* Image Attachment */}
                                   {post?.media?.url && (isImg || post?.media?.kind === "image") && (
-                                    <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 mb-3.5 relative shadow-lg">
-                                      <div className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center">
+                                    <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 mb-3.5 relative shadow-xl w-full">
+                                      <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[220px] max-h-[75vh]">
                                         <StableImage src={post.media.url} alt="Post media" />
                                       </div>
                                     </div>
@@ -11809,22 +11759,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               ) : null}
 
                               {p?.media?.url && p?.media?.kind === "image" ? (
-                                <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-950">
-                                  <div
-                                    className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center"
-                                  >
+                                <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg">
+                                  <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[220px] max-h-[75vh]">
                                     <StableImage src={p.media.url} alt="Post media" />
                                   </div>
                                 </div>
                               ) : p?.media?.url && p?.media?.kind === "video" ? (
-                                <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/70 bg-slate-950">
-                                  <div
-                                    className="mx-auto w-full max-w-[720px] bg-slate-950 h-[380px] sm:h-[500px] md:h-[580px] lg:h-[640px] flex items-center justify-center"
-                                  >
+                                <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg">
+                                  <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[260px] max-h-[75vh]">
                                     <SmartVideo
                                       src={p.media.url}
-                                      className="h-full w-full"
-                                      preload="metadata"
+                                      className="w-full h-auto max-h-[75vh]"
+                                      preload="auto"
                                       autoplayMuted
                                     />
                                   </div>
