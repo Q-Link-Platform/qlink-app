@@ -20,6 +20,8 @@
     "next": "16.0.7",
     "next-auth": "^4.24.13",
     "pg": "^8.20.0",
+    "plyr": "^3.8.4",
+    "plyr-react": "^6.0.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-easy-crop": "^5.5.6",

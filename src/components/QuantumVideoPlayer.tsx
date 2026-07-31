@@ -32,97 +32,36 @@ export default function QuantumVideoPlayer({
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Format URL with #t=0.1 media fragment if missing, so browsers render the 1st frame as thumbnail
+  const [useFragment, setUseFragment] = useState(false);
+
+  // Use clean raw src by default to prevent cross-origin media fragment onError triggers
   const formattedSrc = React.useMemo(() => {
     if (!src) return "";
-    if (src.startsWith("blob:") || src.startsWith("data:") || src.includes("#t=")) {
-      return src;
+    if (useFragment && !src.startsWith("blob:") && !src.startsWith("data:") && !src.includes("#t=")) {
+      return `${src}#t=0.1`;
     }
-    return `${src}#t=0.1`;
-  }, [src]);
-
-  // Handle Mute & AutoPlay syncing directly on native DOM node
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.muted = isMuted;
-    if (autoPlayMuted) {
-      video.play().catch(() => {
-        // Autoplay may be blocked by browser policy; user can tap play
-        setIsPlaying(false);
-      });
-    }
-  }, [autoPlayMuted, isMuted, formattedSrc]);
-
-  // Fullscreen change listener
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
-
-  // Controls auto-hide timeout
-  const handleMouseMove = () => {
-    setShowControls(true);
-    if (hideControlsTimerRef.current) clearTimeout(hideControlsTimerRef.current);
-    if (isPlaying) {
-      hideControlsTimerRef.current = setTimeout(() => {
-        setShowControls(false);
-      }, 2500);
-    }
-  };
-
-  const handlePlayPause = () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (isPlaying) {
-      video.pause();
-    } else {
-      // Pause any other playing audio/video on page
-      document.querySelectorAll("video, audio").forEach((el) => {
-        if (el !== video) (el as HTMLMediaElement).pause();
-      });
-      video.play().catch((err) => {
-        console.error("[QuantumVideoPlayer] Play error:", err);
-      });
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    setCurrentTime(video.currentTime);
-  };
-
-  const handleLoadedMetadata = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.duration && isFinite(video.duration)) {
-      setDuration(video.duration);
-    }
-    setIsLoading(false);
-    setHasError(false);
-  };
-
-  const handleWaiting = () => {
-    setIsLoading(true);
-  };
-
-  const handleCanPlay = () => {
-    setIsLoading(false);
-  };
+    return src;
+  }, [src, useFragment]);
 
   const handleError = (e: SyntheticEvent<HTMLVideoElement, Event>) => {
-    console.error("[QuantumVideoPlayer] Video loading error:", e);
-    setIsLoading(false);
-    setHasError(true);
-    setErrorMessage("Unable to stream video. Tap to retry.");
+    console.warn("[QuantumVideoPlayer] Video stream event error:", e);
+    
+    // If we were using fragment, fallback to raw src first
+    if (useFragment) {
+      setUseFragment(false);
+      setIsLoading(true);
+      return;
+    }
+
+    const video = videoRef.current;
+    if (video?.error?.code === 4 || video?.error?.code === 2) {
+      setIsLoading(false);
+      setHasError(true);
+      setErrorMessage("Unable to stream video. Tap to retry.");
+    } else {
+      // Non-fatal flicker or media loading delay; keep attempting load
+      setIsLoading(false);
+    }
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,6 +132,7 @@ export default function QuantumVideoPlayer({
         poster={poster}
         preload={preload}
         playsInline
+        crossOrigin="anonymous"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
