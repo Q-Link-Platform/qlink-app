@@ -6574,10 +6574,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                                   {post?.media?.url && post?.media?.kind === "video" && (
                                     <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg">
-                                      <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[260px] max-h-[75vh]">
+                                      <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[380px] sm:min-h-[480px] max-h-[82vh]">
                                         <SmartVideo
                                           src={post.media.url}
-                                          className="w-full h-auto max-h-[75vh]"
+                                          className="w-full h-auto min-h-[380px] sm:min-h-[480px] max-h-[82vh]"
                                           preload="auto"
                                           autoplayMuted
                                         />
