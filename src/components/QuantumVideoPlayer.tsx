@@ -43,6 +43,81 @@ export default function QuantumVideoPlayer({
     return src;
   }, [src, useFragment]);
 
+  // Handle Mute & AutoPlay syncing directly on native DOM node
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = isMuted;
+    if (autoPlayMuted) {
+      video.play().catch(() => {
+        setIsPlaying(false);
+      });
+    }
+  }, [autoPlayMuted, isMuted, formattedSrc]);
+
+  // Fullscreen change listener
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  // Controls auto-hide timeout
+  const handleMouseMove = () => {
+    setShowControls(true);
+    if (hideControlsTimerRef.current) clearTimeout(hideControlsTimerRef.current);
+    if (isPlaying) {
+      hideControlsTimerRef.current = setTimeout(() => {
+        setShowControls(false);
+      }, 2500);
+    }
+  };
+
+  const handlePlayPause = () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying) {
+      video.pause();
+    } else {
+      document.querySelectorAll("video, audio").forEach((el) => {
+        if (el !== video) (el as HTMLMediaElement).pause();
+      });
+      video.play().catch((err) => {
+        console.error("[QuantumVideoPlayer] Play error:", err);
+      });
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    setCurrentTime(video.currentTime);
+  };
+
+  const handleLoadedMetadata = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.duration && isFinite(video.duration)) {
+      setDuration(video.duration);
+    }
+    setIsLoading(false);
+    setHasError(false);
+  };
+
+  const handleWaiting = () => {
+    setIsLoading(true);
+  };
+
+  const handleCanPlay = () => {
+    setIsLoading(false);
+  };
+
   const handleError = (e: SyntheticEvent<HTMLVideoElement, Event>) => {
     console.warn("[QuantumVideoPlayer] Video stream event error:", e);
     
