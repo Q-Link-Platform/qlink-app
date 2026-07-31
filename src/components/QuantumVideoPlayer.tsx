@@ -40,6 +40,16 @@ export default function QuantumVideoPlayer({
   const feedManager = useFeedVideoManager();
   const isActiveInFeed = feedManager ? feedManager.activeVideoId === videoId : false;
 
+  // Pre-warm DOM node attributes on mount for instant zero-latency start
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.setAttribute("muted", "");
+    video.setAttribute("playsinline", "");
+    video.setAttribute("preload", "auto");
+  }, []);
+
   // Sync mute state with global feed mute state if manager is present
   useEffect(() => {
     if (feedManager) {
@@ -55,10 +65,14 @@ export default function QuantumVideoPlayer({
       const video = videoRef.current;
       if (!video) return;
 
-      // Pause all other media in document
       document.querySelectorAll("video, audio").forEach((el) => {
         if (el !== video) (el as HTMLMediaElement).pause();
       });
+
+      if (isMuted) {
+        video.muted = true;
+        video.setAttribute("muted", "");
+      }
 
       video
         .play()
@@ -67,7 +81,9 @@ export default function QuantumVideoPlayer({
           setIsLoading(false);
         })
         .catch(() => {
-          setIsPlaying(false);
+          video.muted = true;
+          video.setAttribute("muted", "");
+          video.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
         });
     };
 
@@ -88,7 +104,7 @@ export default function QuantumVideoPlayer({
     return () => {
       unregister();
     };
-  }, [feedManager, videoId]);
+  }, [feedManager, videoId, isMuted]);
 
   // Trigger play/pause based on centering active status
   useEffect(() => {
@@ -97,30 +113,32 @@ export default function QuantumVideoPlayer({
 
     if (feedManager) {
       if (isActiveInFeed) {
-        // Pause other media elements before playing centered video
         document.querySelectorAll("video, audio").forEach((el) => {
           if (el !== video) (el as HTMLMediaElement).pause();
         });
 
-        // Synchronous DOM Mute Guarantee for Browser Autoplay Policy
         if (isMuted) {
           video.muted = true;
           video.setAttribute("muted", "");
           video.setAttribute("playsinline", "");
+        } else {
+          video.muted = false;
+          video.volume = 1.0;
         }
 
-        video
-          .play()
-          .then(() => {
-            setIsPlaying(true);
-            setIsLoading(false);
-          })
-          .catch((err) => {
-            // Fallback retry with enforced muted state
-            video.muted = true;
-            video.setAttribute("muted", "");
-            video.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
-          });
+        const promise = video.play();
+        if (promise !== undefined) {
+          promise
+            .then(() => {
+              setIsPlaying(true);
+              setIsLoading(false);
+            })
+            .catch(() => {
+              video.muted = true;
+              video.setAttribute("muted", "");
+              video.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+            });
+        }
       } else {
         video.pause();
       }

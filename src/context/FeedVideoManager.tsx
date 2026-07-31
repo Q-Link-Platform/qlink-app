@@ -72,8 +72,8 @@ export function FeedVideoManagerProvider({ children }: { children: ReactNode }) 
       const visibleHeight = Math.max(0, visibleBottom - visibleTop);
       const visibilityRatio = rect.height > 0 ? visibleHeight / rect.height : 0;
 
-      // Video must be at least 35% visible to be considered for autoplay
-      if (visibilityRatio >= 0.35) {
+      // Video must be at least 10% visible to be considered for instant autoplay
+      if (visibilityRatio >= 0.1 || (rect.top <= viewportCenter && rect.bottom >= viewportCenter)) {
         const videoCenter = rect.top + rect.height / 2;
         const distanceToCenter = Math.abs(videoCenter - viewportCenter);
 
@@ -87,27 +87,16 @@ export function FeedVideoManagerProvider({ children }: { children: ReactNode }) 
     setActiveVideoId((prev) => (prev !== bestId ? bestId : prev));
   }, []);
 
-  // Shared IntersectionObserver & User Gesture Listener for global media unlocking
+  // Immediate scroll & resize listener for instant video selection
   useEffect(() => {
-    let animationFrameId: number | null = null;
-
     const handleScrollOrResize = () => {
-      if (animationFrameId !== null) return;
-      animationFrameId = requestAnimationFrame(() => {
-        animationFrameId = null;
-        recalculateActiveVideo();
-      });
-    };
-
-    const handleUserGesture = () => {
       recalculateActiveVideo();
     };
 
     window.addEventListener("scroll", handleScrollOrResize, { passive: true });
     window.addEventListener("resize", handleScrollOrResize, { passive: true });
-    window.addEventListener("pointerdown", handleUserGesture, { passive: true, once: false });
-    window.addEventListener("touchstart", handleUserGesture, { passive: true, once: false });
-    window.addEventListener("keydown", handleUserGesture, { passive: true, once: false });
+    window.addEventListener("pointerdown", handleScrollOrResize, { passive: true });
+    window.addEventListener("touchstart", handleScrollOrResize, { passive: true });
 
     // Initial check
     recalculateActiveVideo();
@@ -115,12 +104,8 @@ export function FeedVideoManagerProvider({ children }: { children: ReactNode }) 
     return () => {
       window.removeEventListener("scroll", handleScrollOrResize);
       window.removeEventListener("resize", handleScrollOrResize);
-      window.removeEventListener("pointerdown", handleUserGesture);
-      window.removeEventListener("touchstart", handleUserGesture);
-      window.removeEventListener("keydown", handleUserGesture);
-      if (animationFrameId !== null) {
-        cancelAnimationFrame(animationFrameId);
-      }
+      window.removeEventListener("pointerdown", handleScrollOrResize);
+      window.removeEventListener("touchstart", handleScrollOrResize);
     };
   }, [recalculateActiveVideo]);
 
