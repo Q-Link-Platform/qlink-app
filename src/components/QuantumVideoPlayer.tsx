@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, SyntheticEvent } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 interface QuantumVideoPlayerProps {
   src: string;
@@ -25,25 +25,14 @@ export default function QuantumVideoPlayer({
   const [volume, setVolume] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [useFragment, setUseFragment] = useState(false);
-
-  // Use clean raw src by default to prevent cross-origin media fragment onError triggers
-  const formattedSrc = React.useMemo(() => {
-    if (!src) return "";
-    if (useFragment && !src.startsWith("blob:") && !src.startsWith("data:") && !src.includes("#t=")) {
-      return `${src}#t=0.1`;
-    }
-    return src;
-  }, [src, useFragment]);
-
-  // Handle Mute & AutoPlay syncing directly on native DOM node
+  // Sync mute state & autoPlay to DOM node
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -54,7 +43,7 @@ export default function QuantumVideoPlayer({
         setIsPlaying(false);
       });
     }
-  }, [autoPlayMuted, isMuted, formattedSrc]);
+  }, [autoPlayMuted, isMuted, src]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -67,7 +56,6 @@ export default function QuantumVideoPlayer({
     };
   }, []);
 
-  // Controls auto-hide timeout
   const handleMouseMove = () => {
     setShowControls(true);
     if (hideControlsTimerRef.current) clearTimeout(hideControlsTimerRef.current);
@@ -88,9 +76,23 @@ export default function QuantumVideoPlayer({
       document.querySelectorAll("video, audio").forEach((el) => {
         if (el !== video) (el as HTMLMediaElement).pause();
       });
-      video.play().catch((err) => {
-        console.error("[QuantumVideoPlayer] Play error:", err);
-      });
+      setHasError(false);
+      setIsLoading(true);
+      video
+        .play()
+        .then(() => {
+          setIsLoading(false);
+          setIsPlaying(true);
+        })
+        .catch((err) => {
+          console.warn("[QuantumVideoPlayer] Play error:", err);
+          setIsLoading(false);
+          // Only show error overlay if play action physically failed
+          if (video.error && video.error.code === 4) {
+            setHasError(true);
+            setErrorMessage("Unable to stream video. Tap to retry.");
+          }
+        });
     }
   };
 
@@ -108,35 +110,6 @@ export default function QuantumVideoPlayer({
     }
     setIsLoading(false);
     setHasError(false);
-  };
-
-  const handleWaiting = () => {
-    setIsLoading(true);
-  };
-
-  const handleCanPlay = () => {
-    setIsLoading(false);
-  };
-
-  const handleError = (e: SyntheticEvent<HTMLVideoElement, Event>) => {
-    console.warn("[QuantumVideoPlayer] Video stream event error:", e);
-    
-    // If we were using fragment, fallback to raw src first
-    if (useFragment) {
-      setUseFragment(false);
-      setIsLoading(true);
-      return;
-    }
-
-    const video = videoRef.current;
-    if (video?.error?.code === 4 || video?.error?.code === 2) {
-      setIsLoading(false);
-      setHasError(true);
-      setErrorMessage("Unable to stream video. Tap to retry.");
-    } else {
-      // Non-fatal flicker or media loading delay; keep attempting load
-      setIsLoading(false);
-    }
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,7 +154,13 @@ export default function QuantumVideoPlayer({
     setHasError(false);
     setIsLoading(true);
     video.load();
-    video.play().catch(() => setIsPlaying(false));
+    video.play().then(() => {
+      setIsLoading(false);
+      setIsPlaying(true);
+    }).catch(() => {
+      setIsLoading(false);
+      setIsPlaying(false);
+    });
   };
 
   const formatTime = (seconds: number) => {
@@ -200,21 +179,19 @@ export default function QuantumVideoPlayer({
       onMouseLeave={() => isPlaying && setShowControls(false)}
       className={`group relative overflow-hidden rounded-2xl border border-cyan-500/20 bg-slate-950 shadow-[0_0_20px_rgba(2,8,23,0.8)] select-none transition-all duration-300 ${className}`}
     >
-      {/* Video Element */}
+      {/* Native HTML5 Video Element */}
       <video
         ref={videoRef}
-        src={formattedSrc}
+        src={src}
         poster={poster}
         preload={preload}
         playsInline
-        crossOrigin="anonymous"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
-        onWaiting={handleWaiting}
-        onCanPlay={handleCanPlay}
-        onError={handleError}
+        onWaiting={() => setIsLoading(true)}
+        onCanPlay={() => setIsLoading(false)}
         onClick={handlePlayPause}
         className="block h-full w-full max-h-[75vh] object-contain bg-black cursor-pointer"
         style={{ display: "block", minHeight: 200 }}
@@ -242,7 +219,7 @@ export default function QuantumVideoPlayer({
             </svg>
           </div>
           <p className="text-xs font-semibold text-slate-200 max-w-[240px]">
-            {errorMessage || "Failed to load video stream"}
+            {errorMessage || "Unable to stream video. Tap to retry."}
           </p>
           <button
             type="button"
