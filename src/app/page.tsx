@@ -10427,83 +10427,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </div>
                     ) : (
                       <>
-                        {/* Mobile Floating Action Popover Drawer (Mobile Only sm:hidden) */}
-                        {showMobileChatMore && (
-                          <div className="flex sm:hidden items-center justify-around gap-4 mb-2 py-2.5 px-4 rounded-2xl border border-cyan-500/40 bg-[#09111c]/95 backdrop-blur-md shadow-[0_0_25px_rgba(6,182,212,0.3)] animate-float-in z-[9999]">
-                            {/* Circular Paperclip / Share File Button */}
-                            <div className="flex flex-col items-center gap-1">
-                              <button
-                                type="button"
-                                disabled={!activePeerHandle}
-                                onClick={() => {
-                                  handleAttachButtonClick();
-                                  setShowMobileChatMore(false);
-                                }}
-                                className="select-none flex h-10 w-10 items-center justify-center rounded-full border border-slate-600/50 bg-[#09111c]/95 text-slate-300 drop-shadow-md transition-all duration-200 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300 hover:shadow-[0_0_10px_rgba(34,211,238,0.3)] active:scale-95 disabled:opacity-40"
-                              >
-                                {isUploadingAttachment ? (
-                                  <svg className="h-4 w-4 animate-spin text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,0.8)] pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
-                                ) : (
-                                  <svg
-                                    viewBox="0 0 24 24"
-                                    aria-hidden="true"
-                                    className="h-5 w-5 pointer-events-none"
-                                    style={{ transform: "rotate(-45deg)" }}
-                                  >
-                                    <path
-                                      d="M8.5 11.75 13 7.25a2.5 2.5 0 1 1 3.54 3.54l-6.01 6.01a3.75 3.75 0 0 1-5.3-5.3l5.13-5.13"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      strokeWidth="1.8"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
-                                )}
-                              </button>
-                              <span className="text-[9px] font-semibold text-slate-400">File</span>
-                            </div>
-
-                            {/* Circular Microphone / Voice Record Button */}
-                            <div className="flex flex-col items-center gap-1">
-                              <button
-                                type="button"
-                                disabled={!activePeerHandle || isUploadingAttachment}
-                                onClick={() => {
-                                  startRecording();
-                                  setShowMobileChatMore(false);
-                                }}
-                                className="select-none flex h-10 w-10 items-center justify-center rounded-full border border-slate-600/50 bg-[#09111c]/95 text-slate-300 drop-shadow-md transition-all duration-200 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300 hover:shadow-[0_0_10px_rgba(34,211,238,0.3)] active:scale-95 disabled:opacity-40"
-                              >
-                                <svg className="h-5 w-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                </svg>
-                              </button>
-                              <span className="text-[9px] font-semibold text-slate-400">Voice</span>
-                            </div>
-
-                            {/* Circular Q-BEACON Button */}
-                            <div className="flex flex-col items-center gap-1">
-                              <button
-                                type="button"
-                                disabled={!activePeerHandle || isSendingBeacon}
-                                onClick={() => {
-                                  handleTriggerEmergencyBeacon();
-                                  setShowMobileChatMore(false);
-                                }}
-                                title="⚡ Send Priority Emergency Beacon (Bypasses DND)"
-                                className="select-none flex h-10 w-10 items-center justify-center rounded-full border border-rose-500/80 bg-rose-600/90 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.6)] transition hover:bg-rose-500 active:scale-95 disabled:opacity-40"
-                              >
-                                ⚡
-                              </button>
-                              <span className="text-[9px] font-semibold text-rose-300">Beacon</span>
-                            </div>
-                          </div>
-                        )}
-
                         {/* Desktop Left Action Group (Hidden on Mobile sm:flex) */}
                         <div className="hidden sm:flex items-center gap-1 shrink-0 z-[9999]">
                           {/* Paperclip Button & Tooltip Container */}
@@ -10596,24 +10519,104 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           </div>
                         </div>
 
-                        {/* Mobile-Only Apple-Style Circular 3-Dots "More" Button */}
-                        <button
-                          type="button"
-                          disabled={!activePeerHandle}
-                          onClick={() => setShowMobileChatMore((prev) => !prev)}
-                          title="More Actions"
-                          className={`select-none flex sm:hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border text-slate-200 transition-all duration-200 active:scale-95 disabled:opacity-40 ${
-                            showMobileChatMore
-                              ? "border-cyan-400 bg-slate-800 text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.5)]"
-                              : "border-slate-600/60 bg-[#09111c]/95 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300"
-                          }`}
-                        >
-                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                            <circle cx="5" cy="12" r="2" />
-                            <circle cx="12" cy="12" r="2" />
-                            <circle cx="19" cy="12" r="2" />
-                          </svg>
-                        </button>
+                        {/* Mobile 3-Dots Button Container with Vertical Action Popover */}
+                        <div className="relative flex sm:hidden">
+                          {/* Vertical Mobile Floating Action Popover Card */}
+                          {showMobileChatMore && (
+                            <div className="absolute bottom-[calc(100%+0.5rem)] left-0 z-[9999] flex flex-col items-center gap-3 p-3 rounded-2xl border border-cyan-500/40 bg-[#09111c]/95 backdrop-blur-md shadow-[0_0_25px_rgba(6,182,212,0.35)] animate-float-in min-w-[3.5rem]">
+                              {/* Circular Paperclip / Share File Button */}
+                              <div className="flex flex-col items-center gap-0.5">
+                                <button
+                                  type="button"
+                                  disabled={!activePeerHandle}
+                                  onClick={() => {
+                                    handleAttachButtonClick();
+                                    setShowMobileChatMore(false);
+                                  }}
+                                  className="select-none flex h-9 w-9 items-center justify-center rounded-full border border-slate-600/50 bg-[#09111c]/95 text-slate-300 drop-shadow-md transition-all duration-200 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300 active:scale-95 disabled:opacity-40"
+                                >
+                                  {isUploadingAttachment ? (
+                                    <svg className="h-4 w-4 animate-spin text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,0.8)] pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                  ) : (
+                                    <svg
+                                      viewBox="0 0 24 24"
+                                      aria-hidden="true"
+                                      className="h-4 w-4 pointer-events-none"
+                                      style={{ transform: "rotate(-45deg)" }}
+                                    >
+                                      <path
+                                        d="M8.5 11.75 13 7.25a2.5 2.5 0 1 1 3.54 3.54l-6.01 6.01a3.75 3.75 0 0 1-5.3-5.3l5.13-5.13"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="1.8"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  )}
+                                </button>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400">File</span>
+                              </div>
+
+                              {/* Circular Microphone / Voice Record Button */}
+                              <div className="flex flex-col items-center gap-0.5">
+                                <button
+                                  type="button"
+                                  disabled={!activePeerHandle || isUploadingAttachment}
+                                  onClick={() => {
+                                    startRecording();
+                                    setShowMobileChatMore(false);
+                                  }}
+                                  className="select-none flex h-9 w-9 items-center justify-center rounded-full border border-slate-600/50 bg-[#09111c]/95 text-slate-300 drop-shadow-md transition-all duration-200 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300 active:scale-95 disabled:opacity-40"
+                                >
+                                  <svg className="h-4 w-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                                  </svg>
+                                </button>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400">Voice</span>
+                              </div>
+
+                              {/* Circular Q-BEACON Button */}
+                              <div className="flex flex-col items-center gap-0.5">
+                                <button
+                                  type="button"
+                                  disabled={!activePeerHandle || isSendingBeacon}
+                                  onClick={() => {
+                                    handleTriggerEmergencyBeacon();
+                                    setShowMobileChatMore(false);
+                                  }}
+                                  title="⚡ Send Priority Emergency Beacon (Bypasses DND)"
+                                  className="select-none flex h-9 w-9 items-center justify-center rounded-full border border-rose-500/80 bg-rose-600/90 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.6)] transition hover:bg-rose-500 active:scale-95 disabled:opacity-40"
+                                >
+                                  ⚡
+                                </button>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-rose-300">Beacon</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Mobile-Only Apple-Style Circular 3-Dots "More" Button */}
+                          <button
+                            type="button"
+                            disabled={!activePeerHandle}
+                            onClick={() => setShowMobileChatMore((prev) => !prev)}
+                            title="More Actions"
+                            className={`select-none flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-slate-200 transition-all duration-200 active:scale-95 disabled:opacity-40 ${
+                              showMobileChatMore
+                                ? "border-cyan-400 bg-slate-800 text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.5)]"
+                                : "border-slate-600/60 bg-[#09111c]/95 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300"
+                            }`}
+                          >
+                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                              <circle cx="5" cy="12" r="2" />
+                              <circle cx="12" cy="12" r="2" />
+                              <circle cx="19" cy="12" r="2" />
+                            </svg>
+                          </button>
+                        </div>
 
                         {/* Textarea Input Box (Clean, maximized workspace) */}
                         <div className="relative flex-1 group">
