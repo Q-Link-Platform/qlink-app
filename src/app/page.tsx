@@ -9117,7 +9117,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 (isChatFull ? "fullscreen rounded-none border-none " : "") +
                 (isChatAnimating ? (isChatFull ? "opening" : "closing") : "") +
                 (isChatFull
-                  ? "flex-1 flex h-[100dvh] min-h-0 w-full flex-col space-y-3 p-3"
+                  ? "flex-1 flex h-[100dvh] min-h-0 w-full flex-col space-y-3 p-0 sm:p-3"
                   : "flex h-auto min-h-0 flex-col space-y-5 p-5") +
                 " border-slate-500/60"
               }
@@ -9597,7 +9597,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   className={
                     "glass-panel flex flex-col gap-3 text-xs text-slate-300 relative overflow-y-hidden scrollbar-hide " +
                     (isChatFull
-                      ? "flex-1 min-h-0 mt-2 rounded-2xl border bg-slate-900/80 p-4 " +
+                      ? "flex-1 min-h-0 mt-0 sm:mt-2 rounded-none sm:rounded-2xl border-none sm:border bg-slate-900/80 p-2 sm:p-4 " +
                         (highlightChatPanel ? "glow-pulse border-cyan-400/80" : "border-slate-600/70")
                       : "flex-1 min-h-0 mt-4 -mx-5 -mb-5 p-4 rounded-t-2xl border-t bg-slate-900/80 " +
                         (highlightChatPanel
@@ -9605,8 +9605,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           : "border-slate-600/70 border-x-0 border-b-0"))
                   }
                   style={{
-                    minHeight: isChatFull ? 'calc(100% - 40px)' : '400px',
-                    maxHeight: isChatFull ? 'calc(100% - 40px)' : '85vh'
+                    minHeight: isChatFull ? '100%' : '400px',
+                    maxHeight: isChatFull ? '100%' : '85vh'
                   }}
                 >
                   {/* Fixed header at top of chat card */}
