@@ -1,32 +1,38 @@
-import { supabasePostsAdmin } from '../src/lib/supabasePosts';
-import crypto from 'crypto';
+import { supabasePostsAdmin, supabasePosts } from "../src/lib/supabasePosts";
+import { prismaAttachments } from "../src/lib/prismaAttachments";
 
 async function main() {
-  console.log("Testing createSignedUploadUrl...");
-  
-  if (!supabasePostsAdmin) {
-    console.error("supabasePostsAdmin is null!");
+  const atts = await prismaAttachments.attachment.findMany({
+    where: { kind: "video" },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+
+  const client = supabasePostsAdmin || supabasePosts;
+  if (!client) {
+    console.log("No supabase client");
     return;
   }
 
-  const bucket = process.env.SUPABASE_POSTS_BUCKET || "Autark-3";
-  const objectKey = `images/test-sign-${crypto.randomUUID()}.txt`;
+  for (const att of atts) {
+    console.log(`\n=== Attachment ${att.id} ===`);
+    console.log(`Bucket: ${att.bucket}, ObjectKey: ${att.objectKey}`);
 
-  console.log("Bucket:", bucket);
-  console.log("Generating signed upload URL for:", objectKey);
+    const pub = client.storage.from(att.bucket).getPublicUrl(att.objectKey);
+    console.log(`Public URL: ${pub.data?.publicUrl}`);
 
-  const res = await supabasePostsAdmin.storage
-    .from(bucket)
-    .createSignedUploadUrl(objectKey);
+    const signed = await client.storage.from(att.bucket).createSignedUrl(att.objectKey, 60 * 60 * 24);
+    console.log(`Signed URL: ${signed.data?.signedUrl}`);
 
-  if (res.error) {
-    console.error("Failed to generate signed upload URL:", res.error);
-    return;
+    if (signed.data?.signedUrl) {
+      try {
+        const res = await fetch(signed.data.signedUrl, { method: "HEAD" });
+        console.log(`Signed HEAD status: ${res.status} ${res.statusText}`);
+      } catch (err: any) {
+        console.error("Signed HEAD error:", err.message);
+      }
+    }
   }
-
-  console.log("Successfully generated signed upload URL!", res.data);
 }
 
-main().catch(err => {
-  console.error("Unhandled error in sign test:", err);
-});
+main().catch(console.error);

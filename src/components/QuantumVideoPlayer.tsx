@@ -160,8 +160,10 @@ export default function QuantumVideoPlayer({
         ref={videoRef}
         src={src}
         poster={poster}
-        preload={preload}
+        preload="auto"
         controls
+        autoPlay={autoPlayMuted}
+        muted={isMuted}
         playsInline
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
