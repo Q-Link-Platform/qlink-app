@@ -112,6 +112,8 @@ function StableImage(props: {
   );
 }
 
+import QuantumVideoPlayerComponent from "@/components/QuantumVideoPlayer";
+
 function SmartVideo(props: {
   src: string;
   className?: string;
@@ -119,17 +121,11 @@ function SmartVideo(props: {
   autoplayMuted?: boolean;
 }) {
   return (
-    <video
+    <QuantumVideoPlayerComponent
       src={props.src}
-      controls
-      playsInline
-      preload={props.preload || "auto"}
-      muted={!!props.autoplayMuted}
-      className={
-        (props.className ? props.className + " " : "") +
-        "w-full h-auto max-h-[75vh] object-contain rounded-2xl block bg-black"
-      }
-      style={{ display: "block", width: "100%", minHeight: 180 }}
+      className={props.className}
+      preload={props.preload || "metadata"}
+      autoPlayMuted={props.autoplayMuted}
     />
   );
 }
@@ -140,17 +136,10 @@ function QuantumVideoPlayer(props: {
   autoPlayMuted?: boolean;
 }) {
   return (
-    <video
+    <QuantumVideoPlayerComponent
       src={props.src}
-      controls
-      playsInline
-      preload="auto"
-      muted={!!props.autoPlayMuted}
-      className={
-        (props.className ? props.className + " " : "") +
-        "w-full h-auto max-h-[75vh] object-contain rounded-2xl block bg-black"
-      }
-      style={{ display: "block", width: "100%", minHeight: 180 }}
+      className={props.className}
+      autoPlayMuted={props.autoPlayMuted}
     />
   );
 }
@@ -9935,10 +9924,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                             }}
                                             className="block w-full overflow-hidden rounded-xl border border-slate-700/70 bg-slate-950/80 focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
                                           >
-                                            <video
+                                            <QuantumVideoPlayerComponent
                                               src={url}
-                                              controls
-                                              className="max-h-64 w-full rounded-xl bg-black object-contain"
+                                              className="max-h-64 w-full rounded-xl"
                                             />
                                           </button>
                                           <div className="flex justify-between">
@@ -10782,11 +10770,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           />
                         )}
                         {lightboxVideoUrl && (
-                          <video
+                          <QuantumVideoPlayerComponent
                             src={lightboxVideoUrl}
-                            controls
-                            autoPlay
-                            className="max-h-[90vh] w-full rounded-2xl bg-black object-contain shadow-2xl"
+                            autoPlayMuted={false}
+                            className="max-h-[90vh] w-full rounded-2xl"
                           />
                         )}
                         <button
