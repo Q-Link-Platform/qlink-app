@@ -608,6 +608,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const [chatInput, setChatInput] = useState("");
+  const [showMobileChatMore, setShowMobileChatMore] = useState(false);
   const [isChatFull, setIsChatFull] = useState(false);
   const [isGlowActive, setIsGlowActive] = useState(false);
   const [isPushEnabled, setIsPushEnabled] = useState(false);
@@ -5326,6 +5327,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         return [...prev, message];
       });
       setChatInput("");
+      if (chatInputRef.current) {
+        chatInputRef.current.style.height = "auto";
+      }
     } catch {
       setChatError("Unable to send message.");
     }
@@ -5360,6 +5364,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       setBeaconStatusMsg(`⚡ Emergency Beacon sent to @${activePeerHandle}!`);
       setTimeout(() => setBeaconStatusMsg(null), 4000);
       setChatInput("");
+      if (chatInputRef.current) {
+        chatInputRef.current.style.height = "auto";
+      }
     } catch {
       setBeaconStatusMsg("Failed to dispatch beacon.");
     } finally {
@@ -10420,8 +10427,58 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </div>
                     ) : (
                       <>
-                        {/* Outside Left Action Group (Paperclip & Mic Symmetrical Pairs) */}
-                        <div className="flex items-center gap-1 shrink-0 z-[9999]">
+                        {/* Mobile Floating Action Popover Drawer (Mobile Only sm:hidden) */}
+                        {showMobileChatMore && (
+                          <div className="flex sm:hidden items-center justify-around gap-2 mb-2 p-2 rounded-2xl border border-cyan-500/30 bg-[#09111c]/95 backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.25)] animate-float-in z-[9999]">
+                            {/* Share File */}
+                            <button
+                              type="button"
+                              disabled={!activePeerHandle || isUploadingAttachment}
+                              onClick={() => {
+                                handleAttachButtonClick();
+                                setShowMobileChatMore(false);
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-900/90 text-xs font-semibold text-cyan-300 active:scale-95 transition-all shadow-sm disabled:opacity-40"
+                            >
+                              <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ transform: "rotate(-45deg)" }}>
+                                <path d="M8.5 11.75 13 7.25a2.5 2.5 0 1 1 3.54 3.54l-6.01 6.01a3.75 3.75 0 0 1-5.3-5.3l5.13-5.13" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              <span>File</span>
+                            </button>
+
+                            {/* Record Voice */}
+                            <button
+                              type="button"
+                              disabled={!activePeerHandle || isUploadingAttachment}
+                              onClick={() => {
+                                startRecording();
+                                setShowMobileChatMore(false);
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-900/90 text-xs font-semibold text-cyan-300 active:scale-95 transition-all shadow-sm disabled:opacity-40"
+                            >
+                              <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                              </svg>
+                              <span>Voice</span>
+                            </button>
+
+                            {/* Q-Beacon */}
+                            <button
+                              type="button"
+                              disabled={!activePeerHandle || isSendingBeacon}
+                              onClick={() => {
+                                handleTriggerEmergencyBeacon();
+                                setShowMobileChatMore(false);
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-rose-500/60 bg-rose-950/80 text-xs font-semibold text-rose-300 active:scale-95 transition-all shadow-[0_0_10px_rgba(244,63,94,0.4)] disabled:opacity-40"
+                            >
+                              <span>⚡ Beacon</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Desktop Left Action Group (Hidden on Mobile sm:flex) */}
+                        <div className="hidden sm:flex items-center gap-1 shrink-0 z-[9999]">
                           {/* Paperclip Button & Tooltip Container */}
                           <div className="paperclip-container relative">
                             <style dangerouslySetInnerHTML={{ __html: `
@@ -10465,7 +10522,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 </svg>
                               )}
                             </button>
-                            {/* Premium Cyber-Tooltip (Left-aligned to prevent left clipping, arrow pointing to button center) */}
+                            {/* Premium Cyber-Tooltip */}
                             <div 
                               className="paperclip-tooltip absolute bottom-[calc(100%+0.5rem)] left-0 z-[9999] whitespace-nowrap rounded-lg border border-cyan-500/40 bg-[#09111c]/95 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-wider text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)] backdrop-blur-md overflow-hidden scrollbar-hide after:absolute after:top-full after:left-[18px] sm:after:left-[20px] after:-translate-x-1/2 after:h-0 after:w-0 after:border-x-[4px] after:border-t-[4px] after:border-x-transparent after:border-t-[#09111c] before:absolute before:top-full before:left-[18px] sm:before:left-[20px] before:-translate-x-1/2 before:h-0 before:w-0 before:border-x-[5px] before:border-t-[5px] before:border-x-transparent before:border-t-cyan-500/40"
                             >
@@ -10512,6 +10569,25 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           </div>
                         </div>
 
+                        {/* Mobile-Only Apple-Style Circular 3-Dots "More" Button */}
+                        <button
+                          type="button"
+                          disabled={!activePeerHandle}
+                          onClick={() => setShowMobileChatMore((prev) => !prev)}
+                          title="More Actions"
+                          className={`select-none flex sm:hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border text-slate-200 transition-all duration-200 active:scale-95 disabled:opacity-40 ${
+                            showMobileChatMore
+                              ? "border-cyan-400 bg-slate-800 text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.5)]"
+                              : "border-slate-600/60 bg-[#09111c]/95 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300"
+                          }`}
+                        >
+                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                            <circle cx="5" cy="12" r="2" />
+                            <circle cx="12" cy="12" r="2" />
+                            <circle cx="19" cy="12" r="2" />
+                          </svg>
+                        </button>
+
                         {/* Textarea Input Box (Clean, maximized workspace) */}
                         <div className="relative flex-1 group">
                           <textarea
@@ -10521,7 +10597,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             onKeyDown={handleChatKeyDown}
                             ref={chatInputRef}
                             disabled={!activePeerHandle}
-                            className="min-h-[36px] max-h-32 w-full resize-none rounded-xl border border-slate-600/70 bg-slate-950/70 pl-3 pr-3 py-1.5 text-xs text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-950 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)] sm:text-sm disabled:opacity-50"
+                            className="min-h-[36px] max-h-24 sm:max-h-32 w-full resize-none rounded-xl border border-slate-600/70 bg-slate-950/70 pl-3 pr-3 py-1.5 text-xs text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-950 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)] sm:text-sm disabled:opacity-50"
                             placeholder={
                               activePeerHandle
                                 ? `Type a message to @${activePeerHandle}…`
@@ -10530,13 +10606,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           />
                         </div>
 
-                        {/* Q-BEACON Emergency Priority Button */}
+                        {/* Q-BEACON Emergency Priority Button (Desktop Only hidden sm:inline-flex) */}
                         <button
                           type="button"
                           disabled={!activePeerHandle || isSendingBeacon}
                           onClick={handleTriggerEmergencyBeacon}
                           title="⚡ Send Priority Emergency Beacon (Bypasses DND)"
-                          className="select-none inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-500/80 bg-rose-600/90 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.6)] transition hover:bg-rose-500 active:scale-95 sm:h-10 sm:w-10 disabled:opacity-40"
+                          className="select-none hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-500/80 bg-rose-600/90 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.6)] transition hover:bg-rose-500 active:scale-95 sm:h-10 sm:w-10 disabled:opacity-40"
                         >
                           ⚡
                         </button>
