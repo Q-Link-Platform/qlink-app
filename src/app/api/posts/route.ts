@@ -127,12 +127,15 @@ export async function GET(request: Request) {
           const normalizedKind =
             typeof att.kind === "string" ? att.kind.toLowerCase() : (p.attachmentKind?.toLowerCase() || att.kind);
 
-          const signedUrl = await getSignedMediaUrl({
-            bucket: att.bucket as string,
-            objectKey: att.objectKey as string,
-          });
+          const signedUrl =
+            normalizedKind === "video"
+              ? `/api/media/stream?id=${att.id}`
+              : await getSignedMediaUrl({
+                  bucket: att.bucket as string,
+                  objectKey: att.objectKey as string,
+                });
 
-          if (!signedUrl) {
+          if (!signedUrl && normalizedKind !== "video") {
             console.warn("[posts] Failed to create signed/public URL for attachment", {
               postId: p.id,
               attachmentId: p.attachmentId,
@@ -279,10 +282,13 @@ export async function GET(request: Request) {
         const normalizedKind =
           typeof att.kind === "string" ? att.kind.toLowerCase() : att.kind;
 
-        const signedUrl = await getSignedMediaUrl({
-          bucket: att.bucket as string,
-          objectKey: att.objectKey as string,
-        });
+        const signedUrl =
+          normalizedKind === "video"
+            ? `/api/media/stream?id=${att.id}`
+            : await getSignedMediaUrl({
+                bucket: att.bucket as string,
+                objectKey: att.objectKey as string,
+              });
 
         return {
           ...p,
