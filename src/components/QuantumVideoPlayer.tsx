@@ -36,12 +36,15 @@ export default function QuantumVideoPlayer({
     if (!video) return;
 
     video.muted = isMuted;
+    if (!isMuted) {
+      video.volume = volume > 0 ? volume : 1.0;
+    }
     if (autoPlayMuted) {
       video.play().catch(() => {
         setIsPlaying(false);
       });
     }
-  }, [autoPlayMuted, isMuted, src]);
+  }, [autoPlayMuted, isMuted, src, volume]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -165,7 +168,15 @@ export default function QuantumVideoPlayer({
         autoPlay={autoPlayMuted}
         muted={isMuted}
         playsInline
-        onPlay={() => setIsPlaying(true)}
+        onPlay={() => {
+          setIsPlaying(true);
+          const video = videoRef.current;
+          if (video && !autoPlayMuted) {
+            video.muted = false;
+            video.volume = 1.0;
+            setIsMuted(false);
+          }
+        }}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
