@@ -1,36 +1,114 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useId } from "react";
+import { useFeedVideoManager } from "@/context/FeedVideoManager";
 
 interface QuantumVideoPlayerProps {
+  id?: string;
   src: string;
   className?: string;
   autoPlayMuted?: boolean;
   preload?: "none" | "metadata" | "auto";
   poster?: string;
+  onExpandLightbox?: () => void;
 }
 
 export default function QuantumVideoPlayer({
+  id: customId,
   src,
   className = "",
   autoPlayMuted = false,
   preload = "auto",
   poster,
+  onExpandLightbox,
 }: QuantumVideoPlayerProps) {
+  const generatedId = useId();
+  const videoId = customId || `${generatedId}-${src}`;
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(autoPlayMuted);
+  const [isMuted, setIsMuted] = useState(true);
   const [volume, setVolume] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const hideControlsTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mute & AutoPlay sync on DOM node
+  const feedManager = useFeedVideoManager();
+  const isActiveInFeed = feedManager ? feedManager.activeVideoId === videoId : false;
+
+  // Sync mute state with global feed mute state if manager is present
+  useEffect(() => {
+    if (feedManager) {
+      setIsMuted(feedManager.isGlobalMuted);
+    }
+  }, [feedManager?.isGlobalMuted, feedManager]);
+
+  // Register with FeedManager for X-style centering autoplay
+  useEffect(() => {
+    if (!feedManager || !containerRef.current) return;
+
+    const playVideo = () => {
+      const video = videoRef.current;
+      if (!video) return;
+
+      // Pause all other media in document
+      document.querySelectorAll("video, audio").forEach((el) => {
+        if (el !== video) (el as HTMLMediaElement).pause();
+      });
+
+      video
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setIsLoading(false);
+        })
+        .catch(() => {
+          setIsPlaying(false);
+        });
+    };
+
+    const pauseVideo = () => {
+      const video = videoRef.current;
+      if (!video) return;
+      video.pause();
+      setIsPlaying(false);
+    };
+
+    const unregister = feedManager.registerVideo(
+      videoId,
+      containerRef.current,
+      playVideo,
+      pauseVideo
+    );
+
+    return () => {
+      unregister();
+    };
+  }, [feedManager, videoId]);
+
+  // Trigger play/pause based on centering active status
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (feedManager) {
+      if (isActiveInFeed) {
+        // Pause other media elements before playing centered video
+        document.querySelectorAll("video, audio").forEach((el) => {
+          if (el !== video) (el as HTMLMediaElement).pause();
+        });
+        video.play().catch(() => setIsPlaying(false));
+      } else {
+        video.pause();
+      }
+    }
+  }, [isActiveInFeed, feedManager]);
+
+  // Mute & Volume DOM sync
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -39,23 +117,7 @@ export default function QuantumVideoPlayer({
     if (!isMuted) {
       video.volume = volume > 0 ? volume : 1.0;
     }
-    if (autoPlayMuted) {
-      video.play().catch(() => {
-        setIsPlaying(false);
-      });
-    }
-  }, [autoPlayMuted, isMuted, src, volume]);
-
-  // Fullscreen change listener
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
+  }, [isMuted, volume]);
 
   const handleMouseMove = () => {
     setShowControls(true);
@@ -64,30 +126,6 @@ export default function QuantumVideoPlayer({
       hideControlsTimerRef.current = setTimeout(() => {
         setShowControls(false);
       }, 2500);
-    }
-  };
-
-  const handlePlayPause = () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (isPlaying) {
-      video.pause();
-    } else {
-      document.querySelectorAll("video, audio").forEach((el) => {
-        if (el !== video) (el as HTMLMediaElement).pause();
-      });
-      video
-        .play()
-        .then(() => {
-          setIsLoading(false);
-          setIsPlaying(true);
-        })
-        .catch((err) => {
-          console.warn("[QuantumVideoPlayer] Play error:", err);
-          setIsLoading(false);
-          setIsPlaying(false);
-        });
     }
   };
 
@@ -106,50 +144,18 @@ export default function QuantumVideoPlayer({
     setIsLoading(false);
   };
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const video = videoRef.current;
-    if (!video) return;
-    const targetTime = parseFloat(e.target.value);
-    video.currentTime = targetTime;
-    setCurrentTime(targetTime);
-  };
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const video = videoRef.current;
-    if (!video) return;
-    const val = parseFloat(e.target.value);
-    setVolume(val);
-    video.volume = val;
-    setIsMuted(val === 0);
-  };
-
-  const toggleMute = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    const newMuted = !isMuted;
-    video.muted = newMuted;
-    setIsMuted(newMuted);
-  };
-
-  const toggleFullscreen = () => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    if (!document.fullscreenElement) {
-      container.requestFullscreen().catch((err) => console.error("Fullscreen failed:", err));
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (feedManager) {
+      feedManager.toggleGlobalMute();
     } else {
-      document.exitFullscreen().catch((err) => console.error("Exit fullscreen failed:", err));
+      const video = videoRef.current;
+      if (!video) return;
+      const nextMuted = !isMuted;
+      video.muted = nextMuted;
+      setIsMuted(nextMuted);
     }
   };
-
-  const formatTime = (seconds: number) => {
-    if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-  };
-
-  const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
     <div
@@ -158,12 +164,12 @@ export default function QuantumVideoPlayer({
       onMouseLeave={() => isPlaying && setShowControls(false)}
       className={`group relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-slate-950 shadow-[0_0_25px_rgba(2,8,23,0.9)] select-none transition-all duration-300 w-full min-h-[380px] sm:min-h-[460px] md:min-h-[520px] max-h-[82vh] ${className}`}
     >
-      {/* Native HTML5 Video Element with Full Native Controls & Large Viewport */}
+      {/* Native HTML5 Video Element with Native Controls & Centered Autoplay */}
       <video
         ref={videoRef}
         src={src}
         poster={poster}
-        preload="auto"
+        preload={preload}
         controls
         autoPlay={autoPlayMuted}
         muted={isMuted}
@@ -171,10 +177,8 @@ export default function QuantumVideoPlayer({
         onPlay={() => {
           setIsPlaying(true);
           const video = videoRef.current;
-          if (video && !autoPlayMuted) {
-            video.muted = false;
+          if (video && !isMuted) {
             video.volume = 1.0;
-            setIsMuted(false);
           }
         }}
         onPause={() => setIsPlaying(false)}
@@ -182,9 +186,30 @@ export default function QuantumVideoPlayer({
         onLoadedMetadata={handleLoadedMetadata}
         onWaiting={() => setIsLoading(true)}
         onCanPlay={() => setIsLoading(false)}
-        className="block h-full w-full min-h-[380px] sm:min-h-[460px] md:min-h-[520px] max-h-[82vh] object-contain bg-black"
+        className="block h-full w-full min-h-[380px] sm:min-h-[460px] md:min-h-[520px] max-h-[82vh] object-contain bg-black cursor-pointer"
         style={{ display: "block", width: "100%", height: "100%" }}
       />
+
+      {/* X (Twitter) Style Floating Sound Toggle Overlay */}
+      <button
+        type="button"
+        onClick={toggleMute}
+        className="absolute bottom-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-slate-950/80 text-white backdrop-blur-md border border-cyan-500/40 hover:border-cyan-400 hover:scale-110 active:scale-95 transition-all shadow-[0_0_15px_rgba(0,0,0,0.8)]"
+        title={isMuted ? "Click to unmute sound" : "Click to mute sound"}
+      >
+        {isMuted ? (
+          /* Muted Icon */
+          <svg className="h-5 w-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+          </svg>
+        ) : (
+          /* Sound Active / Unmuted Icon */
+          <svg className="h-5 w-5 text-cyan-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+        )}
+      </button>
 
       {/* Loading Spinner Overlay */}
       {isLoading && (

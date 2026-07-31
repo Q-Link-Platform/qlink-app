@@ -24,6 +24,8 @@ import { EmergencyBeaconModal } from "@/components/EmergencyBeaconModal";
 import { countries } from "@/utils/countries";
 import dynamic from "next/dynamic";
 
+import { FeedVideoManagerProvider } from "@/context/FeedVideoManager";
+
 const StoreModal = dynamic(() => import("@/components/StoreModal"), {
   ssr: false,
 });
@@ -406,10 +408,12 @@ export default function Home() {
       refetchInterval={5 * 60} // Refetch session every 5 minutes
       refetchOnWindowFocus={true} // Refetch when window gains focus
     >
-      <HomeInner
-        passiveTouchRef={null}
-        androidScrollRef={null}
-      />
+      <FeedVideoManagerProvider>
+        <HomeInner
+          passiveTouchRef={null}
+          androidScrollRef={null}
+        />
+      </FeedVideoManagerProvider>
     </SessionProvider>
   );
 }
