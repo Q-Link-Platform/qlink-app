@@ -87,7 +87,7 @@ export function FeedVideoManagerProvider({ children }: { children: ReactNode }) 
     setActiveVideoId((prev) => (prev !== bestId ? bestId : prev));
   }, []);
 
-  // Shared IntersectionObserver for efficient scroll handling
+  // Shared IntersectionObserver & User Gesture Listener for global media unlocking
   useEffect(() => {
     let animationFrameId: number | null = null;
 
@@ -99,8 +99,15 @@ export function FeedVideoManagerProvider({ children }: { children: ReactNode }) 
       });
     };
 
+    const handleUserGesture = () => {
+      recalculateActiveVideo();
+    };
+
     window.addEventListener("scroll", handleScrollOrResize, { passive: true });
     window.addEventListener("resize", handleScrollOrResize, { passive: true });
+    window.addEventListener("pointerdown", handleUserGesture, { passive: true, once: false });
+    window.addEventListener("touchstart", handleUserGesture, { passive: true, once: false });
+    window.addEventListener("keydown", handleUserGesture, { passive: true, once: false });
 
     // Initial check
     recalculateActiveVideo();
@@ -108,6 +115,9 @@ export function FeedVideoManagerProvider({ children }: { children: ReactNode }) 
     return () => {
       window.removeEventListener("scroll", handleScrollOrResize);
       window.removeEventListener("resize", handleScrollOrResize);
+      window.removeEventListener("pointerdown", handleUserGesture);
+      window.removeEventListener("touchstart", handleUserGesture);
+      window.removeEventListener("keydown", handleUserGesture);
       if (animationFrameId !== null) {
         cancelAnimationFrame(animationFrameId);
       }

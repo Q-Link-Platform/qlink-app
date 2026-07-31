@@ -101,12 +101,31 @@ export default function QuantumVideoPlayer({
         document.querySelectorAll("video, audio").forEach((el) => {
           if (el !== video) (el as HTMLMediaElement).pause();
         });
-        video.play().catch(() => setIsPlaying(false));
+
+        // Synchronous DOM Mute Guarantee for Browser Autoplay Policy
+        if (isMuted) {
+          video.muted = true;
+          video.setAttribute("muted", "");
+          video.setAttribute("playsinline", "");
+        }
+
+        video
+          .play()
+          .then(() => {
+            setIsPlaying(true);
+            setIsLoading(false);
+          })
+          .catch((err) => {
+            // Fallback retry with enforced muted state
+            video.muted = true;
+            video.setAttribute("muted", "");
+            video.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+          });
       } else {
         video.pause();
       }
     }
-  }, [isActiveInFeed, feedManager]);
+  }, [isActiveInFeed, feedManager, isMuted]);
 
   // Mute & Volume DOM sync
   useEffect(() => {
