@@ -206,8 +206,9 @@ export default function QuantumVideoPlayer({
         ref={videoRef}
         src={src}
         poster={poster}
-        preload={preload}
+        preload="auto"
         controls
+        loop
         autoPlay={autoPlayMuted}
         muted={isMuted}
         playsInline
