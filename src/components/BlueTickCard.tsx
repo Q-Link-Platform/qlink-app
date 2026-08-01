@@ -35,7 +35,7 @@ export default function BlueTickCard({ user }: BlueTickCardProps) {
   };
 
   return (
-    <div className="founder-vip-aurora gpu-accelerated rounded-2xl border border-sky-500/80 bg-slate-950/95 p-2.5 shadow-[0_0_30px_rgba(56,189,248,0.55)]">
+    <div className="founder-vip-aurora rounded-2xl border border-sky-500/80 bg-slate-950/95 p-2.5 shadow-[0_0_30px_rgba(56,189,248,0.55)]">
       <div className="founder-vip-aurora-inner founder-vip-shine space-y-1.5 rounded-2xl bg-gradient-to-br from-slate-950/90 via-slate-900/90 to-slate-950/90 px-3 py-2 relative overflow-hidden">
         <div className="founder-vip-line-full absolute inset-0"></div>
         <div className="relative z-10 flex items-center justify-between gap-2">

@@ -2479,18 +2479,22 @@ html.black .glass-panel {
    HARDWARE ACCELERATION & LOW-SPEC (4GB RAM) PERFORMANCE OVERRIDES
    ========================================================================== */
 
-/* Universal GPU Hardware Acceleration Class for Cards & Swipes */
+/* Lightweight Hardware Layer Promotion (No VRAM/RAM Memory Leak) */
 .gpu-accelerated {
-  transform: translate3d(0, 0, 0) !important;
-  backface-visibility: hidden !important;
-  -webkit-backface-visibility: hidden !important;
-  will-change: transform, opacity;
-  contain: layout paint;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Low-Spec (4GB RAM Mode) System Overrides */
-html.perf-low * {
-  /* Remove heavy GPU pixel backdrop blurs */
+html.perf-low .backdrop-blur-sm,
+html.perf-low .backdrop-blur-md,
+html.perf-low .backdrop-blur-lg,
+html.perf-low .backdrop-blur-xl,
+html.perf-low .backdrop-blur-2xl,
+html.perf-low .backdrop-blur-3xl,
+html.perf-low [class*="backdrop-blur"] {
+  /* Remove heavy GPU pixel backdrop blurs on targeted elements only */
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -2534,10 +2538,11 @@ html.perf-low .settings-backdrop-exit {
 /* Apple-Grade Ultra-Smooth Momentum Scrolling */
 .apple-smooth-scroll {
   -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
   overscroll-behavior-y: contain;
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  will-change: scroll-position, transform;
+}
+
+/* Production Chat & Image Rendering Optimization */
+.chat-image-optimized {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 200px;
 }
