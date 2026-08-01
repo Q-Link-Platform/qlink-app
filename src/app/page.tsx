@@ -9745,7 +9745,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     </div>
 
                     {/* Scrollable middle: errors + messages + pending preview at bottom */}
-                    <div ref={chatScrollRef} className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide">
+                    <div ref={chatScrollRef} className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
                       {chatError && (
                         <p className="mt-1 text-[11px] text-rose-300">{chatError}</p>
                       )}
@@ -9931,7 +9931,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                   <img
                                                     src={url}
                                                     alt={a.originalName}
-                                                    className="max-h-64 w-full rounded-xl object-contain"
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    className="max-h-64 w-full rounded-xl object-contain chat-image-optimized"
                                                   />
                                                 </button>
                                                 <div className="flex justify-between">
