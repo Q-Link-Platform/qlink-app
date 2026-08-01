@@ -7583,7 +7583,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       }}
                     >
                       <div
-                        className={`w-full max-w-sm space-y-3 rounded-2xl border border-cyan-400/40 bg-slate-950/95 px-4 py-4 text-[11px] text-slate-200 shadow-2xl transition-all duration-300 ${
+                        className={`w-full max-w-sm max-h-[85vh] flex flex-col rounded-2xl border border-cyan-400/40 bg-slate-950/95 p-4 text-[11px] text-slate-200 shadow-2xl transition-all duration-300 ${
                           showSettings ? (isSettingsAnimating ? 'settings-modal-enter' : '') : 'settings-modal-exit'
                         }`}
                         style={{
@@ -7593,47 +7593,29 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         }}
                         onMouseDown={(e) => e.stopPropagation()}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
-                            Settings
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setIsSettingsAnimating(true);
-                              setTimeout(() => {
-                                setShowSettings(false);
-                                setSettingsScreen("main");
-                              }, 300);
-                            }}
-                            className="relative flex items-center justify-center gap-1 rounded-full border border-slate-600/70 bg-slate-900/80 px-4 py-2 text-xs font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 hover:bg-slate-800/90 active:border-cyan-300 active:bg-cyan-800/50 active:text-cyan-50 active:scale-95 transition-all duration-150 min-w-[80px]"
-                            aria-label="Close settings"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                            <span>Close</span>
-                          </button>
-                        </div>
-
-                        {settingsScreen !== "main" && (
-                          <div className="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/30 px-3 py-2">
+                        {/* Fixed Header */}
+                        <div className="shrink-0 space-y-2 pb-2.5 border-b border-slate-800/70">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
+                              Settings
+                            </span>
                             <button
                               type="button"
-                              onClick={() => setSettingsScreen("main")}
-                              className="text-[11px] font-medium text-cyan-200 hover:text-cyan-100"
+                              onClick={() => {
+                                setIsSettingsAnimating(true);
+                                setTimeout(() => {
+                                  setShowSettings(false);
+                                  setSettingsScreen("main");
+                                }, 300);
+                              }}
+                              className="relative flex items-center justify-center gap-1 rounded-full border border-slate-600/70 bg-slate-900/80 px-4 py-2 text-xs font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 hover:bg-slate-800/90 active:border-cyan-300 active:bg-cyan-800/50 active:text-cyan-50 active:scale-95 transition-all duration-150 min-w-[80px]"
+                              aria-label="Close settings"
                             >
-                              Back
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                              <span>Close</span>
                             </button>
-                            <span className="text-[10px] text-slate-400">
-                              {settingsScreen === "name"
-                                ? "Edit name"
-                                : settingsScreen === "age"
-                                ? "Edit age"
-                                : settingsScreen === "gender"
-                                ? "Edit gender"
-                                : settingsScreen === "bio"
-                                ? "Edit bio"
                                 : "Edit interests"}
                             </span>
                           </div>
@@ -8336,22 +8318,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 </div>
                               </div>
                             </div>
-                          )}
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowLogoutConfirm(true);
-                          }}
-                          className="w-full rounded-xl border border-rose-500/80 bg-rose-500/10 px-3 py-2 text-[11px] font-medium text-rose-100 transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-rose-500/25 hover:scale-[1.02] hover:shadow-md hover:shadow-rose-500/20 active:scale-98"
-                        >
-                          Log out
-                        </button>
+                        {/* Fixed Footer */}
+                        <div className="shrink-0 pt-2.5 border-t border-slate-800/70 space-y-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowLogoutConfirm(true);
+                            }}
+                            className="w-full rounded-xl border border-rose-500/80 bg-rose-500/10 px-3 py-2 text-[11px] font-medium text-rose-100 transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-rose-500/25 hover:scale-[1.02] hover:shadow-md hover:shadow-rose-500/20 active:scale-98"
+                          >
+                            Log out
+                          </button>
 
-                        <p className="text-center text-[10px] text-slate-500 pt-1">
-                          Tap backdrop or Close button to exit
-                        </p>
+                          <p className="text-center text-[10px] text-slate-500">
+                            Tap backdrop or Close button to exit
+                          </p>
+                        </div>
                       </div>
 
                       {showLogoutConfirm && (
