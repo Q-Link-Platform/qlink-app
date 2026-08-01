@@ -2474,3 +2474,59 @@ html.black .glass-panel {
 .animate-smooth-rotate-45 {
   animation: smooth-rotate-45 3.5s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   HARDWARE ACCELERATION & LOW-SPEC (4GB RAM) PERFORMANCE OVERRIDES
+   ========================================================================== */
+
+/* Universal GPU Hardware Acceleration Class for Cards & Swipes */
+.gpu-accelerated {
+  transform: translate3d(0, 0, 0) !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  will-change: transform, opacity;
+  contain: layout paint;
+}
+
+/* Low-Spec (4GB RAM Mode) System Overrides */
+html.perf-low * {
+  /* Remove heavy GPU pixel backdrop blurs */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* High-contrast solid translucent fallbacks for glassmorphism under 4GB mode */
+html.perf-low .bg-slate-950\/95,
+html.perf-low .bg-slate-900\/90,
+html.perf-low .bg-slate-900\/80,
+html.perf-low .bg-slate-900\/70,
+html.perf-low .bg-slate-900\/40 {
+  background-color: rgba(15, 23, 42, 0.96) !important;
+}
+
+html.black.perf-low .bg-slate-950\/95,
+html.black.perf-low .bg-slate-900\/90,
+html.black.perf-low .bg-slate-900\/80,
+html.black.perf-low .bg-slate-900\/70,
+html.black.perf-low .bg-slate-900\/40 {
+  background-color: rgba(0, 0, 0, 0.96) !important;
+}
+
+/* Disable expensive continuous background shader animations under low-spec mode */
+html.perf-low .ambient-breathing-bg {
+  animation: none !important;
+  opacity: 0.15 !important;
+}
+
+/* Simplify complex heavy box-shadow calculations under low-spec mode */
+html.perf-low .shadow-2xl,
+html.perf-low .shadow-\[0_0_60px_rgba\(6\2c 182\2c 212\2c 0\.3\)\] {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Streamline backdrop animations under low-spec mode */
+html.perf-low .settings-backdrop-enter,
+html.perf-low .settings-backdrop-exit {
+  backdrop-filter: none !important;
+  transition: opacity 0.2s ease !important;
+}

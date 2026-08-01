@@ -25,6 +25,7 @@ import { countries } from "@/utils/countries";
 import dynamic from "next/dynamic";
 
 import { FeedVideoManagerProvider } from "@/context/FeedVideoManager";
+import { PerformanceProvider, usePerformance } from "@/app/providers/PerformanceProvider";
 
 const StoreModal = dynamic(() => import("@/components/StoreModal"), {
   ssr: false,
@@ -408,12 +409,14 @@ export default function Home() {
       refetchInterval={5 * 60} // Refetch session every 5 minutes
       refetchOnWindowFocus={true} // Refetch when window gains focus
     >
-      <FeedVideoManagerProvider>
-        <HomeInner
-          passiveTouchRef={null}
-          androidScrollRef={null}
-        />
-      </FeedVideoManagerProvider>
+      <PerformanceProvider>
+        <FeedVideoManagerProvider>
+          <HomeInner
+            passiveTouchRef={null}
+            androidScrollRef={null}
+          />
+        </FeedVideoManagerProvider>
+      </PerformanceProvider>
     </SessionProvider>
   );
 }
@@ -571,6 +574,84 @@ const compressImage = (file: File): Promise<File> => {
     reader.readAsDataURL(file);
   });
 };
+
+function PerformanceSettingsCard() {
+  const { perfMode, resolvedPerfMode, setPerfMode } = usePerformance();
+
+  const handleSelect = (mode: "high" | "low" | "auto") => {
+    try {
+      playSciFiSound("on");
+    } catch {}
+    setPerfMode(mode);
+  };
+
+  return (
+    <div className="space-y-2.5 rounded-xl border border-slate-700/70 bg-slate-900/40 p-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <svg className="h-3.5 w-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span className="text-[11px] font-medium text-slate-200">Hardware & GPU Tier</span>
+        </div>
+        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold border ${
+          resolvedPerfMode === "low"
+            ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+            : "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
+        }`}>
+          <span className={`inline-block h-1.5 w-1.5 rounded-full ${resolvedPerfMode === "low" ? "bg-amber-400" : "bg-cyan-400"} animate-pulse`} />
+          {resolvedPerfMode === "low" ? "4GB Low Spec" : "8GB+ Ultra"}
+        </span>
+      </div>
+
+      <p className="text-[10px] text-slate-400 leading-tight">
+        Tune animation shaders & GPU frame rendering for your device RAM.
+      </p>
+
+      {/* Apple-Style Segmented Control */}
+      <div className="grid grid-cols-3 gap-1 rounded-lg border border-slate-800/90 bg-slate-950/90 p-1">
+        <button
+          type="button"
+          onClick={() => handleSelect("high")}
+          className={`flex flex-col items-center justify-center rounded-md py-1.5 px-1 text-[10px] font-medium transition-all duration-200 ${
+            perfMode === "high"
+              ? "bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 shadow-md font-semibold scale-[1.02]"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+          }`}
+        >
+          <span className="flex items-center gap-1">🚀 8GB+</span>
+          <span className="text-[8px] opacity-80">High FPS</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleSelect("low")}
+          className={`flex flex-col items-center justify-center rounded-md py-1.5 px-1 text-[10px] font-medium transition-all duration-200 ${
+            perfMode === "low"
+              ? "bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-md font-semibold scale-[1.02]"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+          }`}
+        >
+          <span className="flex items-center gap-1">⚡ 4GB</span>
+          <span className="text-[8px] opacity-80">Zero Lag</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleSelect("auto")}
+          className={`flex flex-col items-center justify-center rounded-md py-1.5 px-1 text-[10px] font-medium transition-all duration-200 ${
+            perfMode === "auto"
+              ? "bg-slate-700 text-cyan-300 border border-cyan-400/40 shadow-md font-semibold scale-[1.02]"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+          }`}
+        >
+          <span className="flex items-center gap-1">🤖 Auto</span>
+          <span className="text-[8px] opacity-80">Smart RAM</span>
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function HomeInner({ passiveTouchRef, androidScrollRef }: { 
   passiveTouchRef?: React.Ref<HTMLDivElement>;
@@ -7616,6 +7697,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             <ThemeToggle />
                           </div>
                         </div>
+
+                        {/* Hardware & GPU Performance Tier Section */}
+                        <PerformanceSettingsCard />
 
                         {/* Notifications Section — smart: Desktop vs PWA/Web */}
                         {isElectron ? (
