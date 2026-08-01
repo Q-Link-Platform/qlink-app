@@ -7614,14 +7614,34 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                               </svg>
-                              <span>Close</span>
-                            </button>
-                                : "Edit interests"}
-                            </span>
                           </div>
-                        )}
 
-                        <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
+                          {settingsScreen !== "main" && (
+                            <div className="flex items-center justify-between rounded-xl border border-slate-800/80 bg-slate-900/30 px-3 py-2">
+                              <button
+                                type="button"
+                                onClick={() => setSettingsScreen("main")}
+                                className="text-[11px] font-medium text-cyan-200 hover:text-cyan-100"
+                              >
+                                Back
+                              </button>
+                              <span className="text-[10px] text-slate-400">
+                                {settingsScreen === "name"
+                                  ? "Edit name"
+                                  : settingsScreen === "age"
+                                  ? "Edit age"
+                                  : settingsScreen === "gender"
+                                  ? "Edit gender"
+                                  : settingsScreen === "bio"
+                                  ? "Edit bio"
+                                  : "Edit interests"}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Scrollable Content Body */}
+                        <div className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide">
                           <div className="flex items-center justify-between">
                             <span className="text-[11px] font-medium text-slate-200">Account</span>
                             <span className="text-[11px] text-slate-300">ID</span>
