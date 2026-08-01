@@ -7621,7 +7621,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           </div>
 
                           {/* Scrollable Content Body */}
-                          <div className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide">
+                          <div className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll gpu-accelerated">
                             {/* Account Section */}
                             <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
                               <div className="flex items-center justify-between">

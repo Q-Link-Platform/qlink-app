@@ -2529,4 +2529,15 @@ html.perf-low .settings-backdrop-enter,
 html.perf-low .settings-backdrop-exit {
   backdrop-filter: none !important;
   transition: opacity 0.2s ease !important;
+}
+
+/* Apple-Grade Ultra-Smooth Momentum Scrolling */
+.apple-smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: scroll-position, transform;
 }
