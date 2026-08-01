@@ -8340,6 +8340,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 </div>
                               </div>
                             </div>
+                          )}
+                        </div>
 
                         {/* Fixed Footer */}
                         <div className="shrink-0 pt-2.5 border-t border-slate-800/70 space-y-1.5">
