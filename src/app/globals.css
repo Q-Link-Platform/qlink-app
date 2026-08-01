@@ -2541,6 +2541,14 @@ html.perf-low .settings-backdrop-exit {
   overscroll-behavior-y: contain;
 }
 
+/* Tech-Giant Compositor Layer & Scroll Container Isolation */
+.tech-giant-scroll-container {
+  overscroll-behavior: contain;
+  contain: paint layout;
+  transform: translateZ(0);
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Production Chat & Image Rendering Optimization */
 .chat-image-optimized {
   content-visibility: auto;
