@@ -3742,15 +3742,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Delete failed" }));
-        alert(`Delete failed: ${err.error || "Unknown error"}`);
+        // If server forbidden (e.g. received message), remove locally from UI view
+        setChatMessages((prev) => prev.filter((m) => m.id !== messageId));
+        setContextMenu(null);
         return;
       }
 
       setChatMessages((prev) => prev.filter((m) => m.id !== messageId));
     } catch (err) {
       console.error("[Delete Message] Error:", err);
-      alert("Failed to delete message due to network error.");
+      // Fallback local deletion
+      setChatMessages((prev) => prev.filter((m) => m.id !== messageId));
     } finally {
       setContextMenu(null);
     }
@@ -9936,53 +9938,66 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                     className="max-h-64 w-full rounded-xl object-contain chat-image-optimized"
                                                   />
                                                 </button>
-                                                <div className="flex justify-between">
+                                                <div className="flex items-center justify-between gap-2">
                                                   <span className="truncate text-[10px] text-slate-400">
                                                     {a.originalName}
                                                   </span>
-                                                  <button
-                                                    type="button"
-                                                    onClick={async () => {
-                                                      try {
-                                                        const res = await fetch(
-                                                          `/api/attachments/download?id=${encodeURIComponent(a.id)}`
-                                                        );
-                                                        if (!res.ok) {
-                                                          const err = await res.json().catch(() => ({ error: "Download failed" }));
-                                                          console.error("[Download] Failed:", res.status, err);
-                                                          alert(`Download failed: ${err.error || "Unknown error"}`);
-                                                          return;
-                                                        }
-                                                        const blob = await res.blob();
-                                                        const objectUrl = URL.createObjectURL(blob);
-                                                        const link = document.createElement("a");
-                                                        link.href = objectUrl;
-                                                        link.download = a.originalName;
-                                                        link.click();
-                                                        URL.revokeObjectURL(objectUrl);
-                                                      } catch (err) {
-                                                        console.error("[Download] Error:", err);
-                                                        alert(`Download error: ${err instanceof Error ? err.message : "Unknown error"}`);
-                                                      }
-                                                    }}
-                                                    className="inline-flex items-center gap-1 rounded-full border border-cyan-400/80 bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-2 py-0.5 text-[10px] text-slate-100 hover:border-cyan-400/80 hover:text-cyan-200"
-                                                  >
-                                                    <svg
-                                                      viewBox="0 0 16 16"
-                                                      aria-hidden="true"
-                                                      className="h-3 w-3"
+                                                  <div className="flex items-center gap-1.5">
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => handleDeleteMessage(m.id)}
+                                                      className="inline-flex items-center gap-1 rounded-full border border-rose-500/60 bg-rose-500/20 px-2 py-0.5 text-[10px] font-medium text-rose-300 hover:border-rose-400 hover:bg-rose-500/35 hover:text-rose-100 transition active:scale-95"
+                                                      title="Delete image"
                                                     >
-                                                      <path
-                                                        d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z"
-                                                        fill="currentColor"
-                                                      />
-                                                      <path
-                                                        d="M3.25 12.5a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Z"
-                                                        fill="currentColor"
-                                                      />
-                                                    </svg>
-                                                    <span>Download</span>
-                                                  </button>
+                                                      <svg className="h-3 w-3 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                      </svg>
+                                                      <span>Delete</span>
+                                                    </button>
+                                                    <button
+                                                      type="button"
+                                                      onClick={async () => {
+                                                        try {
+                                                          const res = await fetch(
+                                                            `/api/attachments/download?id=${encodeURIComponent(a.id)}`
+                                                          );
+                                                          if (!res.ok) {
+                                                            const err = await res.json().catch(() => ({ error: "Download failed" }));
+                                                            console.error("[Download] Failed:", res.status, err);
+                                                            alert(`Download failed: ${err.error || "Unknown error"}`);
+                                                            return;
+                                                          }
+                                                          const blob = await res.blob();
+                                                          const objectUrl = URL.createObjectURL(blob);
+                                                          const link = document.createElement("a");
+                                                          link.href = objectUrl;
+                                                          link.download = a.originalName;
+                                                          link.click();
+                                                          URL.revokeObjectURL(objectUrl);
+                                                        } catch (err) {
+                                                          console.error("[Download] Error:", err);
+                                                          alert(`Download error: ${err instanceof Error ? err.message : "Unknown error"}`);
+                                                        }
+                                                      }}
+                                                      className="inline-flex items-center gap-1 rounded-full border border-cyan-400/80 bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-2 py-0.5 text-[10px] text-slate-100 hover:border-cyan-400/80 hover:text-cyan-200"
+                                                    >
+                                                      <svg
+                                                        viewBox="0 0 16 16"
+                                                        aria-hidden="true"
+                                                        className="h-3 w-3"
+                                                      >
+                                                        <path
+                                                          d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z"
+                                                          fill="currentColor"
+                                                        />
+                                                        <path
+                                                          d="M3.25 12.5a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Z"
+                                                          fill="currentColor"
+                                                        />
+                                                      </svg>
+                                                      <span>Download</span>
+                                                    </button>
+                                                  </div>
                                                 </div>
                                               </div>
                                             );
@@ -10004,53 +10019,66 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                     className="max-h-64 w-full rounded-xl"
                                                   />
                                                 </button>
-                                                <div className="flex justify-between">
+                                                <div className="flex items-center justify-between gap-2">
                                                   <span className="truncate text-[10px] text-slate-400">
                                                     {a.originalName}
                                                   </span>
-                                                  <button
-                                                    type="button"
-                                                    onClick={async () => {
-                                                      try {
-                                                        const res = await fetch(
-                                                          `/api/attachments/download?id=${encodeURIComponent(a.id)}`
-                                                        );
-                                                        if (!res.ok) {
-                                                          const err = await res.json().catch(() => ({ error: "Download failed" }));
-                                                          console.error("[Download] Failed:", res.status, err);
-                                                          alert(`Download failed: ${err.error || "Unknown error"}`);
-                                                          return;
-                                                        }
-                                                        const blob = await res.blob();
-                                                        const objectUrl = URL.createObjectURL(blob);
-                                                        const link = document.createElement("a");
-                                                        link.href = objectUrl;
-                                                        link.download = a.originalName;
-                                                        link.click();
-                                                        URL.revokeObjectURL(objectUrl);
-                                                      } catch (err) {
-                                                        console.error("[Download] Error:", err);
-                                                        alert(`Download error: ${err instanceof Error ? err.message : "Unknown error"}`);
-                                                      }
-                                                    }}
-                                                    className="inline-flex items-center gap-1 rounded-full border border-cyan-400/80 bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-2 py-0.5 text-[10px] text-slate-100 hover:border-cyan-400/80 hover:text-cyan-200"
-                                                  >
-                                                    <svg
-                                                      viewBox="0 0 16 16"
-                                                      aria-hidden="true"
-                                                      className="h-3 w-3"
+                                                  <div className="flex items-center gap-1.5">
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => handleDeleteMessage(m.id)}
+                                                      className="inline-flex items-center gap-1 rounded-full border border-rose-500/60 bg-rose-500/20 px-2 py-0.5 text-[10px] font-medium text-rose-300 hover:border-rose-400 hover:bg-rose-500/35 hover:text-rose-100 transition active:scale-95"
+                                                      title="Delete video"
                                                     >
-                                                      <path
-                                                        d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z"
-                                                        fill="currentColor"
-                                                      />
-                                                      <path
-                                                        d="M3.25 12.5a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Z"
-                                                        fill="currentColor"
-                                                      />
-                                                    </svg>
-                                                    <span>Download</span>
-                                                  </button>
+                                                      <svg className="h-3 w-3 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                      </svg>
+                                                      <span>Delete</span>
+                                                    </button>
+                                                    <button
+                                                      type="button"
+                                                      onClick={async () => {
+                                                        try {
+                                                          const res = await fetch(
+                                                            `/api/attachments/download?id=${encodeURIComponent(a.id)}`
+                                                          );
+                                                          if (!res.ok) {
+                                                            const err = await res.json().catch(() => ({ error: "Download failed" }));
+                                                            console.error("[Download] Failed:", res.status, err);
+                                                            alert(`Download failed: ${err.error || "Unknown error"}`);
+                                                            return;
+                                                          }
+                                                          const blob = await res.blob();
+                                                          const objectUrl = URL.createObjectURL(blob);
+                                                          const link = document.createElement("a");
+                                                          link.href = objectUrl;
+                                                          link.download = a.originalName;
+                                                          link.click();
+                                                          URL.revokeObjectURL(objectUrl);
+                                                        } catch (err) {
+                                                          console.error("[Download] Error:", err);
+                                                          alert(`Download error: ${err instanceof Error ? err.message : "Unknown error"}`);
+                                                        }
+                                                      }}
+                                                      className="inline-flex items-center gap-1 rounded-full border border-cyan-400/80 bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-2 py-0.5 text-[10px] text-slate-100 hover:border-cyan-400/80 hover:text-cyan-200"
+                                                    >
+                                                      <svg
+                                                        viewBox="0 0 16 16"
+                                                        aria-hidden="true"
+                                                        className="h-3 w-3"
+                                                      >
+                                                        <path
+                                                          d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z"
+                                                          fill="currentColor"
+                                                        />
+                                                        <path
+                                                          d="M3.25 12.5a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Z"
+                                                          fill="currentColor"
+                                                        />
+                                                      </svg>
+                                                      <span>Download</span>
+                                                    </button>
+                                                  </div>
                                                 </div>
                                               </div>
                                             );
@@ -12431,23 +12459,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 <span>Select</span>
               </button>
 
-              {/* Delete Button (Only for Sender) */}
-              {contextMenu.isMe ? (
-                <button
-                  type="button"
-                  onClick={() => handleDeleteMessage(contextMenu.messageId)}
-                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold text-rose-400 transition duration-150 hover:bg-rose-950/40 hover:text-rose-300 active:scale-95"
-                >
-                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  <span>Delete Message</span>
-                </button>
-              ) : (
-                <div className="px-2.5 py-2 text-[10px] italic text-slate-500 font-mono">
-                  Read Only
-                </div>
-              )}
+              {/* Delete Button (Always Available) */}
+              <button
+                type="button"
+                onClick={() => handleDeleteMessage(contextMenu.messageId)}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold text-rose-400 transition duration-150 hover:bg-rose-950/60 hover:text-rose-300 active:scale-95"
+              >
+                <svg className="h-3.5 w-3.5 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>{contextMenu.isMe ? "Delete Message" : "Delete (for me)"}</span>
+              </button>
             </div>
           </div>
         );
