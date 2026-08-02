@@ -6287,15 +6287,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     onClick={() => handleDirectorySelect(item.handle)}
                                     className="w-full text-left"
                                   >
-                                    <div className="founder-vip-diamond rounded-2xl border border-pink-400/90 p-3 overflow-hidden shadow-[0_0_35px_rgba(236,72,153,0.65)] relative">
+                                    <div className="founder-vip-diamond rounded-2xl border border-pink-400/90 p-2.5 overflow-hidden [clip-path:inset(0_round_1rem)] drop-shadow-[0_0_30px_rgba(236,72,153,0.65)] relative">
                                       <div className="founder-vip-diamond-bg-spectrum" />
                                       <div className="founder-vip-diamond-rhombus-mesh" />
-                                      <div className="founder-vip-diamond-shine-line" />
                                       <div className="founder-vip-diamond-sparkle top-2 left-4" />
                                       <div className="founder-vip-diamond-sparkle top-3 right-28" style={{ animationDelay: "0.8s" }} />
                                       <div className="founder-vip-diamond-sparkle bottom-2 left-1/3" style={{ animationDelay: "1.4s" }} />
                                       <div className="founder-vip-diamond-sparkle bottom-3 right-8" style={{ animationDelay: "1.9s" }} />
-                                      <div className="founder-vip-diamond-inner space-y-1.5 rounded-2xl bg-transparent px-2 py-1 relative overflow-hidden isolation-isolate z-10">
+                                      <div className="founder-vip-diamond-inner space-y-1.5 rounded-2xl bg-transparent px-3 py-2 relative overflow-hidden [clip-path:inset(0_round_1rem)] isolation-isolate z-10">
                                         <div className="relative z-10 flex items-center justify-between gap-2">
                                           <div className="min-w-0">
                                             <p className="truncate text-[11px] font-extrabold text-white flex items-center gap-1.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
@@ -6321,6 +6320,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                         </div>
                                       </div>
                                     </div>
+
 
                                   </button>
                                 ))}
