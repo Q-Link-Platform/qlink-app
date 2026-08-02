@@ -2355,19 +2355,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   };
 
-  const handleStoreUpgrade = async () => {
+  const handleStoreUpgrade = async (tier: 'DIAMOND' | 'SAPPHIRE' = 'DIAMOND') => {
     if (!(session?.user as any)?.id || isUpgradingStore) return;
     setIsUpgradingStore(true);
     setStoreError(null);
     setStoreSuccessMsg(null);
 
     const currentPoints = localPointsOverride !== null ? localPointsOverride : ((session?.user as any)?.points || 0);
+    const isDiamond = tier === 'DIAMOND';
+    const cost = isDiamond ? 100 : 50;
 
     try {
       const res = await fetch('/api/store/upgrade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: (session?.user as any)?.id })
+        body: JSON.stringify({ userId: (session?.user as any)?.id, tier })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -2375,17 +2377,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
 
       // 1. Silent Local State Update (0ms lag!)
-      setLocalPointsOverride(Math.max(0, currentPoints - 50));
-      setLocalBlueTickOverride('SAPPHIRE');
+      setLocalPointsOverride(Math.max(0, currentPoints - cost));
+      setLocalBlueTickOverride(tier);
       loadDirectoryData(true);
 
       // 2. Trigger Bank-like Celestial Receipt popup
       setTransactionNotification({
         show: true,
         type: 'debit',
-        amount: 50,
+        amount: cost,
         title: 'Upgrade Successful',
-        message: 'Sapphire VIP Upgraded. Celestial deep-cobalt theme activated!',
+        message: isDiamond 
+          ? 'Diamond VIP Upgraded. Spectrum Rainbow Rhombus theme activated!' 
+          : 'Sapphire VIP Upgraded. Celestial deep-cobalt theme activated!',
         txHash: 'TX-' + Math.random().toString(36).substring(2, 10).toUpperCase()
       });
 
@@ -2409,6 +2413,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       setIsUpgradingStore(false);
     }
   };
+
 
   const handleStoreDowngrade = async () => {
     if (!(session?.user as any)?.id || isDowngrading) return;
@@ -6268,11 +6273,63 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </div>
                           )}
 
+                          {!showDirectoryMediaOnly && directoryItems.some((item) => item.blueTickStatus === 'DIAMOND') && (
+                            <div className="space-y-2">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-pink-300">
+                                💎 Diamond VIP IDs
+                              </p>
+                              {directoryItems
+                                .filter((item) => item.blueTickStatus === 'DIAMOND')
+                                .map((item) => (
+                                  <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => handleDirectorySelect(item.handle)}
+                                    className="w-full text-left"
+                                  >
+                                    <div className="founder-vip-diamond rounded-2xl border border-pink-500/80 bg-slate-950/95 p-2.5 overflow-hidden drop-shadow-[0_0_30px_rgba(236,72,153,0.55)] relative">
+                                      <div className="founder-vip-diamond-bg-spectrum" />
+                                      <div className="founder-vip-diamond-rhombus-mesh" />
+                                      <div className="founder-vip-diamond-shine-line" />
+                                      <div className="founder-vip-diamond-sparkle top-2 left-4" />
+                                      <div className="founder-vip-diamond-sparkle bottom-2 right-6" style={{ animationDelay: "1.5s" }} />
+                                      <div className="founder-vip-diamond-inner space-y-1.5 rounded-2xl bg-gradient-to-br from-slate-950/90 via-purple-950/40 to-slate-950/90 px-3 py-2 relative overflow-hidden isolation-isolate z-10">
+                                        <div className="relative z-10 flex items-center justify-between gap-2">
+                                          <div className="min-w-0">
+                                            <p className="truncate text-[11px] font-bold text-white flex items-center gap-1">
+                                              <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-pink-300 bg-pink-500 text-[8px] font-bold text-white shadow-[0_0_8px_rgba(236,72,153,0.6)]">
+                                                💎
+                                              </span>
+                                              @{item.handle}
+                                            </p>
+                                            <p className="text-[10px] font-semibold text-pink-200">
+                                              {item.name || 'Diamond VIP'}
+                                            </p>
+                                          </div>
+                                          <div className="relative z-10">
+                                            <span className="rounded-full border border-pink-400/80 bg-pink-500/20 px-2 py-0.5 text-[9px] font-bold text-pink-200 shadow-[0_0_10px_rgba(236,72,153,0.4)]">
+                                              Diamond VIP
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <div className="relative z-10">
+                                          <p className="text-[10px] text-slate-300">
+                                            Tap to open this Diamond VIP ID and send a direct connection request.
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </button>
+                                ))}
+                            </div>
+                          )}
+
                           {!showDirectoryMediaOnly && directoryItems.some((item) => item.blueTickStatus === 'SAPPHIRE') && (
                             <div className="space-y-2">
                               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300">
                                 Sapphire VIP IDs
                               </p>
+
                               {directoryItems
                                 .filter((item) => item.blueTickStatus === 'SAPPHIRE')
                                 .map((item) => (

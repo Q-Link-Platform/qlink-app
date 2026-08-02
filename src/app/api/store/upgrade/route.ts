@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await request.json();
+    const { userId, tier = 'DIAMOND' } = await request.json();
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
@@ -19,14 +19,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Set cost to 50 points and enforce it strictly!
-    const cost = 50;
+    const isDiamond = tier === 'DIAMOND';
+    const cost = isDiamond ? 100 : 50;
+    const targetStatus = isDiamond ? 'DIAMOND' : 'SAPPHIRE';
+    const auraBoost = isDiamond ? 300 : 150;
     const currentPoints = user.points || 0;
 
     if (currentPoints < cost) {
       return NextResponse.json({
         error: 'Insufficient points',
-        message: `You need at least ${cost} Quantum Points to unlock the Sapphire VIP Upgrade. Earn points by posting, getting likes, commenting, or connecting with friends!`,
+        message: `You need at least ${cost} Quantum Points to unlock the ${isDiamond ? 'Diamond' : 'Sapphire'} VIP Upgrade. Earn points by posting, getting likes, commenting, or connecting with friends!`,
         required: cost,
         current: currentPoints
       }, { status: 400 });
@@ -34,31 +36,31 @@ export async function POST(request: NextRequest) {
 
     const newPoints = currentPoints - cost;
 
-    // Update user's VIP status to "SAPPHIRE"
+    // Update user's VIP status
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        blue_tick_status: 'SAPPHIRE',
+        blue_tick_status: targetStatus,
         points: newPoints,
-        // Give a premium base Aura boost if they buy the Sapphire upgrade!
-        aura_percentage: (user.aura_percentage || 0) + 150
+        aura_percentage: (user.aura_percentage || 0) + auraBoost
       }
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Successfully upgraded to Sapphire VIP Status!',
-      blue_tick_status: 'SAPPHIRE',
+      message: `Successfully upgraded to ${isDiamond ? 'Diamond' : 'Sapphire'} VIP Status!`,
+      blue_tick_status: targetStatus,
       pointsDeducted: cost,
       remainingPoints: newPoints,
       newAuraPercentage: updatedUser.aura_percentage
     });
 
   } catch (error) {
-    console.error('Error upgrading to Sapphire VIP status:', error);
+    console.error('Error upgrading VIP status:', error);
     return NextResponse.json(
-      { error: 'Failed to process Sapphire VIP upgrade' },
+      { error: 'Failed to process VIP upgrade' },
       { status: 500 }
     );
   }
 }
+

@@ -56,11 +56,14 @@ export async function GET() {
     const items = users.map((u) => {
       const handle = u.handle as string | null;
       const isRedTick = handle === "Rohit_7779";
+      const isDiamond = u.blue_tick_status === "DIAMOND";
       const isSapphire = u.blue_tick_status === "SAPPHIRE";
       
-      // Permanent 1.5x Aura multiplier boost for Sapphire VIPs!
+      // Aura Multipliers for VIP Tiers!
       let auraPercentage = u.aura_percentage || 0;
-      if (isSapphire) {
+      if (isDiamond) {
+        auraPercentage = Math.round(auraPercentage * 2.0);
+      } else if (isSapphire) {
         auraPercentage = Math.round(auraPercentage * 1.5);
       }
 
@@ -87,19 +90,25 @@ export async function GET() {
       };
     });
 
-    // Sort: Red Tick (Elite Founder) -> Sapphire VIPs -> Standard Verified -> Standard
+    // Sort: Red Tick (Elite Founder) -> Diamond VIPs -> Sapphire VIPs -> Standard Verified -> Standard
     items.sort((a, b) => {
       // 1. Red Tick Elite Founder first
       if (a.isRedTick && !b.isRedTick) return -1;
       if (!a.isRedTick && b.isRedTick) return 1;
 
-      // 2. Sapphire VIP second
+      // 2. Diamond VIP second
+      const aIsDiamond = a.blueTickStatus === "DIAMOND";
+      const bIsDiamond = b.blueTickStatus === "DIAMOND";
+      if (aIsDiamond && !bIsDiamond) return -1;
+      if (!aIsDiamond && bIsDiamond) return 1;
+
+      // 3. Sapphire VIP third
       const aIsSapphire = a.blueTickStatus === "SAPPHIRE";
       const bIsSapphire = b.blueTickStatus === "SAPPHIRE";
       if (aIsSapphire && !bIsSapphire) return -1;
       if (!aIsSapphire && bIsSapphire) return 1;
 
-      // 3. Standard verified third
+      // 4. Standard verified fourth
       const aIsVerified = a.blueTickStatus === "verified";
       const bIsVerified = b.blueTickStatus === "verified";
       if (aIsVerified && !bIsVerified) return -1;
@@ -107,6 +116,7 @@ export async function GET() {
 
       return 0; // Maintain original createdAt asc order
     });
+
 
     // Re-assign ranks based on sorted prioritised list
     items.forEach((item, index) => {
