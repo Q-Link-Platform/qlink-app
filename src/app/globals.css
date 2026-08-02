@@ -2332,7 +2332,7 @@ html.black .glass-panel {
     0 0 18px rgba(14, 165, 233, 0.45),
     0 0 35px rgba(14, 165, 233, 0.15);
 }
-/* Clean Ultra-Premium Purple Glass Diamond Engine */
+/* Sleek Apple Vision Pro Level Purple Glass Engine */
 .founder-vip-diamond {
   position: relative;
   overflow: hidden;
@@ -2346,8 +2346,10 @@ html.black .glass-panel {
   pointer-events: auto;
   touch-action: pan-y;
   border-radius: inherit;
-  background: linear-gradient(135deg, #1d003b 0%, #2a0054 50%, #15002b 100%);
-  box-shadow: 0 0 30px rgba(168, 85, 247, 0.4), inset 0 0 20px rgba(168, 85, 247, 0.2);
+  background: linear-gradient(135deg, rgba(30, 0, 59, 0.88) 0%, rgba(50, 0, 102, 0.88) 50%, rgba(23, 0, 46, 0.92) 100%);
+  box-shadow: 0 10px 35px -5px rgba(168, 85, 247, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 /* Kill scrollbars on all descendants inside diamond card */
@@ -2368,25 +2370,24 @@ html.black .glass-panel {
   height: 0 !important;
 }
 
-/* Outer Glowing Purple Glass Rim */
+/* Outer Soft Neon Rim Glow */
 .founder-vip-diamond::before {
   content: "";
   position: absolute;
-  inset: -1.5px;
+  inset: -1px;
   border-radius: inherit;
   background: linear-gradient(135deg,
-      rgba(217, 70, 239, 0.9),
-      rgba(168, 85, 247, 0.9),
-      rgba(139, 92, 246, 0.9),
-      rgba(192, 132, 252, 0.9),
-      rgba(217, 70, 239, 0.9));
-  opacity: 0.9;
-  filter: blur(6px);
+      rgba(217, 70, 239, 0.75),
+      rgba(168, 85, 247, 0.75),
+      rgba(139, 92, 246, 0.75),
+      rgba(217, 70, 239, 0.75));
+  opacity: 0.8;
+  filter: blur(5px);
   mix-blend-mode: screen;
   pointer-events: none;
 }
 
-/* Layer 1: Deep Cyberpunk Purple Radial Lighting Base */
+/* Layer 1: Ambient Purple Glow Core */
 .founder-vip-diamond-bg-spectrum {
   position: absolute;
   inset: 0;
@@ -2394,35 +2395,22 @@ html.black .glass-panel {
   pointer-events: none;
   z-index: 1;
   background: 
-    radial-gradient(circle at 30% 20%, rgba(217, 70, 239, 0.35) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.4) 0%, transparent 55%),
-    linear-gradient(135deg, #1a0036 0%, #2d005a 50%, #120024 100%);
+    radial-gradient(circle at 25% 25%, rgba(217, 70, 239, 0.38) 0%, transparent 60%),
+    radial-gradient(circle at 80% 75%, rgba(139, 92, 246, 0.45) 0%, transparent 65%),
+    linear-gradient(135deg, #1c0038 0%, #300061 50%, #140029 100%);
   opacity: 1;
 }
 
-/* Layer 2: High-Density 12px Micro Rhombus Diamond Facet Mesh Pattern */
-.founder-vip-diamond-rhombus-mesh {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 2;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 0 L12 6 L6 12 L0 6 Z' fill='none' stroke='rgba(255,255,255,0.42)' stroke-width='0.85'/%3E%3Cpath d='M6 0 L12 6 L6 12 L0 6 Z' fill='rgba(255,255,255,0.05)'/%3E%3C/svg%3E");
-  background-size: 12px 12px;
-  background-repeat: repeat;
-  mix-blend-mode: overlay;
-  opacity: 0.95;
-}
-
-/* Layer 3: Specular Refractive Glass Panel Layer */
+/* Layer 2: Apple Specular Glass Reflection Layer */
 .founder-vip-diamond-glass-layer {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
   z-index: 3;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(0, 0, 0, 0.2) 100%);
-  box-shadow: inset 0 0 15px rgba(168, 85, 247, 0.15);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.03) 40%, rgba(0, 0, 0, 0.2) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.4), inset 0 -2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .founder-vip-diamond-inner {
@@ -2434,6 +2422,7 @@ html.black .glass-panel {
   perspective: 1000px;
   -webkit-font-smoothing: antialiased;
 }
+
 
 
 

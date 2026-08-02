@@ -6287,9 +6287,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     onClick={() => handleDirectorySelect(item.handle)}
                                     className="w-full text-left"
                                   >
-                                    <div className="founder-vip-diamond rounded-2xl border border-purple-400/70 p-3.5 overflow-hidden shadow-[0_0_25px_rgba(168,85,247,0.45)] relative">
+                                    <div className="founder-vip-diamond rounded-2xl border border-purple-400/50 p-3.5 overflow-hidden relative">
                                       <div className="founder-vip-diamond-bg-spectrum" />
-                                      <div className="founder-vip-diamond-rhombus-mesh" />
                                       <div className="founder-vip-diamond-glass-layer" />
                                       <div className="founder-vip-diamond-inner space-y-1.5 bg-transparent relative z-10">
                                         <div className="relative z-10 flex items-center justify-between gap-2">

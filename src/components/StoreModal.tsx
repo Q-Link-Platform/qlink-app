@@ -243,7 +243,6 @@ export default function StoreModal({
                   {isDiamondSelected && (
                     <>
                       <div className="founder-vip-diamond-bg-spectrum" />
-                      <div className="founder-vip-diamond-rhombus-mesh" />
                       <div className="founder-vip-diamond-glass-layer" />
                     </>
                   )}
