@@ -245,10 +245,6 @@ export default function StoreModal({
                       <div className="founder-vip-diamond-bg-spectrum" />
                       <div className="founder-vip-diamond-rhombus-mesh" />
                       <div className="founder-vip-diamond-glass-layer" />
-                      <div className="founder-vip-diamond-sparkle top-3 left-6" style={{ animationDelay: "0s" }} />
-                      <div className="founder-vip-diamond-sparkle top-1/4 right-8" style={{ animationDelay: "0.6s" }} />
-                      <div className="founder-vip-diamond-sparkle bottom-4 right-10" style={{ animationDelay: "1.2s" }} />
-                      <div className="founder-vip-diamond-sparkle bottom-3 left-8" style={{ animationDelay: "1.8s" }} />
                     </>
                   )}
 
