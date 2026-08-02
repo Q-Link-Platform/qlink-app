@@ -2332,7 +2332,7 @@ html.black .glass-panel {
     0 0 18px rgba(14, 165, 233, 0.45),
     0 0 35px rgba(14, 165, 233, 0.15);
 }
-/* Sleek Apple Vision Pro Level Purple Glass Engine */
+/* Ultra-Premium Inset Floating Glass Slab Engine */
 .founder-vip-diamond {
   position: relative;
   overflow: hidden;
@@ -2345,11 +2345,10 @@ html.black .glass-panel {
   -ms-overflow-style: none;
   pointer-events: auto;
   touch-action: pan-y;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(30, 0, 59, 0.88) 0%, rgba(50, 0, 102, 0.88) 50%, rgba(23, 0, 46, 0.92) 100%);
-  box-shadow: 0 10px 35px -5px rgba(168, 85, 247, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 1rem;
+  clip-path: inset(0 round 1rem);
+  background: linear-gradient(135deg, #180033 0%, #2b0052 50%, #120026 100%);
+  box-shadow: 0 0 30px rgba(217, 70, 239, 0.45);
 }
 
 /* Kill scrollbars on all descendants inside diamond card */
@@ -2370,24 +2369,24 @@ html.black .glass-panel {
   height: 0 !important;
 }
 
-/* Outer Soft Neon Rim Glow */
+/* Outer Soft Glowing Purple Rim */
 .founder-vip-diamond::before {
   content: "";
   position: absolute;
   inset: -1px;
   border-radius: inherit;
   background: linear-gradient(135deg,
-      rgba(217, 70, 239, 0.75),
-      rgba(168, 85, 247, 0.75),
-      rgba(139, 92, 246, 0.75),
-      rgba(217, 70, 239, 0.75));
-  opacity: 0.8;
-  filter: blur(5px);
+      rgba(217, 70, 239, 0.8),
+      rgba(168, 85, 247, 0.8),
+      rgba(139, 92, 246, 0.8),
+      rgba(217, 70, 239, 0.8));
+  opacity: 0.85;
+  filter: blur(6px);
   mix-blend-mode: screen;
   pointer-events: none;
 }
 
-/* Layer 1: Ambient Purple Glow Core */
+/* Layer 1: Deep Purple Ambient Lighting Core */
 .founder-vip-diamond-bg-spectrum {
   position: absolute;
   inset: 0;
@@ -2395,22 +2394,27 @@ html.black .glass-panel {
   pointer-events: none;
   z-index: 1;
   background: 
-    radial-gradient(circle at 25% 25%, rgba(217, 70, 239, 0.38) 0%, transparent 60%),
-    radial-gradient(circle at 80% 75%, rgba(139, 92, 246, 0.45) 0%, transparent 65%),
-    linear-gradient(135deg, #1c0038 0%, #300061 50%, #140029 100%);
+    radial-gradient(circle at 25% 25%, rgba(217, 70, 239, 0.35) 0%, transparent 60%),
+    radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.4) 0%, transparent 60%),
+    linear-gradient(135deg, #16002e 0%, #28004f 50%, #100021 100%);
   opacity: 1;
 }
 
-/* Layer 2: Apple Specular Glass Reflection Layer */
+/* Layer 2: Inset Floating Transparent Glass Slab (Slightly smaller inside container so layer is clearly visible!) */
 .founder-vip-diamond-glass-layer {
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  inset: 6px;
+  border-radius: 0.75rem;
   pointer-events: none;
   z-index: 3;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.03) 40%, rgba(0, 0, 0, 0.2) 100%);
-  border-top: 1px solid rgba(255, 255, 255, 0.35);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.4), inset 0 -2px 10px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.03) 50%, rgba(255, 255, 255, 0.08) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 
+    0 8px 24px -4px rgba(0, 0, 0, 0.45),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -1px 8px 0 rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
 
 .founder-vip-diamond-inner {
@@ -2422,6 +2426,7 @@ html.black .glass-panel {
   perspective: 1000px;
   -webkit-font-smoothing: antialiased;
 }
+
 
 
 
