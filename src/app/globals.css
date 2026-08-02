@@ -2332,31 +2332,45 @@ html.black .glass-panel {
     0 0 18px rgba(14, 165, 233, 0.45),
     0 0 35px rgba(14, 165, 233, 0.15);
 }
-/* Simultaneous Multi-Pixel Spectrum Rainbow Diamond VIP Styling */
-@keyframes diamond-pixel-sparkle-rainbow {
+/* Ultra-Premium Micro-Pixel Diamond Glass Engine */
+@keyframes diamond-micro-pixel-twinkle {
   0% {
-    background-position: 0% 0%;
-    filter: hue-rotate(0deg) saturate(1.4);
+    background-position: 0% 0%, 40% 60%, 80% 20%, 20% 80%;
+    filter: hue-rotate(0deg) brightness(1.2) saturate(1.4);
+    opacity: 0.85;
+  }
+  25% {
+    background-position: 25% 75%, 75% 25%, 15% 85%, 65% 35%;
+    filter: hue-rotate(90deg) brightness(1.6) saturate(1.7);
+    opacity: 1;
   }
   50% {
-    background-position: 100% 100%;
-    filter: hue-rotate(180deg) saturate(1.6);
+    background-position: 85% 15%, 15% 45%, 65% 35%, 35% 65%;
+    filter: hue-rotate(180deg) brightness(1.3) saturate(1.5);
+    opacity: 0.9;
+  }
+  75% {
+    background-position: 45% 55%, 95% 85%, 35% 15%, 85% 45%;
+    filter: hue-rotate(270deg) brightness(1.7) saturate(1.8);
+    opacity: 1;
   }
   100% {
-    background-position: 0% 0%;
-    filter: hue-rotate(360deg) saturate(1.4);
+    background-position: 0% 0%, 40% 60%, 80% 20%, 20% 80%;
+    filter: hue-rotate(360deg) brightness(1.2) saturate(1.4);
+    opacity: 0.85;
   }
 }
 
-@keyframes diamond-glint-sparkle {
+@keyframes diamond-micro-sparkle-pulse {
   0%, 100% {
-    opacity: 0.3;
-    transform: scale(0.6) rotate(0deg);
+    opacity: 0.2;
+    transform: scale(0.5) rotate(0deg);
+    filter: drop-shadow(0 0 4px #ffffff);
   }
   50% {
     opacity: 1;
-    transform: scale(1.4) rotate(45deg);
-    filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 16px #ec4899);
+    transform: scale(1.35) rotate(45deg);
+    filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 14px #ec4899);
   }
 }
 
@@ -2373,8 +2387,8 @@ html.black .glass-panel {
   pointer-events: auto;
   touch-action: pan-y;
   border-radius: inherit;
-  background-color: #110022;
-  box-shadow: 0 0 30px rgba(236, 72, 153, 0.45), inset 0 0 15px rgba(236, 72, 153, 0.25);
+  background-color: #14002b; /* Deep Cyberpunk Purple Base */
+  box-shadow: 0 0 35px rgba(217, 70, 239, 0.5), inset 0 0 20px rgba(217, 70, 239, 0.3);
 }
 
 /* Kill scrollbars on all descendants inside diamond card */
@@ -2395,13 +2409,13 @@ html.black .glass-panel {
   height: 0 !important;
 }
 
-/* Outer Glowing Rainbow Spectrum Border */
+/* Outer Glowing Neon Purple Glass Rim */
 .founder-vip-diamond::before {
   content: "";
   position: absolute;
   inset: -1.5px;
   border-radius: inherit;
-  background: linear-gradient(115deg,
+  background: linear-gradient(135deg,
       #f43f5e,
       #ec4899,
       #d946ef,
@@ -2412,62 +2426,67 @@ html.black .glass-panel {
       #eab308,
       #f43f5e);
   background-size: 300% 300%;
-  animation: diamond-pixel-sparkle-rainbow 6s linear infinite;
+  animation: diamond-micro-pixel-twinkle 6s linear infinite;
   opacity: 0.95;
   filter: blur(8px);
   mix-blend-mode: screen;
   pointer-events: none;
   transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
   will-change: filter, background-position;
 }
 
-/* Simultaneous Multi-Pixel Rainbow Shimmer Layer */
+/* Layer 1: Deep Purple Base + Multi-Pixel Twinkle Rainbow Gradient Layer */
 .founder-vip-diamond-bg-spectrum {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
   z-index: 1;
-  background: conic-gradient(from 45deg at 50% 50%,
-      #f43f5e 0deg,
-      #ec4899 45deg,
-      #d946ef 90deg,
-      #8b5cf6 135deg,
-      #3b82f6 180deg,
-      #06b6d4 225deg,
-      #10b981 270deg,
-      #eab308 315deg,
-      #f43f5e 360deg
-  );
-  background-size: 200% 200%;
-  animation: diamond-pixel-sparkle-rainbow 4s linear infinite;
-  opacity: 0.92;
+  background-image: 
+    radial-gradient(circle at 20% 30%, rgba(244, 63, 94, 0.8) 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.85) 0%, transparent 45%),
+    radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.85) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(16, 185, 129, 0.75) 0%, transparent 40%);
+  background-size: 180% 180%;
+  animation: diamond-micro-pixel-twinkle 5s ease-in-out infinite;
+  opacity: 0.95;
 }
 
-/* High-Density 24px Rhombus Diamond Facet Mesh Pattern (Smaller facet pixels!) */
+/* Layer 2: 12px Micro Rhombus Facet Pixel Grid (1000s of micro pixels!) */
 .founder-vip-diamond-rhombus-mesh {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
   z-index: 2;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 0 L24 12 L12 24 L0 12 Z' fill='none' stroke='rgba(255,255,255,0.48)' stroke-width='1.1'/%3E%3Cpath d='M12 0 L24 12 L12 24 L0 12 Z' fill='rgba(255,255,255,0.08)'/%3E%3C/svg%3E");
-  background-size: 24px 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 0 L12 6 L6 12 L0 6 Z' fill='none' stroke='rgba(255,255,255,0.46)' stroke-width='0.85'/%3E%3Cpath d='M6 0 L12 6 L6 12 L0 6 Z' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E");
+  background-size: 12px 12px;
   background-repeat: repeat;
   mix-blend-mode: overlay;
   opacity: 0.98;
 }
 
-/* Starburst Sparkle Point Layer */
+/* Layer 3: Specular Refractive Glass Panel Layer */
+.founder-vip-diamond-glass-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(0, 0, 0, 0.25) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6), inset 0 -2px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Micro Twinkling Starburst Flares ("Bright each by each") */
 .founder-vip-diamond-sparkle {
   position: absolute;
-  width: 14px;
-  height: 14px;
+  width: 10px;
+  height: 10px;
   pointer-events: none;
   z-index: 6;
-  animation: diamond-glint-sparkle 2s ease-in-out infinite;
-  background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(244,114,182,0.85) 40%, rgba(255,255,255,0) 70%);
+  animation: diamond-micro-sparkle-pulse 2s ease-in-out infinite;
+  background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(244,114,182,0.9) 35%, rgba(255,255,255,0) 70%);
 }
 
 .founder-vip-diamond-inner {
@@ -2479,6 +2498,7 @@ html.black .glass-panel {
   perspective: 1000px;
   -webkit-font-smoothing: antialiased;
 }
+
 
 
 

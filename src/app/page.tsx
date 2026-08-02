@@ -6287,13 +6287,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     onClick={() => handleDirectorySelect(item.handle)}
                                     className="w-full text-left"
                                   >
-                                    <div className="founder-vip-diamond rounded-2xl border border-pink-400/90 p-2.5 overflow-hidden [clip-path:inset(0_round_1rem)] drop-shadow-[0_0_30px_rgba(236,72,153,0.65)] relative">
+                                    <div className="founder-vip-diamond rounded-2xl border border-pink-400/90 p-2.5 overflow-hidden [clip-path:inset(0_round_1rem)] drop-shadow-[0_0_35px_rgba(217,70,239,0.7)] relative">
                                       <div className="founder-vip-diamond-bg-spectrum" />
                                       <div className="founder-vip-diamond-rhombus-mesh" />
-                                      <div className="founder-vip-diamond-sparkle top-2 left-4" />
-                                      <div className="founder-vip-diamond-sparkle top-3 right-28" style={{ animationDelay: "0.8s" }} />
-                                      <div className="founder-vip-diamond-sparkle bottom-2 left-1/3" style={{ animationDelay: "1.4s" }} />
-                                      <div className="founder-vip-diamond-sparkle bottom-3 right-8" style={{ animationDelay: "1.9s" }} />
+                                      <div className="founder-vip-diamond-glass-layer" />
+                                      {/* Sequential micro twinkling flares ("bright each by each") */}
+                                      <div className="founder-vip-diamond-sparkle top-2 left-6" style={{ animationDelay: "0s" }} />
+                                      <div className="founder-vip-diamond-sparkle top-3 left-1/3" style={{ animationDelay: "0.35s" }} />
+                                      <div className="founder-vip-diamond-sparkle top-2 right-28" style={{ animationDelay: "0.7s" }} />
+                                      <div className="founder-vip-diamond-sparkle top-4 right-10" style={{ animationDelay: "1.05s" }} />
+                                      <div className="founder-vip-diamond-sparkle bottom-2 left-10" style={{ animationDelay: "1.4s" }} />
+                                      <div className="founder-vip-diamond-sparkle bottom-3 left-1/2" style={{ animationDelay: "1.75s" }} />
+                                      <div className="founder-vip-diamond-sparkle bottom-2 right-1/4" style={{ animationDelay: "2.1s" }} />
+                                      <div className="founder-vip-diamond-sparkle bottom-3 right-4" style={{ animationDelay: "2.45s" }} />
                                       <div className="founder-vip-diamond-inner space-y-1.5 rounded-2xl bg-transparent px-3 py-2 relative overflow-hidden [clip-path:inset(0_round_1rem)] isolation-isolate z-10">
                                         <div className="relative z-10 flex items-center justify-between gap-2">
                                           <div className="min-w-0">
