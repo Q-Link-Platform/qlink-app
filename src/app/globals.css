@@ -2332,51 +2332,45 @@ html.black .glass-panel {
     0 0 18px rgba(14, 165, 233, 0.45),
     0 0 35px rgba(14, 165, 233, 0.15);
 }
-/* Premium Deep Purple Glass Panel + Smaller Rhombus Pixel Rainbow Shimmer */
-@keyframes diamond-pixel-rainbow {
+/* Pixel-Perfect Spectrum Rainbow Diamond VIP Styling */
+@keyframes diamond-rainbow-prism {
   0% {
-    background-position: 0% 0%;
-  }
-  25% {
-    background-position: 100% 0%;
+    background-position: 0% 50%;
   }
   50% {
-    background-position: 100% 100%;
-  }
-  75% {
-    background-position: 0% 100%;
+    background-position: 100% 50%;
   }
   100% {
-    background-position: 0% 0%;
+    background-position: 0% 50%;
   }
 }
 
 @keyframes diamond-sweep-bright {
   0% {
-    transform: translateX(-130%) skewX(-20deg);
+    transform: translateX(-140%) skewX(-20deg);
     opacity: 0;
   }
   15% {
-    opacity: 0.95;
+    opacity: 1;
   }
   85% {
-    opacity: 0.95;
+    opacity: 1;
   }
   100% {
-    transform: translateX(130%) skewX(-20deg);
+    transform: translateX(140%) skewX(-20deg);
     opacity: 0;
   }
 }
 
-@keyframes diamond-sparkle-star {
+@keyframes diamond-glint-sparkle {
   0%, 100% {
-    opacity: 0.3;
-    transform: scale(0.6) rotate(0deg);
+    opacity: 0.25;
+    transform: scale(0.5) rotate(0deg);
   }
   50% {
     opacity: 1;
-    transform: scale(1.4) rotate(45deg);
-    filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 12px #d946ef);
+    transform: scale(1.5) rotate(45deg);
+    filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 16px #ec4899);
   }
 }
 
@@ -2393,7 +2387,8 @@ html.black .glass-panel {
   pointer-events: auto;
   touch-action: pan-y;
   border-radius: inherit;
-  background-color: #120026;
+  background-color: #110022;
+  box-shadow: 0 0 25px rgba(236, 72, 153, 0.4), inset 0 0 15px rgba(236, 72, 153, 0.2);
 }
 
 /* Kill scrollbars on all descendants inside diamond card */
@@ -2414,14 +2409,15 @@ html.black .glass-panel {
   height: 0 !important;
 }
 
-/* Outer Neon Purple/Rainbow Glowing Glass Border */
+/* Outer Glowing Rainbow Spectrum Border */
 .founder-vip-diamond::before {
   content: "";
   position: absolute;
   inset: -1.5px;
   border-radius: inherit;
-  background: linear-gradient(135deg,
+  background: linear-gradient(115deg,
       #f43f5e,
+      #ec4899,
       #d946ef,
       #8b5cf6,
       #3b82f6,
@@ -2430,9 +2426,9 @@ html.black .glass-panel {
       #eab308,
       #f43f5e);
   background-size: 300% 300%;
-  animation: diamond-pixel-rainbow 7s linear infinite;
+  animation: diamond-rainbow-prism 6s ease-in-out infinite;
   opacity: 0.95;
-  filter: blur(10px);
+  filter: blur(8px);
   mix-blend-mode: screen;
   pointer-events: none;
   transform: translate3d(0, 0, 0);
@@ -2440,39 +2436,43 @@ html.black .glass-panel {
   will-change: background-position;
 }
 
-/* Smaller Rhombus Pixel Mesh Overlay (24px tile size for crisp diamond facets!) */
-.founder-vip-diamond-rhombus-mesh {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 2;
-  background-image: 
-    linear-gradient(135deg, rgba(255, 255, 255, 0.25) 25%, transparent 25%),
-    linear-gradient(225deg, rgba(255, 255, 255, 0.25) 25%, transparent 25%),
-    linear-gradient(45deg, rgba(255, 255, 255, 0.25) 25%, transparent 25%),
-    linear-gradient(315deg, rgba(255, 255, 255, 0.25) 25%, transparent 25%);
-  background-position: 12px 0, 12px 0, 0 0, 0 0;
-  background-size: 24px 24px;
-  background-repeat: repeat;
-  mix-blend-mode: overlay;
-  opacity: 0.85;
-}
-
-/* Dynamic Purple Glass Panel + Simultaneous Rainbow Flow Layer */
+/* Dynamic Full-Spectrum Rainbow Base Layer */
 .founder-vip-diamond-bg-spectrum {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
   z-index: 1;
-  background: radial-gradient(circle at 50% 50%, rgba(217, 70, 239, 0.45), rgba(139, 92, 246, 0.35) 40%, rgba(18, 0, 38, 0.95) 85%),
-              linear-gradient(135deg, rgba(244, 63, 94, 0.6), rgba(217, 70, 239, 0.7), rgba(139, 92, 246, 0.7), rgba(59, 130, 246, 0.7), rgba(6, 182, 212, 0.6), rgba(16, 185, 129, 0.5), rgba(234, 179, 8, 0.6));
-  background-size: 250% 250%;
-  animation: diamond-pixel-rainbow 6s ease infinite;
+  background: linear-gradient(125deg,
+      #f43f5e 0%,    /* Hot Pink */
+      #ec4899 15%,   /* Magenta */
+      #d946ef 30%,   /* Fuchsia */
+      #8b5cf6 45%,   /* Purple */
+      #3b82f6 60%,   /* Electric Blue */
+      #06b6d4 75%,   /* Cyan */
+      #10b981 88%,   /* Emerald Green */
+      #eab308 100%   /* Gold */
+  );
+  background-size: 300% 300%;
+  animation: diamond-rainbow-prism 7s ease-in-out infinite;
+  opacity: 0.88;
 }
 
-/* Diagonal Diamond Light Sweep Line */
+/* High-Definition 45-Degree Diamond Rhombus Facet Mesh Pattern */
+.founder-vip-diamond-rhombus-mesh {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M16 0 L32 16 L16 32 L0 16 Z' fill='none' stroke='rgba(255,255,255,0.45)' stroke-width='1.2'/%3E%3Cpath d='M16 0 L32 16 L16 32 L0 16 Z' fill='rgba(255,255,255,0.06)'/%3E%3C/svg%3E");
+  background-size: 32px 32px;
+  background-repeat: repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.95;
+}
+
+/* Diagonal Diamond Shine Sweep Line */
 .founder-vip-diamond-shine-line {
   position: absolute;
   inset: 0;
@@ -2492,29 +2492,29 @@ html.black .glass-panel {
   border-radius: 9999px;
   background: linear-gradient(110deg,
       transparent 0%,
-      rgba(255, 255, 255, 0.08) 35%,
-      rgba(255, 255, 255, 0.75) 48%,
+      rgba(255, 255, 255, 0.1) 35%,
+      rgba(255, 255, 255, 0.85) 48%,
       rgba(255, 255, 255, 1) 50%,
-      rgba(255, 255, 255, 0.75) 52%,
-      rgba(255, 255, 255, 0.08) 65%,
+      rgba(255, 255, 255, 0.85) 52%,
+      rgba(255, 255, 255, 0.1) 65%,
       transparent 100%);
   mix-blend-mode: screen;
-  animation: diamond-sweep-bright 4.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.9));
+  animation: diamond-sweep-bright 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.95));
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   will-change: transform;
 }
 
-/* Intersecting Starburst Sparkle Points */
+/* Starburst Sparkle Point Layer */
 .founder-vip-diamond-sparkle {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   pointer-events: none;
   z-index: 6;
-  animation: diamond-sparkle-star 2.2s ease-in-out infinite;
-  background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(240,171,252,0.8) 35%, rgba(255,255,255,0) 70%);
+  animation: diamond-glint-sparkle 2.2s ease-in-out infinite;
+  background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(244,114,182,0.85) 40%, rgba(255,255,255,0) 70%);
 }
 
 .founder-vip-diamond-inner {
@@ -2526,6 +2526,7 @@ html.black .glass-panel {
   perspective: 1000px;
   -webkit-font-smoothing: antialiased;
 }
+
 
 
 

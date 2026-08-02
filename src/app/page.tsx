@@ -6287,38 +6287,41 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     onClick={() => handleDirectorySelect(item.handle)}
                                     className="w-full text-left"
                                   >
-                                    <div className="founder-vip-diamond rounded-2xl border border-pink-500/80 bg-slate-950/95 p-2.5 overflow-hidden drop-shadow-[0_0_30px_rgba(236,72,153,0.55)] relative">
+                                    <div className="founder-vip-diamond rounded-2xl border border-pink-400/90 p-3 overflow-hidden shadow-[0_0_35px_rgba(236,72,153,0.65)] relative">
                                       <div className="founder-vip-diamond-bg-spectrum" />
                                       <div className="founder-vip-diamond-rhombus-mesh" />
                                       <div className="founder-vip-diamond-shine-line" />
                                       <div className="founder-vip-diamond-sparkle top-2 left-4" />
-                                      <div className="founder-vip-diamond-sparkle bottom-2 right-6" style={{ animationDelay: "1.5s" }} />
-                                      <div className="founder-vip-diamond-inner space-y-1.5 rounded-2xl bg-gradient-to-br from-slate-950/90 via-purple-950/40 to-slate-950/90 px-3 py-2 relative overflow-hidden isolation-isolate z-10">
+                                      <div className="founder-vip-diamond-sparkle top-3 right-28" style={{ animationDelay: "0.8s" }} />
+                                      <div className="founder-vip-diamond-sparkle bottom-2 left-1/3" style={{ animationDelay: "1.4s" }} />
+                                      <div className="founder-vip-diamond-sparkle bottom-3 right-8" style={{ animationDelay: "1.9s" }} />
+                                      <div className="founder-vip-diamond-inner space-y-1.5 rounded-2xl bg-transparent px-2 py-1 relative overflow-hidden isolation-isolate z-10">
                                         <div className="relative z-10 flex items-center justify-between gap-2">
                                           <div className="min-w-0">
-                                            <p className="truncate text-[11px] font-bold text-white flex items-center gap-1">
-                                              <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-pink-300 bg-pink-500 text-[8px] font-bold text-white shadow-[0_0_8px_rgba(236,72,153,0.6)]">
+                                            <p className="truncate text-[11px] font-extrabold text-white flex items-center gap-1.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                                              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-pink-300 bg-pink-500/80 text-[9px] font-bold text-white shadow-[0_0_10px_rgba(236,72,153,0.8)]">
                                                 💎
                                               </span>
                                               @{item.handle}
                                             </p>
-                                            <p className="text-[10px] font-semibold text-pink-200">
+                                            <p className="text-[10px] font-bold text-pink-100 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                                               {item.name || 'Diamond VIP'}
                                             </p>
                                           </div>
                                           <div className="relative z-10">
-                                            <span className="rounded-full border border-pink-400/80 bg-pink-500/20 px-2 py-0.5 text-[9px] font-bold text-pink-200 shadow-[0_0_10px_rgba(236,72,153,0.4)]">
+                                            <span className="rounded-full border border-pink-300/90 bg-pink-600/70 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-[0_0_12px_rgba(236,72,153,0.7)]">
                                               Diamond VIP
                                             </span>
                                           </div>
                                         </div>
                                         <div className="relative z-10">
-                                          <p className="text-[10px] text-slate-300">
+                                          <p className="text-[10px] font-medium text-pink-100/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
                                             Tap to open this Diamond VIP ID and send a direct connection request.
                                           </p>
                                         </div>
                                       </div>
                                     </div>
+
                                   </button>
                                 ))}
                             </div>

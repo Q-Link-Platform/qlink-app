@@ -235,7 +235,7 @@ export default function StoreModal({
                   }}
                   className={`w-full max-w-[280px] rounded-3xl p-[1px] cursor-pointer relative overflow-hidden ${
                     isDiamondSelected
-                      ? "founder-vip-diamond border border-pink-400/60 bg-gradient-to-br from-slate-950 via-purple-950/30 to-slate-950 shadow-[0_0_35px_rgba(236,72,153,0.5)]"
+                      ? "founder-vip-diamond border border-pink-400/80 shadow-[0_0_35px_rgba(236,72,153,0.65)]"
                       : "founder-vip-sapphire founder-vip-sapphire-shine border border-sky-400/50 bg-gradient-to-br from-slate-950 via-sky-950/20 to-slate-950 shadow-[0_0_30px_rgba(56,189,248,0.5)]"
                   }`}
                 >
@@ -264,8 +264,8 @@ export default function StoreModal({
                     }}
                   />
 
-                  <div className={`relative z-10 rounded-3xl bg-slate-950/90 px-5 py-6 flex flex-col items-center text-center gap-4 isolation-isolate ${
-                    isDiamondSelected ? "founder-vip-diamond-inner" : "founder-vip-sapphire-inner"
+                  <div className={`relative z-10 rounded-3xl px-5 py-6 flex flex-col items-center text-center gap-4 isolation-isolate ${
+                    isDiamondSelected ? "founder-vip-diamond-inner bg-transparent" : "founder-vip-sapphire-inner bg-slate-950/90"
                   }`}>
                     {/* Diamond VIP Badge tag on card */}
                     {isDiamondSelected && (
