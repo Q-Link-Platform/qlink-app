@@ -2332,100 +2332,395 @@ html.black .glass-panel {
     0 0 18px rgba(14, 165, 233, 0.45),
     0 0 35px rgba(14, 165, 233, 0.15);
 }
-/* Real-World Optical Clear Glass Slab Engine */
-.founder-vip-diamond {
+/* ============================================================
+   DIAMOND VIP CARD — Real-World Optical Glass Slab Engine
+   Physics: Edge bevel refraction · Caustic diffusion · Chromatic
+   aberration fringing · Specular apex glint · Hard rim highlight
+   ============================================================ */
+
+/* === Keyframe Library === */
+
+/* Caustic field — organic, slow-drifting internal light scatter */
+@keyframes diamond-caustic-drift {
+  0%   { background-position: 0% 0%, 100% 100%, 50% 50%; opacity: 0.72; }
+  25%  { background-position: 60% 20%, 40% 80%, 80% 30%; opacity: 0.80; }
+  50%  { background-position: 100% 50%, 0% 50%, 20% 80%; opacity: 0.68; }
+  75%  { background-position: 30% 90%, 70% 10%, 60% 60%; opacity: 0.76; }
+  100% { background-position: 0% 0%, 100% 100%, 50% 50%; opacity: 0.72; }
+}
+
+/* Bevel sweep — directional refraction sweep across glass face */
+@keyframes diamond-bevel-sweep {
+  0%   { transform: translateX(-160%) skewX(-18deg) rotate(-1deg); opacity: 0; }
+  8%   { opacity: 0.85; }
+  92%  { opacity: 0.75; }
+  100% { transform: translateX(200%) skewX(-18deg) rotate(-1deg); opacity: 0; }
+}
+
+/* Specular glint — fast sharp apex flash (like sunlight catching glass corner) */
+@keyframes diamond-specular-pulse {
+  0%, 100% { opacity: 0; transform: scale(0.6) translate(-15%, -15%); }
+  45%       { opacity: 0; transform: scale(0.8) translate(-12%, -12%); }
+  52%       { opacity: 1; transform: scale(1.2) translate(-10%, -10%); filter: brightness(2.2); }
+  60%       { opacity: 0.4; transform: scale(1.0) translate(-11%, -11%); filter: brightness(1.4); }
+  68%       { opacity: 0; transform: scale(0.7) translate(-13%, -13%); }
+}
+
+/* Chroma edge — slow prismatic color shift on rim */
+@keyframes diamond-chroma-shift {
+  0%   { opacity: 0.55; filter: hue-rotate(0deg) saturate(1.8); }
+  33%  { opacity: 0.70; filter: hue-rotate(25deg) saturate(2.2); }
+  66%  { opacity: 0.60; filter: hue-rotate(-15deg) saturate(1.9); }
+  100% { opacity: 0.55; filter: hue-rotate(0deg) saturate(1.8); }
+}
+
+/* Rim highlight — subtle breathing */
+@keyframes diamond-rim-breathe {
+  0%, 100% { opacity: 0.75; }
+  50%       { opacity: 0.95; }
+}
+
+/* === Root Container === */
+.diamond-vip-card-root {
   position: relative;
+  /* Match Sapphire/Elite card dimensions exactly */
+  border-radius: 1rem;
   overflow: hidden;
   isolation: isolate;
+  /* Hard outer border — the "glass edge" */
+  border: 1px solid rgba(236, 72, 153, 0.75);
+  /* Outer bloom drop-shadow */
+  box-shadow:
+    0 0 0 1px rgba(168, 85, 247, 0.35),
+    0 0 28px rgba(236, 72, 153, 0.55),
+    0 0 55px rgba(168, 85, 247, 0.25),
+    0 8px 32px rgba(0, 0, 0, 0.65);
+  /* GPU layer — offloaded compositing */
+  transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
-  mask-image: radial-gradient(white, black);
+  will-change: transform, box-shadow;
   contain: paint layout;
+  /* Scrollbar kill */
   scrollbar-width: none;
   -ms-overflow-style: none;
   pointer-events: auto;
   touch-action: pan-y;
-  border-radius: 1rem;
+  /* Clip descendants to rounded rect */
   clip-path: inset(0 round 1rem);
-  background: linear-gradient(135deg, #1b0038 0%, #30005e 50%, #130029 100%);
-  box-shadow: 0 0 35px rgba(236, 72, 153, 0.45);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
+  cursor: pointer;
+  /* No background on root — base layer provides it */
+  background: transparent;
 }
 
-/* Kill scrollbars on all descendants inside diamond card */
-.founder-vip-diamond,
-.founder-vip-diamond *,
-.founder-vip-diamond-inner,
-.founder-vip-diamond-inner * {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-
-.founder-vip-diamond::-webkit-scrollbar,
-.founder-vip-diamond *::-webkit-scrollbar,
-.founder-vip-diamond-inner::-webkit-scrollbar,
-.founder-vip-diamond-inner *::-webkit-scrollbar {
+.diamond-vip-card-root::-webkit-scrollbar,
+.diamond-vip-card-root *::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
 }
 
-/* Outer Soft Glowing Purple Rim */
-.founder-vip-diamond::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: linear-gradient(135deg,
-      rgba(236, 72, 153, 0.85),
-      rgba(168, 85, 247, 0.85),
-      rgba(139, 92, 246, 0.85),
-      rgba(236, 72, 153, 0.85));
-  opacity: 0.9;
-  filter: blur(6px);
-  mix-blend-mode: screen;
-  pointer-events: none;
+/* Hover: amplify the outer bloom, slight lift */
+.diamond-vip-card-root:hover {
+  box-shadow:
+    0 0 0 1px rgba(168, 85, 247, 0.55),
+    0 0 38px rgba(236, 72, 153, 0.75),
+    0 0 70px rgba(168, 85, 247, 0.40),
+    0 12px 40px rgba(0, 0, 0, 0.70);
+  transform: translate3d(0, -1px, 0);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-/* Layer 1: Rich Deep Cyberpunk Purple Base Core */
-.founder-vip-diamond-bg-spectrum {
+/* Active press: sink back */
+.diamond-vip-card-root:active {
+  transform: translate3d(0, 0, 0) scale(0.985);
+  transition: transform 0.1s ease;
+}
+
+/* === Layer 0: Deep Cyberpunk Purple Base === */
+/* This is the "glass substrate" — what lies beneath the glass */
+.diamond-vip-base {
   position: absolute;
   inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
   z-index: 1;
-  background: 
-    radial-gradient(circle at 25% 25%, rgba(236, 72, 153, 0.42) 0%, transparent 60%),
-    radial-gradient(circle at 75% 75%, rgba(168, 85, 247, 0.48) 0%, transparent 65%),
-    linear-gradient(135deg, #190033 0%, #2f005c 50%, #120024 100%);
-  opacity: 1;
-}
-
-/* Layer 2: Ultra-Clear Optical Glass Slab (95%+ Light Translucent Refraction) */
-.founder-vip-diamond-glass-layer {
-  position: absolute;
-  inset: 5px;
-  border-radius: 0.75rem;
   pointer-events: none;
-  z-index: 3;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.01) 40%, rgba(255, 255, 255, 0.05) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  box-shadow: 
-    0 10px 30px -5px rgba(0, 0, 0, 0.55),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 6px 0 rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(14px) saturate(180%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  background:
+    /* Corner depth pools — simulate light trapped in glass corners */
+    radial-gradient(ellipse at 10% 10%, rgba(139, 92, 246, 0.45) 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 85%, rgba(236, 72, 153, 0.38) 0%, transparent 55%),
+    radial-gradient(ellipse at 55% 50%, rgba(91, 33, 182, 0.20) 0%, transparent 70%),
+    /* Solid cyberpunk base */
+    linear-gradient(145deg, #1a0036 0%, #2e0060 38%, #1a0038 62%, #0d0020 100%);
 }
 
-.founder-vip-diamond-inner {
-  position: relative;
-  z-index: 10;
-  border-radius: inherit;
+/* === Layer 1: Caustic Field === */
+/* Simulates light caustics inside glass — that shimmering pattern from refracted light */
+.diamond-vip-caustic-field {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 25%, rgba(255, 255, 255, 0.09) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 80% at 78% 65%, rgba(236, 72, 153, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 60% 85%, rgba(168, 85, 247, 0.12) 0%, transparent 65%);
+  background-size: 200% 200%, 180% 180%, 220% 220%;
+  background-position: 0% 0%, 100% 100%, 50% 50%;
+  animation: diamond-caustic-drift 18s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+/* === Layer 2: Bevel Sweep === */
+/* The signature optical-glass effect — light sweeping across the glass bevel */
+.diamond-vip-bevel-sweep {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.diamond-vip-bevel-sweep::before {
+  content: '';
+  position: absolute;
+  /* Tall rectangle — taller than card for perspective skew */
+  top: -50%;
+  bottom: -50%;
+  /* Starts off-screen left */
+  left: -30%;
+  width: 40%;
+  /* Gradient: clear → white-pink glare → clear */
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 20%,
+    rgba(236, 72, 153, 0.18) 38%,
+    rgba(255, 255, 255, 0.65) 50%,
+    rgba(168, 85, 247, 0.18) 62%,
+    rgba(255, 255, 255, 0.04) 80%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  filter: blur(3px);
+  pointer-events: none;
+  animation: diamond-bevel-sweep 9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
-  perspective: 1000px;
-  -webkit-font-smoothing: antialiased;
 }
+
+/* Second sweep — slightly delayed, narrower, creates depth */
+.diamond-vip-bevel-sweep::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  bottom: -50%;
+  left: -20%;
+  width: 18%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.02) 25%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(255, 255, 255, 0.02) 75%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  filter: blur(1.5px);
+  pointer-events: none;
+  animation: diamond-bevel-sweep 9s cubic-bezier(0.4, 0, 0.2, 1) 0.35s infinite;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.25), 0 0 40px rgba(236, 72, 153, 0.15);
+}
+
+/* === Layer 3: Chromatic Aberration Edge Fringe === */
+/* Real glass splits white light into colour at edges (prismatic diffraction) */
+.diamond-vip-chroma-edge {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  /* Thin coloured ring at the card perimeter */
+  box-shadow:
+    inset 0 0 0 1px rgba(236, 72, 153, 0.35),
+    inset 1px 1px 0 0 rgba(255, 120, 220, 0.60),
+    inset -1px -1px 0 0 rgba(139, 80, 255, 0.55),
+    inset 2px 0 8px -2px rgba(236, 72, 153, 0.25),
+    inset -2px 0 8px -2px rgba(168, 85, 247, 0.25);
+  animation: diamond-chroma-shift 14s ease-in-out infinite;
+}
+
+/* === Layer 4: Primary Glass Slab Surface === */
+/* The glass body itself — high-clarity, refractive translucency */
+.diamond-vip-glass-slab {
+  position: absolute;
+  /* Inset slightly — creating the illusion of a floating glass panel above the purple substrate */
+  inset: 4px;
+  z-index: 5;
+  border-radius: 0.75rem;
+  pointer-events: none;
+  /* Glass base: near-transparent with a very faint white tint */
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(255, 255, 255, 0.03) 30%,
+    rgba(168, 85, 247, 0.06) 60%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  /* Glass edge — bright top-left, subtle bottom-right (simulates directional light) */
+  border-top: 1px solid rgba(255, 255, 255, 0.55);
+  border-left: 1px solid rgba(255, 255, 255, 0.30);
+  border-right: 1px solid rgba(168, 85, 247, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  /* Depth shadow: glass slab thickness illusion */
+  box-shadow:
+    /* Inset top shine — glass surface catch-light */
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.55),
+    inset 0 2px 8px -1px rgba(255, 255, 255, 0.12),
+    /* Inset bottom shadow — glass bottom face darker */
+    inset 0 -2px 10px -2px rgba(0, 0, 0, 0.35),
+    /* Elevated outer drop — glass slab floating above base */
+    0 4px 20px rgba(0, 0, 0, 0.45),
+    0 1px 4px rgba(0, 0, 0, 0.30);
+  /* Backdrop blur — refraction of background through glass */
+  backdrop-filter: blur(16px) saturate(200%) brightness(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(200%) brightness(1.08);
+  /* GPU layer */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* === Layer 5: Specular Glint === */
+/* The brilliant corner flash — like sunlight hitting a glass panel edge */
+.diamond-vip-specular-glint {
+  position: absolute;
+  /* Top-left corner — primary light source direction */
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 50%;
+  z-index: 6;
+  pointer-events: none;
+  /* Radial burst from top-left */
+  background: radial-gradient(
+    ellipse at 15% 15%,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 200, 240, 0.45) 18%,
+    rgba(236, 72, 153, 0.20) 35%,
+    transparent 65%
+  );
+  mix-blend-mode: screen;
+  animation: diamond-specular-pulse 7.5s ease-in-out 1.2s infinite;
+  filter: blur(1px);
+  will-change: opacity, transform;
+}
+
+/* === Layer 6: Rim Highlight === */
+/* Hard bright top edge — real glass always has a bright edge line */
+.diamond-vip-rim-highlight {
+  position: absolute;
+  top: 0;
+  left: 6%;
+  right: 6%;
+  height: 1.5px;
+  z-index: 7;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 180, 230, 0.70) 20%,
+    rgba(255, 255, 255, 0.98) 50%,
+    rgba(200, 160, 255, 0.70) 80%,
+    transparent 100%
+  );
+  border-radius: 9999px;
+  filter: blur(0.5px);
+  animation: diamond-rim-breathe 4s ease-in-out infinite;
+}
+
+/* === Layer 7: Content === */
+.diamond-vip-content {
+  position: relative;
+  z-index: 10;
+  padding: 10px 14px;
+  /* Font rendering optimization */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  pointer-events: auto;
+}
+
+/* 💎 Gem badge — glowing ring */
+.diamond-vip-gem-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 150, 220, 0.9), rgba(168, 85, 247, 0.8));
+  border: 1px solid rgba(255, 180, 235, 0.85);
+  font-size: 10px;
+  flex-shrink: 0;
+  box-shadow:
+    0 0 8px rgba(236, 72, 153, 0.85),
+    0 0 18px rgba(168, 85, 247, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* "Diamond VIP" pill badge */
+.diamond-vip-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: white;
+  /* Glass pill effect */
+  background: linear-gradient(
+    135deg,
+    rgba(236, 72, 153, 0.80) 0%,
+    rgba(168, 85, 247, 0.70) 100%
+  );
+  border: 1px solid rgba(255, 180, 235, 0.75);
+  box-shadow:
+    0 0 10px rgba(236, 72, 153, 0.65),
+    0 0 20px rgba(168, 85, 247, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.70);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  white-space: nowrap;
+}
+
+/* Perf-low mode: disable heavy animations on 4GB RAM devices */
+html.perf-low .diamond-vip-caustic-field {
+  animation: none !important;
+}
+html.perf-low .diamond-vip-bevel-sweep::before,
+html.perf-low .diamond-vip-bevel-sweep::after {
+  animation: none !important;
+  opacity: 0 !important;
+}
+html.perf-low .diamond-vip-specular-glint {
+  animation: none !important;
+  opacity: 0.4 !important;
+}
+html.perf-low .diamond-vip-glass-slab {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: rgba(30, 0, 60, 0.75) !important;
+}
+
+
 
 
 

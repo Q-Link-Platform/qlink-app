@@ -6287,33 +6287,41 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     onClick={() => handleDirectorySelect(item.handle)}
                                     className="w-full text-left"
                                   >
-                                    <div className="founder-vip-diamond rounded-2xl border border-pink-500/80 p-2.5 overflow-hidden [clip-path:inset(0_round_1rem)] drop-shadow-[0_0_30px_rgba(236,72,153,0.55)] relative">
-                                      <div className="founder-vip-diamond-bg-spectrum" />
-                                      <div className="founder-vip-diamond-glass-layer" />
-                                      <div className="founder-vip-diamond-inner space-y-1.5 bg-transparent px-3.5 py-2.5 relative z-10">
-                                        <div className="relative z-10 flex items-center justify-between gap-2">
+                                    <div className="diamond-vip-card-root">
+                                      {/* === Real-World Optical Glass Slab — Video-Loop Grade Engine === */}
+                                      {/* Layer 0: Deep cyberpunk purple base */}
+                                      <div className="diamond-vip-base" />
+                                      {/* Layer 1: Caustic light diffusion — simulates raytraced glass internal scattering */}
+                                      <div className="diamond-vip-caustic-field" />
+                                      {/* Layer 2: Animated conical light-sweep (edge bevel refraction) */}
+                                      <div className="diamond-vip-bevel-sweep" />
+                                      {/* Layer 3: Chromatic aberration prismatic edge fringe */}
+                                      <div className="diamond-vip-chroma-edge" />
+                                      {/* Layer 4: Primary glass slab surface — optical translucent glass body */}
+                                      <div className="diamond-vip-glass-slab" />
+                                      {/* Layer 5: Specular hotspot — apex glint like sunlit glass corner */}
+                                      <div className="diamond-vip-specular-glint" />
+                                      {/* Layer 6: Outer hard rim — real glass catches a bright top edge */}
+                                      <div className="diamond-vip-rim-highlight" />
+                                      {/* Layer 7: Content — fully interactive on top */}
+                                      <div className="diamond-vip-content">
+                                        <div className="flex items-center justify-between gap-2">
                                           <div className="min-w-0">
-                                            <p className="truncate text-[11px] font-extrabold text-white flex items-center gap-1.5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                                              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-pink-300 bg-pink-500/80 text-[9px] font-bold text-white shadow-[0_0_10px_rgba(236,72,153,0.8)]">
-                                                💎
-                                              </span>
+                                            <p className="truncate text-[11px] font-extrabold text-white flex items-center gap-1.5" style={{ textShadow: '0 0 12px rgba(236,72,153,0.9), 0 2px 4px rgba(0,0,0,0.85)' }}>
+                                              <span className="diamond-vip-gem-badge">💎</span>
                                               @{item.handle}
                                             </p>
-                                            <p className="text-[10px] font-bold text-pink-100 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                                            <p className="text-[10px] font-bold text-pink-100 mt-0.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.85)' }}>
                                               {item.name || 'Diamond VIP'}
                                             </p>
                                           </div>
-                                          <div className="relative z-10">
-                                            <span className="rounded-full border border-pink-300/90 bg-pink-600/70 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-white shadow-[0_0_12px_rgba(236,72,153,0.7)]">
-                                              Diamond VIP
-                                            </span>
+                                          <div className="shrink-0">
+                                            <span className="diamond-vip-badge-pill">Diamond VIP</span>
                                           </div>
                                         </div>
-                                        <div className="relative z-10">
-                                          <p className="text-[10px] font-medium text-pink-100/95 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
-                                            Tap to open this Diamond VIP ID and send a direct connection request.
-                                          </p>
-                                        </div>
+                                        <p className="text-[10px] font-medium text-pink-100/90 mt-1.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+                                          Tap to open this Diamond VIP ID and send a direct connection request.
+                                        </p>
                                       </div>
                                     </div>
 
