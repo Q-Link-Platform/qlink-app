@@ -2,6 +2,7 @@
 
 import React from "react";
 import { createPortal } from "react-dom";
+import DiamondGlassCanvas from "./DiamondGlassCanvas";
 
 interface StoreModalProps {
   showStore: boolean;
@@ -233,17 +234,17 @@ export default function StoreModal({
                     transition: "transform 0.1s ease-out",
                     willChange: "transform",
                   }}
-                  className={`w-full max-w-[280px] rounded-3xl p-[1px] cursor-pointer relative overflow-hidden ${
+                  className={`w-full max-w-[280px] rounded-2xl cursor-pointer relative overflow-hidden ${
                     isDiamondSelected
-                      ? "founder-vip-diamond border border-pink-500/80 shadow-[0_0_30px_rgba(236,72,153,0.55)]"
+                      ? "diamond-vip-card-root"
                       : "founder-vip-sapphire founder-vip-sapphire-shine border border-sky-400/50 bg-gradient-to-br from-slate-950 via-sky-950/20 to-slate-950 shadow-[0_0_30px_rgba(56,189,248,0.5)]"
                   }`}
                 >
                   {/* Dynamic background layers for Diamond Card */}
                   {isDiamondSelected && (
                     <>
-                      <div className="founder-vip-diamond-bg-spectrum" />
-                      <div className="founder-vip-diamond-glass-layer" />
+                      <DiamondGlassCanvas />
+                      <div className="diamond-vip-glass-slab" />
                     </>
                   )}
 

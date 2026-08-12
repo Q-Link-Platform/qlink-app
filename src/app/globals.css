@@ -2235,129 +2235,55 @@ html.black .glass-panel {
   touch-action: manipulation;
 }
 
+/* Stop heavy continuous background GPU repaints for Founder & Sapphire cards */
+.founder-vip-aurora::before,
 .founder-vip-sapphire::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  background: linear-gradient(120deg,
-      rgba(6, 182, 212, 0.85),  /* Cyan 500 */
-      rgba(14, 165, 233, 0.8),   /* Sky 500 */
-      rgba(59, 130, 246, 0.9),   /* Blue 500 */
-      rgba(99, 102, 241, 0.85),  /* Indigo 500 */
-      rgba(6, 182, 212, 0.85));
-  background-size: 300% 300%;
-  animation: founder-vip-aurora 16s ease-in-out infinite;
-  opacity: 0.5;
-  filter: blur(16px);
-  mix-blend-mode: screen;
-  pointer-events: none;
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  will-change: transform, filter;
+  animation: none !important;
+  opacity: 0.25 !important;
+  filter: blur(12px) !important;
 }
 
-.founder-vip-sapphire-inner {
-  position: relative;
-  z-index: 10;
-  border-radius: inherit;
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  perspective: 1000px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
+.founder-vip-shine::after,
 .founder-vip-sapphire-shine::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background-image: linear-gradient(135deg,
-      rgba(6, 182, 212, 0.2),
-      rgba(14, 165, 233, 0.4),
-      rgba(59, 130, 246, 0.5),
-      rgba(99, 102, 241, 0.4),
-      rgba(6, 182, 212, 0.2));
-  background-size: 250% 250%;
-  mix-blend-mode: screen;
-  pointer-events: none;
-  animation: founder-vip-shine 12s ease-in-out infinite;
+  animation: none !important;
+  opacity: 0.15 !important;
 }
 
-/* Sapphire sweep diagonal line sweep */
+.founder-vip-line::before,
+.founder-vip-line-full::before,
+.founder-vip-line-full::after,
 .founder-vip-sapphire-line::before {
-  content: "";
-  position: absolute;
-  top: 18%;
-  bottom: 18%;
-  left: -20%;
-  width: 140%;
-  border-radius: 9999px;
-  background: linear-gradient(to right,
-      rgba(248, 250, 252, 0.0),
-      rgba(14, 165, 233, 0.4),
-      rgba(248, 250, 252, 1.0),
-      rgba(14, 165, 233, 0.4),
-      rgba(248, 250, 252, 0.0));
-  mix-blend-mode: screen;
-  pointer-events: none;
-  animation: founder-vip-line 5.5s ease-in-out infinite;
+  animation: none !important;
+  display: none !important;
 }
 
-.founder-vip-sapphire-line-full {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 5;
-}
-
-.founder-vip-sapphire-line-full::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(115deg,
-      rgba(255, 255, 255, 0) 30%,
-      rgba(14, 165, 233, 0.65) 40%,
-      rgba(255, 255, 255, 0.98) 50%,
-      rgba(14, 165, 233, 0.65) 60%,
-      rgba(255, 255, 255, 0) 70%);
-  background-size: 200% 100%;
-  mix-blend-mode: screen;
-  animation: founder-vip-sweep-smooth 6.5s ease-in-out infinite;
-  filter: brightness(1.4) contrast(1.1);
-  box-shadow:
-    0 0 18px rgba(14, 165, 233, 0.45),
-    0 0 35px rgba(14, 165, 233, 0.15);
+/* Enable subtle hover sheen on direct user hover only (zero idle CPU/GPU compute) */
+.founder-vip-sapphire:hover::before,
+.founder-vip-aurora:hover::before {
+  opacity: 0.45 !important;
+  transition: opacity 0.3s ease;
 }
 /* ============================================================
-   DIAMOND VIP CARD — Real-World Optical Glass Slab Engine
-   Physics: Edge bevel refraction · Caustic diffusion · Chromatic
-   aberration fringing · Specular apex glint · Hard rim highlight
+   DIAMOND VIP CARD — WebGL + CSS Hybrid Glass Engine
+
+   Architecture:
+     [0]  WebGL canvas   <DiamondGlassCanvas />   z-index: 1
+          Real fBm domain-warp caustic shader (same math as
+          Blender Cycles). Per-pixel GPU computation.
+     [4]  .diamond-vip-chroma-edge               z-index: 4
+          CSS inset box-shadow prismatic fringe ring
+     [5]  .diamond-vip-glass-slab                z-index: 5
+          backdrop-blur refractive slab + directional edge
+     [6]  .diamond-vip-specular-glint            z-index: 6
+          CSS radial specular apex pulse
+     [7]  .diamond-vip-rim-highlight             z-index: 7
+          Hard top-edge catch-light line
+     [10] .diamond-vip-content                   z-index: 10
+          Interactive UI content
    ============================================================ */
 
-/* === Keyframe Library === */
+/* Specular glint keyframe */
 
-/* Caustic field — organic, slow-drifting internal light scatter */
-@keyframes diamond-caustic-drift {
-  0%   { background-position: 0% 0%, 100% 100%, 50% 50%; opacity: 0.72; }
-  25%  { background-position: 60% 20%, 40% 80%, 80% 30%; opacity: 0.80; }
-  50%  { background-position: 100% 50%, 0% 50%, 20% 80%; opacity: 0.68; }
-  75%  { background-position: 30% 90%, 70% 10%, 60% 60%; opacity: 0.76; }
-  100% { background-position: 0% 0%, 100% 100%, 50% 50%; opacity: 0.72; }
-}
-
-/* Bevel sweep — directional refraction sweep across glass face */
-@keyframes diamond-bevel-sweep {
-  0%   { transform: translateX(-160%) skewX(-18deg) rotate(-1deg); opacity: 0; }
-  8%   { opacity: 0.85; }
-  92%  { opacity: 0.75; }
-  100% { transform: translateX(200%) skewX(-18deg) rotate(-1deg); opacity: 0; }
-}
-
-/* Specular glint — fast sharp apex flash (like sunlight catching glass corner) */
 @keyframes diamond-specular-pulse {
   0%, 100% { opacity: 0; transform: scale(0.6) translate(-15%, -15%); }
   45%       { opacity: 0; transform: scale(0.8) translate(-12%, -12%); }
@@ -2387,14 +2313,13 @@ html.black .glass-panel {
   border-radius: 1rem;
   overflow: hidden;
   isolation: isolate;
-  /* Hard outer border — the "glass edge" */
-  border: 1px solid rgba(236, 72, 153, 0.75);
-  /* Outer bloom drop-shadow */
+  /* Deep purple glass outer border */
+  border: 1px solid rgba(168, 85, 247, 0.60);
+  /* Outer purple bloom drop-shadow */
   box-shadow:
-    0 0 0 1px rgba(168, 85, 247, 0.35),
-    0 0 28px rgba(236, 72, 153, 0.55),
-    0 0 55px rgba(168, 85, 247, 0.25),
-    0 8px 32px rgba(0, 0, 0, 0.65);
+    0 0 0 1px rgba(147, 51, 234, 0.30),
+    0 0 24px rgba(168, 85, 247, 0.40),
+    0 8px 32px rgba(0, 0, 0, 0.75);
   /* GPU layer — offloaded compositing */
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
@@ -2410,8 +2335,8 @@ html.black .glass-panel {
   -webkit-mask-image: -webkit-radial-gradient(white, black);
   mask-image: radial-gradient(white, black);
   cursor: pointer;
-  /* No background on root — base layer provides it */
-  background: transparent;
+  /* Deep dark purple substrate background base */
+  background: linear-gradient(135deg, #100022 0%, #1a0033 100%);
 }
 
 .diamond-vip-card-root::-webkit-scrollbar,
@@ -2438,105 +2363,8 @@ html.black .glass-panel {
   transition: transform 0.1s ease;
 }
 
-/* === Layer 0: Deep Cyberpunk Purple Base === */
-/* This is the "glass substrate" — what lies beneath the glass */
-.diamond-vip-base {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    /* Corner depth pools — simulate light trapped in glass corners */
-    radial-gradient(ellipse at 10% 10%, rgba(139, 92, 246, 0.45) 0%, transparent 55%),
-    radial-gradient(ellipse at 90% 85%, rgba(236, 72, 153, 0.38) 0%, transparent 55%),
-    radial-gradient(ellipse at 55% 50%, rgba(91, 33, 182, 0.20) 0%, transparent 70%),
-    /* Solid cyberpunk base */
-    linear-gradient(145deg, #1a0036 0%, #2e0060 38%, #1a0038 62%, #0d0020 100%);
-}
 
-/* === Layer 1: Caustic Field === */
-/* Simulates light caustics inside glass — that shimmering pattern from refracted light */
-.diamond-vip-caustic-field {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 80% 60% at 30% 25%, rgba(255, 255, 255, 0.09) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 80% at 78% 65%, rgba(236, 72, 153, 0.14) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 60% 85%, rgba(168, 85, 247, 0.12) 0%, transparent 65%);
-  background-size: 200% 200%, 180% 180%, 220% 220%;
-  background-position: 0% 0%, 100% 100%, 50% 50%;
-  animation: diamond-caustic-drift 18s ease-in-out infinite;
-  mix-blend-mode: screen;
-}
-
-/* === Layer 2: Bevel Sweep === */
-/* The signature optical-glass effect — light sweeping across the glass bevel */
-.diamond-vip-bevel-sweep {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.diamond-vip-bevel-sweep::before {
-  content: '';
-  position: absolute;
-  /* Tall rectangle — taller than card for perspective skew */
-  top: -50%;
-  bottom: -50%;
-  /* Starts off-screen left */
-  left: -30%;
-  width: 40%;
-  /* Gradient: clear → white-pink glare → clear */
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255, 255, 255, 0.04) 20%,
-    rgba(236, 72, 153, 0.18) 38%,
-    rgba(255, 255, 255, 0.65) 50%,
-    rgba(168, 85, 247, 0.18) 62%,
-    rgba(255, 255, 255, 0.04) 80%,
-    transparent 100%
-  );
-  mix-blend-mode: screen;
-  filter: blur(3px);
-  pointer-events: none;
-  animation: diamond-bevel-sweep 9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-}
-
-/* Second sweep — slightly delayed, narrower, creates depth */
-.diamond-vip-bevel-sweep::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  bottom: -50%;
-  left: -20%;
-  width: 18%;
-  background: linear-gradient(
-    to right,
-    transparent 0%,
-    rgba(255, 255, 255, 0.02) 25%,
-    rgba(255, 255, 255, 0.95) 50%,
-    rgba(255, 255, 255, 0.02) 75%,
-    transparent 100%
-  );
-  mix-blend-mode: screen;
-  filter: blur(1.5px);
-  pointer-events: none;
-  animation: diamond-bevel-sweep 9s cubic-bezier(0.4, 0, 0.2, 1) 0.35s infinite;
-  will-change: transform;
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.25), 0 0 40px rgba(236, 72, 153, 0.15);
-}
-
-/* === Layer 3: Chromatic Aberration Edge Fringe === */
+/* === Layer 4 (above WebGL canvas): Chromatic Aberration Edge Fringe === */
 /* Real glass splits white light into colour at edges (prismatic diffraction) */
 .diamond-vip-chroma-edge {
   position: absolute;
@@ -2555,68 +2383,40 @@ html.black .glass-panel {
 }
 
 /* === Layer 4: Primary Glass Slab Surface === */
-/* The glass body itself — high-clarity, refractive translucency */
+/* The glass body itself — high-clarity, optical refractive translucency */
 .diamond-vip-glass-slab {
   position: absolute;
-  /* Inset slightly — creating the illusion of a floating glass panel above the purple substrate */
-  inset: 4px;
+  /* Inset slightly — creating the floating glass panel effect */
+  inset: 5px;
   z-index: 5;
   border-radius: 0.75rem;
   pointer-events: none;
-  /* Glass base: near-transparent with a very faint white tint */
+  /* High-clarity optical glass: translucent dark violet tint */
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.10) 0%,
-    rgba(255, 255, 255, 0.03) 30%,
-    rgba(168, 85, 247, 0.06) 60%,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(147, 51, 234, 0.04) 40%,
+    rgba(20, 0, 45, 0.20) 70%,
     rgba(255, 255, 255, 0.05) 100%
   );
-  /* Glass edge — bright top-left, subtle bottom-right (simulates directional light) */
-  border-top: 1px solid rgba(255, 255, 255, 0.55);
-  border-left: 1px solid rgba(255, 255, 255, 0.30);
-  border-right: 1px solid rgba(168, 85, 247, 0.25);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  /* Depth shadow: glass slab thickness illusion */
+  /* Glass edge — crisp 1px specular border */
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  /* Glass depth & drop shadow */
   box-shadow:
-    /* Inset top shine — glass surface catch-light */
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.55),
-    inset 0 2px 8px -1px rgba(255, 255, 255, 0.12),
-    /* Inset bottom shadow — glass bottom face darker */
-    inset 0 -2px 10px -2px rgba(0, 0, 0, 0.35),
-    /* Elevated outer drop — glass slab floating above base */
-    0 4px 20px rgba(0, 0, 0, 0.45),
-    0 1px 4px rgba(0, 0, 0, 0.30);
-  /* Backdrop blur — refraction of background through glass */
-  backdrop-filter: blur(16px) saturate(200%) brightness(1.08);
-  -webkit-backdrop-filter: blur(16px) saturate(200%) brightness(1.08);
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.40),
+    inset 0 -1px 4px 0 rgba(0, 0, 0, 0.40),
+    0 4px 20px rgba(0, 0, 0, 0.50);
+  /* Backdrop blur — clean optical glass blur without brightness distortion */
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
   /* GPU layer */
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
 }
 
-/* === Layer 5: Specular Glint === */
-/* The brilliant corner flash — like sunlight hitting a glass panel edge */
+/* === Layer 5: Specular Glint (Disabled to prevent white blob artifacts) === */
 .diamond-vip-specular-glint {
-  position: absolute;
-  /* Top-left corner — primary light source direction */
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 50%;
-  z-index: 6;
-  pointer-events: none;
-  /* Radial burst from top-left */
-  background: radial-gradient(
-    ellipse at 15% 15%,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 200, 240, 0.45) 18%,
-    rgba(236, 72, 153, 0.20) 35%,
-    transparent 65%
-  );
-  mix-blend-mode: screen;
-  animation: diamond-specular-pulse 7.5s ease-in-out 1.2s infinite;
-  filter: blur(1px);
-  will-change: opacity, transform;
+  display: none !important;
 }
 
 /* === Layer 6: Rim Highlight === */
@@ -2701,24 +2501,63 @@ html.black .glass-panel {
   white-space: nowrap;
 }
 
-/* Perf-low mode: disable heavy animations on 4GB RAM devices */
-html.perf-low .diamond-vip-caustic-field {
-  animation: none !important;
-}
-html.perf-low .diamond-vip-bevel-sweep::before,
-html.perf-low .diamond-vip-bevel-sweep::after {
-  animation: none !important;
-  opacity: 0 !important;
-}
+/* Perf-low mode: graceful degradation for 4GB RAM devices
+   WebGL canvas is hidden via display:none (handled in DiamondGlassCanvas via JS check),
+   CSS-only fallback uses opaque bg on glass-slab. */
 html.perf-low .diamond-vip-specular-glint {
   animation: none !important;
-  opacity: 0.4 !important;
+  opacity: 0.3 !important;
 }
 html.perf-low .diamond-vip-glass-slab {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  background: rgba(30, 0, 60, 0.75) !important;
+  /* Solid fallback — enough contrast without GPU blur */
+  background: linear-gradient(145deg, rgba(26, 0, 54, 0.95), rgba(20, 0, 42, 0.98)) !important;
 }
+html.perf-low .diamond-vip-chroma-edge {
+  animation: none !important;
+}
+
+/* ── VIDEO TEMPLATE MODE ─────────────────────────────────────────────────────
+   Apply class "diamond-vip-video-template" to .diamond-vip-card-root to hide
+   user-specific text (handle, name, tap line) for clean screen recording.
+   💎 badge + "Diamond VIP" pill remain fully visible in the recording.
+   After recording → remove this class and video plays under the live text.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Hide ALL content in template mode — pure animation only */
+.diamond-vip-video-template .diamond-vip-content,
+.diamond-vip-video-template .diamond-vip-gem-badge,
+.diamond-vip-video-template .diamond-vip-badge-pill,
+.diamond-vip-video-template .dvip-handle-text,
+.diamond-vip-video-template .dvip-name-line,
+.diamond-vip-video-template .dvip-tap-line {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Hide glass overlay layers — expose raw WebGL animation only */
+.diamond-vip-video-template .diamond-vip-glass-slab,
+.diamond-vip-video-template .diamond-vip-chroma-edge,
+.diamond-vip-video-template .diamond-vip-rim-highlight {
+  display: none !important;
+}
+
+/* Increase card size for recording — bigger canvas = easier to crop/loop */
+/* Parent <button> wraps the card — make it a block with fixed min dimensions */
+.diamond-vip-video-template {
+  min-height: 120px !important;
+  /* Scale up slightly via transform to fill more screen without layout shift */
+  transform: scale(1.18) !important;
+  transform-origin: top center !important;
+  /* Disable hover/active transforms in template mode */
+  transition: none !important;
+  margin-bottom: 10px !important;
+}
+
+
 
 
 

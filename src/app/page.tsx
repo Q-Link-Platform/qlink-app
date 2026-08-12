@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
   useRef,
+  useCallback,
   FormEvent,
   ChangeEvent,
   KeyboardEvent,
@@ -23,11 +24,15 @@ import { quantumAudio } from "@/lib/quantumAudio";
 import { EmergencyBeaconModal } from "@/components/EmergencyBeaconModal";
 import { countries } from "@/utils/countries";
 import dynamic from "next/dynamic";
-
 import { FeedVideoManagerProvider } from "@/context/FeedVideoManager";
 import { PerformanceProvider, usePerformance } from "@/app/providers/PerformanceProvider";
+import { ChatInputConsole } from "@/components/ChatInputConsole";
 
 const StoreModal = dynamic(() => import("@/components/StoreModal"), {
+  ssr: false,
+});
+
+const DiamondGlassCanvas = dynamic(() => import("@/components/DiamondGlassCanvas"), {
   ssr: false,
 });
 
@@ -3463,6 +3468,77 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     mediaRecorder.stop();
   };
 
+  const handleTypingPing = useCallback(() => {
+    if (!activePeerHandle) return;
+    fetch(`/api/presence/${encodeURIComponent(activePeerHandle)}?typing=1`, { method: "POST" }).catch(() => {});
+  }, [activePeerHandle]);
+
+  const handleSendMessage = useCallback(async (text: string) => {
+    if (!activePeerHandle) return;
+
+    const tempId = "temp-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7);
+    const meId = (effectiveSession?.user as any)?.id;
+
+    const optimisticMsg: ChatMessage = {
+      id: tempId,
+      content: text,
+      createdAt: new Date().toISOString(),
+      senderId: meId || "me",
+      isEncrypted: isE2EEnabled,
+    };
+
+    // 1. Instant optimistic UI dispatch (0ms latency feel!)
+    setChatMessages((prev) => [...prev, optimisticMsg]);
+
+    // Scroll to bottom immediately
+    setTimeout(() => {
+      if (chatScrollRef.current) {
+        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+      }
+    }, 10);
+
+    // Play subtle audio effect
+    try {
+      playSciFiSound("on");
+    } catch {}
+
+    // 2. Perform background encryption & server sync asynchronously
+    try {
+      let payloadText = text;
+      if (activePeerPublicKey) {
+        try {
+          const { encryptMessage } = await import("@/lib/e2e-crypto");
+          payloadText = await encryptMessage(text, activePeerPublicKey);
+        } catch (err) {
+          console.error("[E2E] Encryption failed before send:", err);
+        }
+      }
+
+      const res = await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toHandle: activePeerHandle,
+          content: payloadText,
+        }),
+      });
+
+      if (!res.ok) {
+        console.warn("Message send failed status:", res.status);
+      } else {
+        const data = await res.json();
+        if (data?.message) {
+          // Swap temp message with real server message object
+          setChatMessages((prev) =>
+            prev.map((m) => (m.id === tempId ? { ...data.message, content: text } : m))
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Message send network error:", err);
+    }
+  }, [activePeerHandle, activePeerPublicKey, effectiveSession?.user, isE2EEnabled]);
+
   const processSelectedFile = async (
     selected: File,
     kind: "file" | "video" | "image_video",
@@ -6287,41 +6363,36 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     onClick={() => handleDirectorySelect(item.handle)}
                                     className="w-full text-left"
                                   >
-                                    <div className="diamond-vip-card-root">
-                                      {/* === Real-World Optical Glass Slab — Video-Loop Grade Engine === */}
-                                      {/* Layer 0: Deep cyberpunk purple base */}
-                                      <div className="diamond-vip-base" />
-                                      {/* Layer 1: Caustic light diffusion — simulates raytraced glass internal scattering */}
-                                      <div className="diamond-vip-caustic-field" />
-                                      {/* Layer 2: Animated conical light-sweep (edge bevel refraction) */}
-                                      <div className="diamond-vip-bevel-sweep" />
-                                      {/* Layer 3: Chromatic aberration prismatic edge fringe */}
-                                      <div className="diamond-vip-chroma-edge" />
-                                      {/* Layer 4: Primary glass slab surface — optical translucent glass body */}
-                                      <div className="diamond-vip-glass-slab" />
-                                      {/* Layer 5: Specular hotspot — apex glint like sunlit glass corner */}
-                                      <div className="diamond-vip-specular-glint" />
-                                      {/* Layer 6: Outer hard rim — real glass catches a bright top edge */}
-                                      <div className="diamond-vip-rim-highlight" />
-                                      {/* Layer 7: Content — fully interactive on top */}
-                                      <div className="diamond-vip-content">
-                                        <div className="flex items-center justify-between gap-2">
-                                          <div className="min-w-0">
-                                            <p className="truncate text-[11px] font-extrabold text-white flex items-center gap-1.5" style={{ textShadow: '0 0 12px rgba(236,72,153,0.9), 0 2px 4px rgba(0,0,0,0.85)' }}>
-                                              <span className="diamond-vip-gem-badge">💎</span>
-                                              @{item.handle}
-                                            </p>
-                                            <p className="text-[10px] font-bold text-pink-100 mt-0.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.85)' }}>
-                                              {item.name || 'Diamond VIP'}
-                                            </p>
+                                    <div className="rounded-2xl border border-pink-500/80 bg-slate-950/95 p-2.5 overflow-hidden [clip-path:inset(0_round_1rem)] drop-shadow-[0_0_30px_rgba(236,72,153,0.55)]">
+                                      <div className="diamond-vip-card-root relative overflow-hidden rounded-2xl isolation-isolate">
+                                        {/* ── Video looping background ─────────── */}
+                                        <DiamondGlassCanvas />
+
+                                        {/* ── CSS overlay stack — above WebGL canvas ──────────── */}
+                                        <div className="diamond-vip-chroma-edge" />
+                                        <div className="diamond-vip-glass-slab" />
+                                        <div className="diamond-vip-rim-highlight" />
+
+                                        {/* ── User content — overlaid above video/glass layers ── */}
+                                        <div className="diamond-vip-content relative z-10 px-3 py-2 space-y-1.5 rounded-2xl bg-gradient-to-br from-slate-950/70 via-slate-900/60 to-slate-950/70 relative overflow-hidden">
+                                          <div className="flex items-center justify-between gap-2">
+                                            <div className="min-w-0">
+                                              <p className="truncate text-[11px] font-extrabold text-white flex items-center gap-1.5" style={{ textShadow: '0 0 12px rgba(236,72,153,0.9), 0 2px 4px rgba(0,0,0,0.85)' }}>
+                                                <span className="diamond-vip-gem-badge">💎</span>
+                                                <span className="dvip-handle-text">@{item.handle}</span>
+                                              </p>
+                                              <p className="dvip-name-line text-[10px] font-bold text-pink-100 mt-0.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.85)' }}>
+                                                {item.name || 'Diamond VIP'}
+                                              </p>
+                                            </div>
+                                            <div className="shrink-0">
+                                              <span className="diamond-vip-badge-pill">Diamond VIP</span>
+                                            </div>
                                           </div>
-                                          <div className="shrink-0">
-                                            <span className="diamond-vip-badge-pill">Diamond VIP</span>
-                                          </div>
+                                          <p className="dvip-tap-line text-[10px] font-medium text-pink-100/90 mt-1.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+                                            Tap to open this Diamond VIP ID and send a direct connection request.
+                                          </p>
                                         </div>
-                                        <p className="text-[10px] font-medium text-pink-100/90 mt-1.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
-                                          Tap to open this Diamond VIP ID and send a direct connection request.
-                                        </p>
                                       </div>
                                     </div>
 
@@ -10501,316 +10572,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </div>
                       )}
 
-                      <form
-                        onSubmit={handleChatSubmit}
-                        className="flex items-center gap-1.5 pt-0 relative z-[9999] w-full"
-                      >
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="*/*"
-                          className="hidden"
-                          onChange={(e) => handleAttachmentSelected(e, "file")}
-                        />
-                        <input
-                          ref={videoInputRef}
-                          type="file"
-                          accept="video/*"
-                          className="hidden"
-                          onChange={(e) => handleAttachmentSelected(e, "video")}
-                        />
-                        <input
-                          ref={imageVideoInputRef}
-                          type="file"
-                          accept="image/*,video/*"
-                          className="hidden"
-                          onChange={(e) => handleAttachmentSelected(e, "image_video")}
-                        />
-                        {isRecording ? (
-                          <div className="flex-1 flex items-center justify-between rounded-xl border border-rose-500/40 bg-[#09111c]/90 px-3 py-1.5 backdrop-blur-md animate-float-in h-9 sm:h-10">
-                            <div className="flex items-center gap-2">
-                              <div className="relative flex h-2 w-2 items-center justify-center">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-                              </div>
-                              <span className="text-[9px] font-bold uppercase tracking-wider text-rose-400 ml-1">
-                                Recording Voice
-                              </span>
-                              <span className="text-xs font-semibold text-slate-200 font-mono ml-1">
-                                {formatDuration(recordingDuration)}
-                              </span>
-                            </div>
-
-                            {/* Futuristic soundwave visualizer */}
-                            <div className="flex items-end gap-0.5 h-4 px-2">
-                              <span className="w-0.5 bg-cyan-400 rounded-full animate-cyberwave-1 origin-bottom h-3" />
-                              <span className="w-0.5 bg-cyan-400 rounded-full animate-cyberwave-2 origin-bottom h-4" />
-                              <span className="w-0.5 bg-cyan-500 rounded-full animate-cyberwave-3 origin-bottom h-2.5" />
-                              <span className="w-0.5 bg-blue-400 rounded-full animate-cyberwave-4 origin-bottom h-5" />
-                              <span className="w-0.5 bg-blue-500 rounded-full animate-cyberwave-5 origin-bottom h-3.5" />
-                              <span className="w-0.5 bg-purple-400 rounded-full animate-cyberwave-1 origin-bottom h-4" />
-                              <span className="w-0.5 bg-purple-500 rounded-full animate-cyberwave-2 origin-bottom h-2" />
-                            </div>
-
-                            {/* Stop and controls */}
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => stopRecording(false)}
-                                className="flex h-7 w-7 items-center justify-center rounded-full border border-red-500/40 bg-red-950/80 hover:bg-red-900/90 text-red-400 hover:text-red-300 hover:border-red-400/80 transition-all shadow-[0_0_8px_rgba(239,68,68,0.2)]"
-                                title="Cancel Recording"
-                              >
-                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => stopRecording(true)}
-                                className="flex h-7 w-7 items-center justify-center rounded-full border border-cyan-400/80 bg-gradient-to-tr from-cyan-400 via-sky-400 to-fuchsia-400 text-slate-950 font-bold hover:brightness-110 transition-all shadow-[0_0_8px_rgba(34,211,238,0.5)]"
-                                title="Send Voice Message"
-                              >
-                                <svg className="h-3.5 w-3.5 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            {/* Desktop Left Action Group (Hidden on Mobile sm:flex) */}
-                            <div className="hidden sm:flex items-center gap-1 shrink-0 z-[9999]">
-                              {/* Paperclip Button & Tooltip Container */}
-                              <div className="paperclip-container relative">
-                                <style dangerouslySetInnerHTML={{
-                                  __html: `
-                              .paperclip-tooltip {
-                                opacity: 0;
-                                transform: translateY(10px) scale(0.95);
-                                pointer-events: none;
-                                transition: all 0.2s ease-out;
-                              }
-                              .paperclip-container:hover .paperclip-tooltip {
-                                opacity: 1 !important;
-                                transform: translateY(0) scale(1) !important;
-                              }
-                            `}} />
-                                <button
-                                  type="button"
-                                  disabled={!activePeerHandle}
-                                  onClick={handleAttachButtonClick}
-                                  className="select-none flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-slate-600/50 bg-[#09111c]/95 text-slate-300 drop-shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300 hover:shadow-[0_0_10px_rgba(34,211,238,0.3)] active:scale-95 disabled:opacity-40 disabled:hover:translate-y-0"
-                                >
-                                  {isUploadingAttachment ? (
-                                    <svg className="h-4 w-4 animate-spin text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,0.8)] pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                  ) : (
-                                    <svg
-                                      viewBox="0 0 24 24"
-                                      aria-hidden="true"
-                                      className="h-4 w-4 sm:h-5 sm:w-5 pointer-events-none"
-                                      style={{ transform: "rotate(-45deg)" }}
-                                    >
-                                      <path
-                                        d="M8.5 11.75 13 7.25a2.5 2.5 0 1 1 3.54 3.54l-6.01 6.01a3.75 3.75 0 0 1-5.3-5.3l5.13-5.13"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="1.8"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                  )}
-                                </button>
-                                {/* Premium Cyber-Tooltip */}
-                                <div
-                                  className="paperclip-tooltip absolute bottom-[calc(100%+0.5rem)] left-0 z-[9999] whitespace-nowrap rounded-lg border border-cyan-500/40 bg-[#09111c]/95 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-wider text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)] backdrop-blur-md overflow-hidden scrollbar-hide after:absolute after:top-full after:left-[18px] sm:after:left-[20px] after:-translate-x-1/2 after:h-0 after:w-0 after:border-x-[4px] after:border-t-[4px] after:border-x-transparent after:border-t-[#09111c] before:absolute before:top-full before:left-[18px] sm:before:left-[20px] before:-translate-x-1/2 before:h-0 before:w-0 before:border-x-[5px] before:border-t-[5px] before:border-x-transparent before:border-t-cyan-500/40"
-                                >
-                                  <span className="flex items-center gap-1.5">
-                                    <span className="text-[10px]">📁</span>
-                                    Share files, videos or images
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Mic Button & Custom Tooltip Container */}
-                              <div className="mic-container relative">
-                                <style dangerouslySetInnerHTML={{
-                                  __html: `
-                              .mic-tooltip {
-                                opacity: 0;
-                                transform: translateY(10px) scale(0.95);
-                                pointer-events: none;
-                                transition: all 0.2s ease-out;
-                              }
-                              .mic-container:hover .mic-tooltip {
-                                opacity: 1 !important;
-                                transform: translateY(0) scale(1) !important;
-                              }
-                            `}} />
-                                <button
-                                  type="button"
-                                  disabled={!activePeerHandle || isUploadingAttachment}
-                                  onClick={startRecording}
-                                  className="select-none flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-slate-600/50 bg-[#09111c]/95 text-slate-300 drop-shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300 hover:shadow-[0_0_10px_rgba(34,211,238,0.3)] active:scale-95 disabled:opacity-40 disabled:hover:translate-y-0"
-                                >
-                                  <svg className="h-4 w-4 sm:h-5 sm:w-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                  </svg>
-                                </button>
-                                {/* Premium Cyber-Tooltip for Microphone */}
-                                <div
-                                  className="mic-tooltip absolute bottom-[calc(100%+0.5rem)] left-1/2 -translate-x-1/2 z-[9999] whitespace-nowrap rounded-lg border border-cyan-500/40 bg-[#09111c]/95 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-wider text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.25)] backdrop-blur-md overflow-hidden scrollbar-hide after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:h-0 after:w-0 after:border-x-[4px] after:border-t-[4px] after:border-x-transparent after:border-t-[#09111c] before:absolute before:top-full before:left-1/2 before:-translate-x-1/2 before:h-0 before:w-0 before:border-x-[5px] before:border-t-[5px] before:border-x-transparent before:border-t-cyan-500/40"
-                                >
-                                  <span className="flex items-center gap-1.5">
-                                    <span className="text-[10px]">🎙️</span>
-                                    Record Voice Message
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Mobile 3-Dots Button Container with Vertical Action Popover */}
-                            <div className="relative flex sm:hidden">
-                              {/* Vertical Mobile Floating Action Popover Card */}
-                              {showMobileChatMore && (
-                                <div className="absolute bottom-[calc(100%+0.5rem)] left-0 z-[9999] flex flex-col items-center gap-3 p-3 rounded-2xl border border-cyan-500/40 bg-[#09111c]/95 backdrop-blur-md shadow-[0_0_25px_rgba(6,182,212,0.35)] animate-float-in min-w-[3.5rem]">
-                                  {/* Circular Paperclip / Share File Button */}
-                                  <div className="flex flex-col items-center gap-0.5">
-                                    <button
-                                      type="button"
-                                      disabled={!activePeerHandle}
-                                      onClick={() => {
-                                        handleAttachButtonClick();
-                                        setShowMobileChatMore(false);
-                                      }}
-                                      className="select-none flex h-9 w-9 items-center justify-center rounded-full border border-slate-600/50 bg-[#09111c]/95 text-slate-300 drop-shadow-md transition-all duration-200 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300 active:scale-95 disabled:opacity-40"
-                                    >
-                                      {isUploadingAttachment ? (
-                                        <svg className="h-4 w-4 animate-spin text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,0.8)] pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                      ) : (
-                                        <svg
-                                          viewBox="0 0 24 24"
-                                          aria-hidden="true"
-                                          className="h-4 w-4 pointer-events-none"
-                                          style={{ transform: "rotate(-45deg)" }}
-                                        >
-                                          <path
-                                            d="M8.5 11.75 13 7.25a2.5 2.5 0 1 1 3.54 3.54l-6.01 6.01a3.75 3.75 0 0 1-5.3-5.3l5.13-5.13"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          />
-                                        </svg>
-                                      )}
-                                    </button>
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400">File</span>
-                                  </div>
-
-                                  {/* Circular Microphone / Voice Record Button */}
-                                  <div className="flex flex-col items-center gap-0.5">
-                                    <button
-                                      type="button"
-                                      disabled={!activePeerHandle || isUploadingAttachment}
-                                      onClick={() => {
-                                        startRecording();
-                                        setShowMobileChatMore(false);
-                                      }}
-                                      className="select-none flex h-9 w-9 items-center justify-center rounded-full border border-slate-600/50 bg-[#09111c]/95 text-slate-300 drop-shadow-md transition-all duration-200 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300 active:scale-95 disabled:opacity-40"
-                                    >
-                                      <svg className="h-4 w-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                                      </svg>
-                                    </button>
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400">Voice</span>
-                                  </div>
-
-                                  {/* Circular Q-BEACON Button */}
-                                  <div className="flex flex-col items-center gap-0.5">
-                                    <button
-                                      type="button"
-                                      disabled={!activePeerHandle || isSendingBeacon}
-                                      onClick={() => {
-                                        handleTriggerEmergencyBeacon();
-                                        setShowMobileChatMore(false);
-                                      }}
-                                      title="⚡ Send Priority Emergency Beacon (Bypasses DND)"
-                                      className="select-none flex h-9 w-9 items-center justify-center rounded-full border border-rose-500/80 bg-rose-600/90 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.6)] transition hover:bg-rose-500 active:scale-95 disabled:opacity-40"
-                                    >
-                                      ⚡
-                                    </button>
-                                    <span className="text-[8px] font-bold uppercase tracking-wider text-rose-300">Beacon</span>
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Mobile-Only Apple-Style Circular 3-Dots "More" Button */}
-                              <button
-                                type="button"
-                                disabled={!activePeerHandle}
-                                onClick={() => setShowMobileChatMore((prev) => !prev)}
-                                title="More Actions"
-                                className={`select-none flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-slate-200 transition-all duration-200 active:scale-95 disabled:opacity-40 ${showMobileChatMore
-                                    ? "border-cyan-400 bg-slate-800 text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.5)]"
-                                    : "border-slate-600/60 bg-[#09111c]/95 hover:border-cyan-400/50 hover:bg-slate-800 hover:text-cyan-300"
-                                  }`}
-                              >
-                                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                                  <circle cx="5" cy="12" r="2" />
-                                  <circle cx="12" cy="12" r="2" />
-                                  <circle cx="19" cy="12" r="2" />
-                                </svg>
-                              </button>
-                            </div>
-
-                            {/* Textarea Input Box (Clean, maximized workspace) */}
-                            <div className="relative flex-1 group">
-                              <textarea
-                                rows={1}
-                                value={chatInput}
-                                onChange={handleChatInputChange}
-                                onKeyDown={handleChatKeyDown}
-                                ref={chatInputRef}
-                                disabled={!activePeerHandle}
-                                className="min-h-[36px] max-h-24 sm:max-h-32 w-full resize-none rounded-xl border border-slate-600/70 bg-slate-950/70 pl-3 pr-3 py-1.5 text-xs text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-950 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)] sm:text-sm disabled:opacity-50"
-                                placeholder={
-                                  activePeerHandle
-                                    ? `Type a message to @${activePeerHandle}…`
-                                    : "Accept a request to start chatting…"
-                                }
-                              />
-                            </div>
-
-                            {/* Q-BEACON Emergency Priority Button (Desktop Only hidden sm:inline-flex) */}
-                            <button
-                              type="button"
-                              disabled={!activePeerHandle || isSendingBeacon}
-                              onClick={handleTriggerEmergencyBeacon}
-                              title="⚡ Send Priority Emergency Beacon (Bypasses DND)"
-                              className="select-none hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-500/80 bg-rose-600/90 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.6)] transition hover:bg-rose-500 active:scale-95 sm:h-10 sm:w-10 disabled:opacity-40"
-                            >
-                              ⚡
-                            </button>
-
-                            <button
-                              type="submit"
-                              disabled={!activePeerHandle || !chatInput.trim()}
-                              className="select-none inline-flex h-9 w-9 items-center justify-center rounded-full border border-cyan-400/80 bg-gradient-to-tr from-cyan-400 via-sky-400 to-fuchsia-400 text-xs font-medium text-slate-950 drop-shadow-[0_0_8px_rgba(34,211,238,0.7)] [clip-path:circle(50%)] transition hover:brightness-110 sm:h-10 sm:w-10 disabled:opacity-50"
-                            >
-                              <span className="send-arrow text-base leading-none text-slate-950">
-                                ↑
-                              </span>
-                            </button>
-                          </>
-                        )}
-                      </form>
+                      <ChatInputConsole
+                        activePeerHandle={activePeerHandle}
+                        onSend={handleSendMessage}
+                        onTypingPing={handleTypingPing}
+                        isUploadingAttachment={isUploadingAttachment}
+                        isRecording={isRecording}
+                        recordingDuration={recordingDuration}
+                        startRecording={startRecording}
+                        stopRecording={stopRecording}
+                        handleAttachButtonClick={handleAttachButtonClick}
+                        handleTriggerEmergencyBeacon={handleTriggerEmergencyBeacon}
+                        isSendingBeacon={isSendingBeacon}
+                        fileInputRef={fileInputRef}
+                        videoInputRef={videoInputRef}
+                        imageVideoInputRef={imageVideoInputRef}
+                        handleAttachmentSelected={handleAttachmentSelected}
+                        formatDuration={formatDuration}
+                      />
                     </div>
                     {beaconStatusMsg && (
                       <p className="mt-1 text-[10px] font-semibold text-rose-400 animate-pulse">
