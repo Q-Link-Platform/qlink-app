@@ -3497,11 +3497,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     }, 10);
 
-    // Play subtle audio effect
-    try {
-      playSciFiSound("on");
-    } catch {}
-
     // 2. Perform background encryption & server sync asynchronously
     try {
       let payloadText = text;
