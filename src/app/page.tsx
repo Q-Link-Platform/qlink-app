@@ -3500,7 +3500,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     // 2. Perform background encryption & server sync asynchronously
     try {
       let payloadText = text;
-      if (activePeerPublicKey) {
+      if (isE2EEnabled && activePeerPublicKey) {
         try {
           const { encryptMessage } = await import("@/lib/e2e-crypto");
           payloadText = await encryptMessage(text, activePeerPublicKey);
