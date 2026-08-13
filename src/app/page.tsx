@@ -4376,7 +4376,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               if (req.status === "ACCEPTED" && req.toUser?.handle && req.latestMessage) {
                 const peerHandle = req.toUser.handle;
                 const latestMsg = req.latestMessage;
-                const key = `qlink_last_msg_id_${peerHandle}`;
+                const key = `qlink_last_msg_id_${cleanHandle(peerHandle)}`;
                 const storedId = localStorage.getItem(key);
                 if (!storedId) {
                   localStorage.setItem(key, latestMsg.id);
@@ -4419,7 +4419,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               if (req.status === "ACCEPTED" && req.fromUser?.handle && req.latestMessage) {
                 const peerHandle = req.fromUser.handle;
                 const latestMsg = req.latestMessage;
-                const key = `qlink_last_msg_id_${peerHandle}`;
+                const key = `qlink_last_msg_id_${cleanHandle(peerHandle)}`;
                 const storedId = localStorage.getItem(key);
 
                 // Q-BEACON Priority Check
@@ -4527,7 +4527,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         // Update last seen message ID to local storage (only if window is focused)
         if (decryptedMessages.length > 0 && !isAppHidden) {
           const lastMsg = decryptedMessages[decryptedMessages.length - 1];
-          localStorage.setItem(`qlink_last_msg_id_${activePeerHandle}`, lastMsg.id);
+          localStorage.setItem(`qlink_last_msg_id_${cleanHandle(activePeerHandle)}`, lastMsg.id);
         }
 
 
@@ -5379,7 +5379,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       // Update last seen message ID to local storage
       if (uniqueMessages.length > 0) {
         const lastMsg = uniqueMessages[uniqueMessages.length - 1];
-        localStorage.setItem(`qlink_last_msg_id_${peerHandle}`, lastMsg.id);
+        localStorage.setItem(`qlink_last_msg_id_${cleanHandle(peerHandle)}`, lastMsg.id);
       }
 
       setUnreadMessages((prev) => markHandleAsRead(prev, peerHandle));
