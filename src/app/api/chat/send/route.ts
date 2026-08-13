@@ -65,6 +65,9 @@ export async function POST(request: Request) {
         createdAt: true,
         senderId: true,
         roomId: true,
+        status: true,
+        deliveredAt: true,
+        readAt: true,
       },
     });
 

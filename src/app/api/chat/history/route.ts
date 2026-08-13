@@ -102,6 +102,25 @@ export async function GET(request: Request) {
       attachments: attachmentsByMessage.get(m.id) ?? [],
     }));
 
+    // Auto-mark SENT messages from the PEER as DELIVERED now that this user (recipient) has fetched them
+    // This is fire-and-forget so it does not block the response
+    const sentMessageIds = messages
+      .filter((m: any) => m.senderId === peer.id && m.status === "SENT")
+      .map((m: any) => m.id);
+
+    if (sentMessageIds.length > 0) {
+      prisma.message.updateMany({
+        where: {
+          id: { in: sentMessageIds },
+          status: "SENT",
+        },
+        data: {
+          status: "DELIVERED",
+          deliveredAt: new Date(),
+        },
+      }).catch((e: any) => console.error("[chat/history] DELIVERED update failed:", e));
+    }
+
     return NextResponse.json({
       roomId,
       peer: {

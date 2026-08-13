@@ -349,6 +349,9 @@ type ChatMessage = {
   createdAt: string;
   senderId: string;
   isEncrypted?: boolean;
+  status?: "SENT" | "DELIVERED" | "READ" | string;
+  deliveredAt?: string | null;
+  readAt?: string | null;
 };
 
 type IncomingRequest = {
@@ -3483,6 +3486,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       createdAt: new Date().toISOString(),
       senderId: meId || "me",
       isEncrypted: isE2EEnabled,
+      status: "SENT",
     };
 
     // 1. Instant optimistic UI dispatch (0ms latency feel!)
@@ -4521,17 +4525,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         });
 
         setChatMessages((prev) => {
-          const decryptedIds = new Set(decryptedMessages.map((m) => m.id));
-          const filteredPrev = prev.filter(
-            (m) => decryptedIds.has(m.id) || m.id.startsWith("temp-")
-          );
-          const seen = new Set(filteredPrev.map((m) => m.id));
-          const unique = decryptedMessages.filter((m) => !seen.has(m.id));
-
-          if (unique.length === 0 && filteredPrev.length === prev.length) {
+          const decryptedMap = new Map(decryptedMessages.map((m) => [m.id, m]));
+          // Keep temp optimistic messages, update status on existing confirmed messages
+          const merged = prev.map((m) => {
+            if (m.id.startsWith("temp-")) return m;
+            const fresh = decryptedMap.get(m.id);
+            if (fresh) {
+              // Always patch with latest status from server (SENT -> DELIVERED -> READ)
+              return { ...m, status: fresh.status || m.status, readAt: fresh.readAt, deliveredAt: fresh.deliveredAt };
+            }
+            return m;
+          });
+          // Add brand-new messages we haven't seen yet
+          const existingIds = new Set(prev.map((m) => m.id));
+          const brandNew = decryptedMessages.filter((m) => !existingIds.has(m.id));
+          if (brandNew.length === 0 && merged.every((m, i) => m === prev[i])) {
             return prev;
           }
-          return [...filteredPrev, ...unique];
+          return [...merged, ...brandNew];
         });
 
         const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
@@ -5475,9 +5486,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       const message = decryptedArray[0];
 
       setChatMessages((prev) => {
-        // Avoid duplicate if polling already added this message
-        if (prev.some((m) => m.id === message.id)) return prev;
-        return [...prev, message];
+        // Replace optimistic temp message with confirmed server message (with real status)
+        const alreadyExists = prev.some((m) => m.id === message.id);
+        if (alreadyExists) {
+          // Update existing entry with latest status from server
+          return prev.map((m) => m.id === message.id ? { ...m, ...message } : m);
+        }
+        // Remove ALL pending temp messages then append the confirmed one from server
+        const withoutTemps = prev.filter((m) => !m.id.startsWith("temp-"));
+        return [...withoutTemps, { ...message, status: message.status || "SENT" }];
       });
       setChatInput("");
       if (chatInputRef.current) {
