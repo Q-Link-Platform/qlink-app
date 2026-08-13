@@ -1,5 +1,14 @@
 "use client";
 
+import { cleanHandle, areHandlesEqual, formatDisplayHandle } from "@/lib/handle-utils";
+import {
+  loadAndSanitizeUnreadMessages,
+  saveUnreadMessages,
+  markHandleAsRead,
+  addUnreadMessage,
+  isHandleUnread,
+} from "@/lib/unread-tracker";
+
 import React from "react";
 import {
   useEffect,
@@ -850,41 +859,22 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   }
 
   const [unreadMessages, setUnreadMessages] = useState<UnreadMessage[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("qlink_unread_messages");
-        if (stored) {
-          return JSON.parse(stored);
-        }
-      } catch {
-        // ignore
-      }
-    }
-    return [];
+    return loadAndSanitizeUnreadMessages();
   });
 
   useEffect(() => {
-    try {
-      localStorage.setItem("qlink_unread_messages", JSON.stringify(unreadMessages));
-    } catch {
-      // ignore
-    }
+    saveUnreadMessages(unreadMessages);
   }, [unreadMessages]);
 
   // Derived state to keep compatibility with existing UI includes check
   const unreadSenders = React.useMemo(() => {
-    return Array.from(new Set(unreadMessages.map((m) => m.sender)));
+    return Array.from(new Set(unreadMessages.map((m) => cleanHandle(m.sender)).filter(Boolean)));
   }, [unreadMessages]);
 
-  // Clear unread state for the active chat peer
+  // Clear unread state for the active chat peer (using canonical handle comparison)
   useEffect(() => {
     if (activePeerHandle) {
-      setUnreadMessages((prev) => {
-        if (prev.some((m) => m.sender === activePeerHandle)) {
-          return prev.filter((m) => m.sender !== activePeerHandle);
-        }
-        return prev;
-      });
+      setUnreadMessages((prev) => markHandleAsRead(prev, activePeerHandle));
     }
   }, [activePeerHandle]);
 
@@ -1261,12 +1251,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         }
       } else if (event.data && event.data.type === "NEW_MESSAGE_RECEIVED") {
         const from = event.data.fromHandle;
-        if (from && from !== activePeerHandle) {
-          setUnreadMessages((prev) => {
-            const msgId = event.data.messageId || `sw-${Date.now()}`;
-            if (prev.some((m) => m.id === msgId)) return prev;
-            return [...prev, { id: msgId, sender: from }];
-          });
+        if (from && !areHandlesEqual(from, activePeerHandle)) {
+          setUnreadMessages((prev) => addUnreadMessage(prev, event.data.messageId || `sw-${Date.now()}`, from));
         }
       }
     };
@@ -5396,7 +5382,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         localStorage.setItem(`qlink_last_msg_id_${peerHandle}`, lastMsg.id);
       }
 
-      setUnreadMessages((prev) => prev.filter((m) => m.sender !== peerHandle));
+      setUnreadMessages((prev) => markHandleAsRead(prev, peerHandle));
     } catch {
       setChatError("Unable to load conversation.");
       setChatMessages([]);
@@ -8973,7 +8959,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         <div className="min-w-0">
                           <p className="truncate text-xs text-slate-200 flex items-center">
                             @{req.toUser?.handle || "unknown"}
-                            {req.toUser?.handle && unreadSenders.includes(req.toUser.handle) && (
+                            {req.toUser?.handle && isHandleUnread(unreadMessages, req.toUser.handle) && (
                               <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse ml-1.5" title="New Message!" />
                             )}
                           </p>
@@ -9007,7 +8993,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 </button>
                               )}
                               {(() => {
-                                const isUnread = req.toUser?.handle && unreadSenders.includes(req.toUser.handle);
+                                const isUnread = req.toUser?.handle && isHandleUnread(unreadMessages, req.toUser.handle);
                                 return (
                                   <button
                                     type="button"
@@ -9142,7 +9128,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             <div className="min-w-0">
                               <p className="truncate text-[11px] text-slate-200 flex items-center">
                                 @{req.fromUser?.handle || "unknown"}
-                                {req.fromUser?.handle && unreadSenders.includes(req.fromUser.handle) && (
+                                {req.fromUser?.handle && isHandleUnread(unreadMessages, req.fromUser.handle) && (
                                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse ml-1.5" title="New Message!" />
                                 )}
                               </p>
@@ -9211,7 +9197,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 </button>
                               )}
                               {(() => {
-                                const isUnread = req.fromUser?.handle && unreadSenders.includes(req.fromUser.handle);
+                                const isUnread = req.fromUser?.handle && isHandleUnread(unreadMessages, req.fromUser.handle);
                                 return (
                                   <button
                                     type="button"
