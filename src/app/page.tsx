@@ -877,6 +877,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     if (activePeerHandle) {
       setUnreadMessages((prev) => markHandleAsRead(prev, activePeerHandle));
     }
+  }, [activePeerHandle]);
 
   // Send Read Receipt ACK verification when opening peer chat room
   useEffect(() => {
@@ -888,7 +889,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }).catch(() => {});
     }
   }, [activePeerHandle, status]);
-  }, [activePeerHandle]);
 
   // Dynamic App Badge & Electron taskbar overlay syncing
   useEffect(() => {
