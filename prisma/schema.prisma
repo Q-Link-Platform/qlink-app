@@ -82,9 +82,12 @@ model VerificationToken {
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  content     String
+  createdAt   DateTime  @default(now())
+  status      String    @default("SENT")
+  deliveredAt DateTime?
+  readAt      DateTime?
 
   senderId String
   sender   User     @relation("UserMessages", fields: [senderId], references: [id])

@@ -1,4 +1,5 @@
 "use client";
+import { MessageStatusTicks } from "@/components/MessageStatusTicks";
 
 import { cleanHandle, areHandlesEqual, formatDisplayHandle } from "@/lib/handle-utils";
 import {
@@ -876,6 +877,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     if (activePeerHandle) {
       setUnreadMessages((prev) => markHandleAsRead(prev, activePeerHandle));
     }
+
+  // Send Read Receipt ACK verification when opening peer chat room
+  useEffect(() => {
+    if (activePeerHandle && status === "authenticated") {
+      fetch("/api/chat/ack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ peerHandle: activePeerHandle, status: "READ" }),
+      }).catch(() => {});
+    }
+  }, [activePeerHandle, status]);
   }, [activePeerHandle]);
 
   // Dynamic App Badge & Electron taskbar overlay syncing
@@ -10351,6 +10363,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       <p className={`mt-1.5 text-[9px] font-mono tracking-wide select-none text-right ${isMe ? "text-slate-900/50" : "text-slate-500/80"
                                         }`}>
                                         {formatMsgDateFull(m.createdAt)}
+                                         <MessageStatusTicks status={(m as any).status} isMe={!!isMe} />
                                       </p>
                                     )}
                                   </div>

@@ -62,6 +62,9 @@ export async function GET(request: Request) {
         createdAt: true,
         senderId: true,
         roomId: true,
+        status: true,
+        deliveredAt: true,
+        readAt: true,
       },
     });
 
