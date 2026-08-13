@@ -12,9 +12,21 @@ export interface UnreadMessage {
 
 const STORAGE_KEY = "qlink_unread_messages";
 
+// Handles explicitly excluded from glowing unread indicators at the code level
+const EXCLUDED_UNREAD_HANDLES = new Set([
+  "cholachap8-3378",
+  "cholachap",
+]);
+
+function isExcludedHandle(handle: string | null | undefined): boolean {
+  const cleaned = cleanHandle(handle);
+  if (!cleaned) return false;
+  return EXCLUDED_UNREAD_HANDLES.has(cleaned) || cleaned.includes("cholachap");
+}
+
 /**
  * Loads and auto-sanitizes unread messages from localStorage.
- * Ensures all handles in storage are canonicalized (no leading '@', lowercased).
+ * Ensures all handles in storage are canonicalized and excludes blacklisted handles.
  */
 export function loadAndSanitizeUnreadMessages(): UnreadMessage[] {
   if (typeof window === "undefined") return [];
@@ -31,7 +43,7 @@ export function loadAndSanitizeUnreadMessages(): UnreadMessage[] {
     for (const item of parsed) {
       if (item && typeof item === "object" && typeof item.sender === "string" && typeof item.id === "string") {
         const canonicalSender = cleanHandle(item.sender);
-        if (canonicalSender) {
+        if (canonicalSender && !isExcludedHandle(canonicalSender)) {
           const uniqueKey = `${canonicalSender}:${item.id}`;
           if (!seenKeys.has(uniqueKey)) {
             seenKeys.add(uniqueKey);
@@ -62,7 +74,7 @@ export function saveUnreadMessages(messages: UnreadMessage[]): void {
   if (typeof window === "undefined") return;
   try {
     const canonical = messages
-      .filter((m) => Boolean(cleanHandle(m.sender)))
+      .filter((m) => Boolean(cleanHandle(m.sender)) && !isExcludedHandle(m.sender))
       .map((m) => ({
         id: m.id,
         sender: cleanHandle(m.sender),
@@ -95,7 +107,7 @@ export function addUnreadMessage(
   senderHandle: string | null | undefined
 ): UnreadMessage[] {
   const cleanSender = cleanHandle(senderHandle);
-  if (!cleanSender || !msgId) return messages;
+  if (!cleanSender || !msgId || isExcludedHandle(cleanSender)) return messages;
 
   // Check if message ID or sender already exists in unread set
   if (messages.some((m) => m.id === msgId && cleanHandle(m.sender) === cleanSender)) {
@@ -113,7 +125,7 @@ export function isHandleUnread(
   targetHandle: string | null | undefined
 ): boolean {
   const cleanTarget = cleanHandle(targetHandle);
-  if (!cleanTarget) return false;
+  if (!cleanTarget || isExcludedHandle(cleanTarget)) return false;
 
   return messages.some((m) => cleanHandle(m.sender) === cleanTarget);
 }
@@ -125,7 +137,7 @@ export function getUnreadSendersSet(messages: UnreadMessage[]): Set<string> {
   const set = new Set<string>();
   for (const m of messages) {
     const cleaned = cleanHandle(m.sender);
-    if (cleaned) set.add(cleaned);
+    if (cleaned && !isExcludedHandle(cleaned)) set.add(cleaned);
   }
   return set;
 }
