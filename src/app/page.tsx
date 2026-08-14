@@ -6432,7 +6432,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                         <div className="diamond-vip-rim-highlight" />
 
                                         {/* ── User content — overlaid above video/glass layers ── */}
-                                        <div className="diamond-vip-content relative z-10 px-3 py-2 space-y-1.5 rounded-2xl bg-gradient-to-br from-slate-950/30 via-slate-900/20 to-slate-950/30 relative overflow-hidden">
+                                        <div className="diamond-vip-content relative z-10 px-3 py-2 space-y-1.5 rounded-2xl bg-gradient-to-br from-slate-950/70 via-slate-900/60 to-slate-950/70 relative overflow-hidden">
                                           <div className="flex items-center justify-between gap-2">
                                             <div className="min-w-0">
                                               <p className="truncate text-[11px] font-extrabold text-white flex items-center gap-1.5" style={{ textShadow: '0 0 12px rgba(236,72,153,0.9), 0 2px 4px rgba(0,0,0,0.85)' }}>
