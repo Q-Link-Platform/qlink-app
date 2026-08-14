@@ -31,6 +31,7 @@ export async function POST(request: Request) {
         handle: { equals: cleanedToHandle, mode: "insensitive" },
       },
     });
+
     if (!peer) {
       return NextResponse.json({ error: "Peer not found" }, { status: 404 });
     }
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
         content: content.trim(),
         senderId: meId,
         roomId,
+        status: "SENT",
       },
       select: {
         id: true,
@@ -77,7 +79,14 @@ export async function POST(request: Request) {
       },
     });
 
-    // Fire push notifications asynchronously in the background so it doesn't block the API response time
+    // Determine if recipient is actively online right now (last 45 seconds)
+    const isPeerActivelyOnline = peer.lastSeenAt
+      ? Date.now() - new Date(peer.lastSeenAt).getTime() < 45_000
+      : false;
+
+    let isDeliveredThroughNetwork = isPeerActivelyOnline;
+
+    // Fire push notifications across the global push gateway (FCM / APNs / WebPush)
     try {
       const pushSubscriptions = await (prisma as any).pushSubscription.findMany({
         where: { userId: peer.id },
@@ -94,12 +103,18 @@ export async function POST(request: Request) {
           title: `New Message from @${senderHandle}`,
           body: notificationBody,
           url: `/?chat=${senderHandle}`,
+          messageId: message.id,
+          data: {
+            messageId: message.id,
+            type: "NEW_MESSAGE",
+            senderHandle: senderHandle,
+            roomId: roomId,
+          },
         };
 
         const { sendPushNotification } = await import("@/lib/push");
-        
-        // We await the Promise.allSettled to ensure Vercel completes sending push notifications before returning the response
-        await Promise.allSettled(
+
+        const pushResults = await Promise.allSettled(
           pushSubscriptions.map((sub: any) =>
             sendPushNotification(sub, payload).catch(async (err: any) => {
               // Automatically prune expired/invalid notification endpoints
@@ -111,12 +126,41 @@ export async function POST(request: Request) {
                   console.error(`[PUSH] Failed to prune subscription: ${sub.id}`, dbErr);
                 }
               }
+              throw err;
             })
           )
         );
+
+        // If at least one push notification was successfully accepted/delivered across the network
+        const hasSuccessfulPush = pushResults.some((r) => r.status === "fulfilled");
+        if (hasSuccessfulPush) {
+          isDeliveredThroughNetwork = true;
+        }
       }
     } catch (pushErr) {
       console.error("[PUSH ERROR IN SEND ROUTE]", pushErr);
+    }
+
+    // If verified delivered to recipient's device / active network queue, mark DELIVERED in DB
+    if (isDeliveredThroughNetwork) {
+      const now = new Date();
+      prisma.message
+        .update({
+          where: { id: message.id },
+          data: {
+            status: "DELIVERED",
+            deliveredAt: now,
+          },
+        })
+        .catch((e: any) => console.error("[chat/send] DELIVERED update error:", e));
+
+      return NextResponse.json({
+        message: {
+          ...message,
+          status: "DELIVERED",
+          deliveredAt: now.toISOString(),
+        },
+      });
     }
 
     return NextResponse.json({ message });

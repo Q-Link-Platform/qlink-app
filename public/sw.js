@@ -45,7 +45,17 @@ self.addEventListener("push", (event) => {
 
   const promise = (async () => {
     try {
-      // 1. Always show the notification so Android Chrome never triggers fallback system notice
+      // 1. Send hardware delivery ACK to server so sender gets Double Grey Tick instantly
+      const msgId = (payload && payload.data && payload.data.messageId) || (payload && payload.messageId);
+      if (msgId) {
+        fetch("/api/chat/delivery-ack", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messageId: msgId }),
+        }).catch((e) => console.error("[SW] Delivery ACK error:", e));
+      }
+
+      // 2. Always show the notification so Android Chrome never triggers fallback system notice
       await self.registration.showNotification(title, options);
 
       // 2. Query all currently showing notifications to compute badge count
