@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { prismaAttachments } from "@/lib/prismaAttachments";
+import { cleanHandle } from "@/lib/handle-utils";
 
 function buildRoomId(a: string, b: string) {
   return [a, b].sort().join(":");
@@ -24,7 +25,12 @@ export async function GET(request: Request) {
 
     const meId = (session.user as any).id as string;
 
-    const peer = await prisma.user.findUnique({ where: { handle: peerHandle } });
+    const cleanedPeerHandle = cleanHandle(peerHandle);
+    const peer = await prisma.user.findFirst({
+      where: {
+        handle: { equals: cleanedPeerHandle, mode: "insensitive" },
+      },
+    });
     if (!peer) {
       return NextResponse.json({ error: "Peer not found" }, { status: 404 });
     }
@@ -119,6 +125,14 @@ export async function GET(request: Request) {
           deliveredAt: new Date(),
         },
       }).catch((e: any) => console.error("[chat/history] DELIVERED update failed:", e));
+
+      // Patch in memory so current response returns DELIVERED immediately
+      for (const m of messagesWithAttachments) {
+        if (m.senderId === peer.id && m.status === "SENT") {
+          m.status = "DELIVERED";
+          m.deliveredAt = new Date().toISOString();
+        }
+      }
     }
 
     return NextResponse.json({

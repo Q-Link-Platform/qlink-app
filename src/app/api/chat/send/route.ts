@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { sendMessageSchema, validateRequest } from "@/lib/validation";
 import { touchUserPresence } from "@/lib/presence";
+import { cleanHandle } from "@/lib/handle-utils";
 
 function buildRoomId(a: string, b: string) {
   return [a, b].sort().join(":");
@@ -24,7 +25,12 @@ export async function POST(request: Request) {
     const meId = (session.user as any).id as string;
     touchUserPresence(meId);
 
-    const peer = await prisma.user.findUnique({ where: { handle: toHandle } });
+    const cleanedToHandle = cleanHandle(toHandle);
+    const peer = await prisma.user.findFirst({
+      where: {
+        handle: { equals: cleanedToHandle, mode: "insensitive" },
+      },
+    });
     if (!peer) {
       return NextResponse.json({ error: "Peer not found" }, { status: 404 });
     }

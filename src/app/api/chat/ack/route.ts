@@ -31,8 +31,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing peerHandle" }, { status: 400 });
     }
 
-    const peer = await prisma.user.findUnique({
-      where: { handle: cleanedPeerHandle },
+    const peer = await prisma.user.findFirst({
+      where: {
+        handle: { equals: cleanedPeerHandle, mode: "insensitive" },
+      },
     });
 
     if (!peer) {

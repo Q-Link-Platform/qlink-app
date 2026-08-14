@@ -882,7 +882,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   }, [activePeerHandle]);
 
-  // Send Read Receipt ACK verification when opening peer chat room
+  // Send Read Receipt ACK verification when opening room OR receiving new messages while room is open
   useEffect(() => {
     if (activePeerHandle && status === "authenticated") {
       fetch("/api/chat/ack", {
@@ -891,7 +891,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         body: JSON.stringify({ peerHandle: activePeerHandle, status: "READ" }),
       }).catch(() => {});
     }
-  }, [activePeerHandle, status]);
+  }, [activePeerHandle, status, chatMessages.length]);
 
   // Dynamic App Badge & Electron taskbar overlay syncing
   useEffect(() => {
