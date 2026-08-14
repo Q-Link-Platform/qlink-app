@@ -58,7 +58,7 @@ export default function DiamondGlassCanvas() {
     pointerEvents : 'none',
     objectFit     : 'cover',
     zIndex        : 1,
-    filter        : 'brightness(1.10)',
+    filter        : 'brightness(1.22)',
   };
 
 
