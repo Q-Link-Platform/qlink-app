@@ -1,253 +1,5 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { usePerformance } from "@/app/providers/PerformanceProvider";
-import { ThemeToggle } from "@/components/ThemeToggle";
-
-function PerformanceSettingsCard({ isQuantum = true }: { isQuantum?: boolean }) {
-  const { perfMode, resolvedPerfMode, setPerfMode } = usePerformance();
-
-  const handleSelect = (mode: "high" | "low" | "auto") => {
-    setPerfMode(mode);
-  };
-
-  return (
-    <div
-      className={`space-y-3 rounded-2xl p-4 transition-all duration-300 ${
-        isQuantum
-          ? "border border-cyan-500/25 bg-gradient-to-b from-cyan-950/25 via-slate-900/40 to-slate-950/60 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.2),inset_0_0_20px_rgba(6,182,212,0.06)] hover:border-cyan-400/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)]"
-          : "border border-white/[0.15] bg-gradient-to-b from-white/[0.09] to-white/[0.03] backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:border-white/30 hover:from-white/[0.12]"
-      }`}
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div
-            className={`flex h-6 w-6 items-center justify-center rounded-full border ${
-              isQuantum
-                ? "bg-cyan-400/15 border-cyan-400/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
-                : "bg-white/10 border-white/25"
-            }`}
-          >
-            <svg
-              className={`h-3.5 w-3.5 ${isQuantum ? "text-cyan-300" : "text-white"}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span className="text-[12px] font-bold tracking-wide text-slate-100">Hardware & GPU Tier</span>
-        </div>
-        <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase border backdrop-blur-xl ${
-            resolvedPerfMode === "low"
-              ? "bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.25)]"
-              : isQuantum
-              ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
-              : "bg-white/15 text-white border-white/30 shadow-[0_0_10px_rgba(255,255,255,0.2)]"
-          }`}
-        >
-          <span
-            className={`inline-block h-1.5 w-1.5 rounded-full ${
-              resolvedPerfMode === "low" ? "bg-amber-400" : isQuantum ? "bg-cyan-400" : "bg-white"
-            } animate-pulse`}
-          />
-          {resolvedPerfMode === "low" ? "4GB Low Spec" : "8GB+ Ultra"}
-        </span>
-      </div>
-
-      <p className={`text-[11px] leading-relaxed ${isQuantum ? "text-cyan-100/60" : "text-white/55"}`}>
-        Tune animation shaders & GPU frame rendering for your device RAM.
-      </p>
-
-      {/* Segmented Control */}
-      <div
-        className={`grid grid-cols-3 gap-1.5 rounded-xl p-1.5 shadow-inner ${
-          isQuantum
-            ? "border border-cyan-500/30 bg-black/50 backdrop-blur-2xl shadow-[inset_0_2px_6px_rgba(0,0,0,0.6)]"
-            : "border border-white/[0.12] bg-black/30 backdrop-blur-xl"
-        }`}
-      >
-        <button
-          type="button"
-          onClick={() => handleSelect("high")}
-          className={`flex flex-col items-center justify-center rounded-lg py-2 px-1 text-[11px] font-bold transition-all duration-300 ${
-            perfMode === "high"
-              ? isQuantum
-                ? "bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 text-slate-950 shadow-[0_0_18px_rgba(6,182,212,0.6)] scale-[1.03]"
-                : "bg-gradient-to-r from-cyan-400 to-sky-400 text-slate-950 shadow-[0_2px_12px_rgba(34,211,238,0.45)] font-semibold scale-[1.02]"
-              : isQuantum
-              ? "text-slate-400 hover:text-cyan-200 hover:bg-cyan-500/10"
-              : "text-white/50 hover:text-white/90 hover:bg-white/[0.06]"
-          }`}
-        >
-          <span className="flex items-center gap-1">🚀 8GB+</span>
-          <span className="text-[9px] opacity-90 font-medium">High FPS</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleSelect("low")}
-          className={`flex flex-col items-center justify-center rounded-lg py-2 px-1 text-[11px] font-bold transition-all duration-300 ${
-            perfMode === "low"
-              ? "bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-[0_0_18px_rgba(251,191,36,0.6)] scale-[1.03]"
-              : isQuantum
-              ? "text-slate-400 hover:text-amber-200 hover:bg-amber-500/10"
-              : "text-white/50 hover:text-white/90 hover:bg-white/[0.06]"
-          }`}
-        >
-          <span className="flex items-center gap-1">⚡ 4GB</span>
-          <span className="text-[9px] opacity-90 font-medium">Zero Lag</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => handleSelect("auto")}
-          className={`flex flex-col items-center justify-center rounded-lg py-2 px-1 text-[11px] font-bold transition-all duration-300 ${
-            perfMode === "auto"
-              ? isQuantum
-                ? "bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 text-white shadow-[0_0_18px_rgba(139,92,246,0.6)] border border-violet-400/40 scale-[1.03]"
-                : "bg-white/25 text-white border border-white/25 shadow-[0_2px_12px_rgba(0,0,0,0.3)] backdrop-blur-xl font-semibold scale-[1.02]"
-              : isQuantum
-              ? "text-slate-400 hover:text-violet-200 hover:bg-violet-500/10"
-              : "text-white/50 hover:text-white/90 hover:bg-white/[0.06]"
-          }`}
-        >
-          <span className="flex items-center gap-1">🤖 Auto</span>
-          <span className="text-[9px] opacity-90 font-medium">Smart RAM</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export interface SettingsModalProps {
-  showSettings: boolean;
-  isSettingsAnimating: boolean;
-  setShowSettings: (v: boolean) => void;
-  setIsSettingsAnimating: (v: boolean) => void;
-  settingsScreen: string;
-  setSettingsScreen: (v: string) => void;
-  settingsGlassTheme: "quantum" | "crystal";
-  toggleSettingsGlassTheme: () => void;
-  canUseDom: boolean;
-  session: any;
-  currentHandle?: string;
-  emailVisibility: "public" | "private";
-  setEmailVisibility: (v: "public" | "private") => void;
-  desktopNotificationsEnabled: boolean;
-  toggleDesktopNotifications: (enabled: boolean) => void;
-  isPushEnabled: boolean;
-  togglePushNotifications: (enabled: boolean) => void;
-  isE2EEnabled: boolean;
-  setIsE2EEnabled: (enabled: boolean) => void;
-  showOnboarding: boolean;
-  setShowOnboarding: (v: boolean) => void;
-  setOnboardingStep: (v: number) => void;
-  displayName: string;
-  nameDraft: string;
-  setNameDraft: (v: string) => void;
-  bioDraft: string;
-  setBioDraft: (v: string) => void;
-  bioVisibility: "public" | "private";
-  setBioVisibility: (v: "public" | "private") => void;
-  age: number | null;
-  setAge?: (v: number) => void;
-  ageVisibility: "public" | "private";
-  setAgeVisibility: (v: "public" | "private") => void;
-  gender: string;
-  setGender?: (v: string) => void;
-  genderVisibility: "public" | "private";
-  setGenderVisibility: (v: "public" | "private") => void;
-  selectedInterests: string[];
-  setSelectedInterests: (v: string[]) => void;
-  interestsVisibility: "public" | "private";
-  setInterestsVisibility: (v: "public" | "private") => void;
-  showLogoutConfirm: boolean;
-  setShowLogoutConfirm: (v: boolean) => void;
-  handleSignOut: () => void;
-  playSciFiSound?: (type: string) => void;
-  setDisplayName?: (v: string | null) => void;
-}
-
-export default function SettingsModal(props: SettingsModalProps) {
-  const {
-    showSettings,
-    isSettingsAnimating,
-    setShowSettings,
-    setIsSettingsAnimating,
-    settingsScreen,
-    setSettingsScreen,
-    settingsGlassTheme,
-    toggleSettingsGlassTheme,
-    canUseDom,
-    session,
-    currentHandle,
-    emailVisibility,
-    setEmailVisibility,
-    desktopNotificationsEnabled,
-    toggleDesktopNotifications,
-    isPushEnabled,
-    togglePushNotifications,
-    isE2EEnabled,
-    setIsE2EEnabled,
-    showOnboarding,
-    setShowOnboarding,
-    setOnboardingStep,
-    displayName,
-    nameDraft,
-    setNameDraft,
-    bioDraft,
-    setBioDraft,
-    bioVisibility,
-    setBioVisibility,
-    age,
-    setAge = () => {},
-    ageVisibility,
-    setAgeVisibility,
-    gender,
-    setGender = () => {},
-    genderVisibility,
-    setGenderVisibility,
-    selectedInterests,
-    setSelectedInterests,
-    interestsVisibility,
-    setInterestsVisibility,
-    showLogoutConfirm,
-    setShowLogoutConfirm,
-    handleSignOut,
-    playSciFiSound = () => {},
-    setDisplayName = () => {},
-  } = props;
-
-  const isElectron = typeof window !== "undefined" && Boolean((window as any).electronAPI);
-
-  const interestsCategories = [
-    "Technology", "Artificial Intelligence", "Machine Learning", "Deep Learning",
-    "Robotics", "Automation", "Software Development", "Web Development", "App Development",
-    "Game Development", "Cybersecurity", "Ethical Hacking", "Cloud Computing", "DevOps",
-    "Blockchain", "Web3", "Data Science", "Big Data", "UI/UX Design", "Product Management",
-    "Open Source", "Competitive Programming", "Startups", "Venture Capital", "Finance",
-    "Economics", "Marketing", "Content Creation", "Gaming", "Esports", "Anime", "Movies",
-    "Music", "Podcasts", "Books", "Philosophy", "Psychology", "Fitness", "Health", "Sports"
-  ];
-
-  const toggleInterest = (interest: string) => {
-    if (setSelectedInterests) {
-      if (selectedInterests.includes(interest)) {
-        setSelectedInterests(selectedInterests.filter((i: string) => i !== interest));
-      } else {
-        setSelectedInterests([...selectedInterests, interest]);
-      }
-    }
-  };
-
-
-  if (!showSettings && !isSettingsAnimating) return null;
-
-  const modalContent = (
+                  (canUseDom
+                    ? createPortal(
                       <div
                         className={`fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-xl px-4 ${showSettings ? (isSettingsAnimating ? 'settings-backdrop-enter' : '') : 'settings-backdrop-exit'
                           }`}
@@ -1168,8 +920,188 @@ export default function SettingsModal(props: SettingsModalProps) {
                             </div>
                           </div>
                         )}
-                      </div>
-  );
+                      </div>,
+                      document.body,
+                    )
+                    : (
+                      <div className="mt-3 space-y-2 rounded-2xl border border-slate-700/80 bg-slate-950/90 px-3 py-3 text-[11px] text-slate-200">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-medium text-slate-200">Account</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsSettingsAnimating(true);
+                              setTimeout(() => setShowSettings(false), 600);
+                            }}
+                            className="flex items-center justify-center gap-1 rounded-full border border-slate-600/70 bg-slate-900/80 px-3 py-1.5 text-[11px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                            Close
+                          </button>
+                        </div>
+                        <p className="text-[11px] text-slate-200">
+                          Quantum ID: @{currentHandle || (session as any)?.user?.handle || "not-set"}
+                        </p>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="min-w-0 truncate">Email: {emailVisibility === "public" ? ((session as any)?.user?.email || "no-email-linked") : "Hidden"}</p>
+                          <div className="inline-flex h-8 items-center rounded-full border border-cyan-500/30 bg-black/50 backdrop-blur-2xl p-1 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+                            <button
+                              type="button"
+                              onClick={() => setEmailVisibility("private")}
+                              className={
+                                "rounded-full px-2 py-0.5 text-[10px] font-medium transition " +
+                                (emailVisibility === "private"
+                                  ? "bg-slate-200 text-slate-950"
+                                  : "text-slate-300 hover:text-slate-100")
+                              }
+                            >
+                              Private
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEmailVisibility("public")}
+                              className={
+                                "rounded-full px-2 py-0.5 text-[10px] font-medium transition " +
+                                (emailVisibility === "public"
+                                  ? "bg-cyan-500/80 text-slate-950"
+                                  : "text-slate-300 hover:text-slate-100")
+                              }
+                            >
+                              Public
+                            </button>
+                          </div>
+                        </div>
+                        <p>Name: {displayName || nameDraft || (session as any)?.user?.name || "Not set"}</p>
+                        <div className="flex items-center justify-between gap-2">
+                          <p>Age: {ageVisibility === "public" ? (age ?? "Not set") : "Hidden"}</p>
+                          <div className="inline-flex h-8 items-center rounded-full border border-cyan-500/30 bg-black/50 backdrop-blur-2xl p-1 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+                            <button
+                              type="button"
+                              onClick={() => setAgeVisibility("private")}
+                              className={
+                                "rounded-full px-2 py-0.5 text-[10px] font-medium transition " +
+                                (ageVisibility === "private"
+                                  ? "bg-slate-200 text-slate-950"
+                                  : "text-slate-300 hover:text-slate-100")
+                              }
+                            >
+                              Private
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setAgeVisibility("public")}
+                              className={
+                                "rounded-full px-2 py-0.5 text-[10px] font-medium transition " +
+                                (ageVisibility === "public"
+                                  ? "bg-cyan-500/80 text-slate-950"
+                                  : "text-slate-300 hover:text-slate-100")
+                              }
+                            >
+                              Public
+                            </button>
+                          </div>
+                        </div>
 
-  return canUseDom ? createPortal(modalContent, document.body) : null;
-}
+                        <div className="flex items-center justify-between gap-2">
+                          <p>Gender: {genderVisibility === "public" ? (gender || "Not set") : "Hidden"}</p>
+                          <div className="inline-flex h-8 items-center rounded-full border border-cyan-500/30 bg-black/50 backdrop-blur-2xl p-1 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+                            <button
+                              type="button"
+                              onClick={() => setGenderVisibility("private")}
+                              className={
+                                "rounded-full px-2 py-0.5 text-[10px] font-medium transition " +
+                                (genderVisibility === "private"
+                                  ? "bg-slate-200 text-slate-950"
+                                  : "text-slate-300 hover:text-slate-100")
+                              }
+                            >
+                              Private
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setGenderVisibility("public")}
+                              className={
+                                "rounded-full px-2 py-0.5 text-[10px] font-medium transition " +
+                                (genderVisibility === "public"
+                                  ? "bg-cyan-500/80 text-slate-950"
+                                  : "text-slate-300 hover:text-slate-100")
+                              }
+                            >
+                              Public
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="min-w-0 truncate">Bio: {bioVisibility === "public" ? (bioDraft.trim() || "No bio added yet.") : "Hidden"}</p>
+                          <div className="inline-flex h-8 items-center rounded-full border border-cyan-500/30 bg-black/50 backdrop-blur-2xl p-1 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+                            <button
+                              type="button"
+                              onClick={() => setBioVisibility("private")}
+                              className={
+                                "rounded-full px-2 py-0.5 text-[10px] font-medium transition " +
+                                (bioVisibility === "private"
+                                  ? "bg-slate-200 text-slate-950"
+                                  : "text-slate-300 hover:text-slate-100")
+                              }
+                            >
+                              Private
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setBioVisibility("public")}
+                              className={
+                                "rounded-full px-2 py-0.5 text-[10px] font-medium transition " +
+                                (bioVisibility === "public"
+                                  ? "bg-cyan-500/80 text-slate-950"
+                                  : "text-slate-300 hover:text-slate-100")
+                              }
+                            >
+                              Public
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between gap-2">
+                          <p>Interested fields: {interestsVisibility === "public" ? (selectedInterests.length > 0 ? `${selectedInterests.length} selected` : "None selected") : "Hidden"}</p>
+                          <div className="inline-flex h-8 items-center rounded-full border border-cyan-500/30 bg-black/50 backdrop-blur-2xl p-1 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+                            <button
+                              type="button"
+                              onClick={() => setInterestsVisibility("private")}
+                              className={
+                                "rounded-full px-2 py-0.5 text-[10px] font-medium transition " +
+                                (interestsVisibility === "private"
+                                  ? "bg-slate-200 text-slate-950"
+                                  : "text-slate-300 hover:text-slate-100")
+                              }
+                            >
+                              Private
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setInterestsVisibility("public")}
+                              className={
+                                "rounded-full px-2 py-0.5 text-[10px] font-medium transition " +
+                                (interestsVisibility === "public"
+                                  ? "bg-cyan-500/80 text-slate-950"
+                                  : "text-slate-300 hover:text-slate-100")
+                              }
+                            >
+                              Public
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowLogoutConfirm(true);
+                          }}
+                          className="mt-1 w-full rounded-xl border border-rose-500/80 bg-rose-500/10 px-3 py-2 text-[11px] font-medium text-rose-100 hover:bg-rose-500/25"
+                        >
+                          Log out
+                        </button>
+                      </div>
+                    ))
+                )}
