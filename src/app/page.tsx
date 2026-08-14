@@ -593,7 +593,7 @@ const compressImage = (file: File): Promise<File> => {
   });
 };
 
-function PerformanceSettingsCard() {
+function PerformanceSettingsCard({ isQuantum = true }: { isQuantum?: boolean }) {
   const { perfMode, resolvedPerfMode, setPerfMode } = usePerformance();
 
   const handleSelect = (mode: "high" | "low" | "auto") => {
@@ -604,11 +604,19 @@ function PerformanceSettingsCard() {
   };
 
   return (
-    <div className="space-y-3 rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/25 via-slate-900/40 to-slate-950/60 backdrop-blur-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.2),inset_0_0_20px_rgba(6,182,212,0.06)] hover:border-cyan-400/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all duration-300">
+    <div className={`space-y-3 rounded-2xl p-4 transition-all duration-300 ${
+      isQuantum
+        ? "border border-cyan-500/25 bg-gradient-to-b from-cyan-950/25 via-slate-900/40 to-slate-950/60 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.2),inset_0_0_20px_rgba(6,182,212,0.06)] hover:border-cyan-400/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)]"
+        : "border border-white/[0.15] bg-gradient-to-b from-white/[0.09] to-white/[0.03] backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:border-white/30 hover:from-white/[0.12]"
+    }`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-400/15 border border-cyan-400/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-            <svg className="h-3.5 w-3.5 text-cyan-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className={`flex h-6 w-6 items-center justify-center rounded-full border ${
+            isQuantum
+              ? "bg-cyan-400/15 border-cyan-400/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+              : "bg-white/10 border-white/25"
+          }`}>
+            <svg className={`h-3.5 w-3.5 ${isQuantum ? "text-cyan-300" : "text-white"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
@@ -616,25 +624,35 @@ function PerformanceSettingsCard() {
         </div>
         <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase border backdrop-blur-xl ${resolvedPerfMode === "low"
             ? "bg-amber-500/20 text-amber-300 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.25)]"
-            : "bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+            : (isQuantum
+                ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+                : "bg-white/15 text-white border-white/30 shadow-[0_0_10px_rgba(255,255,255,0.2)]")
           }`}>
-          <span className={`inline-block h-1.5 w-1.5 rounded-full ${resolvedPerfMode === "low" ? "bg-amber-400" : "bg-cyan-400"} animate-pulse`} />
+          <span className={`inline-block h-1.5 w-1.5 rounded-full ${resolvedPerfMode === "low" ? "bg-amber-400" : (isQuantum ? "bg-cyan-400" : "bg-white")} animate-pulse`} />
           {resolvedPerfMode === "low" ? "4GB Low Spec" : "8GB+ Ultra"}
         </span>
       </div>
 
-      <p className="text-[11px] text-cyan-100/60 leading-relaxed">
+      <p className={`text-[11px] leading-relaxed ${isQuantum ? "text-cyan-100/60" : "text-white/55"}`}>
         Tune animation shaders & GPU frame rendering for your device RAM.
       </p>
 
-      {/* iOS 27 Quantum Glass Segmented Control */}
-      <div className="grid grid-cols-3 gap-1.5 rounded-xl border border-cyan-500/30 bg-black/50 backdrop-blur-2xl p-1.5 shadow-[inset_0_2px_6px_rgba(0,0,0,0.6)]">
+      {/* Segmented Control */}
+      <div className={`grid grid-cols-3 gap-1.5 rounded-xl p-1.5 shadow-inner ${
+        isQuantum
+          ? "border border-cyan-500/30 bg-black/50 backdrop-blur-2xl shadow-[inset_0_2px_6px_rgba(0,0,0,0.6)]"
+          : "border border-white/[0.12] bg-black/30 backdrop-blur-xl"
+      }`}>
         <button
           type="button"
           onClick={() => handleSelect("high")}
           className={`flex flex-col items-center justify-center rounded-lg py-2 px-1 text-[11px] font-bold transition-all duration-300 ${perfMode === "high"
-              ? "bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 text-slate-950 shadow-[0_0_18px_rgba(6,182,212,0.6)] scale-[1.03]"
-              : "text-slate-400 hover:text-cyan-200 hover:bg-cyan-500/10"
+              ? (isQuantum
+                  ? "bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 text-slate-950 shadow-[0_0_18px_rgba(6,182,212,0.6)] scale-[1.03]"
+                  : "bg-gradient-to-r from-cyan-400 to-sky-400 text-slate-950 shadow-[0_2px_12px_rgba(34,211,238,0.45)] font-semibold scale-[1.02]")
+              : (isQuantum
+                  ? "text-slate-400 hover:text-cyan-200 hover:bg-cyan-500/10"
+                  : "text-white/50 hover:text-white/90 hover:bg-white/[0.06]")
             }`}
         >
           <span className="flex items-center gap-1">🚀 8GB+</span>
@@ -646,7 +664,9 @@ function PerformanceSettingsCard() {
           onClick={() => handleSelect("low")}
           className={`flex flex-col items-center justify-center rounded-lg py-2 px-1 text-[11px] font-bold transition-all duration-300 ${perfMode === "low"
               ? "bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-[0_0_18px_rgba(251,191,36,0.6)] scale-[1.03]"
-              : "text-slate-400 hover:text-amber-200 hover:bg-amber-500/10"
+              : (isQuantum
+                  ? "text-slate-400 hover:text-amber-200 hover:bg-amber-500/10"
+                  : "text-white/50 hover:text-white/90 hover:bg-white/[0.06]")
             }`}
         >
           <span className="flex items-center gap-1">⚡ 4GB</span>
@@ -657,8 +677,12 @@ function PerformanceSettingsCard() {
           type="button"
           onClick={() => handleSelect("auto")}
           className={`flex flex-col items-center justify-center rounded-lg py-2 px-1 text-[11px] font-bold transition-all duration-300 ${perfMode === "auto"
-              ? "bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 text-white shadow-[0_0_18px_rgba(139,92,246,0.6)] border border-violet-400/40 scale-[1.03]"
-              : "text-slate-400 hover:text-violet-200 hover:bg-violet-500/10"
+              ? (isQuantum
+                  ? "bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 text-white shadow-[0_0_18px_rgba(139,92,246,0.6)] border border-violet-400/40 scale-[1.03]"
+                  : "bg-white/25 text-white border border-white/25 shadow-[0_2px_12px_rgba(0,0,0,0.3)] backdrop-blur-xl font-semibold scale-[1.02]")
+              : (isQuantum
+                  ? "text-slate-400 hover:text-violet-200 hover:bg-violet-500/10"
+                  : "text-white/50 hover:text-white/90 hover:bg-white/[0.06]")
             }`}
         >
           <span className="flex items-center gap-1">🤖 Auto</span>
@@ -1380,11 +1404,30 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   // Focus Mode (Zen Mode) state
   const [isFocusMode, setIsFocusMode] = useState<boolean>(false);
 
-  // Settings animation state
+  // Settings animation state & Glass Theme switcher
   const [isSettingsAnimating, setIsSettingsAnimating] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [settingsScreen, setSettingsScreen] = useState("main");
+  const [settingsGlassTheme, setSettingsGlassTheme] = useState<"quantum" | "crystal">("quantum");
   const settingsClickTimeRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("qlink_settings_glass_theme");
+      if (saved === "crystal" || saved === "quantum") {
+        setSettingsGlassTheme(saved);
+      }
+    }
+  }, []);
+
+  const toggleSettingsGlassTheme = () => {
+    const next = settingsGlassTheme === "quantum" ? "crystal" : "quantum";
+    setSettingsGlassTheme(next);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("qlink_settings_glass_theme", next);
+    }
+    playSciFiSound("on");
+  };
 
   // Synchronize Push Notifications button state dynamically whenever settings modal is opened
   useEffect(() => {
@@ -7710,44 +7753,79 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         }}
                       >
                         <div
-                          className={`w-full max-w-[390px] max-h-[88vh] flex flex-col rounded-[32px] border border-cyan-500/30 bg-gradient-to-b from-slate-900/60 via-slate-950/75 to-[#030712]/90 backdrop-blur-3xl p-5 text-[12px] text-white shadow-[0_0_50px_rgba(6,182,212,0.18),0_25px_70px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.4),inset_0_0_30px_rgba(6,182,212,0.08)] ring-1 ring-cyan-400/25 transition-all duration-300 ${showSettings ? (isSettingsAnimating ? 'settings-modal-enter' : '') : 'settings-modal-exit'
-                            }`}
+                          className={`w-full max-w-[390px] max-h-[88vh] flex flex-col rounded-[32px] transition-all duration-300 ${
+                            settingsGlassTheme === "quantum"
+                              ? "border border-cyan-500/30 bg-gradient-to-b from-slate-900/60 via-slate-950/75 to-[#030712]/90 backdrop-blur-3xl p-5 text-[12px] text-white shadow-[0_0_50px_rgba(6,182,212,0.18),0_25px_70px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.4),inset_0_0_30px_rgba(6,182,212,0.08)] ring-1 ring-cyan-400/25"
+                              : "border border-white/20 bg-gradient-to-b from-white/[0.12] via-slate-900/40 to-slate-950/60 backdrop-blur-3xl p-5 text-[12px] text-white shadow-[0_25px_70px_rgba(0,0,0,0.6),inset_0_1px_1.5px_rgba(255,255,255,0.4),inset_0_0_30px_rgba(255,255,255,0.03)] ring-1 ring-white/10"
+                          } ${showSettings ? (isSettingsAnimating ? 'settings-modal-enter' : '') : 'settings-modal-exit'}`}
                           style={{
                             boxShadow: isSettingsAnimating
-                              ? '0 0 70px rgba(6, 182, 212, 0.35), 0 30px 60px -12px rgba(0, 0, 0, 0.8)'
-                              : '0 0 40px rgba(6, 182, 212, 0.15), 0 30px 60px -12px rgba(0, 0, 0, 0.8)'
+                              ? (settingsGlassTheme === "quantum" ? '0 0 70px rgba(6, 182, 212, 0.35), 0 30px 60px -12px rgba(0, 0, 0, 0.8)' : '0 0 60px rgba(255, 255, 255, 0.2), 0 30px 60px -12px rgba(0, 0, 0, 0.6)')
+                              : (settingsGlassTheme === "quantum" ? '0 0 40px rgba(6, 182, 212, 0.15), 0 30px 60px -12px rgba(0, 0, 0, 0.8)' : '0 30px 60px -12px rgba(0, 0, 0, 0.6)')
                           }}
                           onMouseDown={(e) => e.stopPropagation()}
                         >
-                          {/* iOS 27 Quantum Hologram Header */}
-                          <div className="shrink-0 space-y-2 pb-3 border-b border-cyan-500/20">
+                          {/* Navigation Header with Dual-Theme Glass Switcher */}
+                          <div className={`shrink-0 space-y-2 pb-3 border-b transition-all duration-300 ${
+                            settingsGlassTheme === "quantum" ? "border-cyan-500/20" : "border-white/[0.12]"
+                          }`}>
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2.5">
                                 <span className="relative flex h-2.5 w-2.5">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-                                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-400 shadow-[0_0_10px_#22d3ee]" />
+                                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                                    settingsGlassTheme === "quantum" ? "bg-cyan-400" : "bg-white"
+                                  }`} />
+                                  <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                                    settingsGlassTheme === "quantum" ? "bg-cyan-400 shadow-[0_0_10px_#22d3ee]" : "bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                                  }`} />
                                 </span>
-                                <span className="text-sm font-black tracking-[0.22em] uppercase bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(34,211,238,0.5)]">
+                                <span className={`text-sm font-black tracking-[0.22em] uppercase transition-all duration-300 ${
+                                  settingsGlassTheme === "quantum"
+                                    ? "bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300 bg-clip-text text-transparent drop-shadow-[0_0_12px_rgba(34,211,238,0.5)]"
+                                    : "text-white drop-shadow-sm font-semibold tracking-tight"
+                                }`}>
                                   Settings
                                 </span>
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setIsSettingsAnimating(true);
-                                  setTimeout(() => {
-                                    setShowSettings(false);
-                                    setSettingsScreen("main");
-                                  }, 300);
-                                }}
-                                className="relative inline-flex items-center justify-center gap-1.5 rounded-full bg-cyan-950/40 hover:bg-cyan-500/25 border border-cyan-400/30 backdrop-blur-2xl px-3.5 py-1.5 text-[11px] font-bold text-cyan-200 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.25),inset_0_1px_0.5px_rgba(255,255,255,0.4)] active:scale-95 transition-all"
-                                aria-label="Close settings"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-cyan-300" viewBox="0 0 20 20" fill="currentColor">
-                                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                                <span>Close</span>
-                              </button>
+
+                              {/* Action Buttons: Glass Theme Switcher + Close */}
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={toggleSettingsGlassTheme}
+                                  className={`relative inline-flex items-center justify-center gap-1.5 rounded-full border backdrop-blur-2xl px-3 py-1.5 text-[10px] font-bold shadow-sm transition-all duration-300 active:scale-95 ${
+                                    settingsGlassTheme === "quantum"
+                                      ? "border-cyan-400/40 bg-cyan-950/40 hover:bg-cyan-500/20 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                                      : "border-white/20 bg-white/10 hover:bg-white/20 text-white shadow-[0_2px_10px_rgba(0,0,0,0.2)]"
+                                  }`}
+                                  title="Tap to switch between iOS 27 Quantum Glass & Apple Crystal Glass"
+                                  aria-label="Toggle Glass Theme"
+                                >
+                                  <span>{settingsGlassTheme === "quantum" ? "⚡ Quantum" : "🍏 Crystal"}</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setIsSettingsAnimating(true);
+                                    setTimeout(() => {
+                                      setShowSettings(false);
+                                      setSettingsScreen("main");
+                                    }, 300);
+                                  }}
+                                  className={`relative inline-flex items-center justify-center gap-1.5 rounded-full border backdrop-blur-2xl px-3.5 py-1.5 text-[11px] font-semibold transition-all active:scale-95 ${
+                                    settingsGlassTheme === "quantum"
+                                      ? "border-cyan-400/30 bg-cyan-950/40 hover:bg-cyan-500/25 text-cyan-200 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+                                      : "border-white/20 bg-white/[0.12] hover:bg-white/[0.22] text-white shadow-[0_2px_10px_rgba(0,0,0,0.2)]"
+                                  }`}
+                                  aria-label="Close settings"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                  </svg>
+                                  <span>Close</span>
+                                </button>
+                              </div>
                             </div>
 
                             {settingsScreen !== "main" && (
@@ -7777,7 +7855,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           {/* Scrollable Content Body */}
                           <div className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
                             {/* Account Section */}
-                            <div className="space-y-3 rounded-2xl border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 backdrop-blur-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)] transition-all duration-300">
+                            <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                            settingsGlassTheme === "quantum"
+                              ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
+                              : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
+                          }`}>
                               <div className="flex items-center justify-between">
                                 <span className="text-[11px] font-medium text-slate-200">Account</span>
                                 <span className="text-[11px] text-slate-300">ID</span>
@@ -7825,7 +7907,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </div>
 
                           {/* Theme Toggle Section */}
-                          <div className="space-y-3 rounded-2xl border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 backdrop-blur-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)] transition-all duration-300">
+                          <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                            settingsGlassTheme === "quantum"
+                              ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
+                              : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
+                          }`}>
                             <div className="flex items-center justify-between">
                               <span className="text-[11px] font-medium text-slate-200">Appearance</span>
                               <span className="text-[11px] text-slate-300">Theme</span>
@@ -7837,12 +7923,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           </div>
 
                           {/* Hardware & GPU Performance Tier Section */}
-                          <PerformanceSettingsCard />
+                          <PerformanceSettingsCard isQuantum={settingsGlassTheme === 'quantum'} />
 
                           {/* Notifications Section — smart: Desktop vs PWA/Web */}
                           {isElectron ? (
                             /* ── ELECTRON DESKTOP: Native Windows Notifications Toggle ── */
-                            <div className="space-y-3 rounded-2xl border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 backdrop-blur-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)] transition-all duration-300">
+                            <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                            settingsGlassTheme === "quantum"
+                              ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
+                              : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
+                          }`}>
                               <div className="flex items-center justify-between">
                                 <span className="text-[11px] font-medium text-slate-200">Desktop Notifications</span>
                                 <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-semibold text-blue-300 border border-blue-500/40">
@@ -7882,7 +7972,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </div>
                           ) : (
                             /* ── BROWSER / PWA: Web Push Notifications ── */
-                            <div className="space-y-3 rounded-2xl border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 backdrop-blur-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)] transition-all duration-300">
+                            <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                            settingsGlassTheme === "quantum"
+                              ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
+                              : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
+                          }`}>
                               <div className="flex items-center justify-between">
                                 <span className="text-[11px] font-medium text-slate-200">PWA Notifications</span>
                                 <span className="text-[11px] text-slate-300">Web Push 🔔</span>
@@ -7920,7 +8014,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           )}
 
                           {/* E2E Encryption Toggle Section */}
-                          <div className="space-y-3 rounded-2xl border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 backdrop-blur-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)] transition-all duration-300">
+                          <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                            settingsGlassTheme === "quantum"
+                              ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
+                              : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
+                          }`}>
                             <div className="flex items-center justify-between">
                               <span className="text-[11px] font-medium text-slate-200">E2E Encryption Shield</span>
                               <span className={`text-[11px] font-semibold transition ${isE2EEnabled ? "text-cyan-300" : "text-slate-400"}`}>
@@ -7966,7 +8064,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </div>
                           </div>
 
-                          <div className="space-y-3 rounded-2xl border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 backdrop-blur-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)] transition-all duration-300">
+                          <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                            settingsGlassTheme === "quantum"
+                              ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
+                              : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
+                          }`}>
                             <div className="flex items-center justify-between">
                               <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                                 Profile
