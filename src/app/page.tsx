@@ -604,7 +604,7 @@ function PerformanceSettingsCard() {
   };
 
   return (
-    <div className="space-y-2.5 rounded-xl border border-slate-700/70 bg-slate-900/40 p-3">
+    <div className="space-y-2.5 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] hover:border-white/20 transition-all duration-300">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <svg className="h-3.5 w-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -612,9 +612,9 @@ function PerformanceSettingsCard() {
           </svg>
           <span className="text-[11px] font-medium text-slate-200">Hardware & GPU Tier</span>
         </div>
-        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-semibold border ${resolvedPerfMode === "low"
-            ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-            : "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
+        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-semibold border backdrop-blur-md ${resolvedPerfMode === "low"
+            ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
+            : "bg-cyan-500/15 text-cyan-300 border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
           }`}>
           <span className={`inline-block h-1.5 w-1.5 rounded-full ${resolvedPerfMode === "low" ? "bg-amber-400" : "bg-cyan-400"} animate-pulse`} />
           {resolvedPerfMode === "low" ? "4GB Low Spec" : "8GB+ Ultra"}
@@ -625,14 +625,14 @@ function PerformanceSettingsCard() {
         Tune animation shaders & GPU frame rendering for your device RAM.
       </p>
 
-      {/* Apple-Style Segmented Control */}
-      <div className="grid grid-cols-3 gap-1 rounded-lg border border-slate-800/90 bg-slate-950/90 p-1">
+      {/* Apple-Style Glass Segmented Control */}
+      <div className="grid grid-cols-3 gap-1 rounded-xl border border-white/10 bg-black/30 backdrop-blur-md p-1 shadow-inner">
         <button
           type="button"
           onClick={() => handleSelect("high")}
-          className={`flex flex-col items-center justify-center rounded-md py-1.5 px-1 text-[10px] font-medium transition-all duration-200 ${perfMode === "high"
-              ? "bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 shadow-md font-semibold scale-[1.02]"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+          className={`flex flex-col items-center justify-center rounded-lg py-1.5 px-1 text-[10px] font-medium transition-all duration-200 ${perfMode === "high"
+              ? "bg-gradient-to-r from-cyan-400 to-sky-400 text-slate-950 shadow-[0_2px_10px_rgba(34,211,238,0.4)] font-semibold scale-[1.02]"
+              : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
             }`}
         >
           <span className="flex items-center gap-1">🚀 8GB+</span>
@@ -642,9 +642,9 @@ function PerformanceSettingsCard() {
         <button
           type="button"
           onClick={() => handleSelect("low")}
-          className={`flex flex-col items-center justify-center rounded-md py-1.5 px-1 text-[10px] font-medium transition-all duration-200 ${perfMode === "low"
-              ? "bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-md font-semibold scale-[1.02]"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+          className={`flex flex-col items-center justify-center rounded-lg py-1.5 px-1 text-[10px] font-medium transition-all duration-200 ${perfMode === "low"
+              ? "bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 shadow-[0_2px_10px_rgba(251,191,36,0.4)] font-semibold scale-[1.02]"
+              : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
             }`}
         >
           <span className="flex items-center gap-1">⚡ 4GB</span>
@@ -654,9 +654,9 @@ function PerformanceSettingsCard() {
         <button
           type="button"
           onClick={() => handleSelect("auto")}
-          className={`flex flex-col items-center justify-center rounded-md py-1.5 px-1 text-[10px] font-medium transition-all duration-200 ${perfMode === "auto"
-              ? "bg-slate-700 text-cyan-300 border border-cyan-400/40 shadow-md font-semibold scale-[1.02]"
-              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+          className={`flex flex-col items-center justify-center rounded-lg py-1.5 px-1 text-[10px] font-medium transition-all duration-200 ${perfMode === "auto"
+              ? "bg-white/20 text-cyan-200 border border-white/20 shadow-[0_2px_10px_rgba(0,0,0,0.3)] backdrop-blur-md font-semibold scale-[1.02]"
+              : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
             }`}
         >
           <span className="flex items-center gap-1">🤖 Auto</span>
@@ -7708,21 +7708,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         }}
                       >
                         <div
-                          className={`w-full max-w-sm max-h-[85vh] flex flex-col rounded-2xl border border-cyan-400/40 bg-slate-950/95 p-4 text-[11px] text-slate-200 shadow-2xl transition-all duration-300 ${showSettings ? (isSettingsAnimating ? 'settings-modal-enter' : '') : 'settings-modal-exit'
+                          className={`w-full max-w-sm max-h-[88vh] flex flex-col rounded-3xl border border-white/15 bg-slate-950/40 backdrop-blur-2xl p-4 text-[11px] text-slate-100 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),inset_0_1px_1px_0_rgba(255,255,255,0.15)] ring-1 ring-white/10 transition-all duration-300 ${showSettings ? (isSettingsAnimating ? 'settings-modal-enter' : '') : 'settings-modal-exit'
                             }`}
                           style={{
                             boxShadow: isSettingsAnimating
-                              ? '0 0 60px rgba(6, 182, 212, 0.3), 0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-                              : '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                              ? '0 0 50px rgba(255, 255, 255, 0.1), 0 25px 50px -12px rgba(0, 0, 0, 0.7)'
+                              : '0 25px 50px -12px rgba(0, 0, 0, 0.7)'
                           }}
                           onMouseDown={(e) => e.stopPropagation()}
                         >
                           {/* Fixed Header */}
-                          <div className="shrink-0 space-y-2 pb-2.5 border-b border-slate-800/70">
+                          <div className="shrink-0 space-y-2 pb-2.5 border-b border-white/10">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-300">
-                                Settings
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee] animate-pulse" />
+                                <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white drop-shadow-sm">
+                                  Settings
+                                </span>
+                              </div>
                               <button
                                 type="button"
                                 onClick={() => {
@@ -7732,10 +7735,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     setSettingsScreen("main");
                                   }, 300);
                                 }}
-                                className="relative flex items-center justify-center gap-1 rounded-full border border-slate-600/70 bg-slate-900/80 px-4 py-2 text-xs font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 hover:bg-slate-800/90 active:border-cyan-300 active:bg-cyan-800/50 active:text-cyan-50 active:scale-95 transition-all duration-150 min-w-[80px]"
+                                className="relative flex items-center justify-center gap-1.5 rounded-full border border-white/15 bg-white/10 hover:bg-white/20 backdrop-blur-xl px-3.5 py-1.5 text-xs font-medium text-slate-200 hover:text-white active:scale-95 transition-all shadow-sm"
                                 aria-label="Close settings"
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
                                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                                 </svg>
                                 <span>Close</span>
@@ -7769,7 +7772,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           {/* Scrollable Content Body */}
                           <div className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
                             {/* Account Section */}
-                            <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
+                            <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] hover:border-white/20 transition-all duration-300">
                               <div className="flex items-center justify-between">
                                 <span className="text-[11px] font-medium text-slate-200">Account</span>
                                 <span className="text-[11px] text-slate-300">ID</span>
@@ -7787,7 +7790,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               </p>
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-[10px] text-slate-500">Email visibility</span>
-                                <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                                <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                                   <button
                                     type="button"
                                     onClick={() => setEmailVisibility("private")}
@@ -7817,7 +7820,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </div>
 
                           {/* Theme Toggle Section */}
-                          <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
+                          <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] hover:border-white/20 transition-all duration-300">
                             <div className="flex items-center justify-between">
                               <span className="text-[11px] font-medium text-slate-200">Appearance</span>
                               <span className="text-[11px] text-slate-300">Theme</span>
@@ -7834,7 +7837,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           {/* Notifications Section — smart: Desktop vs PWA/Web */}
                           {isElectron ? (
                             /* ── ELECTRON DESKTOP: Native Windows Notifications Toggle ── */
-                            <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
+                            <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] hover:border-white/20 transition-all duration-300">
                               <div className="flex items-center justify-between">
                                 <span className="text-[11px] font-medium text-slate-200">Desktop Notifications</span>
                                 <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-semibold text-blue-300 border border-blue-500/40">
@@ -7844,7 +7847,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               </div>
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-[10px] text-slate-500">System alert toast on incoming message</span>
-                                <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                                <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                                   <button
                                     type="button"
                                     onClick={() => toggleDesktopNotifications(false)}
@@ -7874,14 +7877,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </div>
                           ) : (
                             /* ── BROWSER / PWA: Web Push Notifications ── */
-                            <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
+                            <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] hover:border-white/20 transition-all duration-300">
                               <div className="flex items-center justify-between">
                                 <span className="text-[11px] font-medium text-slate-200">PWA Notifications</span>
                                 <span className="text-[11px] text-slate-300">Web Push 🔔</span>
                               </div>
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-[10px] text-slate-500">Lock-screen chat alerts</span>
-                                <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                                <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                                   <button
                                     type="button"
                                     onClick={() => togglePushNotifications(false)}
@@ -7912,7 +7915,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           )}
 
                           {/* E2E Encryption Toggle Section */}
-                          <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
+                          <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] hover:border-white/20 transition-all duration-300">
                             <div className="flex items-center justify-between">
                               <span className="text-[11px] font-medium text-slate-200">E2E Encryption Shield</span>
                               <span className={`text-[11px] font-semibold transition ${isE2EEnabled ? "text-cyan-300" : "text-slate-400"}`}>
@@ -7921,7 +7924,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </div>
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-[10px] text-slate-500">Standard mode is optimized for messaging performance</span>
-                              <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                              <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -7958,7 +7961,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </div>
                           </div>
 
-                          <div className="space-y-2 rounded-xl border border-slate-700/70 bg-slate-900/40 px-3 py-2">
+                          <div className="space-y-2 rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.06)] hover:border-white/20 transition-all duration-300">
                             <div className="flex items-center justify-between">
                               <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
                                 Profile
@@ -7982,7 +7985,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     setShowOnboarding(true);
                                     setOnboardingStep(1);
                                   }}
-                                  className="flex w-full items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/30 px-3 py-2 text-left hover:border-cyan-400/40"
+                                  className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/20 backdrop-blur-md px-3 py-2 text-left hover:border-white/25 hover:bg-white/[0.03] transition-all"
                                 >
                                   <span className="text-slate-300">Name</span>
                                   <span className="truncate text-slate-100">
@@ -8005,7 +8008,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     setShowOnboarding(true);
                                     setOnboardingStep(4);
                                   }}
-                                  className="flex w-full items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/30 px-3 py-2 text-left hover:border-cyan-400/40"
+                                  className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/20 backdrop-blur-md px-3 py-2 text-left hover:border-white/25 hover:bg-white/[0.03] transition-all"
                                 >
                                   <span className="text-slate-300">Age</span>
                                   <div className="flex items-center gap-2">
@@ -8013,7 +8016,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       {ageVisibility === "public" ? (age ?? "Not set") : "Hidden"}
                                     </span>
                                     <div
-                                      className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5"
+                                      className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner"
                                       onMouseDown={(e) => e.stopPropagation()}
                                       onClick={(e) => e.stopPropagation()}
                                     >
@@ -8060,7 +8063,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     setShowOnboarding(true);
                                     setOnboardingStep(5);
                                   }}
-                                  className="flex w-full items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/30 px-3 py-2 text-left hover:border-cyan-400/40"
+                                  className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/20 backdrop-blur-md px-3 py-2 text-left hover:border-white/25 hover:bg-white/[0.03] transition-all"
                                 >
                                   <span className="text-slate-300">Gender</span>
                                   <div className="flex items-center gap-2">
@@ -8068,7 +8071,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       {genderVisibility === "public" ? (gender || "Not set") : "Hidden"}
                                     </span>
                                     <div
-                                      className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5"
+                                      className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner"
                                       onMouseDown={(e) => e.stopPropagation()}
                                       onClick={(e) => e.stopPropagation()}
                                     >
@@ -8115,7 +8118,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     setShowOnboarding(true);
                                     setOnboardingStep(3);
                                   }}
-                                  className="flex w-full items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/30 px-3 py-2 text-left hover:border-cyan-400/40"
+                                  className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/20 backdrop-blur-md px-3 py-2 text-left hover:border-white/25 hover:bg-white/[0.03] transition-all"
                                 >
                                   <span className="text-slate-300">Bio</span>
                                   <div className="flex items-center gap-2">
@@ -8123,7 +8126,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       {bioVisibility === "public" ? (bioDraft.trim() || "No bio added yet.") : "Hidden"}
                                     </span>
                                     <div
-                                      className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5"
+                                      className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner"
                                       onMouseDown={(e) => e.stopPropagation()}
                                       onClick={(e) => e.stopPropagation()}
                                     >
@@ -8170,7 +8173,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     setShowOnboarding(true);
                                     setOnboardingStep(2);
                                   }}
-                                  className="flex w-full items-center justify-between rounded-xl border border-slate-800/70 bg-slate-950/30 px-3 py-2 text-left hover:border-cyan-400/40"
+                                  className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-black/20 backdrop-blur-md px-3 py-2 text-left hover:border-white/25 hover:bg-white/[0.03] transition-all"
                                 >
                                   <span className="text-slate-300">Interested fields</span>
                                   <div className="flex items-center gap-2">
@@ -8182,7 +8185,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                         : "Hidden"}
                                     </span>
                                     <div
-                                      className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5"
+                                      className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner"
                                       onMouseDown={(e) => e.stopPropagation()}
                                       onClick={(e) => e.stopPropagation()}
                                     >
@@ -8257,7 +8260,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 />
                                 <div className="flex items-center justify-between">
                                   <span className="text-[10px] text-slate-500">Visibility</span>
-                                  <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                                  <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                                     <button
                                       type="button"
                                       onClick={() => setAgeVisibility("private")}
@@ -8329,7 +8332,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 </div>
                                 <div className="flex items-center justify-between">
                                   <span className="text-[10px] text-slate-500">Visibility</span>
-                                  <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                                  <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                                     <button
                                       type="button"
                                       onClick={() => setGenderVisibility("private")}
@@ -8371,7 +8374,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 />
                                 <div className="flex items-center justify-between">
                                   <span className="text-[10px] text-slate-500">Visibility</span>
-                                  <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                                  <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                                     <button
                                       type="button"
                                       onClick={() => setBioVisibility("private")}
@@ -8438,7 +8441,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 </div>
                                 <div className="flex items-center justify-between">
                                   <span className="text-[10px] text-slate-500">Visibility</span>
-                                  <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                                  <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                                     <button
                                       type="button"
                                       onClick={() => setInterestsVisibility("private")}
@@ -8471,18 +8474,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </div>
 
                           {/* Fixed Footer */}
-                          <div className="shrink-0 pt-2.5 border-t border-slate-800/70 space-y-1.5">
+                          <div className="shrink-0 pt-3 border-t border-white/10 space-y-2">
                             <button
                               type="button"
                               onClick={() => {
                                 setShowLogoutConfirm(true);
                               }}
-                              className="w-full rounded-xl border border-rose-500/80 bg-rose-500/10 px-3 py-2 text-[11px] font-medium text-rose-100 transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-rose-500/25 hover:scale-[1.02] hover:shadow-md hover:shadow-rose-500/20 active:scale-98"
+                              className="w-full rounded-2xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 backdrop-blur-xl px-4 py-2.5 text-[12px] font-semibold text-rose-300 hover:text-rose-100 shadow-[0_4px_20px_rgba(244,63,94,0.15),inset_0_1px_0_rgba(255,255,255,0.1)] transition-all active:scale-[0.98]"
                             >
                               Log out
                             </button>
 
-                            <p className="text-center text-[10px] text-slate-500">
+                            <p className="text-center text-[10px] text-slate-400/80 font-medium">
                               Tap backdrop or Close button to exit
                             </p>
                           </div>
@@ -8494,7 +8497,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             onMouseDown={() => setShowLogoutConfirm(false)}
                           >
                             <div
-                              className="w-full max-w-sm space-y-3 rounded-2xl border border-slate-700/70 bg-slate-950/95 px-4 py-4 text-[11px] text-slate-200 shadow-2xl"
+                              className="w-full max-w-sm space-y-3 rounded-3xl border border-white/15 bg-slate-950/60 backdrop-blur-2xl px-5 py-5 text-[11px] text-slate-100 shadow-[0_8px_32px_0_rgba(0,0,0,0.6),inset_0_1px_1px_0_rgba(255,255,255,0.15)] ring-1 ring-white/10"
                               onMouseDown={(e) => e.stopPropagation()}
                             >
                               <div className="space-y-1">
@@ -8555,7 +8558,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </p>
                         <div className="flex items-center justify-between gap-2">
                           <p className="min-w-0 truncate">Email: {emailVisibility === "public" ? ((session as any)?.user?.email || "no-email-linked") : "Hidden"}</p>
-                          <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                          <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                             <button
                               type="button"
                               onClick={() => setEmailVisibility("private")}
@@ -8585,7 +8588,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         <p>Name: {displayName || nameDraft || (session as any)?.user?.name || "Not set"}</p>
                         <div className="flex items-center justify-between gap-2">
                           <p>Age: {ageVisibility === "public" ? (age ?? "Not set") : "Hidden"}</p>
-                          <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                          <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                             <button
                               type="button"
                               onClick={() => setAgeVisibility("private")}
@@ -8615,7 +8618,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                         <div className="flex items-center justify-between gap-2">
                           <p>Gender: {genderVisibility === "public" ? (gender || "Not set") : "Hidden"}</p>
-                          <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                          <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                             <button
                               type="button"
                               onClick={() => setGenderVisibility("private")}
@@ -8645,7 +8648,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                         <div className="flex items-center justify-between gap-2">
                           <p className="min-w-0 truncate">Bio: {bioVisibility === "public" ? (bioDraft.trim() || "No bio added yet.") : "Hidden"}</p>
-                          <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                          <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                             <button
                               type="button"
                               onClick={() => setBioVisibility("private")}
@@ -8675,7 +8678,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                         <div className="flex items-center justify-between gap-2">
                           <p>Interested fields: {interestsVisibility === "public" ? (selectedInterests.length > 0 ? `${selectedInterests.length} selected` : "None selected") : "Hidden"}</p>
-                          <div className="inline-flex rounded-full border border-slate-700/80 bg-slate-950/40 p-0.5">
+                          <div className="inline-flex rounded-full border border-white/10 bg-black/30 backdrop-blur-md p-0.5 shadow-inner">
                             <button
                               type="button"
                               onClick={() => setInterestsVisibility("private")}
