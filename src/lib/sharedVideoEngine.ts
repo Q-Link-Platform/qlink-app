@@ -1,23 +1,22 @@
 /**
  * SharedVideoEngine
  *
- * Tech-Giant Standard Singleton Master Video Engine.
- * Decodes 1 master video stream in memory and paints frames onto N subscriber canvases via hardware-synced callbacks.
- *
- * - Hardware frame-synchronized rendering via requestVideoFrameCallback (0% wasted drawing ops)
- * - Fallback to 60 FPS requestAnimationFrame when unsupported
- * - 0% CPU/GPU when 0 subscribers are visible in viewport
- * - Automatic pause/resume on tab visibility change or window focus
- * - 100% visual frame synchronization across all Diamond VIP cards
+ * Ultra-Robust, Non-Stop Video Streaming & Synchronization Engine.
+ * 
+ * Guarantees:
+ * - 100% Non-Stop, Infinite Quick Video Looping (No freeze, no timeout after 2min).
+ * - High-speed GPU blitting to all active Diamond VIP canvases.
+ * - Auto-Nudge Watchdog Heartbeat that instantly detects & fixes browser stalls.
+ * - Visibility & focus lifecycle management with instantaneous wake-up.
  */
 
-type CanvasSubscriber = {
+interface CanvasSubscriber {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   resizeObserver: ResizeObserver;
   width: number;
   height: number;
-};
+}
 
 class SharedVideoEngine {
   private static instance: SharedVideoEngine | null = null;
@@ -25,12 +24,14 @@ class SharedVideoEngine {
   private video: HTMLVideoElement | null = null;
   private bufferCanvas: HTMLCanvasElement | null = null;
   private bufferCtx: CanvasRenderingContext2D | null = null;
+
   private subscribers: Map<HTMLCanvasElement, CanvasSubscriber> = new Map();
+  private isPlaying: boolean = false;
   private rafId: number | null = null;
-  private videoCallbackId: number | null = null;
-  private isPlaying = false;
+  private watchdogIntervalId: any = null;
+  private pauseTimeoutId: NodeJS.Timeout | null = null;
+
   private videoSrc = '/media/diamond-vip-loop.mp4';
-  private pauseTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   private constructor() {
     if (typeof window === 'undefined') return;
@@ -38,6 +39,7 @@ class SharedVideoEngine {
     this.initVideo();
     this.initBufferCanvas();
     this.initVisibilityListeners();
+    this.startWatchdog();
   }
 
   public static getInstance(): SharedVideoEngine {
@@ -53,13 +55,20 @@ class SharedVideoEngine {
     const video = document.createElement('video');
     video.src = this.videoSrc;
     video.muted = true;
+    video.defaultMuted = true;
     video.loop = true;
     video.playsInline = true;
     video.autoplay = true;
+    video.preload = 'auto';
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.setAttribute('muted', '');
+    video.setAttribute('autoplay', '');
+    video.setAttribute('loop', '');
     video.setAttribute('aria-hidden', 'true');
     video.setAttribute('tabindex', '-1');
 
-    // Keep video at 854x480 in active DOM viewport with near-zero opacity to force full 60 FPS Chromium decoding
+    // Keep video in active DOM viewport with near-zero opacity to guarantee full hardware GPU decoding
     video.style.position = 'fixed';
     video.style.bottom = '0px';
     video.style.right = '0px';
@@ -69,18 +78,43 @@ class SharedVideoEngine {
     video.style.pointerEvents = 'none';
     video.style.zIndex = '-99999';
 
+    // 1. Instant Start on Load / Canplay
     video.oncanplay = () => {
       if (this.subscribers.size > 0 && !this.isPlaying) {
         this.startPlayback();
       }
     };
 
-    // Auto-resume if browser attempts to pause active video stream
-    video.onpause = () => {
+    // 2. Hardware Non-Stop Loop Handlers
+    video.addEventListener('ended', () => {
+      video.currentTime = 0;
+      video.play().catch(() => {});
+      this.scheduleNextFrame();
+    });
+
+    video.addEventListener('pause', () => {
       if (this.isPlaying && this.subscribers.size > 0 && document.visibilityState === 'visible') {
         video.play().catch(() => {});
       }
-    };
+    });
+
+    video.addEventListener('stalled', () => {
+      if (this.isPlaying && this.subscribers.size > 0) {
+        video.play().catch(() => {});
+      }
+    });
+
+    video.addEventListener('waiting', () => {
+      if (this.isPlaying && this.subscribers.size > 0) {
+        video.play().catch(() => {});
+      }
+    });
+
+    video.addEventListener('error', () => {
+      console.warn('[SharedVideoEngine] Video stream error, auto-reloading...');
+      video.load();
+      video.play().catch(() => {});
+    });
 
     document.body.appendChild(video);
     this.video = video;
@@ -92,10 +126,17 @@ class SharedVideoEngine {
     const canvas = document.createElement('canvas');
     canvas.width = 854;
     canvas.height = 480;
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', {
+      alpha: false,
+      desynchronized: true,
+    });
 
-    this.bufferCanvas = canvas;
-    this.bufferCtx = ctx;
+    if (ctx) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'low';
+      this.bufferCanvas = canvas;
+      this.bufferCtx = ctx;
+    }
   }
 
   private initVisibilityListeners() {
@@ -122,6 +163,51 @@ class SharedVideoEngine {
   }
 
   /**
+   * Watchdog Heartbeat: Checks every 400ms to guarantee non-stop looping
+   */
+  private startWatchdog() {
+    if (this.watchdogIntervalId) return;
+    let lastTime = -1;
+    let stuckCount = 0;
+
+    this.watchdogIntervalId = setInterval(() => {
+      if (typeof document === 'undefined') return;
+      if (!this.isPlaying || this.subscribers.size === 0 || document.visibilityState !== 'visible') return;
+
+      if (this.video) {
+        // 1. If paused or ended unexpectedly, force play immediately
+        if (this.video.paused || this.video.ended) {
+          this.video.play().catch(() => {});
+        }
+
+        // 2. Seamless loop wrap if near the end
+        if (this.video.duration && this.video.currentTime >= this.video.duration - 0.06) {
+          this.video.currentTime = 0;
+          this.video.play().catch(() => {});
+        }
+
+        // 3. Stutter / stall detection & recovery
+        if (this.video.currentTime === lastTime && this.video.readyState >= 2 && !this.video.paused) {
+          stuckCount++;
+          if (stuckCount >= 2) {
+            this.video.currentTime = (this.video.currentTime + 0.02) % (this.video.duration || 1);
+            this.video.play().catch(() => {});
+            stuckCount = 0;
+          }
+        } else {
+          stuckCount = 0;
+        }
+        lastTime = this.video.currentTime;
+      }
+
+      // 4. Ensure rendering loop is active
+      if (this.rafId === null && this.isPlaying && this.subscribers.size > 0) {
+        this.scheduleNextFrame();
+      }
+    }, 400);
+  }
+
+  /**
    * Register a canvas element to receive video frames.
    */
   public register(canvas: HTMLCanvasElement): void {
@@ -139,11 +225,9 @@ class SharedVideoEngine {
 
     if (!ctx) return;
 
-    // Fast GPU blitting optimization
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'low';
 
-    // Use ResizeObserver to set canvas dimensions outside the rendering loop
     const resizeObserver = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry) return;
@@ -241,35 +325,17 @@ class SharedVideoEngine {
   private scheduleNextFrame() {
     if (!this.isPlaying || this.subscribers.size === 0) return;
 
-    if (this.video && 'requestVideoFrameCallback' in this.video) {
-      if (this.videoCallbackId === null) {
-        this.videoCallbackId = (this.video as any).requestVideoFrameCallback(this.onVideoFrameCallback);
-      }
-    } else {
-      if (this.rafId === null) {
-        this.rafId = requestAnimationFrame(this.onAnimationFrameCallback);
-      }
+    if (this.rafId === null) {
+      this.rafId = requestAnimationFrame(this.onAnimationFrameCallback);
     }
   }
 
   private cancelScheduledFrames() {
-    if (this.videoCallbackId !== null && this.video && 'cancelVideoFrameCallback' in this.video) {
-      (this.video as any).cancelVideoFrameCallback(this.videoCallbackId);
-      this.videoCallbackId = null;
-    }
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
   }
-
-  private onVideoFrameCallback = () => {
-    this.videoCallbackId = null;
-    if (!this.isPlaying || this.subscribers.size === 0) return;
-
-    this.renderFrame();
-    this.scheduleNextFrame();
-  };
 
   private onAnimationFrameCallback = () => {
     this.rafId = null;
@@ -283,8 +349,14 @@ class SharedVideoEngine {
     if (!this.isPlaying || this.subscribers.size === 0) return;
 
     if (this.video && this.bufferCtx && this.bufferCanvas) {
-      // Force resume if video paused unexpectedly
+      // Force resume if video paused unexpectedly while page is visible
       if (this.video.paused && document.visibilityState === 'visible') {
+        this.video.play().catch(() => {});
+      }
+
+      // Fast loop jump to avoid freeze at exact file end
+      if (this.video.duration && this.video.currentTime >= this.video.duration - 0.05) {
+        this.video.currentTime = 0;
         this.video.play().catch(() => {});
       }
 
