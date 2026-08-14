@@ -45,6 +45,9 @@ const StoreModal = dynamic(() => import("@/components/StoreModal"), {
 const DiamondGlassCanvas = dynamic(() => import("@/components/DiamondGlassCanvas"), {
   ssr: false,
 });
+const SapphireGlassCanvas = dynamic(() => import("@/components/SapphireGlassCanvas"), {
+  ssr: false,
+});
 
 function useInView<T extends Element>(options?: IntersectionObserverInit) {
   const ref = useRef<T | null>(null);
@@ -6459,10 +6462,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                           {!showDirectoryMediaOnly && directoryItems.some((item) => item.blueTickStatus === 'SAPPHIRE') && (
                             <div className="space-y-2">
-                              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-300">
-                                Sapphire VIP IDs
+                              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-300">
+                                💎 Sapphire VIP IDs
                               </p>
-
                               {directoryItems
                                 .filter((item) => item.blueTickStatus === 'SAPPHIRE')
                                 .map((item) => (
@@ -6472,29 +6474,33 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     onClick={() => handleDirectorySelect(item.handle)}
                                     className="w-full text-left"
                                   >
-                                    <div className="founder-vip-sapphire rounded-2xl border border-sky-500/80 bg-slate-950/95 p-2.5 overflow-hidden [clip-path:inset(0_round_1rem)] drop-shadow-[0_0_30px_rgba(14,165,233,0.55)]">
-                                      <div className="founder-vip-sapphire-inner founder-vip-sapphire-shine space-y-1.5 rounded-2xl bg-gradient-to-br from-slate-950/90 via-slate-900/90 to-slate-950/90 px-3 py-2 relative overflow-hidden [clip-path:inset(0_round_1rem)] isolation-isolate">
-                                        <div className="founder-vip-sapphire-line-full absolute inset-x-0 -top-2 -bottom-2 rounded-2xl"></div>
-                                        <div className="relative z-10 flex items-center justify-between gap-2">
-                                          <div className="min-w-0">
-                                            <p className="truncate text-[11px] font-semibold text-slate-50 flex items-center gap-1">
-                                              <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-sky-300 bg-sky-500 text-[8px] font-bold text-slate-50">
-                                                ✓
-                                              </span>
-                                              @{item.handle}
-                                            </p>
-                                            <p className="text-[10px] font-semibold text-sky-200">
-                                              {item.name || 'Sapphire VIP'}
-                                            </p>
+                                    <div className="rounded-2xl border border-sky-500/80 bg-slate-950/95 p-2.5 overflow-hidden [clip-path:inset(0_round_1rem)] drop-shadow-[0_0_30px_rgba(14,165,233,0.55)]">
+                                      <div className="sapphire-vip-card-root relative overflow-hidden rounded-2xl isolation-isolate">
+                                        {/* Video looping background */}
+                                        <SapphireGlassCanvas />
+
+                                        {/* CSS overlay stack */}
+                                        <div className="sapphire-vip-chroma-edge" />
+                                        <div className="sapphire-vip-glass-slab" />
+                                        <div className="sapphire-vip-rim-highlight" />
+
+                                        {/* User content */}
+                                        <div className="sapphire-vip-content relative z-10 px-3 py-2 space-y-1.5 rounded-2xl bg-gradient-to-br from-slate-950/70 via-slate-900/60 to-slate-950/70 relative overflow-hidden">
+                                          <div className="flex items-center justify-between gap-2">
+                                            <div className="min-w-0">
+                                              <p className="truncate text-[11px] font-extrabold text-white flex items-center gap-1.5" style={{ textShadow: '0 0 12px rgba(14,165,233,0.9), 0 2px 4px rgba(0,0,0,0.85)' }}>
+                                                <span className="sapphire-vip-gem-badge">💎</span>
+                                                <span className="dvip-handle-text">@{item.handle}</span>
+                                              </p>
+                                              <p className="dvip-name-line text-[10px] font-bold text-sky-100 mt-0.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.85)' }}>
+                                                {item.name || 'Sapphire VIP'}
+                                              </p>
+                                            </div>
+                                            <div className="shrink-0">
+                                              <span className="sapphire-vip-badge-pill">Sapphire VIP</span>
+                                            </div>
                                           </div>
-                                          <div className="relative z-10">
-                                            <span className="rounded-full border border-sky-400/80 bg-sky-500/20 px-2 py-0.5 text-[9px] font-medium text-sky-200">
-                                              Sapphire VIP
-                                            </span>
-                                          </div>
-                                        </div>
-                                        <div className="relative z-10">
-                                          <p className="text-[10px] text-slate-400">
+                                          <p className="dvip-tap-line text-[10px] font-medium text-sky-100/90 mt-1.5" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
                                             Tap to open this Sapphire VIP ID and send a direct connection request.
                                           </p>
                                         </div>
