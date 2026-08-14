@@ -85,6 +85,50 @@ function useInView<T extends Element>(options?: IntersectionObserverInit) {
   return { ref, inView, ratio };
 }
 
+function FormattedPostText({ text }: { text: string }) {
+  if (!text) return null;
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const mentionRegex = /(@[a-zA-Z0-9_]+)/g;
+  const hashtagRegex = /(#[a-zA-Z0-9_]+)/g;
+  const parts = text.split(/(https?:\/\/[^\s]+|@[a-zA-Z0-9_]+|#[a-zA-Z0-9_]+)/g);
+
+  return (
+    <p className="whitespace-pre-wrap text-[13px] sm:text-[13.5px] leading-[1.5] text-slate-100 font-normal break-words selection:bg-cyan-500/30 font-sans tracking-[0.01em] my-2 px-0.5">
+      {parts.map((part, idx) => {
+        if (part.match(urlRegex)) {
+          return (
+            <a
+              key={idx}
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="text-cyan-400 hover:text-cyan-300 hover:underline break-all transition font-medium"
+            >
+              {part}
+            </a>
+          );
+        }
+        if (part.match(mentionRegex)) {
+          return (
+            <span key={idx} className="text-cyan-400 font-semibold hover:underline">
+              {part}
+            </span>
+          );
+        }
+        if (part.match(hashtagRegex)) {
+          return (
+            <span key={idx} className="text-sky-400 font-semibold hover:underline">
+              {part}
+            </span>
+          );
+        }
+        return <span key={idx}>{part}</span>;
+      })}
+    </p>
+  );
+}
+
 function StableImage(props: {
   src: string;
   alt: string;
@@ -93,38 +137,32 @@ function StableImage(props: {
   const [loaded, setLoaded] = useState(false);
 
   return (
-    <div className="relative h-full w-full">
-      {/* Skeleton Loading State - Only visible when image not loaded */}
-      <div
-        className={
-          "absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 transition-opacity duration-150 " +
-          (loaded ? "opacity-0 pointer-events-none" : "opacity-100")
-        }
-      >
-        {/* Shimmer Animation */}
-        <div className="relative w-full h-full overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 via-slate-800/40 to-slate-900/60 animate-pulse" />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/10 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
-        </div>
-        {/* Loading Text */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.3s]" />
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.15s]" />
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-bounce" />
+    <div className="relative w-full overflow-hidden rounded-2xl bg-black/40 flex items-center justify-center">
+      {/* Skeleton Loading State */}
+      {!loaded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 transition-opacity duration-200">
+          <div className="relative w-full h-full overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 via-slate-800/40 to-slate-900/60 animate-pulse" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/10 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
           </div>
-          <p className="text-[11px] font-medium text-cyan-200/80 tracking-wide">Loading image...</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.3s]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce [animation-delay:-0.15s]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" />
+            </div>
+            <p className="text-[10px] font-medium text-cyan-200/80 tracking-wide">Loading media...</p>
+          </div>
         </div>
-      </div>
+      )}
       <img
         src={props.src}
         alt={props.alt}
         className={
-          "block h-full w-full max-h-full max-w-full m-auto " +
-          (loaded ? "opacity-100" : "opacity-0") +
+          "block w-full h-auto max-h-[520px] object-cover sm:object-contain rounded-2xl mx-auto transition-all duration-300 " +
+          (loaded ? "opacity-100 scale-100" : "opacity-0 scale-[0.99]") +
           (props.className ? ` ${props.className}` : "")
         }
-        style={{ objectFit: "contain" }}
         loading="lazy"
         decoding="async"
         onLoad={() => setLoaded(true)}
@@ -6836,19 +6874,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                 </span>
                                               </div>
 
-                                              {post?.text && (
-                                                <p className="mt-2 whitespace-pre-wrap text-[11px] text-slate-200">
-                                                  {post.text}
-                                                </p>
-                                              )}
+                                               {post?.text && (
+                                                 <FormattedPostText text={post.text} />
+                                               )}
 
-                                              {post?.media?.url && post?.media?.kind === "image" && (
-                                                <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg">
-                                                  <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[220px] max-h-[75vh]">
-                                                    <StableImage src={post.media.url} alt="Post media" />
-                                                  </div>
-                                                </div>
-                                              )}
+                                               {post?.media?.url && post?.media?.kind === "image" && (
+                                                 <div className="my-2.5 overflow-hidden rounded-2xl border border-slate-800/90 bg-black/50 w-full relative shadow-lg">
+                                                   <StableImage src={post.media.url} alt="Post media" />
+                                                 </div>
+                                               )}
 
                                               {post?.media?.url && post?.media?.kind === "video" && (
                                                 <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg">
@@ -7161,20 +7195,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                         </div>
 
                                         {/* Text content */}
-                                        {post?.text && (
-                                          <p className="whitespace-pre-wrap text-[11.5px] text-slate-100 leading-relaxed mb-3.5 font-normal px-0.5 font-sans">
-                                            {post.text}
-                                          </p>
-                                        )}
+                                         {/* Text content with X-Style structure */}
+                                         {post?.text && (
+                                           <FormattedPostText text={post.text} />
+                                         )}
 
-                                        {/* Image Attachment */}
-                                        {post?.media?.url && (isImg || post?.media?.kind === "image") && (
-                                          <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 mb-3.5 relative shadow-xl w-full">
-                                            <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[220px] max-h-[75vh]">
-                                              <StableImage src={post.media.url} alt="Post media" />
-                                            </div>
-                                          </div>
-                                        )}
+                                         {/* Image Attachment */}
+                                         {post?.media?.url && (isImg || post?.media?.kind === "image") && (
+                                           <div className="my-2.5 overflow-hidden rounded-2xl border border-slate-800/90 bg-black/50 w-full relative shadow-xl">
+                                             <StableImage src={post.media.url} alt="Post media" />
+                                           </div>
+                                         )}
 
                                         {/* Video Attachment */}
                                         {post?.media?.url && (isVid || post?.media?.kind === "video") && (
