@@ -108,29 +108,30 @@ export async function GET(request: Request) {
       attachments: attachmentsByMessage.get(m.id) ?? [],
     }));
 
-    // Auto-mark SENT messages from the PEER as DELIVERED now that this user (recipient) has fetched them
-    // This is fire-and-forget so it does not block the response
-    const sentMessageIds = messages
-      .filter((m: any) => m.senderId === peer.id && m.status === "SENT")
+    // When recipient fetches chat history with peer, recipient is actively in the chat room!
+    // Auto-mark all messages sent BY the peer as READ (and update DB + in-memory response)
+    const unreadMessageIds = messages
+      .filter((m: any) => m.senderId === peer.id && m.status !== "READ")
       .map((m: any) => m.id);
 
-    if (sentMessageIds.length > 0) {
+    if (unreadMessageIds.length > 0) {
+      const now = new Date();
       prisma.message.updateMany({
         where: {
-          id: { in: sentMessageIds },
-          status: "SENT",
+          id: { in: unreadMessageIds },
         },
         data: {
-          status: "DELIVERED",
-          deliveredAt: new Date(),
+          status: "READ",
+          readAt: now,
+          deliveredAt: now,
         },
-      }).catch((e: any) => console.error("[chat/history] DELIVERED update failed:", e));
+      }).catch((e: any) => console.error("[chat/history] READ update failed:", e));
 
-      // Patch in memory so current response returns DELIVERED immediately
+      // Patch in memory so recipient response returns READ immediately
       for (const m of messagesWithAttachments) {
-        if (m.senderId === peer.id && m.status === "SENT") {
-          m.status = "DELIVERED";
-          m.deliveredAt = new Date().toISOString();
+        if (m.senderId === peer.id && m.status !== "READ") {
+          m.status = "READ";
+          m.readAt = now.toISOString();
         }
       }
     }

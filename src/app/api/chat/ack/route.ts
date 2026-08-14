@@ -45,11 +45,16 @@ export async function POST(request: Request) {
     const now = new Date();
 
     if (targetStatus === "READ") {
-      // Recipient has opened sender's chat: Mark ALL unread messages sent by peer to recipient as READ
+      // Recipient has opened sender's chat: Mark ALL messages sent by peer in this conversation as READ
       await prisma.message.updateMany({
         where: {
-          roomId: roomId,
-          senderId: peer.id, // Only messages sent BY the peer
+          senderId: peer.id, // Only messages sent BY the peer to me
+          OR: [
+            { roomId: roomId },
+            { roomId: `dm:${roomId}` },
+            { roomId: `dm:${peer.id}:${meId}` },
+            { roomId: `dm:${meId}:${peer.id}` },
+          ],
           status: { in: ["SENT", "DELIVERED"] },
         },
         data: {
@@ -61,8 +66,13 @@ export async function POST(request: Request) {
       // Mark messages sent BY the peer to recipient as DELIVERED
       await prisma.message.updateMany({
         where: {
-          roomId: roomId,
           senderId: peer.id,
+          OR: [
+            { roomId: roomId },
+            { roomId: `dm:${roomId}` },
+            { roomId: `dm:${peer.id}:${meId}` },
+            { roomId: `dm:${meId}:${peer.id}` },
+          ],
           status: "SENT",
         },
         data: {
