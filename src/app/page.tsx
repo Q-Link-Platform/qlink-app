@@ -1426,7 +1426,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     if (typeof window !== "undefined") {
       localStorage.setItem("qlink_settings_glass_theme", next);
     }
-    playSciFiSound("on");
   };
 
   // Synchronize Push Notifications button state dynamically whenever settings modal is opened
@@ -7788,20 +7787,44 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 </span>
                               </div>
 
-                              {/* Action Buttons: Glass Theme Switcher + Close */}
+                              {/* Action Buttons: Bespoke Animated Glass Aperture Switcher + Close */}
                               <div className="flex items-center gap-2">
                                 <button
                                   type="button"
                                   onClick={toggleSettingsGlassTheme}
-                                  className={`relative inline-flex items-center justify-center gap-1.5 rounded-full border backdrop-blur-2xl px-3 py-1.5 text-[10px] font-bold shadow-sm transition-all duration-300 active:scale-95 ${
+                                  className={`group relative flex h-8 w-8 items-center justify-center rounded-full border backdrop-blur-2xl transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:scale-110 active:scale-90 ${
                                     settingsGlassTheme === "quantum"
-                                      ? "border-cyan-400/40 bg-cyan-950/40 hover:bg-cyan-500/20 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
-                                      : "border-white/20 bg-white/10 hover:bg-white/20 text-white shadow-[0_2px_10px_rgba(0,0,0,0.2)]"
+                                      ? "border-cyan-400/40 bg-cyan-950/50 hover:bg-cyan-500/20 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.4),inset_0_1px_1px_rgba(255,255,255,0.35)] ring-1 ring-cyan-400/25"
+                                      : "border-white/25 bg-white/15 hover:bg-white/25 text-white shadow-[0_2px_12px_rgba(0,0,0,0.25),inset_0_1px_1.5px_rgba(255,255,255,0.5)] ring-1 ring-white/20"
                                   }`}
-                                  title="Tap to switch between iOS 27 Quantum Glass & Apple Crystal Glass"
-                                  aria-label="Toggle Glass Theme"
+                                  title={settingsGlassTheme === "quantum" ? "Switch to Apple Crystal Glass" : "Switch to iOS 27 Quantum Glass"}
+                                  aria-label="Toggle Spatial Glass Theme"
                                 >
-                                  <span>{settingsGlassTheme === "quantum" ? "⚡ Quantum" : "🍏 Crystal"}</span>
+                                  {/* Ambient Shimmer Core */}
+                                  <span className={`absolute inset-0 rounded-full opacity-40 blur-sm transition-all duration-500 group-hover:opacity-80 ${
+                                    settingsGlassTheme === "quantum" ? "bg-cyan-400" : "bg-white"
+                                  }`} />
+
+                                  {/* Dynamic Refractive Aperture Glyph */}
+                                  <div className={`relative z-10 transition-transform duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                                    settingsGlassTheme === "quantum" ? "rotate-0 scale-100" : "rotate-180 scale-100"
+                                  }`}>
+                                    {settingsGlassTheme === "quantum" ? (
+                                      /* Quantum Flux Core Glyph */
+                                      <svg className="h-4 w-4 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="9" strokeWidth="1.5" strokeDasharray="3 2" className="animate-spin-slow opacity-80" />
+                                        <polygon points="12 3 20 12 12 21 4 12" strokeWidth="1.5" strokeLinejoin="round" fill="currentColor" fillOpacity="0.15" />
+                                        <circle cx="12" cy="12" r="2.5" fill="currentColor" />
+                                      </svg>
+                                    ) : (
+                                      /* Apple Optical Crystal Lens Glyph */
+                                      <svg className="h-4 w-4 drop-shadow-[0_0_6px_rgba(255,255,255,0.6)]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <circle cx="12" cy="12" r="9" strokeWidth="1.5" strokeOpacity="0.5" />
+                                        <path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4" strokeWidth="1.2" strokeLinecap="round" strokeOpacity="0.75" />
+                                        <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.9" />
+                                      </svg>
+                                    )}
+                                  </div>
                                 </button>
 
                                 <button
