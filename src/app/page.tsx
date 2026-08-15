@@ -1599,31 +1599,33 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     console.log('Aura help modal state changed:', showAuraHelp);
   }, [showAuraHelp]);
 
-  // AI Help Button Animation Logic
+  // AI Help Button Animation Logic: Appears for 5 seconds, Hides for 4 seconds (Continuous 9s loop)
   useEffect(() => {
-    if (manualStopAnimation) return;
+    if (manualStopAnimation) {
+      setShowAIHelpButton(false);
+      return;
+    }
 
-    const showButton = () => setShowAIHelpButton(true);
-    const hideButton = () => setShowAIHelpButton(false);
+    let isMounted = true;
+    let timerId: NodeJS.Timeout;
 
-    // Show button after 3 seconds
-    const showTimer = setTimeout(showButton, 3000);
+    const executeCycle = (isVisible: boolean) => {
+      if (!isMounted || manualStopAnimation) return;
+      setShowAIHelpButton(isVisible);
+      // If showing: visible for 5000ms (5s)
+      // If hiding: hidden for 4000ms (4s)
+      const delay = isVisible ? 5000 : 4000;
+      timerId = setTimeout(() => {
+        executeCycle(!isVisible);
+      }, delay);
+    };
 
-    // Hide button after 8 seconds (visible for 5 seconds)
-    const hideTimer = setTimeout(hideButton, 8000);
-
-    // Repeat cycle every 15 seconds
-    const cycleTimer = setInterval(() => {
-      if (!manualStopAnimation) {
-        showButton();
-        setTimeout(hideButton, 5000);
-      }
-    }, 15000);
+    // Begin cycle by displaying the button for 5 seconds
+    executeCycle(true);
 
     return () => {
-      clearTimeout(showTimer);
-      clearTimeout(hideTimer);
-      clearInterval(cycleTimer);
+      isMounted = false;
+      clearTimeout(timerId);
     };
   }, [manualStopAnimation]);
 
@@ -9810,9 +9812,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     .animate-cyberwave-5 { animation: cyberWave 0.7s ease-in-out infinite; }
                   `}} />
 
-                    {/* Unified AI Floating Help Component */}
+                    {/* Unified AI Floating Help Component with Smooth 5s Appear / 4s Hide Animation */}
                     {showAIHelpButton ? (
-                      <div className="absolute bottom-20 right-4 z-[99] animate-float-in">
+                      <div className="absolute bottom-20 right-4 z-[99] transition-all duration-500 ease-in-out opacity-100 scale-100 translate-y-0 animate-float-in">
                         <div className="relative group">
                           {/* Built-in Sleek Close Button at Top-Right Corner */}
                           <button
