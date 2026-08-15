@@ -3321,15 +3321,36 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const prevPendingImageUrlRef = useRef<string | null>(null);
   const prevPeerHandleRef = useRef<string | null>(null);
 
-  // Auto-scroll chat panel to bottom
-  const scrollToBottom = () => {
-    if (chatScrollRef.current) {
-      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-    }
-  };
-
-  // Keep track of which peer we have completed the initial scroll-to-bottom for
+  // Smart Chat Scroll State Tracking:
+  // Prevents unwanted automatic scroll-down when user has scrolled up to read older messages
+  const isUserScrolledUpRef = useRef<boolean>(false);
+  const lastMessageIdRef = useRef<string | null>(null);
+  const lastMessagesLengthRef = useRef<number>(0);
   const initialScrollDoneRef = useRef<string | null>(null);
+
+  // Smart scroll to bottom helper
+  const scrollToBottom = useCallback((smooth = false) => {
+    if (chatScrollRef.current) {
+      if (smooth) {
+        chatScrollRef.current.scrollTo({
+          top: chatScrollRef.current.scrollHeight,
+          behavior: "smooth",
+        });
+      } else {
+        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+      }
+      isUserScrolledUpRef.current = false;
+    }
+  }, []);
+
+  // Listen to user scroll movements in chat container
+  const handleChatContainerScroll = useCallback(() => {
+    const el = chatScrollRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    // If distance from bottom is greater than 80px, user is deliberately reading older messages
+    isUserScrolledUpRef.current = distanceFromBottom > 80;
+  }, []);
 
   useEffect(() => {
     const el = chatScrollRef.current;
@@ -3338,39 +3359,69 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     const peer = activePeerHandle;
     if (!peer) {
       initialScrollDoneRef.current = null;
+      lastMessageIdRef.current = null;
+      lastMessagesLengthRef.current = 0;
+      isUserScrolledUpRef.current = false;
       return;
     }
 
-    // 1. If we switched peers or messages arrived for the current peer, trigger staggered scroll to bottom
+    // 1. Initial load when opening chat with a peer or switching peers -> always scroll to bottom
     if (initialScrollDoneRef.current !== peer && chatMessages.length > 0) {
       initialScrollDoneRef.current = peer;
+      isUserScrolledUpRef.current = false;
+      lastMessagesLengthRef.current = chatMessages.length;
+      lastMessageIdRef.current = chatMessages[chatMessages.length - 1]?.id || null;
+
       scrollToBottom();
-      const t1 = setTimeout(scrollToBottom, 50);
-      const t2 = setTimeout(scrollToBottom, 150);
-      const t3 = setTimeout(scrollToBottom, 350);
-      const t4 = setTimeout(scrollToBottom, 650);
+      const t1 = setTimeout(() => scrollToBottom(), 50);
+      const t2 = setTimeout(() => scrollToBottom(), 150);
+      const t3 = setTimeout(() => scrollToBottom(), 350);
       return () => {
         clearTimeout(t1);
         clearTimeout(t2);
         clearTimeout(t3);
-        clearTimeout(t4);
       };
     }
 
-    // 3. For any subsequent updates (e.g. new messages, images, typing status)
+    // 2. Handling new incoming or outgoing messages
     if (chatMessages.length > 0) {
       const lastMessage = chatMessages[chatMessages.length - 1];
-      const meId = (session?.user as any)?.id as string | undefined;
-      const sentByMe = Boolean(meId && lastMessage.senderId === meId);
-      const isNearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 250; // generous 250px boundary
+      const isNewMessage =
+        lastMessage &&
+        (lastMessage.id !== lastMessageIdRef.current || chatMessages.length > lastMessagesLengthRef.current);
 
-      if (sentByMe || isNearBottom || pendingImagePreviewUrl) {
-        scrollToBottom();
-        const t = setTimeout(scrollToBottom, 60);
-        return () => clearTimeout(t);
+      const meId = (session?.user as any)?.id as string | undefined;
+      const sentByMe = Boolean(meId && lastMessage?.senderId === meId);
+
+      if (isNewMessage) {
+        lastMessageIdRef.current = lastMessage.id;
+        lastMessagesLengthRef.current = chatMessages.length;
+
+        if (sentByMe) {
+          // User sent a message -> force scroll to bottom
+          isUserScrolledUpRef.current = false;
+          scrollToBottom();
+          const t = setTimeout(() => scrollToBottom(), 60);
+          return () => clearTimeout(t);
+        } else if (!isUserScrolledUpRef.current) {
+          // Incoming message from peer AND user is already at the bottom -> smooth scroll to bottom
+          scrollToBottom(true);
+          const t = setTimeout(() => scrollToBottom(), 60);
+          return () => clearTimeout(t);
+        }
+        // IF USER HAS SCROLLED UP (isUserScrolledUpRef.current === true) -> DO NOT FORCE SCROLL! Preserve user reading position!
+      } else {
+        // Just polling refresh / tick delivery status update / read receipt update -> do NOT jump or scroll!
+        lastMessageIdRef.current = lastMessage?.id || null;
+        lastMessagesLengthRef.current = chatMessages.length;
+
+        // Keep pinned to bottom only if user was already at bottom (within 40px)
+        if (!isUserScrolledUpRef.current && el.scrollHeight - el.scrollTop - el.clientHeight <= 40) {
+          scrollToBottom();
+        }
       }
     }
-  }, [chatMessages, pendingImagePreviewUrl, activePeerHandle, session?.user]);
+  }, [chatMessages, pendingImagePreviewUrl, activePeerHandle, session?.user, scrollToBottom]);
 
   const handleAttachButtonClick = () => {
     if (!activePeerHandle || isUploadingAttachment) return;
@@ -8999,7 +9050,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     </div>
 
                     {/* Scrollable middle: errors + messages + pending preview at bottom */}
-                    <div ref={chatScrollRef} className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
+                    <div ref={chatScrollRef} onScroll={handleChatContainerScroll} className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
                       {chatError && (
                         <p className="mt-1 text-[11px] text-rose-300">{chatError}</p>
                       )}
