@@ -833,6 +833,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           });
           quantumAudio.warmup();
           quantumAudio.playEmergencyChime();
+
+          // Elevate window if running inside Electron desktop client
+          if (typeof window !== "undefined") {
+            const win = window as any;
+            if (win.electronAPI?.triggerEmergencyBeacon) {
+              win.electronAPI.triggerEmergencyBeacon({
+                senderHandle,
+                noteText: noteText || "⚡ Urgent Priority Emergency Flash!",
+                voiceUrl: voiceUrl || null,
+              });
+            }
+          }
         }
       }
     };
