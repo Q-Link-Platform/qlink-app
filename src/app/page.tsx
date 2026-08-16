@@ -1603,11 +1603,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   // AI Help Button & Circular Chevron Trigger Animation Logic:
   // Visible for 5 seconds (5000ms), Hidden for 4 seconds (4000ms) in an automatic infinite loop
   useEffect(() => {
+    if (manualStopAnimation) {
+      setIsAIArrowButtonVisible(false);
+      setShowAIHelpButton(false);
+      return;
+    }
+
     let isMounted = true;
     let arrowTimerId: NodeJS.Timeout;
 
     const executeArrowCycle = (isVisible: boolean) => {
-      if (!isMounted) return;
+      if (!isMounted || manualStopAnimation) return;
       setIsAIArrowButtonVisible(isVisible);
       // If showing: visible for 5000ms (5s)
       // If hiding: hidden for 4000ms (4s)
@@ -1624,7 +1630,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       isMounted = false;
       clearTimeout(arrowTimerId);
     };
-  }, []);
+  }, [manualStopAnimation]);
 
   // Install Prompt Handler
   useEffect(() => {
@@ -9966,6 +9972,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 onClick={() => {
                                   setShowCloseModal(false);
                                   setShowAIHelpButton(false);
+                                  setIsAIArrowButtonVisible(false);
                                   setManualStopAnimation(true);
                                   localStorage.setItem("qlink_manual_stop_ai_animation", "true");
                                 }}
