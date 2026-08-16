@@ -9874,30 +9874,32 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </div>
                       </div>
                     ) : (
-                      /* Manual AI Help Trigger Button (Compact round chevron trigger with 5s Appear / 4s Hide animation) */
+                      /* Manual AI Help Trigger Button (Flicker-Free 5s Appear / 4s Hide Smooth Fade) */
                       <div
-                        className={`absolute bottom-20 right-4 z-[99] transition-all duration-500 ease-in-out ${
+                        className={`absolute bottom-20 right-4 z-[99] overflow-hidden select-none transition-all duration-500 ease-in-out ${
                           isAIArrowButtonVisible
-                            ? "opacity-100 scale-100 translate-x-0 pointer-events-auto"
-                            : "opacity-0 scale-75 translate-x-4 pointer-events-none"
+                            ? "opacity-100 scale-100 pointer-events-auto"
+                            : "opacity-0 scale-90 pointer-events-none"
                         }`}
+                        style={{ willChange: "opacity, transform" }}
                       >
                         <button
+                          type="button"
                           onClick={() => {
                             setShowAIHelpButton(true);
                             setManualStopAnimation(false);
                             localStorage.setItem("qlink_manual_stop_ai_animation", "false");
                           }}
-                          className="select-none group relative h-9 w-9 rounded-full border border-cyan-400/70 bg-[#09111c]/95 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 hover:border-cyan-400 hover:scale-110 hover:shadow-[0_0_22px_rgba(34,211,238,0.65)] flex items-center justify-center backdrop-blur-md"
+                          className="group relative h-9 w-9 rounded-full border border-cyan-400/70 bg-[#09111c]/95 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 hover:border-cyan-400 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] flex items-center justify-center backdrop-blur-md overflow-hidden"
                           title="Need AI Help / Smart Assistance"
                         >
-                          {/* Ambient Pulse Aura */}
-                          <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400/30 opacity-40 animate-ping pointer-events-none" />
-                          <svg className="h-4.5 w-4.5 text-cyan-300 group-hover:text-cyan-100 transition-colors group-hover:scale-110 duration-200 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          {/* Contained soft pulse glow (Zero scrollbar expansion) */}
+                          <div className="absolute inset-0 rounded-full bg-cyan-400/20 animate-pulse pointer-events-none" />
+                          <svg className="h-4.5 w-4.5 text-cyan-300 group-hover:text-cyan-100 transition-colors duration-200 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                           </svg>
-                          {/* Glow effect */}
-                          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400/20 via-sky-500/10 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                          {/* Inner radiant highlight */}
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400/25 via-sky-500/10 to-transparent opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                         </button>
                       </div>
                     )}
