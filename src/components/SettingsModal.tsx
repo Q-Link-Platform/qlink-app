@@ -223,6 +223,7 @@ export default function SettingsModal(props: SettingsModalProps) {
   } = props;
 
   const isElectron = typeof window !== "undefined" && Boolean((window as any).electronAPI);
+  const [showAboutFeatures, setShowAboutFeatures] = useState(false);
 
   const interestsCategories = [
     "Technology", "Artificial Intelligence", "Machine Learning", "Deep Learning",
@@ -246,8 +247,6 @@ export default function SettingsModal(props: SettingsModalProps) {
 
 
   if (!showSettings && !isSettingsAnimating) return null;
-
-  const [showAboutFeatures, setShowAboutFeatures] = useState(false);
 
   const modalContent = (
                       <div
@@ -1160,55 +1159,88 @@ export default function SettingsModal(props: SettingsModalProps) {
 
                               {/* Micro-Features Grid */}
                               {showAboutFeatures && (
-                                <div className="space-y-2 pt-2 border-t border-white/5 text-[10px] text-slate-300 animate-fade-in">
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                                      <p className="font-semibold text-cyan-300 mb-0.5">⚡ Dynamic Contact Ranking</p>
-                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
-                                        Recently messaged friends automatically bubble to the top of your chat list in real-time.
-                                      </p>
+                                <div className="space-y-2.5 pt-2 border-t border-white/5 text-[10px] text-slate-300 animate-fade-in max-h-72 overflow-y-auto pr-1">
+                                  {/* Category 1: Chat & Messaging */}
+                                  <div className="space-y-1.5">
+                                    <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">💬 Chat & Messaging</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-cyan-300">⚡ Dynamic Recency Ranking</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Active and newly messaged chats instantly bubble to the top.</p>
+                                      </div>
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-emerald-300">✓✓ Live Status Ticks</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Sent (1 tick), Delivered (2 grey), and Seen (2 glowing green).</p>
+                                      </div>
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-sky-300">🎙️ Voice Memos</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">One-tap audio recording with interactive waveform players.</p>
+                                      </div>
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-purple-300">📜 Smart Scroll Memory</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Browses history without jumping, auto-snaps on new messages.</p>
+                                      </div>
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-teal-300">🌊 Live Typing & Presence</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Real-time online status dots and animated typing waves.</p>
+                                      </div>
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-indigo-300">🔒 E2E Encrypted Chat</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Private direct messages with device-level protection.</p>
+                                      </div>
                                     </div>
-                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                                      <p className="font-semibold text-emerald-300 mb-0.5">✓✓ Live Status Ticks</p>
-                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
-                                        Real-time delivery feedback: Sent (single tick), Delivered (double grey), and Seen (glowing green).
-                                      </p>
+                                  </div>
+
+                                  {/* Category 2: Privacy & Storage */}
+                                  <div className="space-y-1.5 pt-1 border-t border-white/5">
+                                    <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">⏳ Privacy & Storage</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-amber-300">24-Hour Ephemeral Media</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Shared files & photos self-delete after 24h to keep devices clean.</p>
+                                      </div>
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-orange-300">Granular Privacy Controls</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Independent public/private visibility for Bio, Email, Age, & Interests.</p>
+                                      </div>
                                     </div>
-                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                                      <p className="font-semibold text-rose-300 mb-0.5">🚨 Q-BEACON Emergency Protocol</p>
-                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
-                                        Priority emergency flash with audible alarm chimes and full-screen elevation for critical situations.
-                                      </p>
+                                  </div>
+
+                                  {/* Category 3: Emergency & Social Discovery */}
+                                  <div className="space-y-1.5 pt-1 border-t border-white/5">
+                                    <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">🚨 Emergency & Community</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-rose-300">Q-BEACON Emergency Alert</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">High-urgency siren chimes & full-screen elevation for urgent alerts.</p>
+                                      </div>
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-pink-300">Social Feed & Reactions</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Community timeline with mentions (@), hashtags (#), and emojis.</p>
+                                      </div>
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-blue-300">Global Directory & Aura</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Find peers by interest, view Aura score, and verified tick badges.</p>
+                                      </div>
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-fuchsia-300">Diamond & Sapphire VIP</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Interactive cards with metallic luster and looping canvas art.</p>
+                                      </div>
                                     </div>
-                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                                      <p className="font-semibold text-amber-300 mb-0.5">⏳ 24-Hour Ephemeral Media</p>
-                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
-                                        Shared media self-cleans automatically after 24 hours to preserve device storage and privacy.
-                                      </p>
-                                    </div>
-                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                                      <p className="font-semibold text-purple-300 mb-0.5">📜 Smart Scroll Memory</p>
-                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
-                                        Preserves your scroll position when browsing history without sudden jumping.
-                                      </p>
-                                    </div>
-                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                                      <p className="font-semibold text-sky-300 mb-0.5">🎙️ Voice Memos & Waveforms</p>
-                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
-                                        One-tap high-fidelity voice recording with interactive waveform playback controls.
-                                      </p>
-                                    </div>
-                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                                      <p className="font-semibold text-pink-300 mb-0.5">💎 VIP Diamond & Sapphire Cards</p>
-                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
-                                        Custom metallic tier cards with looping visual art and verified identity badges.
-                                      </p>
-                                    </div>
-                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
-                                      <p className="font-semibold text-teal-300 mb-0.5">⚡ Dual GPU Performance Control</p>
-                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
-                                        Toggle between full 60fps glassmorphism effects and optimized battery-saver mode.
-                                      </p>
+                                  </div>
+
+                                  {/* Category 4: App Ecosystem */}
+                                  <div className="space-y-1.5 pt-1 border-t border-white/5">
+                                    <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">🖥️ Desktop & Performance</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-cyan-300">Windows Tray Background Mode</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Runs in the System Tray with zero-flicker background sync.</p>
+                                      </div>
+                                      <div className="rounded-xl border border-white/5 bg-black/30 p-2">
+                                        <p className="font-semibold text-emerald-300">Dual GPU Performance Control</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Switch between 60fps ultra glass effects and battery saver mode.</p>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
