@@ -376,6 +376,15 @@ type OutgoingRequest = {
   categories: string[];
   message?: string | null;
   createdAt: string;
+  updatedAt?: string;
+  lastInteractionAt?: string;
+  latestMessage?: {
+    id: string;
+    content: string;
+    createdAt: string;
+    senderId: string;
+    status?: string;
+  } | null;
   toUser: {
     id: string;
     handle: string;
@@ -402,6 +411,15 @@ type IncomingRequest = {
   categories: string[];
   message?: string | null;
   createdAt: string;
+  updatedAt?: string;
+  lastInteractionAt?: string;
+  latestMessage?: {
+    id: string;
+    content: string;
+    createdAt: string;
+    senderId: string;
+    status?: string;
+  } | null;
   fromUser: {
     id: string;
     handle: string;
@@ -431,6 +449,91 @@ type DirectoryItem = {
   blueTickStatus: string;
   points: number;
 };
+
+interface UnreadItem {
+  id: string;
+  sender: string;
+}
+
+/**
+ * Advanced Dynamic Ranking Algorithm for Friend Conversations & IDs:
+ *
+ * 1. Actionable Tier: PENDING incoming requests always rise to top.
+ * 2. Unread Tier: Contacts with unread incoming messages jump immediately to the top with high priority.
+ * 3. Active Conversation Tier: Currently open/active chat peer stays pinned at the top.
+ * 4. Exact Recency Timestamp: Most recent message interaction (or connection date) ranks highest.
+ * 5. Deterministic Tie-Breaker: Stable locale sort by user handle (guarantees consistency across all devices & accounts).
+ */
+function rankFriendRequests<T extends {
+  id: string;
+  status: string;
+  createdAt: string | Date;
+  updatedAt?: string | Date;
+  lastInteractionAt?: string | Date;
+  latestMessage?: { createdAt: string; id: string } | null;
+  toUser?: { handle?: string | null };
+  fromUser?: { handle?: string | null };
+}>(
+  requests: T[],
+  unreadMsgs: any[],
+  activePeer: string | null,
+  isIncomingList: boolean = false
+): T[] {
+  if (!Array.isArray(requests) || requests.length <= 1) return requests;
+
+  return [...requests].sort((a, b) => {
+    const handleA = (a.fromUser?.handle || a.toUser?.handle || "").toLowerCase();
+    const handleB = (b.fromUser?.handle || b.toUser?.handle || "").toLowerCase();
+
+    // 1. Status tiering
+    if (isIncomingList) {
+      const getIncomingTier = (status: string) => {
+        if (status === "PENDING") return 1;
+        if (status === "ACCEPTED") return 2;
+        return 3;
+      };
+      const tierA = getIncomingTier(a.status);
+      const tierB = getIncomingTier(b.status);
+      if (tierA !== tierB) return tierA - tierB;
+    } else {
+      const getOutgoingTier = (status: string) => {
+        if (status === "ACCEPTED") return 1;
+        if (status === "PENDING") return 2;
+        return 3;
+      };
+      const tierA = getOutgoingTier(a.status);
+      const tierB = getOutgoingTier(b.status);
+      if (tierA !== tierB) return tierA - tierB;
+    }
+
+    // 2. Unread Message Priority Boost
+    const isUnreadA = handleA ? isHandleUnread(unreadMsgs, handleA) : false;
+    const isUnreadB = handleB ? isHandleUnread(unreadMsgs, handleB) : false;
+    if (isUnreadA !== isUnreadB) return isUnreadA ? -1 : 1;
+
+    // 3. Active Chat Peer Priority Boost
+    const isActiveA = activePeer && handleA ? areHandlesEqual(activePeer, handleA) : false;
+    const isActiveB = activePeer && handleB ? areHandlesEqual(activePeer, handleB) : false;
+    if (isActiveA !== isActiveB) return isActiveA ? -1 : 1;
+
+    // 4. Exact Interaction Recency (Latest message createdAt > lastInteractionAt > updatedAt > createdAt)
+    const getTime = (req: T) => {
+      const msgTime = req.latestMessage?.createdAt ? new Date(req.latestMessage.createdAt).getTime() : 0;
+      const interactTime = req.lastInteractionAt ? new Date(req.lastInteractionAt).getTime() : 0;
+      const updatedTime = req.updatedAt ? new Date(req.updatedAt).getTime() : 0;
+      const createdTime = req.createdAt ? new Date(req.createdAt).getTime() : 0;
+      return Math.max(msgTime, interactTime, updatedTime, createdTime);
+    };
+
+    const timeA = getTime(a);
+    const timeB = getTime(b);
+    if (timeA !== timeB) return timeB - timeA;
+
+    // 5. Deterministic fallback tie-breaker
+    return handleA.localeCompare(handleB);
+  });
+}
+
 
 function renderMessageText(text: string, isMe: boolean) {
   if (!text) return null;
@@ -5650,6 +5753,48 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         const withoutTemps = prev.filter((m) => !m.id.startsWith("temp-"));
         return [...withoutTemps, { ...message, status: message.status || "SENT" }];
       });
+
+      // Real-time Dynamic Ranking: Instantly bump peer to the top of the friends/chats sidebar
+      if (activePeerHandle) {
+        const nowIso = new Date().toISOString();
+        setOutgoing((prev) =>
+          prev.map((req) => {
+            if (req.toUser?.handle && areHandlesEqual(req.toUser.handle, activePeerHandle)) {
+              return {
+                ...req,
+                lastInteractionAt: nowIso,
+                latestMessage: {
+                  id: message.id,
+                  content: text,
+                  createdAt: nowIso,
+                  senderId: (session?.user as any)?.id || "",
+                  status: message.status || "SENT",
+                },
+              };
+            }
+            return req;
+          })
+        );
+
+        setIncoming((prev) =>
+          prev.map((req) => {
+            if (req.fromUser?.handle && areHandlesEqual(req.fromUser.handle, activePeerHandle)) {
+              return {
+                ...req,
+                lastInteractionAt: nowIso,
+                latestMessage: {
+                  id: message.id,
+                  content: text,
+                  createdAt: nowIso,
+                  senderId: (session?.user as any)?.id || "",
+                  status: message.status || "SENT",
+                },
+              };
+            }
+            return req;
+          })
+        );
+      }
       setChatInput("");
       if (chatInputRef.current) {
         chatInputRef.current.style.height = "auto";
@@ -8144,7 +8289,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         start.
                       </p>
                     )}
-                    {outgoing.map((req) => (
+                    {rankFriendRequests(outgoing, unreadMessages, activePeerHandle, false).map((req) => (
                       <div
                         key={req.id}
                         className={
@@ -8312,7 +8457,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </p>
                     )}
                     <div className={`space-y-1 mt-2 ${isFocusMode ? "flex-1" : "max-h-52"} overflow-y-auto incoming-requests-scroll pr-1`} style={{ WebkitOverflowScrolling: 'touch' }}>
-                      {incoming.map((req) => (
+                      {rankFriendRequests(incoming, unreadMessages, activePeerHandle, true).map((req) => (
                         <div
                           key={req.id}
                           className={

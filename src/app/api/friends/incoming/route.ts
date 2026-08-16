@@ -14,7 +14,7 @@ export async function GET() {
 
     const requests = await prisma.friendRequest.findMany({
       where: { toUserId },
-      orderBy: { createdAt: "desc" },
+      orderBy: { updatedAt: "desc" },
       include: {
         fromUser: {
           select: {
@@ -68,6 +68,8 @@ export async function GET() {
     const shaped = await Promise.all(
       uniqueRequests.map(async (r) => {
         let latestMessage = null;
+        let lastInteractionAt = r.updatedAt ? r.updatedAt.toISOString() : r.createdAt.toISOString();
+
         if (r.status === "ACCEPTED" && r.fromUser) {
           const uids = [toUserId, r.fromUserId].sort();
           const plainRoomId = `${uids[0]}:${uids[1]}`;
@@ -92,6 +94,7 @@ export async function GET() {
               senderId: msg.senderId,
               status: msg.status || "SENT",
             };
+            lastInteractionAt = msg.createdAt.toISOString();
           }
         }
 
@@ -100,12 +103,39 @@ export async function GET() {
           status: r.status,
           categories: r.categories.split(",").filter(Boolean),
           message: r.message,
-          createdAt: r.createdAt,
+          createdAt: r.createdAt.toISOString(),
+          updatedAt: r.updatedAt ? r.updatedAt.toISOString() : r.createdAt.toISOString(),
+          lastInteractionAt,
           fromUser: r.fromUser,
           latestMessage,
         };
       })
     );
+
+    // Advanced Ranking Algorithm:
+    // 1. PENDING requests first (actionable requests needing user decision)
+    // 2. ACCEPTED friends ranked by most recent message / interaction timestamp (descending)
+    // 3. REJECTED requests at bottom
+    // 4. Stable tie-breaker: alphabetical by handle
+    shaped.sort((a, b) => {
+      const getStatusPriority = (status: string) => {
+        if (status === "PENDING") return 1;
+        if (status === "ACCEPTED") return 2;
+        return 3;
+      };
+
+      const prioA = getStatusPriority(a.status);
+      const prioB = getStatusPriority(b.status);
+      if (prioA !== prioB) return prioA - prioB;
+
+      const timeA = new Date(a.lastInteractionAt || a.updatedAt || a.createdAt).getTime();
+      const timeB = new Date(b.lastInteractionAt || b.updatedAt || b.createdAt).getTime();
+      if (timeA !== timeB) return timeB - timeA;
+
+      const handleA = a.fromUser?.handle || "";
+      const handleB = b.fromUser?.handle || "";
+      return handleA.localeCompare(handleB);
+    });
 
     return NextResponse.json({ requests: shaped });
   } catch (err) {

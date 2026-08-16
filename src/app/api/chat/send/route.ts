@@ -58,6 +58,14 @@ export async function POST(request: Request) {
       );
     }
 
+        // Bump friendRequest updatedAt so conversation recency is immediately indexed
+    prisma.friendRequest
+      .update({
+        where: { id: accepted.id },
+        data: { updatedAt: new Date() },
+      })
+      .catch(() => {});
+
     const roomId = buildRoomId(meId, peer.id);
 
     const message = await prisma.message.create({
