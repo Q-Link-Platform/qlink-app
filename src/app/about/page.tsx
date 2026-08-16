@@ -3,21 +3,21 @@ import { Metadata } from "next";
 import AboutPageClient from "./AboutPageClient";
 
 export const metadata: Metadata = {
-  title: "Q-Link | Secure E2E Encrypted Chat Protocol & Features Catalog",
+  title: "About Q-Link | Real-Time Messaging & Community Platform",
   description:
-    "Explore Q-Link v3.0, the next-gen quantum communication platform featuring dynamic contact ranking, live status ticks, Q-BEACON emergency alerts, 24-hour ephemeral media, smart chat scroll, voice memos, and native Windows desktop app.",
+    "Learn about Q-Link v3.0, a fast, private messaging and social platform with dynamic contact ranking, live status ticks, 24-hour ephemeral media, Q-BEACON emergency alerts, and a standalone Windows desktop app.",
   openGraph: {
-    title: "Q-Link | Secure E2E Encrypted Chat Protocol & Features Catalog",
+    title: "About Q-Link | Real-Time Messaging & Community Platform",
     description:
-      "Explore Q-Link v3.0, the next-gen quantum communication platform featuring dynamic contact ranking, live status ticks, Q-BEACON emergency alerts, 24-hour ephemeral media, smart chat scroll, voice memos, and native Windows desktop app.",
+      "Learn about Q-Link v3.0, a fast, private messaging and social platform with dynamic contact ranking, live status ticks, 24-hour ephemeral media, Q-BEACON emergency alerts, and a standalone Windows desktop app.",
     type: "website",
     url: "https://q-link-v3-0.vercel.app/about",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Q-Link | Secure E2E Encrypted Chat Protocol & Features Catalog",
+    title: "About Q-Link | Real-Time Messaging & Community Platform",
     description:
-      "Explore Q-Link v3.0, the next-gen quantum communication platform featuring dynamic contact ranking, live status ticks, Q-BEACON emergency alerts, 24-hour ephemeral media, smart chat scroll, voice memos, and native Windows desktop app.",
+      "Learn about Q-Link v3.0, a fast, private messaging and social platform with dynamic contact ranking, live status ticks, 24-hour ephemeral media, Q-BEACON emergency alerts, and a standalone Windows desktop app.",
   },
 };
 
@@ -29,25 +29,23 @@ export default function AboutPage() {
     "operatingSystem": "Windows, macOS, Linux, Android, iOS",
     "applicationCategory": "CommunicationApplication",
     "description":
-      "An ultra-secure, glassmorphic chat and social platform featuring dynamic contact ranking, live status ticks, 24-hour ephemeral media, Q-BEACON emergency alerts, voice memos, and native Windows desktop app.",
+      "A fast, modern real-time messaging and social platform featuring dynamic contact ranking, live message status ticks, 24-hour ephemeral media, voice notes, and a native Windows desktop app.",
     "url": "https://q-link-v3-0.vercel.app/",
     "softwareVersion": "3.0",
     "featureList": [
-      "Dynamic Recency Contact Ranking Engine",
-      "Triple-State Message Delivery Ticks (Sent, Delivered, Seen)",
-      "Real-Time Typing Waveform & Online Presence Dots",
-      "Smart Chat Scroll Memory & Auto-Snapping",
+      "Dynamic Recency Contact Ranking",
+      "Real-Time Message Status Ticks (Sent, Delivered, Seen)",
+      "Live Typing Waves and Online Presence Indicators",
       "24-Hour Ephemeral Media Self-Cleaning Storage",
-      "Q-BEACON Priority Emergency Alert Protocol with Siren Chime",
-      "Inline Voice Memos with Interactive Waveform Player",
-      "Community Social Feed with Mentions (@) and Hashtags (#)",
-      "Global User Directory with Aura Percentage Leaderboard",
+      "Q-BEACON Priority Emergency Alert Protocol",
+      "Inline Voice Memos with Waveform Audio Player",
+      "Community Social Feed with Mentions and Hashtags",
+      "Global User Directory with Aura Engagement Scores",
       "Verified Blue Tick and Founder Red Tick Badges",
-      "Diamond 10 and Sapphire 10 VIP Interactive Profile Cards",
-      "Standalone Windows Desktop App (.exe) with System Tray Background Mode",
-      "Hardware & GPU Performance Switcher (60fps Ultra vs Battery Saver)",
-      "Client-Side End-to-End Cryptography Shield",
-      "Ambient Smart AI Assistant Companion"
+      "Diamond and Sapphire VIP Profile Showcase Cards",
+      "Standalone Windows Desktop Client (.exe) with System Tray Mode",
+      "Hardware and GPU Performance Switcher (60fps Ultra vs Battery Saver)",
+      "End-to-End Encryption Mode for Private Direct Chats"
     ]
   };
 
