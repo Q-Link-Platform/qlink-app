@@ -9879,9 +9879,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </div>
                       </div>
                     ) : (
-                      /* Manual AI Help Trigger Button (Flicker-Free 5s Appear / 4s Hide Smooth Fade) */
+                      /* Manual AI Help Trigger Button (100% Pure Circle with Zero Sharp Corner Artifacts) */
                       <div
-                        className={`absolute bottom-20 right-4 z-[99] overflow-hidden select-none transition-all duration-500 ease-in-out ${
+                        className={`absolute bottom-20 right-4 z-[99] rounded-full p-1 select-none transition-all duration-500 ease-in-out ${
                           isAIArrowButtonVisible
                             ? "opacity-100 scale-100 pointer-events-auto"
                             : "opacity-0 scale-90 pointer-events-none"
@@ -9895,7 +9895,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             setManualStopAnimation(false);
                             localStorage.setItem("qlink_manual_stop_ai_animation", "false");
                           }}
-                          className="group relative h-9 w-9 rounded-full border border-cyan-400/70 bg-[#09111c]/95 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 hover:border-cyan-400 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] flex items-center justify-center backdrop-blur-md overflow-hidden"
+                          className="group relative h-9 w-9 rounded-full border border-cyan-400/70 bg-[#09111c]/95 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 hover:border-cyan-400 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] flex items-center justify-center backdrop-blur-md overflow-hidden isolate"
+                          style={{ clipPath: "circle(50% at 50% 50%)" }}
                           title="Need AI Help / Smart Assistance"
                         >
                           {/* Contained soft pulse glow (Zero scrollbar expansion) */}
