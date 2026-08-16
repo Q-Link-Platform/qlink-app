@@ -9895,17 +9895,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             setManualStopAnimation(false);
                             localStorage.setItem("qlink_manual_stop_ai_animation", "false");
                           }}
-                          className="group relative h-9 w-9 rounded-full border border-cyan-400/70 bg-[#09111c]/95 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 hover:border-cyan-400 hover:scale-105 hover:shadow-[0_0_20px_rgba(34,211,238,0.6)] flex items-center justify-center backdrop-blur-md overflow-hidden isolate"
-                          style={{ clipPath: "circle(50% at 50% 50%)" }}
+                          className="group relative h-9.5 w-9.5 rounded-full border-[2.5px] border-cyan-400 bg-[#09111c]/95 shadow-[0_0_18px_rgba(34,211,238,0.5)] transition-all duration-300 hover:border-cyan-300 hover:scale-105 hover:shadow-[0_0_25px_rgba(34,211,238,0.8)] flex items-center justify-center backdrop-blur-md overflow-hidden"
                           title="Need AI Help / Smart Assistance"
                         >
-                          {/* Contained soft pulse glow (Zero scrollbar expansion) */}
-                          <div className="absolute inset-0 rounded-full bg-cyan-400/20 animate-pulse pointer-events-none" />
-                          <svg className="h-4.5 w-4.5 text-cyan-300 group-hover:text-cyan-100 transition-colors duration-200 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                          {/* Contained soft pulse glow */}
+                          <div className="absolute inset-0 rounded-full bg-cyan-400/25 animate-pulse pointer-events-none" />
+                          <svg className="h-4.5 w-4.5 text-cyan-300 group-hover:text-white transition-colors duration-200 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
                           </svg>
                           {/* Inner radiant highlight */}
-                          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400/25 via-sky-500/10 to-transparent opacity-70 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400/30 via-sky-500/15 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                         </button>
                       </div>
                     )}
