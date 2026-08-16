@@ -247,6 +247,8 @@ export default function SettingsModal(props: SettingsModalProps) {
 
   if (!showSettings && !isSettingsAnimating) return null;
 
+  const [showAboutFeatures, setShowAboutFeatures] = useState(false);
+
   const modalContent = (
                       <div
                         className={`fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-xl px-4 ${showSettings ? (isSettingsAnimating ? 'settings-backdrop-enter' : '') : 'settings-backdrop-exit'
@@ -1108,6 +1110,110 @@ export default function SettingsModal(props: SettingsModalProps) {
                             )}
                           </div>
                         </div>
+
+                                                      {/* About Q-Link & Micro-Features Showcase Section */}
+                            <div className="rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2.5">
+                                  <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
+                                    <span className="text-white font-bold text-xs tracking-wider">QL</span>
+                                  </div>
+                                  <div>
+                                    <h4 className="text-[12px] font-bold text-white flex items-center gap-1.5">
+                                      Q-Link Platform
+                                      <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                                        v3.0 Quantum
+                                      </span>
+                                    </h4>
+                                    <p className="text-[10px] text-slate-400">
+                                      Next-Gen Private Messaging & Social Network
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => setShowAboutFeatures(!showAboutFeatures)}
+                                  className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+                                >
+                                  {showAboutFeatures ? "Hide Details" : "View Features"}
+                                </button>
+                              </div>
+
+                              {/* Windows Desktop App Direct Link */}
+                              <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="text-[11px] font-semibold text-cyan-200">
+                                    🖥️ Standalone Windows App (.exe)
+                                  </p>
+                                  <p className="text-[10px] text-slate-400 truncate">
+                                    System Tray background mode & zero-flicker alerts
+                                  </p>
+                                </div>
+                                <a
+                                  href="/downloads/Q-Link-Setup.exe"
+                                  download="Q-Link-Setup.exe"
+                                  className="shrink-0 rounded-lg bg-cyan-500 px-2.5 py-1 text-[10px] font-bold text-slate-950 hover:bg-cyan-400 transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+                                >
+                                  Download
+                                </a>
+                              </div>
+
+                              {/* Micro-Features Grid */}
+                              {showAboutFeatures && (
+                                <div className="space-y-2 pt-2 border-t border-white/5 text-[10px] text-slate-300 animate-fade-in">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
+                                      <p className="font-semibold text-cyan-300 mb-0.5">⚡ Dynamic Contact Ranking</p>
+                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
+                                        Recently messaged friends automatically bubble to the top of your chat list in real-time.
+                                      </p>
+                                    </div>
+                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
+                                      <p className="font-semibold text-emerald-300 mb-0.5">✓✓ Live Status Ticks</p>
+                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
+                                        Real-time delivery feedback: Sent (single tick), Delivered (double grey), and Seen (glowing green).
+                                      </p>
+                                    </div>
+                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
+                                      <p className="font-semibold text-rose-300 mb-0.5">🚨 Q-BEACON Emergency Protocol</p>
+                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
+                                        Priority emergency flash with audible alarm chimes and full-screen elevation for critical situations.
+                                      </p>
+                                    </div>
+                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
+                                      <p className="font-semibold text-amber-300 mb-0.5">⏳ 24-Hour Ephemeral Media</p>
+                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
+                                        Shared media self-cleans automatically after 24 hours to preserve device storage and privacy.
+                                      </p>
+                                    </div>
+                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
+                                      <p className="font-semibold text-purple-300 mb-0.5">📜 Smart Scroll Memory</p>
+                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
+                                        Preserves your scroll position when browsing history without sudden jumping.
+                                      </p>
+                                    </div>
+                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
+                                      <p className="font-semibold text-sky-300 mb-0.5">🎙️ Voice Memos & Waveforms</p>
+                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
+                                        One-tap high-fidelity voice recording with interactive waveform playback controls.
+                                      </p>
+                                    </div>
+                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
+                                      <p className="font-semibold text-pink-300 mb-0.5">💎 VIP Diamond & Sapphire Cards</p>
+                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
+                                        Custom metallic tier cards with looping visual art and verified identity badges.
+                                      </p>
+                                    </div>
+                                    <div className="rounded-xl border border-white/5 bg-black/30 p-2.5">
+                                      <p className="font-semibold text-teal-300 mb-0.5">⚡ Dual GPU Performance Control</p>
+                                      <p className="text-slate-400 text-[9.5px] leading-relaxed">
+                                        Toggle between full 60fps glassmorphism effects and optimized battery-saver mode.
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
 
                           {/* Fixed Footer */}
                           <div className="shrink-0 pt-3 border-t border-white/10 space-y-2">

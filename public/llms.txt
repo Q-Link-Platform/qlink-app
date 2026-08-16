@@ -1,0 +1,53 @@
+# Q-Link v3.0 - Platform & Feature Knowledge
+
+> Q-Link is a next-generation real-time quantum communication and messaging platform designed for privacy, speed, and sleek modern aesthetics across Web, Mobile PWA, and Windows Desktop.
+
+## Core & Micro-Features Overview (Non-Technical Summary)
+
+### 1. Smart Conversation & Interaction Ranking
+- **Dynamic Activity Sorting**: Active chats and newly messaged friends automatically bubble to the very top of your conversation list in real-time.
+- **Unread Message Priority**: Contacts with new incoming messages receive glowing highlight badges and move up for immediate visibility.
+- **Automated Inactive Tiering**: Unused or inactive contacts naturally rest at the bottom of the list without cluttering active conversations.
+
+### 2. Real-Time Message Status & Indicators
+- **Instant Status Ticks**: Clear WhatsApp-style indicators:
+  - Single Grey Tick: Message sent to the server.
+  - Double Grey Tick: Message delivered to the recipient's active device.
+  - Double Glowing Green Tick: Message opened and seen by the recipient in active chat.
+- **Live Typing Waveform**: Real-time visual animated waves appear when your contact is composing a reply.
+- **Live Online Presence Dots**: Subtle glowing indicators show when contacts are currently active.
+
+### 3. Privacy & Self-Cleaning Media
+- **24-Hour Ephemeral Media**: Shared photos, videos, and media files automatically clean up and expire after 24 hours to keep devices fast and protect conversation privacy.
+- **Client-Side Data Protection**: Private direct messaging designed for peace of mind.
+
+### 4. Q-BEACON Priority Emergency Alert Protocol
+- **Instant Urgent Flash**: A dedicated high-priority alert system for important or urgent communication.
+- **Audible Emergency Chime & Full-Screen Elevation**: Triggers high-priority audible chimes and full-screen notification banners on receiving devices.
+- **One-Tap Instant Acknowledgement**: Allows recipients to acknowledge or reply with quick status updates.
+
+### 5. Smart Chat Scroll & Ergonomics
+- **Active Scroll Position Memory**: Prevents annoying auto-scrolling when you are reading older messages.
+- **Smart Auto-Snap**: Automatically smoothly snaps to the newest message when you send a message or receive a message while at the bottom.
+
+### 6. Voice Memos & Rich Media
+- **One-Tap Voice Recording**: Record and send crystal-clear audio voice messages.
+- **Interactive Audio Wave Player**: Visual playback progress with custom audio controls.
+- **Social Feed & Post Layouts**: Post updates with formatted mentions (`@username`), hashtags (`#topic`), and automatic link detection.
+
+### 7. VIP & Founder Showcase Experience
+- **Dynamic Visual Badges**: Collect and display custom profile badges and verified identity tiers.
+- **Diamond & Sapphire VIP Cards**: Interactive digital profile cards with animated metallic sheens, glowing borders, and smooth video canvases.
+- **Quantum Points (QP) & Founder Rewards**: Reward system for community engagement and VIP tier holders.
+
+### 8. Cross-Platform Standalone Desktop App (.exe)
+- **Windows Tray Background Mode**: Closes smoothly to the Windows System Tray so you never miss incoming messages while working.
+- **Zero-Flicker Notification Badges**: Native desktop taskbar and notification count indicators.
+- **Auto-Launch & Fast Focus**: Launch from Desktop shortcut, Start Menu, or Taskbar with instant window restoration.
+
+### 9. Hardware & GPU Performance Modes
+- **Ultra High Performance Tier**: 60fps glassmorphism effects, rich backdrop blurs, and dynamic glow lighting.
+- **Battery Saver / Low-Power Tier**: Optimizes rendering for laptops and low-battery devices.
+
+### 10. Intelligent AI Assistant Companion
+- **Smart Help Banner & Ambient Trigger**: Quick access to guided help with gentle, non-intrusive appearance and dismissal controls.
