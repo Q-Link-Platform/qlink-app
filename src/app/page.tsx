@@ -1567,6 +1567,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [isVipTermsAnimating, setIsVipTermsAnimating] = useState(false);
   const [showAuraHelp, setShowAuraHelp] = useState(false);
   const [showAIHelpButton, setShowAIHelpButton] = useState(false);
+  const [isAIArrowButtonVisible, setIsAIArrowButtonVisible] = useState(true);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -1599,35 +1600,31 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     console.log('Aura help modal state changed:', showAuraHelp);
   }, [showAuraHelp]);
 
-  // AI Help Button Animation Logic: Appears for 5 seconds, Hides for 4 seconds (Continuous 9s loop)
+  // AI Help Button & Circular Chevron Trigger Animation Logic:
+  // Visible for 5 seconds (5000ms), Hidden for 4 seconds (4000ms) in an automatic infinite loop
   useEffect(() => {
-    if (manualStopAnimation) {
-      setShowAIHelpButton(false);
-      return;
-    }
-
     let isMounted = true;
-    let timerId: NodeJS.Timeout;
+    let arrowTimerId: NodeJS.Timeout;
 
-    const executeCycle = (isVisible: boolean) => {
-      if (!isMounted || manualStopAnimation) return;
-      setShowAIHelpButton(isVisible);
+    const executeArrowCycle = (isVisible: boolean) => {
+      if (!isMounted) return;
+      setIsAIArrowButtonVisible(isVisible);
       // If showing: visible for 5000ms (5s)
       // If hiding: hidden for 4000ms (4s)
       const delay = isVisible ? 5000 : 4000;
-      timerId = setTimeout(() => {
-        executeCycle(!isVisible);
+      arrowTimerId = setTimeout(() => {
+        executeArrowCycle(!isVisible);
       }, delay);
     };
 
-    // Begin cycle by displaying the button for 5 seconds
-    executeCycle(true);
+    // Start cycle with 5 seconds visible
+    executeArrowCycle(true);
 
     return () => {
       isMounted = false;
-      clearTimeout(timerId);
+      clearTimeout(arrowTimerId);
     };
-  }, [manualStopAnimation]);
+  }, []);
 
   // Install Prompt Handler
   useEffect(() => {
@@ -9877,21 +9874,30 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </div>
                       </div>
                     ) : (
-                      /* Manual AI Help Trigger Button (Compact closed state) */
-                      <div className="absolute bottom-20 right-4 z-[99] animate-float-in">
+                      /* Manual AI Help Trigger Button (Compact round chevron trigger with 5s Appear / 4s Hide animation) */
+                      <div
+                        className={`absolute bottom-20 right-4 z-[99] transition-all duration-500 ease-in-out ${
+                          isAIArrowButtonVisible
+                            ? "opacity-100 scale-100 translate-x-0 pointer-events-auto"
+                            : "opacity-0 scale-75 translate-x-4 pointer-events-none"
+                        }`}
+                      >
                         <button
                           onClick={() => {
                             setShowAIHelpButton(true);
                             setManualStopAnimation(false);
                             localStorage.setItem("qlink_manual_stop_ai_animation", "false");
                           }}
-                          className="select-none group relative h-8 w-8 rounded-full border border-cyan-400/60 bg-[#09111c]/95 shadow-[0_0_10px_rgba(34,211,238,0.25)] transition-all duration-300 hover:border-cyan-400/80 hover:shadow-[0_0_15px_rgba(34,211,238,0.5)] flex items-center justify-center"
+                          className="select-none group relative h-9 w-9 rounded-full border border-cyan-400/70 bg-[#09111c]/95 shadow-[0_0_15px_rgba(34,211,238,0.35)] transition-all duration-300 hover:border-cyan-400 hover:scale-110 hover:shadow-[0_0_22px_rgba(34,211,238,0.65)] flex items-center justify-center backdrop-blur-md"
+                          title="Need AI Help / Smart Assistance"
                         >
-                          <svg className="h-4 w-4 text-cyan-300 group-hover:text-cyan-200 transition-colors group-hover:scale-110 duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          {/* Ambient Pulse Aura */}
+                          <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400/30 opacity-40 animate-ping pointer-events-none" />
+                          <svg className="h-4.5 w-4.5 text-cyan-300 group-hover:text-cyan-100 transition-colors group-hover:scale-110 duration-200 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                           </svg>
                           {/* Glow effect */}
-                          <div className="absolute inset-0 rounded-full bg-cyan-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400/20 via-sky-500/10 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
                         </button>
                       </div>
                     )}
