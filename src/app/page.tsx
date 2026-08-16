@@ -9828,17 +9828,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </svg>
                           </button>
 
-                          {/* Sci-Fi AI Help Banner Button */}
+                          {/* Sci-Fi AI Help Banner Button (Perfect Rounded-2xl Curve with Zero Corner Bleed) */}
                           <button
                             type="button"
                             onClick={() => {
                               alert('AI Assistant is coming soon! 🚀');
                               setShowAIHelpButton(false);
                             }}
-                            className="group relative overflow-hidden rounded-2xl border border-cyan-400/50 bg-[#09111c]/95 pl-5 pr-9 py-3.5 shadow-[0_0_20px_rgba(6,182,212,0.25)] backdrop-blur-md transition-all duration-300 hover:border-cyan-400/80 hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] flex items-center gap-3"
+                            className="group relative overflow-hidden rounded-2xl border border-cyan-400/50 bg-[#09111c]/95 pl-5 pr-9 py-3.5 shadow-[0_0_20px_rgba(6,182,212,0.25)] backdrop-blur-md transition-all duration-300 hover:border-cyan-400/80 hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] flex items-center gap-3 isolate"
+                            style={{ clipPath: "inset(0 round 1rem)" }}
                           >
                             {/* Animated Background Gradient */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 via-blue-500/20 to-purple-400/20 animate-pulse pointer-events-none" />
+                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-400/20 via-blue-500/20 to-purple-400/20 animate-pulse pointer-events-none" />
 
                             {/* Glowing Border Effect */}
                             <div className="absolute inset-0 rounded-2xl border border-cyan-400/30 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)] animate-pulse pointer-events-none" />
