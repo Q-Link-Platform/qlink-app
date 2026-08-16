@@ -9813,14 +9813,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     {showAIHelpButton ? (
                       <div className="absolute bottom-20 right-4 z-[99] transition-all duration-500 ease-in-out opacity-100 scale-100 translate-y-0 animate-float-in">
                         <div className="relative group">
-                          {/* Built-in Sleek Close Button at Top-Right Corner */}
+                          {/* Built-in Sleek Close Button at Top-Right Corner (Fully Visible & Unclipped) */}
                           <button
                             type="button"
-                            onClick={() => setShowCloseModal(true)}
-                            className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full border border-red-500/40 bg-red-950/70 hover:bg-red-900/90 text-red-400 hover:text-red-300 hover:border-red-400/80 flex items-center justify-center z-50 shadow-[0_0_8px_rgba(239,68,68,0.2)] transition-all duration-200"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowCloseModal(true);
+                            }}
+                            className="absolute top-2 right-2 h-5.5 w-5.5 rounded-full border border-red-500/60 bg-red-950/90 hover:bg-red-900 text-red-300 hover:text-white hover:border-red-400 flex items-center justify-center z-50 shadow-[0_0_10px_rgba(239,68,68,0.4)] transition-all duration-200 hover:scale-110"
+                            title="Close AI Help"
                           >
-                            <svg className="h-2.5 w-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                            <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </button>
 
@@ -9828,10 +9832,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           <button
                             type="button"
                             onClick={() => {
-                              alert('AI Assistant is coming soon! 🤖');
+                              alert('AI Assistant is coming soon! 🚀');
                               setShowAIHelpButton(false);
                             }}
-                            className="group relative overflow-hidden rounded-2xl border border-cyan-400/50 bg-[#09111c]/95 px-6 py-4 shadow-[0_0_20px_rgba(6,182,212,0.25)] backdrop-blur-md transition-all duration-300 hover:border-cyan-400/80 hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] flex items-center gap-3"
+                            className="group relative overflow-hidden rounded-2xl border border-cyan-400/50 bg-[#09111c]/95 pl-5 pr-9 py-3.5 shadow-[0_0_20px_rgba(6,182,212,0.25)] backdrop-blur-md transition-all duration-300 hover:border-cyan-400/80 hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] flex items-center gap-3"
                           >
                             {/* Animated Background Gradient */}
                             <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 via-blue-500/20 to-purple-400/20 animate-pulse pointer-events-none" />
