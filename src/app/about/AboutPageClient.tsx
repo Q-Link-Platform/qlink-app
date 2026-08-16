@@ -375,6 +375,279 @@ export default function AboutPageClient() {
           </div>
         </section>
 
+        
+        {/* Complete Micro-Features Knowledge Catalog (from llms.txt) */}
+        <section id="features-catalog" className="space-y-10 max-w-5xl mx-auto scroll-mt-24">
+          <div className="text-center space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-950/20 px-3.5 py-1 text-[11px] font-mono uppercase tracking-widest text-cyan-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              Complete Knowledge Base // llms.txt
+            </div>
+            <h3 className="text-2xl md:text-4xl font-black text-slate-100 tracking-tight">
+              Platform & Micro-Features Catalog
+            </h3>
+            <p className="text-xs md:text-sm text-slate-400 max-w-2xl mx-auto leading-relaxed">
+              Exhaustive overview of all micro-ergonomics, privacy mechanisms, emergency systems, and performance engines built into Q-Link.
+            </p>
+            <div className="pt-2">
+              <a
+                href="/llms.txt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-cyan-400 hover:text-cyan-300 bg-cyan-950/40 border border-cyan-500/30 px-3 py-1.5 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+              >
+                <span>📄 View Raw AI Knowledge File (/llms.txt)</span>
+                <span className="text-cyan-400">↗</span>
+              </a>
+            </div>
+          </div>
+
+          <div className="space-y-8">
+            {/* 1. Chat & Direct Messaging */}
+            <div className="cyber-panel p-6 md:p-8 space-y-4 border-cyan-500/20 bg-slate-950/50">
+              <div className="flex items-center gap-3 border-b border-cyan-500/15 pb-3">
+                <div className="h-8 w-8 rounded-lg bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 font-bold text-sm">
+                  01
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-white">💬 Chat & Direct Messaging Micro-Features</h4>
+                  <p className="text-xs text-slate-400">High-speed real-time messaging ergonomics and status indicators</p>
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3.5 pt-2">
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-cyan-300 text-xs">⚡ Dynamic Recency Ranking Engine</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Conversations automatically re-order in real time based on message recency and unread status. Active contacts stay at the top, while inactive conversations gracefully settle down.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-emerald-300 text-xs">✓✓ Triple-State Delivery Ticks</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Real-time WhatsApp-style indicators: Single Grey (Sent to server), Double Grey (Delivered to recipient device), and Double Glowing Green (Read in active chat).
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-teal-300 text-xs">🌊 Real-Time Typing Waveform</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Pulsing visual wave animation displays instantly when your peer is typing a reply.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-emerald-400 text-xs">🟢 Live Online Presence Dots</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Real-time status dots indicate when contacts are currently connected and active on the platform.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-purple-300 text-xs">📜 Smart Chat Scroll Engine</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Preserves exact scroll reading position when browsing older message history without jumping, while automatically auto-snapping to the newest incoming or sent message.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-sky-300 text-xs">🎙️ Voice Memos & Waveform Player</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Instant high-clarity voice recording with integrated scrubbable audio waveform playback controls.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-amber-300 text-xs">🖼️ Media Lightbox Viewer</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    High-definition media preview with full-screen zoom, pan, and download capabilities.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-orange-300 text-xs">🔔 Unread Message Badges</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Glowing orange pulse badges notify you instantly of unread messages per contact.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-indigo-300 text-xs">🔒 End-to-End Encryption Mode</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Private direct communication option with client-side key protection and zero server storage of plaintext.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-pink-300 text-xs">🔊 Custom Quantum Audio Chimes</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Distinct acoustic feedback for message sent, incoming chat, active connection, and emergency alarms.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Privacy & Ephemeral Media */}
+            <div className="cyber-panel p-6 md:p-8 space-y-4 border-amber-500/20 bg-slate-950/50">
+              <div className="flex items-center gap-3 border-b border-amber-500/15 pb-3">
+                <div className="h-8 w-8 rounded-lg bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 font-bold text-sm">
+                  02
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-white">⏳ Privacy & Self-Cleaning Storage</h4>
+                  <p className="text-xs text-slate-400">Zero data bloat and granular user privacy controls</p>
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-3 gap-3.5 pt-2">
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-amber-300 text-xs">24-Hour Ephemeral Media Clean-up</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    All shared photos, voice notes, and media attachments automatically expire and self-delete after 24 hours to preserve storage and protect conversation privacy.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-amber-300 text-xs">Zero Cloud Data Bloat</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Automatic background purging prevents cluttered device caches and protects temporary media.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-amber-300 text-xs">Granular Privacy Toggles</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Independently set your Email, Bio, Age, Gender, and Interests to Public or Private visibility.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Emergency Protocol */}
+            <div className="cyber-panel p-6 md:p-8 space-y-4 border-rose-500/20 bg-slate-950/50">
+              <div className="flex items-center gap-3 border-b border-rose-500/15 pb-3">
+                <div className="h-8 w-8 rounded-lg bg-rose-500/20 border border-rose-400/40 flex items-center justify-center text-rose-300 font-bold text-sm">
+                  03
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-white">🚨 Emergency & High-Urgency Protocol</h4>
+                  <p className="text-xs text-slate-400">Critical communication broadcasting and elevation</p>
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-3 gap-3.5 pt-2">
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-rose-300 text-xs">Q-BEACON Emergency Protocol</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Dedicated high-urgency alert system designed for critical communications and emergency broadcasts.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-rose-300 text-xs">Audible Alarm Siren & Screen Elevation</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Bypasses silent browsing with a high-priority audible siren chime and prominent full-screen visual alert banner.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-rose-300 text-xs">One-Tap Rapid Acknowledgement</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Recipients can acknowledge incoming emergency alerts with a single tap.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Social Feed & Global Discovery */}
+            <div className="cyber-panel p-6 md:p-8 space-y-4 border-blue-500/20 bg-slate-950/50">
+              <div className="flex items-center gap-3 border-b border-blue-500/15 pb-3">
+                <div className="h-8 w-8 rounded-lg bg-blue-500/20 border border-blue-400/40 flex items-center justify-center text-blue-300 font-bold text-sm">
+                  04
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-white">🌐 Community Timeline & Global Discovery</h4>
+                  <p className="text-xs text-slate-400">Social feed, user search, and community connection</p>
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3.5 pt-2">
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-blue-300 text-xs">Community Social Feed</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Post thoughts, updates, and announcements to the global community with media attachments.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-blue-300 text-xs">Smart Mentions (@) & Hashtags (#)</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Automatic interactive formatting for user handles and trending topics with auto-detected web link previews.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-blue-300 text-xs">Multi-Reaction System</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    React to posts with emojis, hearts, fire, and quantum spark effects.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-blue-300 text-xs">Global User Directory & Aura</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Discover users by handle, name, bio, or shared interests, with transparent Aura engagement rankings.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-blue-300 text-xs">Identity Verification Badges</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Verified Blue Tick and Founder Red Tick visual badges for recognized accounts.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-blue-300 text-xs">Personalized Connection Requests</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Send friend requests accompanied by custom intro notes and category tags (Friend, Colleague, Mentor).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 5. VIP Showcase & Desktop Ecosystem */}
+            <div className="cyber-panel p-6 md:p-8 space-y-4 border-fuchsia-500/20 bg-slate-950/50">
+              <div className="flex items-center gap-3 border-b border-fuchsia-500/15 pb-3">
+                <div className="h-8 w-8 rounded-lg bg-fuchsia-500/20 border border-fuchsia-400/40 flex items-center justify-center text-fuchsia-300 font-bold text-sm">
+                  05
+                </div>
+                <div>
+                  <h4 className="text-base font-bold text-white">💎 VIP Showcase & Desktop App Ecosystem</h4>
+                  <p className="text-xs text-slate-400">Exclusive collector cards and standalone Windows experience</p>
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3.5 pt-2">
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-fuchsia-300 text-xs">Dual Spatial Glassmorphism</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Toggle between futuristic iOS 27 Quantum Glass and Apple Crystal Glass aesthetics.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-fuchsia-300 text-xs">Diamond 10 & Sapphire 10 VIP Cards</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Interactive digital collector cards with animated metallic sheens, dynamic glow borders, and looping video canvas backgrounds.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-cyan-300 text-xs">Dedicated Standalone Windows App (.exe)</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Complete native Windows application with installer (Q-Link-Setup.exe), single-instance application lock, and zero-flicker alerts.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-cyan-300 text-xs">Windows System Tray Background Mode</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Minimizes cleanly to the Windows System Tray to keep you connected without cluttering your taskbar.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-emerald-300 text-xs">Hardware & GPU Performance Control</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Choose between 60fps Ultra High Performance (full backdrop blurs and glows) and Battery Saver mode for extended laptop battery life.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/5 bg-black/40 p-3.5 space-y-1">
+                  <p className="font-semibold text-indigo-300 text-xs">Smart AI Assistant Companion</p>
+                  <p className="text-slate-400 text-[11px] leading-relaxed">
+                    Built-in intelligent AI assistant providing context-aware help and navigation tips with an unobtrusive ambient trigger.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Core Operations Reference Manual (AIO Documentation Card) */}
         <section className="space-y-8 max-w-4xl mx-auto">
           <div className="text-center space-y-2">
