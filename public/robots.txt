@@ -12,21 +12,15 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 
-User-agent: Google-Extended
+User-agent: PerplexityBot
 Allow: /
 
-User-agent: PerplexityBot
+User-agent: Google-Extended
 Allow: /
 
 User-agent: Applebot-Extended
 Allow: /
 
-User-agent: Amazonbot
-Allow: /
-
-User-agent: anthropic-ai
-Allow: /
-
-# Sitemap & LLM Knowledge Summary
+# Sitemap and LLMs Machine-Readable Knowledge
 Sitemap: https://q-link-v3-0.vercel.app/sitemap.xml
 LLMs-Txt: https://q-link-v3-0.vercel.app/llms.txt

@@ -4921,8 +4921,33 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               Welcome to <span className="bg-gradient-to-r from-cyan-400 to-fuchsia-400 bg-clip-text text-transparent">Quantum Link</span>
             </h1>
             <p className="mt-2 text-sm text-slate-400">
-              Secure messaging across our global network
+              Fast, private messaging across our global network
             </p>
+
+            {/* Public Navigation for Guests & Search Bots */}
+            <div className="mt-3 flex items-center justify-center gap-2 text-xs flex-wrap">
+              <a
+                href="/about"
+                className="rounded-full border border-cyan-500/40 bg-cyan-950/40 px-3 py-1 font-semibold text-cyan-300 hover:bg-cyan-500 hover:text-slate-950 transition-all shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+              >
+                About &amp; Features
+              </a>
+              <a
+                href="/llms.txt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-full border border-white/10 bg-slate-900/60 px-3 py-1 font-medium text-slate-300 hover:border-cyan-400/40 hover:text-white transition-all"
+              >
+                AI Knowledge (llms.txt)
+              </a>
+              <a
+                href="/downloads/Q-Link-Setup.exe"
+                download="Q-Link-Setup.exe"
+                className="rounded-full border border-white/10 bg-slate-900/60 px-3 py-1 font-medium text-slate-300 hover:border-cyan-400/40 hover:text-white transition-all"
+              >
+                Windows .exe
+              </a>
+            </div>
           </div>
 
           {/* Sign-in Card */}
