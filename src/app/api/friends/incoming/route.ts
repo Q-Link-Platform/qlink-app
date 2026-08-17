@@ -39,7 +39,7 @@ export async function GET() {
       }
     }
 
-    // Auto-mark SENT messages from friends to this user as DELIVERED since this user's device is online and syncing
+    // Auto-mark SENT messages from friends to this user as DELIVERED
     const friendUserIds = uniqueRequests
       .filter((r) => r.status === "ACCEPTED" && r.fromUserId)
       .map((r) => r.fromUserId);
@@ -69,22 +69,42 @@ export async function GET() {
       uniqueRequests.map(async (r) => {
         let latestMessage = null;
         let lastInteractionAt = r.updatedAt ? r.updatedAt.toISOString() : r.createdAt.toISOString();
+        let unreadCount = 0;
 
         if (r.status === "ACCEPTED" && r.fromUser) {
           const uids = [toUserId, r.fromUserId].sort();
           const plainRoomId = `${uids[0]}:${uids[1]}`;
           const dmRoomId = `dm:${plainRoomId}`;
 
-          const msg = await prisma.message.findFirst({
-            where: {
-              OR: [
-                { roomId: plainRoomId },
-                { roomId: dmRoomId },
-              ],
-            },
-            orderBy: { createdAt: "desc" },
-            select: { id: true, content: true, createdAt: true, senderId: true, status: true },
-          });
+          const [msg, count] = await Promise.all([
+            prisma.message.findFirst({
+              where: {
+                OR: [
+                  { roomId: plainRoomId },
+                  { roomId: dmRoomId },
+                ],
+              },
+              orderBy: { createdAt: "desc" },
+              select: {
+                id: true,
+                content: true,
+                createdAt: true,
+                senderId: true,
+                status: true,
+                isEdited: true,
+                editedAt: true,
+              },
+            }),
+            prisma.message.count({
+              where: {
+                roomId: { in: [plainRoomId, dmRoomId] },
+                senderId: r.fromUserId,
+                status: { in: ["SENT", "DELIVERED"] },
+              },
+            }),
+          ]);
+
+          unreadCount = count;
 
           if (msg) {
             latestMessage = {
@@ -93,6 +113,8 @@ export async function GET() {
               createdAt: msg.createdAt.toISOString(),
               senderId: msg.senderId,
               status: msg.status || "SENT",
+              isEdited: msg.isEdited || false,
+              editedAt: msg.editedAt ? msg.editedAt.toISOString() : null,
             };
             lastInteractionAt = msg.createdAt.toISOString();
           }
@@ -108,15 +130,18 @@ export async function GET() {
           lastInteractionAt,
           fromUser: r.fromUser,
           latestMessage,
+          unreadCount,
+          isUnread: unreadCount > 0,
         };
       })
     );
 
     // Advanced Ranking Algorithm:
-    // 1. PENDING requests first (actionable requests needing user decision)
-    // 2. ACCEPTED friends ranked by most recent message / interaction timestamp (descending)
-    // 3. REJECTED requests at bottom
-    // 4. Stable tie-breaker: alphabetical by handle
+    // 1. PENDING requests first (actionable)
+    // 2. Unread messages second (immediate attention)
+    // 3. ACCEPTED friends ranked by most recent message / interaction timestamp (descending)
+    // 4. REJECTED requests at bottom
+    // 5. Stable tie-breaker: alphabetical by handle
     shaped.sort((a, b) => {
       const getStatusPriority = (status: string) => {
         if (status === "PENDING") return 1;
@@ -127,6 +152,9 @@ export async function GET() {
       const prioA = getStatusPriority(a.status);
       const prioB = getStatusPriority(b.status);
       if (prioA !== prioB) return prioA - prioB;
+
+      // Unread priority boost
+      if (a.isUnread !== b.isUnread) return a.isUnread ? -1 : 1;
 
       const timeA = new Date(a.lastInteractionAt || a.updatedAt || a.createdAt).getTime();
       const timeB = new Date(b.lastInteractionAt || b.updatedAt || b.createdAt).getTime();

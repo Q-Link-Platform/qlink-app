@@ -4710,24 +4710,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             const requests = (outData.requests || []) as OutgoingRequest[];
             setOutgoing(requests);
 
-            // Sync unread status from latestMessage
+            // Sync unread status from server-authoritative unreadCount and latestMessage
             requests.forEach((req: any) => {
-              if (req.status === "ACCEPTED" && req.toUser?.handle && req.latestMessage) {
+              if (req.status === "ACCEPTED" && req.toUser?.handle) {
                 const peerHandle = req.toUser.handle;
-                const latestMsg = req.latestMessage;
-                const key = `qlink_last_msg_id_${cleanHandle(peerHandle)}`;
-                const storedId = localStorage.getItem(key);
-                if (!storedId) {
-                  localStorage.setItem(key, latestMsg.id);
-                } else if (storedId !== latestMsg.id) {
-                  const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
-                  if (latestMsg.senderId !== myId && (peerHandle !== activePeerHandle || isAppHidden)) {
-                    setUnreadMessages((prev) => {
-                      if (prev.some((m) => m.id === latestMsg.id)) return prev;
-                      return [...prev, { id: latestMsg.id, sender: peerHandle }];
-                    });
-                    triggerDesktopNotification(peerHandle);
-                    localStorage.setItem(key, latestMsg.id);
+                const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
+                
+                if (req.isUnread && req.latestMessage) {
+                  if (peerHandle !== activePeerHandle || isAppHidden) {
+                    setUnreadMessages((prev) => addUnreadMessage(prev, req.latestMessage.id, peerHandle));
                   }
                 }
               }
@@ -4753,20 +4744,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             });
             setIncoming(requests);
 
-            // Sync unread status from latestMessage
+            // Sync unread status from server-authoritative unreadCount and latestMessage
             requests.forEach((req: any) => {
-              if (req.status === "ACCEPTED" && req.fromUser?.handle && req.latestMessage) {
+              if (req.status === "ACCEPTED" && req.fromUser?.handle) {
                 const peerHandle = req.fromUser.handle;
                 const latestMsg = req.latestMessage;
-                const key = `qlink_last_msg_id_${cleanHandle(peerHandle)}`;
-                const storedId = localStorage.getItem(key);
 
                 // Q-BEACON Priority Check
-                if (latestMsg.content && latestMsg.content.includes("⚡ [Q-BEACON_EMERGENCY]:")) {
+                if (latestMsg?.content && latestMsg.content.includes("[Q-BEACON_EMERGENCY]:")) {
                   const ackKey = `qlink_beacon_ack_${latestMsg.id}`;
                   if (!localStorage.getItem(ackKey) && latestMsg.senderId !== myId) {
                     localStorage.setItem(ackKey, "1");
-                    const rawContent = latestMsg.content.replace("⚡ [Q-BEACON_EMERGENCY]:", "").trim();
+                    const rawContent = latestMsg.content.replace(/.*?\[Q-BEACON_EMERGENCY\]:\s*/, "").trim();
                     setActiveBeacon({
                       senderHandle: peerHandle,
                       senderName: req.fromUser.name,
@@ -4778,17 +4767,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   }
                 }
 
-                if (!storedId) {
-                  localStorage.setItem(key, latestMsg.id);
-                } else if (storedId !== latestMsg.id) {
-                  const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
-                  if (latestMsg.senderId !== myId && (peerHandle !== activePeerHandle || isAppHidden)) {
-                    setUnreadMessages((prev) => {
-                      if (prev.some((m) => m.id === latestMsg.id)) return prev;
-                      return [...prev, { id: latestMsg.id, sender: peerHandle }];
-                    });
-                    triggerDesktopNotification(peerHandle);
-                    localStorage.setItem(key, latestMsg.id);
+                const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
+                if (req.isUnread && latestMsg) {
+                  if (peerHandle !== activePeerHandle || isAppHidden) {
+                    setUnreadMessages((prev) => addUnreadMessage(prev, latestMsg.id, peerHandle));
                   }
                 }
               }
@@ -4849,20 +4831,39 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
         setChatMessages((prev) => {
           const decryptedMap = new Map(decryptedMessages.map((m) => [m.id, m]));
-          // Keep temp optimistic messages, update status on existing confirmed messages
+          // Keep temp optimistic messages, update content, status, and edited metadata on existing confirmed messages
           const merged = prev.map((m) => {
             if (m.id.startsWith("temp-")) return m;
             const fresh = decryptedMap.get(m.id);
             if (fresh) {
-              // Always patch with latest status from server (SENT -> DELIVERED -> READ)
-              return { ...m, status: fresh.status || m.status, readAt: fresh.readAt, deliveredAt: fresh.deliveredAt };
+              return {
+                ...m,
+                content: fresh.content,
+                isEdited: fresh.isEdited || false,
+                editedAt: fresh.editedAt || null,
+                status: fresh.status || m.status,
+                readAt: fresh.readAt,
+                deliveredAt: fresh.deliveredAt,
+              };
             }
             return m;
           });
           // Add brand-new messages we haven't seen yet
           const existingIds = new Set(prev.map((m) => m.id));
           const brandNew = decryptedMessages.filter((m) => !existingIds.has(m.id));
-          if (brandNew.length === 0 && merged.every((m, i) => m === prev[i])) {
+          if (
+            brandNew.length === 0 &&
+            merged.length === prev.length &&
+            merged.every(
+              (m, i) =>
+                m.id === prev[i].id &&
+                m.content === prev[i].content &&
+                m.status === prev[i].status &&
+                m.isEdited === prev[i].isEdited &&
+                m.readAt === prev[i].readAt &&
+                m.deliveredAt === prev[i].deliveredAt
+            )
+          ) {
             return prev;
           }
           return [...merged, ...brandNew];
@@ -8363,7 +8364,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     ref={requestsRef}
                     className={
                       "mt-2 space-y-1 overflow-y-auto scrollbar-hide smooth-gpu-scroll " +
-                      (isFocusMode ? "max-h-[35vh] " : "max-h-40 ") +
+                      (isFocusMode ? "max-h-[45vh] " : "max-h-[50vh] ") +
                       (highlightRequests
                         ? "glow-pulse border border-cyan-400/80 rounded-xl"
                         : "")
@@ -8547,7 +8548,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         No one has requested to connect yet.
                       </p>
                     )}
-                    <div className={`space-y-1 mt-2 ${isFocusMode ? "flex-1" : "max-h-52"} overflow-y-auto incoming-requests-scroll pr-1`} style={{ WebkitOverflowScrolling: 'touch' }}>
+                    <div className={`space-y-1 mt-2 ${isFocusMode ? "flex-1" : "max-h-[50vh]"} overflow-y-auto incoming-requests-scroll pr-1`} style={{ WebkitOverflowScrolling: 'touch' }}>
                       {rankFriendRequests(incoming, unreadMessages, activePeerHandle, true).map((req) => (
                         <div
                           key={req.id}
