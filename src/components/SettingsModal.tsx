@@ -1234,8 +1234,8 @@ export default function SettingsModal(props: SettingsModalProps) {
                                     <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">🖥️ Desktop & Performance</p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                                       <div className="rounded-xl border border-white/5 bg-black/30 p-2">
-                                        <p className="font-semibold text-cyan-300">Windows Tray Background Mode</p>
-                                        <p className="text-slate-400 text-[9px] leading-relaxed">Runs in the System Tray with zero-flicker background sync.</p>
+                                        <p className="font-semibold text-cyan-300">💎 Quantum Points &amp; Aura Engine</p>
+                                        <p className="text-slate-400 text-[9px] leading-relaxed">Earn QP points through chatting to boost your global Aura % and unlock VIP perks.</p>
                                       </div>
                                       <div className="rounded-xl border border-white/5 bg-black/30 p-2">
                                         <p className="font-semibold text-emerald-300">Dual GPU Performance Control</p>

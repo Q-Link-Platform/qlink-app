@@ -64,7 +64,7 @@
 
 ## 7. Windows Desktop Native App (.exe)
 * **Dedicated Standalone Client**: Complete native Windows application with installer (`Q-Link-Setup.exe`).
-* **System Tray Background Mode**: Minimizes cleanly to the Windows System Tray to keep you connected without cluttering your taskbar.
+* **Quantum Points (QP) & Aura Growth Engine**: Earn QP points through active conversations and community engagement to increase your global Aura % and unlock exclusive VIP perks and badges.
 * **Single-Instance Application Lock**: Prevents duplicate windows and brings the active app to the foreground on launch.
 * **Zero-Flicker Native Notifications**: Native OS alerts with real-time unread count badges.
 

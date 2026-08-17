@@ -315,9 +315,9 @@ export default function AboutPageClient() {
               </div>
               <div className="grid sm:grid-cols-2 gap-3 pt-1">
                 <div className="p-3 rounded-xl bg-black/30 border border-white/5 space-y-1">
-                  <p className="font-semibold text-cyan-300 text-xs">Windows System Tray Background Mode</p>
+                  <p className="font-semibold text-cyan-300 text-xs">💎 Quantum Points (QP) &amp; Aura Engine</p>
                   <p className="text-slate-400 text-[11px] leading-relaxed">
-                    Closes cleanly to the Windows System Tray with persistent background sync and native OS alert toasts.
+                    Earn QP points through genuine conversations and community activity to boost your global Aura % and unlock VIP perks.
                   </p>
                 </div>
                 <div className="p-3 rounded-xl bg-black/30 border border-white/5 space-y-1">
