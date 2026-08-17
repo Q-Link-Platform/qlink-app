@@ -88,6 +88,8 @@ model Message {
   status      String    @default("SENT")
   deliveredAt DateTime?
   readAt      DateTime?
+  isEdited    Boolean   @default(false)
+  editedAt    DateTime?
 
   senderId String
   sender   User     @relation("UserMessages", fields: [senderId], references: [id])

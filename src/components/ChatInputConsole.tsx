@@ -22,6 +22,8 @@ interface ChatInputConsoleProps {
     kind: "file" | "video" | "image_video"
   ) => void;
   formatDuration: (seconds: number) => string;
+  editingMessage?: { id: string; content: string } | null;
+  onCancelEdit?: () => void;
 }
 
 export const ChatInputConsole = memo(function ChatInputConsole({
@@ -41,6 +43,8 @@ export const ChatInputConsole = memo(function ChatInputConsole({
   imageVideoInputRef,
   handleAttachmentSelected,
   formatDuration,
+  editingMessage = null,
+  onCancelEdit,
 }: ChatInputConsoleProps) {
   const [localInput, setLocalInput] = useState("");
   const [showMobileChatMore, setShowMobileChatMore] = useState(false);
@@ -79,7 +83,27 @@ export const ChatInputConsole = memo(function ChatInputConsole({
     onSend(text);
   };
 
+  useEffect(() => {
+    if (editingMessage) {
+      setLocalInput(editingMessage.content);
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.selectionStart = editingMessage.content.length;
+        textareaRef.current.selectionEnd = editingMessage.content.length;
+        textareaRef.current.style.height = "auto";
+        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      }
+    }
+  }, [editingMessage]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Escape" && editingMessage) {
+      e.preventDefault();
+      onCancelEdit?.();
+      setLocalInput("");
+      if (textareaRef.current) textareaRef.current.style.height = "auto";
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
@@ -98,6 +122,32 @@ export const ChatInputConsole = memo(function ChatInputConsole({
       onSubmit={handleSubmit}
       className="flex items-center gap-1.5 pt-0 relative z-[9999] w-full"
     >
+      {/* WhatsApp-standard Editing Message Floating Top Banner */}
+      {editingMessage && (
+        <div className="absolute -top-9 left-0 right-0 z-30 flex items-center justify-between rounded-t-2xl border-t border-x border-cyan-500/40 bg-gradient-to-r from-cyan-950/95 via-slate-900/95 to-slate-950/95 backdrop-blur-2xl px-3.5 py-1.5 text-[11px] shadow-[0_-5px_20px_rgba(6,182,212,0.25)] animate-fade-in">
+          <div className="flex items-center gap-2 min-w-0 pr-2">
+            <svg className="h-3.5 w-3.5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+            </svg>
+            <span className="font-bold text-cyan-300 shrink-0">Editing Message:</span>
+            <span className="truncate text-slate-300 font-mono text-[10px]">{editingMessage.content}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              onCancelEdit?.();
+              setLocalInput("");
+              if (textareaRef.current) textareaRef.current.style.height = "auto";
+            }}
+            className="rounded-full p-1 text-slate-400 hover:text-white hover:bg-white/10 transition-all shrink-0"
+            title="Cancel Edit (Esc)"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
       <input
         ref={fileInputRef}
         type="file"

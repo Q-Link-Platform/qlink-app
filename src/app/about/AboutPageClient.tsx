@@ -132,7 +132,7 @@ export default function AboutPageClient() {
                   <span className="font-bold text-sm md:text-base">🖥️ Standalone Windows Desktop App</span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Best for Windows 10 & 11 stations. Features native System Tray background mode, single-instance execution, and instant taskbar notification badges.
+                  Best for Windows 10 & 11 stations. Features high-performance native execution, Quantum Points (QP) sync, and instant taskbar notification badges.
                 </p>
               </div>
 

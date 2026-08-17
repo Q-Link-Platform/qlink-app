@@ -10,6 +10,9 @@
   - Single Grey Tick: Message sent and acknowledged by network servers.
   - Double Grey Tick: Message successfully delivered to recipient's active device.
   - Double Glowing Green Tick: Message opened and actively read in the conversation window.
+* **WhatsApp-Standard Message Editing**:
+  - Right-click / tap any sent message to edit its contents directly from the chat input console.
+  - Instant optimistic update with live cross-device delivery and sleek `(edited)` timestamp indicators.
 * **Real-Time Typing Waveform**: Pulsing visual wave animation displays when your peer is typing.
 * **Live Online Presence Dots**: Real-time status dots indicate when contacts are currently connected.
 * **Smart Chat Scroll Engine**: Preserves exact scroll reading position when browsing older message history without jumping, while automatically auto-snapping to the newest incoming or sent message.

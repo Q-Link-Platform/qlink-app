@@ -403,6 +403,8 @@ type ChatMessage = {
   status?: "SENT" | "DELIVERED" | "READ" | string;
   deliveredAt?: string | null;
   readAt?: string | null;
+  isEdited?: boolean;
+  editedAt?: string | null;
 };
 
 type IncomingRequest = {
@@ -3431,6 +3433,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     isMe: boolean;
     content: string;
   } | null>(null);
+  const [editingMessage, setEditingMessage] = useState<{ id: string; content: string } | null>(null);
   const touchTimerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartedRef = useRef<boolean>(false);
 
@@ -3734,6 +3737,51 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const handleSendMessage = useCallback(async (text: string) => {
     if (!activePeerHandle) return;
 
+    // Handle Edit Mode
+    if (editingMessage) {
+      const editId = editingMessage.id;
+      setEditingMessage(null);
+      const nowIso = new Date().toISOString();
+
+      // Instant optimistic update in local message state
+      setChatMessages((prev) =>
+        prev.map((m) =>
+          m.id === editId
+            ? { ...m, content: text, isEdited: true, editedAt: nowIso }
+            : m
+        )
+      );
+
+      // Perform background server update
+      try {
+        let payloadText = text;
+        if (isE2EEnabled && activePeerPublicKey) {
+          try {
+            const { encryptMessage } = await import("@/lib/e2e-crypto");
+            payloadText = await encryptMessage(text, activePeerPublicKey);
+          } catch (err) {
+            console.error("[E2E] Encryption failed before edit:", err);
+          }
+        }
+
+        const res = await fetch("/api/chat/edit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messageId: editId,
+            content: payloadText,
+          }),
+        });
+
+        if (!res.ok) {
+          console.warn("[Edit Message] Server error status:", res.status);
+        }
+      } catch (err) {
+        console.error("[Edit Message] Network error:", err);
+      }
+      return;
+    }
+
     const tempId = "temp-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7);
     const meId = (effectiveSession?.user as any)?.id;
 
@@ -3791,7 +3839,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     } catch (err) {
       console.error("Message send network error:", err);
     }
-  }, [activePeerHandle, activePeerPublicKey, effectiveSession?.user, isE2EEnabled]);
+  }, [activePeerHandle, activePeerPublicKey, effectiveSession?.user, isE2EEnabled, editingMessage]);
 
   const processSelectedFile = async (
     selected: File,
@@ -4092,6 +4140,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       setContextMenu(null);
     }
   };
+
+  const handleStartEditMessage = useCallback((messageId: string, content: string) => {
+    setContextMenu(null);
+    let plainContent = content;
+    try {
+      if (content.startsWith('{"__e2e":true')) {
+        const parsed = JSON.parse(content);
+        plainContent = parsed.ciphertext || content;
+      }
+    } catch {
+      // ignore
+    }
+    setEditingMessage({ id: messageId, content: plainContent });
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingMessage(null);
+  }, []);
 
   const handleCopyMessageText = (content: string) => {
     let textToCopy = content;
@@ -9390,7 +9456,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                             🔒
                                           </span>
                                         )}
-                                        <span>{renderMessageText(displayContent, !!isMe)}</span>
+                                        {editingMessage?.id === m.id ? (
+                                          <span className="italic text-cyan-300 animate-pulse flex items-center gap-1.5 py-0.5">
+                                            <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                                            <span className="text-[11px] font-semibold">Editing in composer...</span>
+                                          </span>
+                                        ) : (
+                                          <span>{renderMessageText(displayContent, !!isMe)}</span>
+                                        )}
                                       </p>
                                     )}
 
@@ -9722,10 +9795,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                                     {/* ── Bubble Timestamp ────────────────────────── */}
                                     {m.createdAt && (
-                                      <p className={`mt-1.5 text-[9px] font-mono tracking-wide select-none text-right ${isMe ? "text-slate-900/50" : "text-slate-500/80"
+                                      <p className={`mt-1.5 text-[9px] font-mono tracking-wide select-none text-right flex items-center justify-end gap-1 ${isMe ? "text-slate-950/60" : "text-slate-500/80"
                                         }`}>
-                                        {formatMsgDateFull(m.createdAt)}
-                                         <MessageStatusTicks status={(m as any).status} isMe={!!isMe} />
+                                        {(m as any).isEdited && (
+                                          <span className="italic text-[8.5px] opacity-80" title={(m as any).editedAt ? `Edited: ${formatMsgDateFull((m as any).editedAt)}` : "Edited"}>
+                                            (edited)
+                                          </span>
+                                        )}
+                                        <span>{formatMsgDateFull(m.createdAt)}</span>
+                                        <MessageStatusTicks status={(m as any).status} isMe={!!isMe} />
                                       </p>
                                     )}
                                   </div>
@@ -9945,6 +10023,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         imageVideoInputRef={imageVideoInputRef}
                         handleAttachmentSelected={handleAttachmentSelected}
                         formatDuration={formatDuration}
+                        editingMessage={editingMessage}
+                        onCancelEdit={handleCancelEdit}
                       />
                     </div>
                     {beaconStatusMsg && (
@@ -11658,6 +11738,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 </svg>
                 <span>Share Link</span>
               </button>
+
+              {/* Edit Message Button (Only for sender's own text messages) */}
+              {contextMenu.isMe && !/\[(FILE|VIDEO) attachment\]/i.test(contextMenu.content) && (
+                <button
+                  type="button"
+                  onClick={() => handleStartEditMessage(contextMenu.messageId, contextMenu.content)}
+                  className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold text-cyan-300 transition duration-150 hover:bg-cyan-950/60 hover:text-cyan-200 active:scale-95"
+                >
+                  <svg className="h-3.5 w-3.5 text-cyan-400" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                  </svg>
+                  <span>Edit Message</span>
+                </button>
+              )}
 
               {/* Select Button */}
               <button

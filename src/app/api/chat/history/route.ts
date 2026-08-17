@@ -71,6 +71,8 @@ export async function GET(request: Request) {
         status: true,
         deliveredAt: true,
         readAt: true,
+        isEdited: true,
+        editedAt: true,
       },
     });
 
