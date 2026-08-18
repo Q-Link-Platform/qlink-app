@@ -10050,6 +10050,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       )}
 
                       <ChatInputConsole
+                        isCompact={isQAIOpen}
                         activePeerHandle={activePeerHandle}
                         onSend={handleSendMessage}
                         onTypingPing={handleTypingPing}

@@ -24,6 +24,7 @@ interface ChatInputConsoleProps {
   formatDuration: (seconds: number) => string;
   editingMessage?: { id: string; content: string } | null;
   onCancelEdit?: () => void;
+  isCompact?: boolean;
 }
 
 export const ChatInputConsole = memo(function ChatInputConsole({
@@ -45,6 +46,7 @@ export const ChatInputConsole = memo(function ChatInputConsole({
   formatDuration,
   editingMessage = null,
   onCancelEdit,
+  isCompact = false,
 }: ChatInputConsoleProps) {
   const [localInput, setLocalInput] = useState("");
   const [showMobileChatMore, setShowMobileChatMore] = useState(false);
@@ -273,7 +275,7 @@ export const ChatInputConsole = memo(function ChatInputConsole({
           </div>
 
           {/* Mobile Actions Control */}
-          <div className="relative flex sm:hidden">
+          <div className={`relative ${isCompact ? "flex" : "flex sm:hidden"}`}>
             {showMobileChatMore && (
               <div className="absolute bottom-[calc(100%+0.5rem)] left-0 z-[9999] flex flex-col items-center gap-3 p-3 rounded-2xl border border-cyan-500/40 bg-[#09111c]/95 backdrop-blur-md shadow-[0_0_25px_rgba(6,182,212,0.35)] animate-float-in min-w-[3.5rem]">
                 <div className="flex flex-col items-center gap-0.5">
