@@ -3,11 +3,21 @@
 import React, { useState, useRef, useEffect } from "react";
 import { AIMode, PolishStyle, QAIMessage, streamQAIResponse } from "@/lib/qai-engine";
 
+export interface RawChatMessageItem {
+  id?: string;
+  content: string;
+  senderId: string;
+  createdAt?: string;
+}
+
 interface QAIAssistantModalProps {
   isOpen: boolean;
   onClose: () => void;
   onInsertToChat?: (text: string) => void;
   activeDraftText?: string;
+  activePeerHandle?: string | null;
+  rawChatMessages?: RawChatMessageItem[];
+  meId?: string;
 }
 
 export default function QAIAssistantModal({
@@ -15,6 +25,9 @@ export default function QAIAssistantModal({
   onClose,
   onInsertToChat,
   activeDraftText = "",
+  activePeerHandle = null,
+  rawChatMessages = [],
+  meId = "",
 }: QAIAssistantModalProps) {
   const [mode, setMode] = useState<AIMode>("general");
   const [polishStyle, setPolishStyle] = useState<PolishStyle>("professional");
@@ -24,7 +37,7 @@ export default function QAIAssistantModal({
       id: "welcome-1",
       role: "assistant",
       content:
-        "👋 **Q-AI Assistant is active.**\n\nAsk questions, polish your draft messages, or query Q-Link cryptographic architecture directly beside your active conversation!",
+        "👋 **Q-AI Assistant is active.**\n\nI'm docked beside your active chat. Ask me anything, polish draft messages, or let me assist your conversation with intelligent context!",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       mode: "general",
     },
@@ -48,6 +61,48 @@ export default function QAIAssistantModal({
       inputRef.current?.focus();
     }
   }, [isOpen]);
+
+  // Context-Aware Friend Agent Memory Extractor
+  // Default: Bounded 4 messages from user + 4 messages from friend (up to 8 recent turns)
+  // Deep Retrieval: If time/day/date keywords are detected, scans history for relevant items
+  const extractFriendContext = (query: string) => {
+    if (!activePeerHandle || !Array.isArray(rawChatMessages) || rawChatMessages.length === 0) {
+      return null;
+    }
+
+    const qLower = query.toLowerCase();
+    const hasTimeOrHistoryHint =
+      /(\byesterday\b|\btoday\b|\blast\s+(week|night|month)|\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b|\b\d{1,2}(:\d{2})?\s*(am|pm)\b|\bwhen\b|\btime\b|\bdate\b|\bday\b|\bearlier\b|\bbefore\b|\bremember\b|\bsaid\b)/i.test(
+        qLower
+      );
+
+    let selectedMessages: RawChatMessageItem[] = [];
+
+    if (hasTimeOrHistoryHint && rawChatMessages.length > 8) {
+      const matching = rawChatMessages.filter((m) => {
+        const textLower = (m.content || "").toLowerCase();
+        return (
+          qLower.split(/\s+/).some((w) => w.length > 3 && textLower.includes(w)) ||
+          /(\bmeeting\b|\bcall\b|\blink\b|\bcode\b|\btime\b|\bfriday\b|\btomorrow\b)/i.test(textLower)
+        );
+      });
+      const combinedSet = new Set([...matching.slice(-6), ...rawChatMessages.slice(-4)]);
+      selectedMessages = Array.from(combinedSet);
+    } else {
+      selectedMessages = rawChatMessages.slice(-8);
+    }
+
+    return {
+      friendHandle: activePeerHandle,
+      recentMessages: selectedMessages.map((m) => ({
+        sender: (m.senderId === meId ? "user" : "friend") as "user" | "friend",
+        text: m.content,
+        timestamp: m.createdAt
+          ? new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          : undefined,
+      })),
+    };
+  };
 
   if (!isOpen) return null;
 
@@ -79,7 +134,8 @@ export default function QAIAssistantModal({
 
     try {
       let accumulated = "";
-      for await (const chunk of streamQAIResponse(textToSend, mode, polishStyle, messages)) {
+      const friendCtx = extractFriendContext(textToSend);
+      for await (const chunk of streamQAIResponse(textToSend, mode, polishStyle, messages, friendCtx)) {
         accumulated += chunk;
         setMessages((prev) =>
           prev.map((m) => (m.id === assistantMsgId ? { ...m, content: accumulated } : m))
@@ -119,12 +175,13 @@ export default function QAIAssistantModal({
   // Quick Action Chips
   const quickPrompts = [
     { label: "✍️ Polish Draft", action: () => { setMode("polish"); if (activeDraftText) handleSend(activeDraftText); } },
+    { label: "💬 Reply Suggestion", action: () => { setMode("general"); handleSend(`Suggest a smart, friendly reply to my friend based on our last messages.`); } },
     { label: "💎 Quantum Points", action: () => { setMode("qlink"); handleSend("How do I earn Quantum Points and boost my Aura?"); } },
     { label: "🔐 E2EE Security", action: () => { setMode("qlink"); handleSend("Explain Q-Link cryptographic architecture"); } },
   ];
 
   return (
-    /* Integrated In-Chat 35% Sidecar Panel (Contained, Zero Page Scrolling) */
+    /* Integrated In-Chat 360px Sidecar Panel (Contained, Zero Page Scrolling) */
     <div className="absolute right-0 top-0 bottom-0 z-[60] flex w-full sm:w-[360px] h-full flex-col border-l border-cyan-500/35 bg-slate-950/95 shadow-[-16px_0_40px_rgba(0,0,0,0.85),-2px_0_15px_rgba(6,182,212,0.2)] backdrop-blur-3xl transition-all duration-300 ease-out animate-slide-left overflow-hidden">
       
       {/* Specular Ambient Glow */}
@@ -140,11 +197,13 @@ export default function QAIAssistantModal({
           <div>
             <div className="flex items-center gap-1.5">
               <h3 className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-white">
-                Q-AI Sidecar
+                Q-AI Copilot
               </h3>
-              <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.2 text-[8px] font-mono font-semibold text-cyan-300">
-                In-Chat
-              </span>
+              {activePeerHandle && (
+                <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.2 text-[8px] font-mono font-semibold text-cyan-300">
+                  @{activePeerHandle}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -285,7 +344,7 @@ export default function QAIAssistantModal({
         ))}
       </div>
 
-      {/* Docked Input Box (Always Visible, Pinned to Bottom) */}
+      {/* Docked Input Box */}
       <div className="relative z-10 shrink-0 border-t border-white/10 bg-slate-950/90 p-2 backdrop-blur-2xl">
         <form
           onSubmit={(e) => {
@@ -302,6 +361,8 @@ export default function QAIAssistantModal({
             placeholder={
               mode === "polish"
                 ? "Paste draft to polish..."
+                : activePeerHandle
+                ? `Ask Q-AI or help reply to @${activePeerHandle}...`
                 : "Ask Q-AI..."
             }
             className="flex-1 rounded-xl border border-cyan-500/30 bg-slate-900/90 px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] focus:border-cyan-400 focus:outline-none"

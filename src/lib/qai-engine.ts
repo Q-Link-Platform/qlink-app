@@ -1,6 +1,6 @@
 /**
  * Q-AI Quantum Intelligence Streaming Engine
- * Connects directly to live OpenRouter LLMs with built-in native offline fallback.
+ * Optimized for token efficiency, bounded sliding memory, and Context-Aware Friend Agent.
  */
 
 export type AIMode = "general" | "polish" | "qlink";
@@ -15,6 +15,15 @@ export interface QAIMessage {
   isStreaming?: boolean;
 }
 
+export interface FriendChatContext {
+  friendHandle: string;
+  recentMessages: Array<{
+    sender: "user" | "friend";
+    text: string;
+    timestamp?: string;
+  }>;
+}
+
 // Built-in Knowledge Base for Offline Fallback
 const QLINK_KNOWLEDGE: Record<string, string> = {
   encryption:
@@ -26,17 +35,18 @@ const QLINK_KNOWLEDGE: Record<string, string> = {
 };
 
 /**
- * Streams live AI responses from OpenRouter with instant local fallback.
+ * Streams live AI responses from OpenRouter with Context-Aware Friend Agent & instant fallback.
  */
 export async function* streamQAIResponse(
   query: string,
   mode: AIMode = "general",
   polishStyle: PolishStyle = "professional",
-  history: QAIMessage[] = []
+  history: QAIMessage[] = [],
+  friendContext: FriendChatContext | null = null
 ): AsyncGenerator<string, void, unknown> {
   let hasStreamed = false;
 
-  // 1. Try Live OpenRouter Server Stream
+  // 1. Try Live OpenRouter Server Stream with Bounded Context
   try {
     const response = await fetch("/api/qai/chat", {
       method: "POST",
@@ -45,7 +55,8 @@ export async function* streamQAIResponse(
         prompt: query,
         mode,
         polishStyle,
-        history: history.map((h) => ({ role: h.role, content: h.content })),
+        history: history.slice(-4).map((h) => ({ role: h.role, content: h.content })),
+        friendContext,
       }),
     });
 
@@ -86,7 +97,11 @@ export async function* streamQAIResponse(
       fallbackText = QLINK_KNOWLEDGE.edits;
     }
   } else {
-    fallbackText = `⚡ **Q-AI Quantum Response**\n\nI've analyzed your query: "${query}".\n\nQ-Link Quantum Intelligence is ready to assist with real-time encrypted messaging, code reasoning, and system navigation.`;
+    if (friendContext && friendContext.friendHandle) {
+      fallbackText = `⚡ **Q-AI Assistant**\n\nI'm reviewing your active chat with **@${friendContext.friendHandle}**.\n\nHow would you like me to help reply or structure your thoughts?`;
+    } else {
+      fallbackText = `⚡ **Q-AI Quantum Response**\n\nI've analyzed your query: "${query}".\n\nQ-Link Quantum Intelligence is ready to assist with real-time encrypted messaging, code reasoning, and system navigation.`;
+    }
   }
 
   // Stream fallback with human cadence

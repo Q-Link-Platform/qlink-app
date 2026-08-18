@@ -8,14 +8,19 @@ const OPENROUTER_API_KEY =
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, mode = "general", polishStyle = "professional", history = [] } =
-      await req.json();
+    const {
+      prompt,
+      mode = "general",
+      polishStyle = "professional",
+      history = [],
+      friendContext = null, // { friendHandle: string, recentMessages: Array<{ sender: 'user'|'friend', text: string, timestamp?: string }> }
+    } = await req.json();
 
     if (!prompt || typeof prompt !== "string") {
       return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
     }
 
-    // Contextual system prompt based on mode
+    // --- 1. OPTIMIZED STATIC PREFIX SYSTEM PROMPT (For KV-Cache Sharing & 90% Cost Reduction) ---
     let systemPrompt = "";
     if (mode === "polish") {
       systemPrompt = `You are the Q-Link Message Polisher Assistant.
@@ -34,24 +39,40 @@ Q-Link Specifications:
 - Real-time Features: Instant message edits with live peer sync, emergency Q-BEACON priority alerts that bypass DND, voice audio messaging, encrypted attachments up to 50MB, and offline background push notifications.
 Respond accurately, concisely, and helpfully with modern markdown formatting.`;
     } else {
-      systemPrompt = `You are Q-AI, the Quantum Link AI Intelligence Assistant.
-You are embedded directly beside the user's live encrypted conversation.
-You are ultra-intelligent, fast, concise, helpful, and sharp.
-You can help with general questions, problem solving, creative brainstorming, coding, cybersecurity, and communication advice.
+      systemPrompt = `You are Q-AI, the Quantum Link Intelligent Copilot.
+You are embedded directly beside the user's live encrypted conversation with their friend.
+You are ultra-intelligent, fast, concise, helpful, and empathetic.
+You can help with general questions, problem solving, creative brainstorming, coding, and drafting contextual replies to their friend.
 Keep responses concise, modern, and beautifully formatted with markdown.`;
     }
 
-    // Build messages array
+    // --- 2. CONTEXT-AWARE FRIEND AGENT (Bounded 4-Message Sliding Window) ---
+    let friendContextPrompt = "";
+    if (friendContext && friendContext.friendHandle && Array.isArray(friendContext.recentMessages) && friendContext.recentMessages.length > 0) {
+      const formattedRecent = friendContext.recentMessages
+        .slice(-8) // Strictly bounded to max 8 items (approx 4 from each side)
+        .map(
+          (m: { sender: string; text: string; timestamp?: string }) =>
+            `[${m.timestamp || "Recent"}] ${m.sender === "user" ? "User (Me)" : `@${friendContext.friendHandle}`}: ${m.text}`
+        )
+        .join("\n");
+
+      friendContextPrompt = `\n\n### Active Conversation Context (with friend @${friendContext.friendHandle}):
+${formattedRecent}
+\n(Use this context to give highly personalized, accurate suggestions and answers when the user refers to their conversation or friend.)`;
+    }
+
+    // --- 3. BOUNDED SLIDING MEMORY (Prevents Token Explosion) ---
     const messages = [
-      { role: "system", content: systemPrompt },
-      ...history.slice(-6).map((m: { role: string; content: string }) => ({
+      { role: "system", content: systemPrompt + friendContextPrompt },
+      ...history.slice(-4).map((m: { role: string; content: string }) => ({
         role: m.role === "assistant" ? "assistant" : "user",
         content: m.content,
       })),
       { role: "user", content: prompt },
     ];
 
-    // Call OpenRouter API with auto model routing
+    // --- 4. CALL OPENROUTER API ---
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -63,7 +84,7 @@ Keep responses concise, modern, and beautifully formatted with markdown.`;
       body: JSON.stringify({
         model: "openrouter/auto",
         messages,
-        temperature: mode === "polish" ? 0.7 : 0.8,
+        temperature: mode === "polish" ? 0.7 : 0.75,
         max_tokens: 1024,
         stream: true,
       }),

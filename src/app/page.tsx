@@ -10082,7 +10082,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </p>
                     )}
 
-                    {/* In-Chat Docked Q-AI Sidecar */}
+                    {/* In-Chat Docked Q-AI Sidecar with Context-Aware Friend Agent */}
                     <QAIAssistantModal
                       isOpen={isQAIOpen}
                       onClose={() => setIsQAIOpen(false)}
@@ -10095,6 +10095,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         }
                       }}
                       activeDraftText={chatInput}
+                      activePeerHandle={activePeerHandle}
+                      rawChatMessages={chatMessages}
+                      meId={meId}
                     />
 
                     {/* Local self-contained smooth fade animation */}
