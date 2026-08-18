@@ -37,7 +37,7 @@ export default function QAIAssistantModal({
       id: "welcome-1",
       role: "assistant",
       content:
-        "👋 **Q-AI Assistant is active.**\n\nI'm docked beside your active chat. Ask me anything, polish draft messages, or let me assist your conversation with intelligent context!",
+        "👋 **Q-AI Assistant is active.**\n\nI'm docked beside your active chat. Ask me anything, polish draft messages, or let me assist your conversation with autonomous intelligence!",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       mode: "general",
     },
@@ -182,6 +182,27 @@ export default function QAIAssistantModal({
           prev.map((m) => (m.id === assistantMsgId ? { ...m, content: accumulated } : m))
         );
       }
+
+      // --- AGENTIC AUTONOMOUS AUTO-INSERTION AGENT ---
+      // Automatically selects the best draft and inserts it directly into the chat composer
+      const isDraftOrReply =
+        mode === "polish" ||
+        /(\breply\b|\bdraft\b|\bsuggest\b|\bwrite\b|\bmessage\b|\bwhat (should|can) i say\b|\btell (him|her|them)\b|\banswer\b)/i.test(
+          textToSend
+        );
+
+      if (isDraftOrReply && onInsertToChat) {
+        const drafts = extractDraftOptions(accumulated);
+        if (drafts.length > 0 && drafts[0].trim().length > 0) {
+          const autoSelectedDraft = drafts[0]
+            .replace(/^\s*>\s*/gm, "")
+            .replace(/^["'“]|["'”]$/g, "")
+            .trim();
+          onInsertToChat(autoSelectedDraft);
+          setInsertedId(assistantMsgId);
+          setTimeout(() => setInsertedId(null), 3000);
+        }
+      }
     } catch {
       setMessages((prev) =>
         prev.map((m) =>
@@ -227,7 +248,7 @@ export default function QAIAssistantModal({
   // Quick Action Chips
   const quickPrompts = [
     { label: "✍️ Polish Draft", action: () => { setMode("polish"); if (activeDraftText) handleSend(activeDraftText); } },
-    { label: "💬 Reply Suggestion", action: () => { setMode("general"); handleSend(`Suggest a smart, friendly reply to my friend based on our last messages.`); } },
+    { label: "💬 Auto-Reply Friend", action: () => { setMode("general"); handleSend(`Suggest a smart, friendly reply to my friend based on our last messages.`); } },
     { label: "💎 Quantum Points", action: () => { setMode("qlink"); handleSend("How do I earn Quantum Points and boost my Aura?"); } },
     { label: "🔐 E2EE Security", action: () => { setMode("qlink"); handleSend("Explain Q-Link cryptographic architecture"); } },
   ];
@@ -358,13 +379,26 @@ export default function QAIAssistantModal({
 
               {m.role === "assistant" && m.content && !m.isStreaming && (
                 <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-white/5 pt-1.5 text-[9px]">
+                  {/* Modern Sleek Copy Icon Button */}
                   <button
                     type="button"
                     onClick={() => handleCopy(m.id, m.content)}
-                    className="inline-flex items-center gap-1 rounded-lg bg-white/5 px-2 py-0.5 text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                    className="relative inline-flex h-6 w-6 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-400 hover:border-cyan-400/50 hover:bg-cyan-500/10 hover:text-cyan-300 transition-all active:scale-95 shadow-sm"
+                    title={copiedId === m.id ? "Copied to clipboard!" : "Copy message"}
                   >
-                    {copiedId === m.id ? "✓ Copied" : "📋 Copy"}
+                    {copiedId === m.id ? (
+                      <svg className="h-3.5 w-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" strokeWidth={1.8} />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                    )}
                   </button>
+
+                  {/* Smart Insert Action Buttons */}
                   {onInsertToChat && (() => {
                     const drafts = extractDraftOptions(m.content);
                     if (drafts.length <= 1) {
@@ -375,7 +409,7 @@ export default function QAIAssistantModal({
                           className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-2.5 py-0.5 font-medium text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.2)] hover:border-cyan-400 hover:bg-cyan-500/25 hover:text-white transition-all active:scale-95"
                           title="Insert clean draft message directly into chat typing box"
                         >
-                          {insertedId === m.id ? "✓ Inserted to Chat!" : "💬 Insert to Chat"}
+                          {insertedId === m.id ? "✓ Inserted in Chat" : "💬 Insert to Chat"}
                         </button>
                       );
                     }
@@ -387,7 +421,7 @@ export default function QAIAssistantModal({
                         className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-2 py-0.5 font-medium text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.2)] hover:border-cyan-400 hover:bg-cyan-500/25 hover:text-white transition-all active:scale-95"
                         title={`Insert Option ${idx + 1}: "${draft.slice(0, 30)}..."`}
                       >
-                        {insertedId === m.id ? `✓ Option ${idx + 1} Inserted!` : `💬 Insert Option ${idx + 1}`}
+                        {insertedId === m.id ? `✓ Option ${idx + 1} Inserted!` : `💬 Option ${idx + 1}`}
                       </button>
                     ));
                   })()}
