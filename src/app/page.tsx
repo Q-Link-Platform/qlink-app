@@ -173,6 +173,7 @@ function StableImage(props: {
 
 import QuantumVideoPlayerComponent from "@/components/QuantumVideoPlayer";
 import SettingsModal from "@/components/SettingsModal";
+import QAIAssistantModal from "@/components/QAIAssistantModal";
 
 function SmartVideo(props: {
   src: string;
@@ -1681,6 +1682,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [isVipTermsAnimating, setIsVipTermsAnimating] = useState(false);
   const [showAuraHelp, setShowAuraHelp] = useState(false);
   const [showAIHelpButton, setShowAIHelpButton] = useState(false);
+  const [isQAIOpen, setIsQAIOpen] = useState(false);
   const [isAIArrowButtonVisible, setIsAIArrowButtonVisible] = useState(true);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
@@ -8165,6 +8167,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   setShowAIHelpButton={setShowAIHelpButton}
                 />
 
+                {/* Q-AI Quantum Intelligence Assistant HUD */}
+                <QAIAssistantModal
+                  isOpen={isQAIOpen}
+                  onClose={() => setIsQAIOpen(false)}
+                  onInsertToChat={(text) => {
+                    setChatInput(text);
+                    if (chatInputRef.current) {
+                      chatInputRef.current.value = text;
+                      chatInputRef.current.style.height = "auto";
+                      chatInputRef.current.focus();
+                    }
+                  }}
+                  activeDraftText={chatInput}
+                />
+
                 {showLogoutConfirm && !canUseDom && (
                   <div
                     className="fixed inset-0 z-[1100] flex items-center justify-center bg-black/60 px-4"
@@ -10127,7 +10144,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           <button
                             type="button"
                             onClick={() => {
-                              alert('AI Assistant is coming soon! 🚀');
+                              setIsQAIOpen(true);
                               setShowAIHelpButton(false);
                             }}
                             className="group relative overflow-hidden rounded-2xl border border-cyan-400/50 bg-[#09111c]/95 pl-5 pr-9 py-3.5 shadow-[0_0_20px_rgba(6,182,212,0.25)] backdrop-blur-md transition-all duration-300 hover:border-cyan-400/80 hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] flex items-center gap-3 isolate"
@@ -10186,7 +10203,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         <button
                           type="button"
                           onClick={() => {
-                            setShowAIHelpButton(true);
+                            setIsQAIOpen(true);
+                            setShowAIHelpButton(false);
                             setManualStopAnimation(false);
                             localStorage.setItem("qlink_manual_stop_ai_animation", "false");
                           }}
