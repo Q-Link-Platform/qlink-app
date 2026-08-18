@@ -9346,7 +9346,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     </div>
 
                     {/* Scrollable middle: errors + messages + pending preview at bottom */}
-                    <div ref={chatScrollRef} onScroll={handleChatContainerScroll} className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
+                    <div ref={chatScrollRef} onScroll={handleChatContainerScroll} className={"flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[40%] " : "")}>
                       {chatError && (
                         <p className="mt-1 text-[11px] text-rose-300">{chatError}</p>
                       )}
@@ -9937,7 +9937,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           </div>
                         </div>
                       </div>
-                    )}                  <div className="relative z-[9999] -mx-1.5 sm:-mx-2.5">
+                    )}                  <div className={"relative z-[50] -mx-1.5 sm:-mx-2.5 transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[40%] " : "")}>
                       {/* Premium Sci-Fi Selection Mode Command Control Bar */}
                       {isSelectionMode && (
                         <div

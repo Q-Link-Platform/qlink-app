@@ -125,7 +125,7 @@ export default function QAIAssistantModal({
 
   return (
     /* Integrated In-Chat 35% Sidecar Panel (Contained, Zero Page Scrolling) */
-    <div className="absolute right-0 top-0 bottom-0 z-40 flex w-full sm:w-[38%] sm:min-w-[320px] sm:max-w-[420px] h-full flex-col border-l border-cyan-500/35 bg-slate-950/95 shadow-[-16px_0_40px_rgba(0,0,0,0.85),-2px_0_15px_rgba(6,182,212,0.2)] backdrop-blur-3xl transition-all duration-300 ease-out animate-slide-left overflow-hidden">
+    <div className="absolute right-0 top-0 bottom-0 z-[60] flex w-full sm:w-[38%] sm:min-w-[320px] sm:max-w-[420px] h-full flex-col border-l border-cyan-500/35 bg-slate-950/95 shadow-[-16px_0_40px_rgba(0,0,0,0.85),-2px_0_15px_rgba(6,182,212,0.2)] backdrop-blur-3xl transition-all duration-300 ease-out animate-slide-left overflow-hidden">
       
       {/* Specular Ambient Glow */}
       <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-cyan-500/20 blur-3xl" />
