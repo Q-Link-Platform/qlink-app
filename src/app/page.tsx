@@ -9261,7 +9261,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 {!foundUser && (
                   <div
                     className={
-                      "glass-panel flex flex-col gap-3 text-xs text-slate-300 relative overflow-y-hidden scrollbar-hide transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[39%] " : "") +
+                      "glass-panel flex flex-col gap-3 text-xs text-slate-300 relative overflow-y-hidden scrollbar-hide transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[360px] " : "") +
                       (isChatFull
                         ? "flex-1 min-h-0 mt-0 sm:mt-2 rounded-none sm:rounded-2xl border-none sm:border bg-slate-900/80 p-2 sm:p-4 " +
                         (highlightChatPanel ? "glow-pulse border-cyan-400/80" : "border-slate-600/70")
@@ -9346,7 +9346,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     </div>
 
                     {/* Scrollable middle: errors + messages + pending preview at bottom */}
-                    <div ref={chatScrollRef} onScroll={handleChatContainerScroll} className={"flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[40%] " : "")}>
+                    <div ref={chatScrollRef} onScroll={handleChatContainerScroll} className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
                       {chatError && (
                         <p className="mt-1 text-[11px] text-rose-300">{chatError}</p>
                       )}
@@ -9937,7 +9937,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           </div>
                         </div>
                       </div>
-                    )}                  <div className={"relative z-[50] -mx-1.5 sm:-mx-2.5 transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[40%] " : "")}>
+                    )}                  <div className="relative z-[50] -mx-1.5 sm:-mx-2.5">
                       {/* Premium Sci-Fi Selection Mode Command Control Bar */}
                       {isSelectionMode && (
                         <div
