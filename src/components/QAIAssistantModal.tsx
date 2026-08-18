@@ -79,7 +79,7 @@ export default function QAIAssistantModal({
 
     try {
       let accumulated = "";
-      for await (const chunk of streamQAIResponse(textToSend, mode, polishStyle)) {
+      for await (const chunk of streamQAIResponse(textToSend, mode, polishStyle, messages)) {
         accumulated += chunk;
         setMessages((prev) =>
           prev.map((m) => (m.id === assistantMsgId ? { ...m, content: accumulated } : m))
