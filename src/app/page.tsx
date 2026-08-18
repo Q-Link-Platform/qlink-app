@@ -8159,6 +8159,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   showLogoutConfirm={showLogoutConfirm}
                   setShowLogoutConfirm={setShowLogoutConfirm}
                   handleSignOut={handleSignOut}
+                  manualStopAnimation={manualStopAnimation}
+                  setManualStopAnimation={setManualStopAnimation}
+                  setIsAIArrowButtonVisible={setIsAIArrowButtonVisible}
+                  setShowAIHelpButton={setShowAIHelpButton}
                 />
 
                 {showLogoutConfirm && !canUseDom && (

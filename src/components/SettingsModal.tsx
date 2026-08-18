@@ -170,6 +170,10 @@ export interface SettingsModalProps {
   handleSignOut: () => void;
   playSciFiSound?: (type: string) => void;
   setDisplayName?: (v: string | null) => void;
+  manualStopAnimation?: boolean;
+  setManualStopAnimation?: (v: boolean) => void;
+  setIsAIArrowButtonVisible?: (v: boolean) => void;
+  setShowAIHelpButton?: (v: boolean) => void;
 }
 
 export default function SettingsModal(props: SettingsModalProps) {
@@ -218,6 +222,10 @@ export default function SettingsModal(props: SettingsModalProps) {
     showLogoutConfirm,
     setShowLogoutConfirm,
     handleSignOut,
+    manualStopAnimation = false,
+    setManualStopAnimation,
+    setIsAIArrowButtonVisible,
+    setShowAIHelpButton,
     playSciFiSound = () => {},
     setDisplayName = () => {},
   } = props;
@@ -449,6 +457,70 @@ export default function SettingsModal(props: SettingsModalProps) {
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-[10px] text-slate-500">Dark / Light mode</span>
                               <ThemeToggle />
+                            </div>
+                          </div>
+
+                          {/* AI Assistant & Floating Button Toggle Section */}
+                          <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                            settingsGlassTheme === "quantum"
+                              ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
+                              : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-medium text-slate-200">AI Assistant Trigger</span>
+                                <span className="inline-flex items-center gap-1 rounded-full bg-cyan-500/20 px-2 py-0.5 text-[10px] font-semibold text-cyan-300 border border-cyan-500/40">
+                                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                                  Floating Button
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-cyan-300/80 font-mono">Q-AI Engine</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[10px] text-slate-400">Show circular AI assistant button & animations</span>
+                              <div className="inline-flex h-8 items-center rounded-full border border-cyan-500/30 bg-black/50 backdrop-blur-2xl p-1 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (setManualStopAnimation) {
+                                      setManualStopAnimation(true);
+                                    }
+                                    if (typeof window !== "undefined") {
+                                      localStorage.setItem("qlink_manual_stop_ai_animation", "true");
+                                    }
+                                    setIsAIArrowButtonVisible?.(false);
+                                    setShowAIHelpButton?.(false);
+                                  }}
+                                  className={
+                                    "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
+                                    (manualStopAnimation
+                                      ? "bg-slate-200 text-slate-950 shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                                      : "text-slate-300 hover:text-slate-100")
+                                  }
+                                >
+                                  Off
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (setManualStopAnimation) {
+                                      setManualStopAnimation(false);
+                                    }
+                                    if (typeof window !== "undefined") {
+                                      localStorage.setItem("qlink_manual_stop_ai_animation", "false");
+                                    }
+                                    setIsAIArrowButtonVisible?.(true);
+                                  }}
+                                  className={
+                                    "rounded-full px-2.5 py-1 text-[10px] font-medium transition " +
+                                    (!manualStopAnimation
+                                      ? "bg-cyan-500/80 text-slate-950 shadow-[0_0_8px_rgba(6,182,212,0.4)]"
+                                      : "text-slate-300 hover:text-slate-100")
+                                  }
+                                >
+                                  On
+                                </button>
+                              </div>
                             </div>
                           </div>
 
