@@ -9261,7 +9261,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 {!foundUser && (
                   <div
                     className={
-                      "glass-panel flex flex-col gap-3 text-xs text-slate-300 relative overflow-y-hidden scrollbar-hide " +
+                      "glass-panel flex flex-col gap-3 text-xs text-slate-300 relative overflow-y-hidden scrollbar-hide transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[39%] " : "") +
                       (isChatFull
                         ? "flex-1 min-h-0 mt-0 sm:mt-2 rounded-none sm:rounded-2xl border-none sm:border bg-slate-900/80 p-2 sm:p-4 " +
                         (highlightChatPanel ? "glow-pulse border-cyan-400/80" : "border-slate-600/70")
@@ -10124,7 +10124,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   `}} />
 
                     {/* Unified AI Floating Help Component with Smooth 5s Appear / 4s Hide Animation */}
-                    {showAIHelpButton ? (
+                    {showAIHelpButton && !isQAIOpen ? (
                       <div className="absolute bottom-20 right-4 z-[99] transition-all duration-500 ease-in-out opacity-100 scale-100 translate-y-0 animate-float-in">
                         <div className="relative group">
                           {/* Built-in Sleek Close Button at Top-Right Corner (Fully Visible & Unclipped) */}
@@ -10197,7 +10197,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       /* Manual AI Help Trigger Button (100% Pure Circle with Zero Sharp Corner Artifacts) */
                       <div
                         className={`absolute bottom-20 right-4 z-[99] rounded-full p-1 select-none transition-all duration-500 ease-in-out ${
-                          isAIArrowButtonVisible
+                          isAIArrowButtonVisible && !isQAIOpen
                             ? "opacity-100 scale-100 pointer-events-auto"
                             : "opacity-0 scale-90 pointer-events-none"
                         }`}
