@@ -10203,8 +10203,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         <button
                           type="button"
                           onClick={() => {
-                            setIsQAIOpen(true);
-                            setShowAIHelpButton(false);
+                            setShowAIHelpButton(true);
                             setManualStopAnimation(false);
                             localStorage.setItem("qlink_manual_stop_ai_animation", "false");
                           }}
