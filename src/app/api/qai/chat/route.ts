@@ -51,7 +51,7 @@ Keep responses concise, modern, and beautifully formatted with markdown.`;
       { role: "user", content: prompt },
     ];
 
-    // Call OpenRouter API
+    // Call OpenRouter API with auto model routing
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -61,7 +61,7 @@ Keep responses concise, modern, and beautifully formatted with markdown.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
+        model: "openrouter/auto",
         messages,
         temperature: mode === "polish" ? 0.7 : 0.8,
         max_tokens: 1024,
