@@ -47,6 +47,47 @@ export default function QAIAssistantModal({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Intelligent AI Draft Message Extraction Agent
+  const extractDraftOptions = (raw: string): string[] => {
+    if (!raw) return [];
+    
+    // 1. Look for markdown blockquotes (> ...)
+    const blockquotes: string[] = [];
+    const bqMatches = raw.match(/(?:^|\n)>\s*([\s\S]*?)(?=\n\n|\n[A-Z]|$)/g);
+    if (bqMatches) {
+      for (const b of bqMatches) {
+        let clean = b.replace(/(?:^|\n)>\s*/g, "\n").trim();
+        clean = clean.replace(/^[\"\'“]|["\'”]$/g, "").trim();
+        if (clean.length > 3 && !clean.toLowerCase().startsWith("note:")) {
+          blockquotes.push(clean);
+        }
+      }
+    }
+    if (blockquotes.length > 0) return blockquotes;
+
+    // 2. Look for double-quoted message candidates
+    const quoteMatches = raw.match(/[\"“]([^\"”\n]{8,})[\"”]/g);
+    if (quoteMatches) {
+      const cleanedQ = quoteMatches
+        .map((q) => q.replace(/^[\"“]|[\"”]$/g, "").trim())
+        .filter((q) => !q.toLowerCase().startsWith("here is"));
+      if (cleanedQ.length > 0) return cleanedQ;
+    }
+
+    // 3. Fallback: Strip introductory AI conversational fluff
+    const lines = raw.trim().split("\n");
+    const filtered: string[] = [];
+    for (const line of lines) {
+      const l = line.trim();
+      if (/^(here('s| is)|you can (say|send|reply)|alternatively|hope this|let me know|option \d|feel free|\*|\#)/i.test(l)) {
+        continue;
+      }
+      if (l) filtered.push(l);
+    }
+
+    const fallback = filtered.join("\n").trim();
+    return [fallback || raw.trim()];
+  };
 
   // Auto-scroll within the messages container only
   useEffect(() => {
@@ -164,9 +205,8 @@ export default function QAIAssistantModal({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleInsert = (text: string) => {
-    const match = text.match(/>\s*"([\s\S]*?)"/);
-    const textToInsert = match ? match[1] : text.replace(/^[>#*\-]+\s*/gm, "").trim();
+  const handleInsert = (rawContent: string, specificOption?: string) => {
+    const textToInsert = specificOption || extractDraftOptions(rawContent)[0] || rawContent;
     if (onInsertToChat) {
       onInsertToChat(textToInsert);
     }
@@ -305,23 +345,40 @@ export default function QAIAssistantModal({
               </div>
 
               {m.role === "assistant" && m.content && !m.isStreaming && (
-                <div className="mt-1.5 flex items-center gap-1 border-t border-white/5 pt-1 text-[9px]">
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-white/5 pt-1.5 text-[9px]">
                   <button
                     type="button"
                     onClick={() => handleCopy(m.id, m.content)}
-                    className="inline-flex items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                    className="inline-flex items-center gap-1 rounded-lg bg-white/5 px-2 py-0.5 text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
                   >
                     {copiedId === m.id ? "✓ Copied" : "📋 Copy"}
                   </button>
-                  {onInsertToChat && (
-                    <button
-                      type="button"
-                      onClick={() => handleInsert(m.content)}
-                      className="inline-flex items-center gap-1 rounded border border-cyan-500/40 bg-cyan-500/10 px-1.5 py-0.5 text-cyan-300 hover:bg-cyan-500/20 hover:text-white transition-colors"
-                    >
-                      💬 Insert
-                    </button>
-                  )}
+                  {onInsertToChat && (() => {
+                    const drafts = extractDraftOptions(m.content);
+                    if (drafts.length <= 1) {
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => handleInsert(m.content, drafts[0])}
+                          className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-2 py-0.5 font-medium text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.15)] hover:border-cyan-400 hover:bg-cyan-500/25 hover:text-white transition-all active:scale-95"
+                          title="Insert clean draft message directly into chat typing box"
+                        >
+                          💬 Insert to Chat
+                        </button>
+                      );
+                    }
+                    return drafts.map((draft, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleInsert(m.content, draft)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-2 py-0.5 font-medium text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.15)] hover:border-cyan-400 hover:bg-cyan-500/25 hover:text-white transition-all active:scale-95"
+                        title={`Insert Option ${idx + 1}: "${draft.slice(0, 30)}..."`}
+                      >
+                        💬 Insert Option {idx + 1}
+                      </button>
+                    ));
+                  })()}
                 </div>
               )}
             </div>

@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 
 interface ChatInputConsoleProps {
+  externalValue?: string;
+  onExternalValueConsumed?: () => void;
   activePeerHandle: string | null;
   onSend: (text: string) => void;
   onTypingPing?: () => void;
@@ -28,6 +30,8 @@ interface ChatInputConsoleProps {
 }
 
 export const ChatInputConsole = memo(function ChatInputConsole({
+  externalValue,
+  onExternalValueConsumed,
   activePeerHandle,
   onSend,
   onTypingPing,
