@@ -225,7 +225,7 @@ export const ChatInputConsole = memo(function ChatInputConsole({
       ) : (
         <>
           {/* Desktop Action Group */}
-          <div className="hidden sm:flex items-center gap-1 shrink-0 z-[9999]">
+          <div className={`${isCompact ? "!hidden" : "hidden sm:flex"} items-center gap-1 shrink-0`}>
             {/* Paperclip Button */}
             <div className="paperclip-container relative">
               <button
@@ -275,7 +275,8 @@ export const ChatInputConsole = memo(function ChatInputConsole({
           </div>
 
           {/* Mobile Actions Control */}
-          <div className={`relative ${isCompact ? "flex" : "flex sm:hidden"}`}>
+          <div className={`relative ${isCompact ? "!flex" : "flex sm:hidden"}`}>
+            {/* Popover Menu */}
             {showMobileChatMore && (
               <div className="absolute bottom-[calc(100%+0.5rem)] left-0 z-[9999] flex flex-col items-center gap-3 p-3 rounded-2xl border border-cyan-500/40 bg-[#09111c]/95 backdrop-blur-md shadow-[0_0_25px_rgba(6,182,212,0.35)] animate-float-in min-w-[3.5rem]">
                 <div className="flex flex-col items-center gap-0.5">
@@ -392,7 +393,7 @@ export const ChatInputConsole = memo(function ChatInputConsole({
             disabled={!activePeerHandle || isSendingBeacon}
             onClick={handleTriggerEmergencyBeacon}
             title="⚡ Send Priority Emergency Beacon (Bypasses DND)"
-            className="select-none hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-500/80 bg-rose-600/90 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.6)] transition hover:bg-rose-500 active:scale-95 sm:h-10 sm:w-10 disabled:opacity-40"
+            className={`select-none ${isCompact ? "!hidden" : "hidden sm:inline-flex"} h-9 w-9 items-center justify-center rounded-full border border-rose-500/80 bg-rose-600/90 text-xs font-bold text-white shadow-[0_0_12px_rgba(244,63,94,0.6)] transition hover:bg-rose-500 active:scale-95 sm:h-10 sm:w-10 disabled:opacity-40`}
           >
             ⚡
           </button>
