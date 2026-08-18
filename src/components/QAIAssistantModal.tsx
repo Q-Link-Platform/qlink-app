@@ -44,50 +44,10 @@ export default function QAIAssistantModal({
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [insertedId, setInsertedId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Intelligent AI Draft Message Extraction Agent
-  const extractDraftOptions = (raw: string): string[] => {
-    if (!raw) return [];
-    
-    // 1. Look for markdown blockquotes (> ...)
-    const blockquotes: string[] = [];
-    const bqMatches = raw.match(/(?:^|\n)>\s*([\s\S]*?)(?=\n\n|\n[A-Z]|$)/g);
-    if (bqMatches) {
-      for (const b of bqMatches) {
-        let clean = b.replace(/(?:^|\n)>\s*/g, "\n").trim();
-        clean = clean.replace(/^[\"\'“]|["\'”]$/g, "").trim();
-        if (clean.length > 3 && !clean.toLowerCase().startsWith("note:")) {
-          blockquotes.push(clean);
-        }
-      }
-    }
-    if (blockquotes.length > 0) return blockquotes;
-
-    // 2. Look for double-quoted message candidates
-    const quoteMatches = raw.match(/[\"“]([^\"”\n]{8,})[\"”]/g);
-    if (quoteMatches) {
-      const cleanedQ = quoteMatches
-        .map((q) => q.replace(/^[\"“]|[\"”]$/g, "").trim())
-        .filter((q) => !q.toLowerCase().startsWith("here is"));
-      if (cleanedQ.length > 0) return cleanedQ;
-    }
-
-    // 3. Fallback: Strip introductory AI conversational fluff
-    const lines = raw.trim().split("\n");
-    const filtered: string[] = [];
-    for (const line of lines) {
-      const l = line.trim();
-      if (/^(here('s| is)|you can (say|send|reply)|alternatively|hope this|let me know|option \d|feel free|\*|\#)/i.test(l)) {
-        continue;
-      }
-      if (l) filtered.push(l);
-    }
-
-    const fallback = filtered.join("\n").trim();
-    return [fallback || raw.trim()];
-  };
 
   // Auto-scroll within the messages container only
   useEffect(() => {
@@ -104,8 +64,6 @@ export default function QAIAssistantModal({
   }, [isOpen]);
 
   // Context-Aware Friend Agent Memory Extractor
-  // Default: Bounded 4 messages from user + 4 messages from friend (up to 8 recent turns)
-  // Deep Retrieval: If time/day/date keywords are detected, scans history for relevant items
   const extractFriendContext = (query: string) => {
     if (!activePeerHandle || !Array.isArray(rawChatMessages) || rawChatMessages.length === 0) {
       return null;
@@ -143,6 +101,48 @@ export default function QAIAssistantModal({
           : undefined,
       })),
     };
+  };
+
+  // Intelligent AI Draft Message Extraction Agent
+  const extractDraftOptions = (raw: string): string[] => {
+    if (!raw) return [];
+
+    // 1. Look for markdown blockquotes (> ...)
+    const blockquotes: string[] = [];
+    const bqMatches = raw.match(/(?:^|\n)>\s*([\s\S]*?)(?=\n\n|\n[A-Z]|$)/g);
+    if (bqMatches) {
+      for (const b of bqMatches) {
+        let clean = b.replace(/(?:^|\n)>\s*/g, "\n").trim();
+        clean = clean.replace(/^["'“]|["'”]$/g, "").trim();
+        if (clean.length > 3 && !clean.toLowerCase().startsWith("note:")) {
+          blockquotes.push(clean);
+        }
+      }
+    }
+    if (blockquotes.length > 0) return blockquotes;
+
+    // 2. Look for double-quoted message candidates
+    const quoteMatches = raw.match(/["“]([^"”\n]{8,})["”]/g);
+    if (quoteMatches) {
+      const cleanedQ = quoteMatches
+        .map((q) => q.replace(/^["“]|["”]$/g, "").trim())
+        .filter((q) => !q.toLowerCase().startsWith("here is"));
+      if (cleanedQ.length > 0) return cleanedQ;
+    }
+
+    // 3. Fallback: Strip introductory AI conversational fluff
+    const lines = raw.trim().split("\n");
+    const filtered: string[] = [];
+    for (const line of lines) {
+      const l = line.trim();
+      if (/^(here('s| is)|you can (say|send|reply)|alternatively|hope this|let me know|option \d|feel free|\*|\#)/i.test(l)) {
+        continue;
+      }
+      if (l) filtered.push(l);
+    }
+
+    const fallback = filtered.join("\n").trim();
+    return [fallback || raw.trim()];
   };
 
   if (!isOpen) return null;
@@ -205,11 +205,23 @@ export default function QAIAssistantModal({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const handleInsert = (rawContent: string, specificOption?: string) => {
-    const textToInsert = specificOption || extractDraftOptions(rawContent)[0] || rawContent;
+  const handleInsert = (msgId: string, rawContent: string, specificOption?: string) => {
+    let textToInsert = specificOption;
+    if (!textToInsert) {
+      const options = extractDraftOptions(rawContent);
+      textToInsert = options[0] || rawContent;
+    }
+    // Clean text thoroughly
+    textToInsert = textToInsert
+      .replace(/^\s*>\s*/gm, "")
+      .replace(/^["'“]|["'”]$/g, "")
+      .trim();
+
     if (onInsertToChat) {
       onInsertToChat(textToInsert);
     }
+    setInsertedId(msgId);
+    setTimeout(() => setInsertedId(null), 2500);
   };
 
   // Quick Action Chips
@@ -359,11 +371,11 @@ export default function QAIAssistantModal({
                       return (
                         <button
                           type="button"
-                          onClick={() => handleInsert(m.content, drafts[0])}
-                          className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-2 py-0.5 font-medium text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.15)] hover:border-cyan-400 hover:bg-cyan-500/25 hover:text-white transition-all active:scale-95"
+                          onClick={() => handleInsert(m.id, m.content, drafts[0])}
+                          className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-2.5 py-0.5 font-medium text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.2)] hover:border-cyan-400 hover:bg-cyan-500/25 hover:text-white transition-all active:scale-95"
                           title="Insert clean draft message directly into chat typing box"
                         >
-                          💬 Insert to Chat
+                          {insertedId === m.id ? "✓ Inserted to Chat!" : "💬 Insert to Chat"}
                         </button>
                       );
                     }
@@ -371,11 +383,11 @@ export default function QAIAssistantModal({
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => handleInsert(m.content, draft)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-2 py-0.5 font-medium text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.15)] hover:border-cyan-400 hover:bg-cyan-500/25 hover:text-white transition-all active:scale-95"
+                        onClick={() => handleInsert(m.id, m.content, draft)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/40 bg-gradient-to-r from-cyan-500/15 to-blue-500/15 px-2 py-0.5 font-medium text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.2)] hover:border-cyan-400 hover:bg-cyan-500/25 hover:text-white transition-all active:scale-95"
                         title={`Insert Option ${idx + 1}: "${draft.slice(0, 30)}..."`}
                       >
-                        💬 Insert Option {idx + 1}
+                        {insertedId === m.id ? `✓ Option ${idx + 1} Inserted!` : `💬 Insert Option ${idx + 1}`}
                       </button>
                     ));
                   })()}

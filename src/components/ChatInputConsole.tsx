@@ -57,6 +57,23 @@ export const ChatInputConsole = memo(function ChatInputConsole({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const typingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Sync external text insertion (from Q-AI Insert button) & auto-adjust height
+  useEffect(() => {
+    if (typeof externalValue === "string" && externalValue.length > 0) {
+      setLocalInput(externalValue);
+      if (textareaRef.current) {
+        textareaRef.current.value = externalValue;
+        textareaRef.current.focus();
+        textareaRef.current.style.height = "auto";
+        const nextH = Math.min(textareaRef.current.scrollHeight, 140);
+        textareaRef.current.style.height = `${Math.max(36, nextH)}px`;
+      }
+      if (onExternalValueConsumed) {
+        onExternalValueConsumed();
+      }
+    }
+  }, [externalValue, onExternalValueConsumed]);
+
   // Debounced typing notification trigger
   const triggerTyping = useCallback(() => {
     if (!onTypingPing) return;
@@ -69,6 +86,11 @@ export const ChatInputConsole = memo(function ChatInputConsole({
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setLocalInput(val);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      const nextH = Math.min(textareaRef.current.scrollHeight, 140);
+      textareaRef.current.style.height = `${Math.max(36, nextH)}px`;
+    }
     triggerTyping();
   };
 
