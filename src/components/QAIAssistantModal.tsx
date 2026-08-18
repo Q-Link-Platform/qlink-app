@@ -24,7 +24,7 @@ export default function QAIAssistantModal({
       id: "welcome-1",
       role: "assistant",
       content:
-        "👋 Welcome to **Q-AI Assistant**.\n\nI am docked right beside your active chat. Ask me questions, polish messages, or explore Q-Link architecture without leaving your conversation!",
+        "👋 **Q-AI Assistant is active.**\n\nAsk questions, polish your draft messages, or query Q-Link cryptographic architecture directly beside your active conversation!",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       mode: "general",
     },
@@ -33,9 +33,9 @@ export default function QAIAssistantModal({
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-scroll to bottom of chat
+  // Auto-scroll within the messages container only
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -45,7 +45,7 @@ export default function QAIAssistantModal({
   // Focus input when opened
   useEffect(() => {
     if (isOpen) {
-      textareaRef.current?.focus();
+      inputRef.current?.focus();
     }
   }, [isOpen]);
 
@@ -124,225 +124,205 @@ export default function QAIAssistantModal({
   ];
 
   return (
-    <>
-      {/* Subtle non-blocking overlay on small screens */}
-      <div
-        className="fixed inset-0 z-[990] bg-black/40 backdrop-blur-sm sm:hidden"
-        onClick={onClose}
-      />
+    /* Integrated In-Chat 35% Sidecar Panel (Contained, Zero Page Scrolling) */
+    <div className="absolute right-0 top-0 bottom-0 z-40 flex w-full sm:w-[38%] sm:min-w-[320px] sm:max-w-[420px] h-full flex-col border-l border-cyan-500/35 bg-slate-950/95 shadow-[-16px_0_40px_rgba(0,0,0,0.85),-2px_0_15px_rgba(6,182,212,0.2)] backdrop-blur-3xl transition-all duration-300 ease-out animate-slide-left overflow-hidden">
+      
+      {/* Specular Ambient Glow */}
+      <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-cyan-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute -left-20 bottom-10 h-40 w-40 rounded-full bg-fuchsia-500/10 blur-3xl" />
 
-      {/* 35% Width Integrated Slide-In Docked Panel */}
-      <div className="fixed right-0 top-0 bottom-0 z-[999] flex w-full sm:w-[35%] sm:min-w-[340px] sm:max-w-[440px] h-full flex-col border-l border-cyan-500/30 bg-slate-950/95 shadow-[-12px_0_40px_rgba(0,0,0,0.8),-2px_0_20px_rgba(6,182,212,0.15)] backdrop-blur-3xl transition-all duration-300 ease-out animate-slide-left overflow-hidden">
-        
-        {/* Ambient Specular Highlight */}
-        <div className="pointer-events-none absolute -right-24 -top-24 h-48 w-48 rounded-full bg-cyan-500/15 blur-3xl" />
-        <div className="pointer-events-none absolute -left-24 bottom-12 h-48 w-48 rounded-full bg-fuchsia-500/10 blur-3xl" />
-
-        {/* Docked Header */}
-        <div className="relative z-10 flex items-center justify-between border-b border-white/10 bg-slate-950/80 px-4 py-3 backdrop-blur-xl">
-          <div className="flex items-center gap-2.5">
-            {/* Holographic Reactor Core */}
-            <div className="relative flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-400/50 bg-gradient-to-br from-cyan-500/20 via-sky-600/10 to-transparent shadow-[0_0_12px_rgba(6,182,212,0.3)]">
-              <div className={`h-2 w-2 rounded-full bg-cyan-400 ${isGenerating ? "animate-ping" : "animate-pulse"}`} />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <h3 className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-white">
-                  Q-AI Sidecar
-                </h3>
-                <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.2 text-[8px] font-mono font-semibold text-cyan-300">
-                  35% Docked
-                </span>
-              </div>
-              <p className="text-[9px] text-slate-400 font-mono">
-                Real-time Chat Intelligence
-              </p>
+      {/* Docked In-Chat Header */}
+      <div className="relative z-10 shrink-0 flex items-center justify-between border-b border-white/10 bg-slate-950/80 px-3.5 py-2.5 backdrop-blur-xl">
+        <div className="flex items-center gap-2">
+          <div className="relative flex h-6 w-6 items-center justify-center rounded-lg border border-cyan-400/50 bg-gradient-to-br from-cyan-500/20 via-sky-600/10 to-transparent shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+            <div className={`h-1.5 w-1.5 rounded-full bg-cyan-400 ${isGenerating ? "animate-ping" : "animate-pulse"}`} />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-white">
+                Q-AI Sidecar
+              </h3>
+              <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.2 text-[8px] font-mono font-semibold text-cyan-300">
+                In-Chat
+              </span>
             </div>
           </div>
+        </div>
 
-          {/* Close Slide Drawer Button */}
+        {/* Close Sidecar Button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+          title="Close AI Sidecar"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Mode Selector */}
+      <div className="relative z-10 shrink-0 flex items-center justify-between border-b border-white/5 bg-slate-950/50 px-3 py-1 text-xs">
+        <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
-            title="Close AI Panel"
+            onClick={() => setMode("general")}
+            className={`rounded px-2 py-0.5 text-[10px] font-medium transition-all duration-200 ${
+              mode === "general"
+                ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.2)]"
+                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+            }`}
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            💡 General
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("polish")}
+            className={`rounded px-2 py-0.5 text-[10px] font-medium transition-all duration-200 ${
+              mode === "polish"
+                ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.2)]"
+                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+            }`}
+          >
+            ✍️ Polish
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("qlink")}
+            className={`rounded px-2 py-0.5 text-[10px] font-medium transition-all duration-200 ${
+              mode === "qlink"
+                ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.2)]"
+                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+            }`}
+          >
+            🛡️ Info
           </button>
         </div>
 
-        {/* Intelligence Mode Selector */}
-        <div className="relative z-10 flex items-center justify-between border-b border-white/5 bg-slate-950/50 px-3 py-1.5 text-xs">
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setMode("general")}
-              className={`rounded-md px-2 py-0.5 text-[11px] font-medium transition-all duration-200 ${
-                mode === "general"
-                  ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.2)]"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-              }`}
-            >
-              💡 General
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("polish")}
-              className={`rounded-md px-2 py-0.5 text-[11px] font-medium transition-all duration-200 ${
-                mode === "polish"
-                  ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.2)]"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-              }`}
-            >
-              ✍️ Polish
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("qlink")}
-              className={`rounded-md px-2 py-0.5 text-[11px] font-medium transition-all duration-200 ${
-                mode === "qlink"
-                  ? "bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-[0_0_8px_rgba(6,182,212,0.2)]"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-              }`}
-            >
-              🛡️ Info
-            </button>
-          </div>
+        {mode === "polish" && (
+          <select
+            value={polishStyle}
+            onChange={(e) => setPolishStyle(e.target.value as PolishStyle)}
+            className="rounded border border-cyan-500/30 bg-slate-900 px-1 py-0.5 text-[9px] text-cyan-200 focus:outline-none focus:border-cyan-400"
+          >
+            <option value="professional">Professional</option>
+            <option value="witty">Witty</option>
+            <option value="concise">Concise</option>
+            <option value="persuasive">Persuasive</option>
+            <option value="cyberpunk">Cyberpunk</option>
+          </select>
+        )}
+      </div>
 
-          {/* Tone Selector for Polish Mode */}
-          {mode === "polish" && (
-            <select
-              value={polishStyle}
-              onChange={(e) => setPolishStyle(e.target.value as PolishStyle)}
-              className="rounded border border-cyan-500/30 bg-slate-900 px-1.5 py-0.5 text-[10px] text-cyan-200 focus:outline-none focus:border-cyan-400"
-            >
-              <option value="professional">Professional</option>
-              <option value="witty">Witty</option>
-              <option value="concise">Concise</option>
-              <option value="persuasive">Persuasive</option>
-              <option value="cyberpunk">Cyberpunk</option>
-            </select>
-          )}
-        </div>
+      {/* Message List (Strictly Contained, Scrolls Independently) */}
+      <div className="relative z-10 flex-1 min-h-0 overflow-y-auto p-3 space-y-2.5 scrollbar-hide">
+        {messages.map((m) => (
+          <div
+            key={m.id}
+            className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}
+          >
+            <div className="flex items-center gap-1 mb-0.5 px-1">
+              <span className="text-[9px] font-mono text-slate-500">
+                {m.role === "user" ? "You" : "Q-AI"}
+              </span>
+              <span className="text-[8px] font-mono text-slate-600">{m.timestamp}</span>
+            </div>
 
-        {/* Message Stream */}
-        <div className="relative z-10 flex-1 overflow-y-auto p-3 space-y-3 scrollbar-hide">
-          {messages.map((m) => (
             <div
-              key={m.id}
-              className={`flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`}
+              className={`relative max-w-[94%] rounded-xl px-3 py-2 text-[11px] leading-relaxed transition-all duration-200 ${
+                m.role === "user"
+                  ? "border border-cyan-500/30 bg-gradient-to-r from-cyan-950/70 to-slate-900/80 text-cyan-100 shadow-[0_2px_10px_rgba(0,0,0,0.3)]"
+                  : "border border-white/10 bg-slate-900/85 text-slate-200 shadow-[0_2px_12px_rgba(0,0,0,0.4)] backdrop-blur-xl"
+              }`}
             >
-              <div className="flex items-center gap-1.5 mb-1 px-1">
-                <span className="text-[9px] font-mono text-slate-500">
-                  {m.role === "user" ? "You" : "Q-AI"}
-                </span>
-                <span className="text-[8px] font-mono text-slate-600">{m.timestamp}</span>
-              </div>
-
-              <div
-                className={`relative max-w-[92%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed transition-all duration-200 ${
-                  m.role === "user"
-                    ? "border border-cyan-500/30 bg-gradient-to-r from-cyan-950/70 to-slate-900/80 text-cyan-100 shadow-[0_2px_12px_rgba(0,0,0,0.3)]"
-                    : "border border-white/10 bg-slate-900/80 text-slate-200 shadow-[0_2px_16px_rgba(0,0,0,0.4)] backdrop-blur-xl"
-                }`}
-              >
-                <div className="whitespace-pre-wrap space-y-1.5 text-[11px]">
-                  {m.content || (
-                    <span className="inline-flex items-center gap-1 text-cyan-400">
-                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                      Thinking...
-                    </span>
-                  )}
-                </div>
-
-                {/* Action buttons */}
-                {m.role === "assistant" && m.content && !m.isStreaming && (
-                  <div className="mt-2 flex items-center gap-1.5 border-t border-white/5 pt-1.5 text-[9px]">
-                    <button
-                      type="button"
-                      onClick={() => handleCopy(m.id, m.content)}
-                      className="inline-flex items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
-                    >
-                      {copiedId === m.id ? "✓ Copied" : "📋 Copy"}
-                    </button>
-                    {onInsertToChat && (
-                      <button
-                        type="button"
-                        onClick={() => handleInsert(m.content)}
-                        className="inline-flex items-center gap-1 rounded border border-cyan-500/40 bg-cyan-500/10 px-1.5 py-0.5 text-cyan-300 hover:bg-cyan-500/20 hover:text-white transition-colors"
-                      >
-                        💬 Insert to Chat
-                      </button>
-                    )}
-                  </div>
+              <div className="whitespace-pre-wrap space-y-1">
+                {m.content || (
+                  <span className="inline-flex items-center gap-1 text-cyan-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                    Thinking...
+                  </span>
                 )}
               </div>
+
+              {m.role === "assistant" && m.content && !m.isStreaming && (
+                <div className="mt-1.5 flex items-center gap-1 border-t border-white/5 pt-1 text-[9px]">
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(m.id, m.content)}
+                    className="inline-flex items-center gap-1 rounded bg-white/5 px-1.5 py-0.5 text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    {copiedId === m.id ? "✓ Copied" : "📋 Copy"}
+                  </button>
+                  {onInsertToChat && (
+                    <button
+                      type="button"
+                      onClick={() => handleInsert(m.content)}
+                      className="inline-flex items-center gap-1 rounded border border-cyan-500/40 bg-cyan-500/10 px-1.5 py-0.5 text-cyan-300 hover:bg-cyan-500/20 hover:text-white transition-colors"
+                    >
+                      💬 Insert
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Suggestion Chips */}
-        <div className="relative z-10 flex gap-1.5 overflow-x-auto px-3 py-1.5 border-t border-white/5 bg-slate-950/40 scrollbar-hide">
-          {quickPrompts.map((p, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={p.action}
-              className="shrink-0 rounded-full border border-cyan-500/20 bg-cyan-950/30 px-2.5 py-0.5 text-[10px] text-cyan-300 hover:border-cyan-400/50 hover:bg-cyan-500/15 hover:text-white transition-all duration-200"
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Input Console */}
-        <div className="relative z-10 border-t border-white/10 bg-slate-950/90 p-2.5 backdrop-blur-2xl">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSend();
-            }}
-            className="relative flex items-center gap-1.5"
-          >
-            <textarea
-              ref={textareaRef}
-              rows={1}
-              value={inputQuery}
-              onChange={(e) => setInputQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              placeholder={
-                mode === "polish"
-                  ? "Paste draft message to polish..."
-                  : "Ask Q-AI..."
-              }
-              className="flex-1 resize-none rounded-xl border border-cyan-500/30 bg-slate-900/90 px-3 py-2 text-xs text-slate-100 placeholder-slate-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] focus:border-cyan-400 focus:outline-none max-h-20"
-            />
-
-            <button
-              type="submit"
-              disabled={!inputQuery.trim() || isGenerating}
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${
-                inputQuery.trim() && !isGenerating
-                  ? "border-cyan-400 bg-gradient-to-tr from-cyan-500 to-blue-600 text-white shadow-[0_0_12px_rgba(6,182,212,0.4)] active:scale-95"
-                  : "border-slate-800 bg-slate-900/50 text-slate-600 cursor-not-allowed"
-              }`}
-            >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
-          </form>
-        </div>
-
+          </div>
+        ))}
+        <div ref={messagesEndRef} />
       </div>
-    </>
+
+      {/* Suggestion Chips */}
+      <div className="relative z-10 shrink-0 flex gap-1 overflow-x-auto px-2.5 py-1 border-t border-white/5 bg-slate-950/40 scrollbar-hide">
+        {quickPrompts.map((p, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={p.action}
+            className="shrink-0 rounded-full border border-cyan-500/20 bg-cyan-950/30 px-2 py-0.5 text-[9px] text-cyan-300 hover:border-cyan-400/50 hover:bg-cyan-500/15 hover:text-white transition-all duration-200"
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Docked Input Box (Always Visible, Pinned to Bottom) */}
+      <div className="relative z-10 shrink-0 border-t border-white/10 bg-slate-950/90 p-2 backdrop-blur-2xl">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSend();
+          }}
+          className="relative flex items-center gap-1"
+        >
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputQuery}
+            onChange={(e) => setInputQuery(e.target.value)}
+            placeholder={
+              mode === "polish"
+                ? "Paste draft to polish..."
+                : "Ask Q-AI..."
+            }
+            className="flex-1 rounded-xl border border-cyan-500/30 bg-slate-900/90 px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)] focus:border-cyan-400 focus:outline-none"
+          />
+
+          <button
+            type="submit"
+            disabled={!inputQuery.trim() || isGenerating}
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 ${
+              inputQuery.trim() && !isGenerating
+                ? "border-cyan-400 bg-gradient-to-tr from-cyan-500 to-blue-600 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)] active:scale-95"
+                : "border-slate-800 bg-slate-900/50 text-slate-600 cursor-not-allowed"
+            }`}
+          >
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </button>
+        </form>
+      </div>
+
+    </div>
   );
 }

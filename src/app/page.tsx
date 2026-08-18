@@ -8167,20 +8167,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   setShowAIHelpButton={setShowAIHelpButton}
                 />
 
-                {/* Q-AI Quantum Intelligence Assistant HUD */}
-                <QAIAssistantModal
-                  isOpen={isQAIOpen}
-                  onClose={() => setIsQAIOpen(false)}
-                  onInsertToChat={(text) => {
-                    setChatInput(text);
-                    if (chatInputRef.current) {
-                      chatInputRef.current.value = text;
-                      chatInputRef.current.style.height = "auto";
-                      chatInputRef.current.focus();
-                    }
-                  }}
-                  activeDraftText={chatInput}
-                />
+
 
                 {showLogoutConfirm && !canUseDom && (
                   <div
@@ -10094,6 +10081,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </p>
                     )}
 
+                    {/* In-Chat Docked Q-AI Sidecar */}
+                    <QAIAssistantModal
+                      isOpen={isQAIOpen}
+                      onClose={() => setIsQAIOpen(false)}
+                      onInsertToChat={(text) => {
+                        setChatInput(text);
+                        if (chatInputRef.current) {
+                          chatInputRef.current.value = text;
+                          chatInputRef.current.style.height = "auto";
+                          chatInputRef.current.focus();
+                        }
+                      }}
+                      activeDraftText={chatInput}
+                    />
+
                     {/* Local self-contained smooth fade animation */}
                     <style dangerouslySetInnerHTML={{
                       __html: `
@@ -10146,6 +10148,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             onClick={() => {
                               setIsQAIOpen(true);
                               setShowAIHelpButton(false);
+                              setIsChatFull(true);
                             }}
                             className="group relative overflow-hidden rounded-2xl border border-cyan-400/50 bg-[#09111c]/95 pl-5 pr-9 py-3.5 shadow-[0_0_20px_rgba(6,182,212,0.25)] backdrop-blur-md transition-all duration-300 hover:border-cyan-400/80 hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] flex items-center gap-3 isolate"
                             style={{ clipPath: "inset(0 round 1rem)" }}
