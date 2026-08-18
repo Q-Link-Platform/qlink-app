@@ -378,12 +378,16 @@ type OutgoingRequest = {
   createdAt: string;
   updatedAt?: string;
   lastInteractionAt?: string;
+  isUnread?: boolean;
+  unreadCount?: number;
   latestMessage?: {
     id: string;
     content: string;
     createdAt: string;
     senderId: string;
     status?: string;
+    isEdited?: boolean;
+    editedAt?: string | null;
   } | null;
   toUser: {
     id: string;
@@ -415,12 +419,16 @@ type IncomingRequest = {
   createdAt: string;
   updatedAt?: string;
   lastInteractionAt?: string;
+  isUnread?: boolean;
+  unreadCount?: number;
   latestMessage?: {
     id: string;
     content: string;
     createdAt: string;
     senderId: string;
     status?: string;
+    isEdited?: boolean;
+    editedAt?: string | null;
   } | null;
   fromUser: {
     id: string;
@@ -475,6 +483,7 @@ function rankFriendRequests<T extends {
   latestMessage?: { createdAt: string; id: string } | null;
   toUser?: { handle?: string | null };
   fromUser?: { handle?: string | null };
+  isUnread?: boolean;
 }>(
   requests: T[],
   unreadMsgs: any[],
@@ -484,8 +493,8 @@ function rankFriendRequests<T extends {
   if (!Array.isArray(requests) || requests.length <= 1) return requests;
 
   return [...requests].sort((a, b) => {
-    const handleA = (a.fromUser?.handle || a.toUser?.handle || "").toLowerCase();
-    const handleB = (b.fromUser?.handle || b.toUser?.handle || "").toLowerCase();
+    const handleA = ((isIncomingList ? a.fromUser?.handle : a.toUser?.handle) || a.fromUser?.handle || a.toUser?.handle || "").toLowerCase();
+    const handleB = ((isIncomingList ? b.fromUser?.handle : b.toUser?.handle) || b.fromUser?.handle || b.toUser?.handle || "").toLowerCase();
 
     // 1. Status tiering
     if (isIncomingList) {
@@ -508,9 +517,9 @@ function rankFriendRequests<T extends {
       if (tierA !== tierB) return tierA - tierB;
     }
 
-    // 2. Unread Message Priority Boost
-    const isUnreadA = handleA ? isHandleUnread(unreadMsgs, handleA) : false;
-    const isUnreadB = handleB ? isHandleUnread(unreadMsgs, handleB) : false;
+    // 2. Unread Message Priority Boost (Checked from both server authoritative isUnread and local state)
+    const isUnreadA = Boolean(a.isUnread || (handleA && isHandleUnread(unreadMsgs, handleA)));
+    const isUnreadB = Boolean(b.isUnread || (handleB && isHandleUnread(unreadMsgs, handleB)));
     if (isUnreadA !== isUnreadB) return isUnreadA ? -1 : 1;
 
     // 3. Active Chat Peer Priority Boost
@@ -4703,82 +4712,107 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     const refresh = async () => {
       try {
-        const outRes = await fetch("/api/friends/outgoing");
+        const [outRes, inRes] = await Promise.all([
+          fetch("/api/friends/outgoing"),
+          fetch("/api/friends/incoming"),
+        ]);
+
+        if (cancelled) return;
+
+        let currentOutgoing: OutgoingRequest[] = [];
+        let currentIncoming: IncomingRequest[] = [];
+
         if (outRes.ok) {
           const outData = await outRes.json();
-          if (!cancelled) {
-            const requests = (outData.requests || []) as OutgoingRequest[];
-            setOutgoing(requests);
-
-            // Sync unread status from server-authoritative unreadCount and latestMessage
-            requests.forEach((req: any) => {
-              if (req.status === "ACCEPTED" && req.toUser?.handle) {
-                const peerHandle = req.toUser.handle;
-                const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
-                
-                if (req.isUnread && req.latestMessage) {
-                  if (peerHandle !== activePeerHandle || isAppHidden) {
-                    setUnreadMessages((prev) => addUnreadMessage(prev, req.latestMessage.id, peerHandle));
-                  }
-                }
-              }
-            });
-          }
+          currentOutgoing = (outData.requests || []) as OutgoingRequest[];
+          setOutgoing(currentOutgoing);
         }
-      } catch {
-        // ignore
-      }
 
-      try {
-        const inRes = await fetch("/api/friends/incoming");
         if (inRes.ok) {
           const inData = await inRes.json();
-          if (!cancelled) {
-            const rawReqs = (inData.requests || []) as IncomingRequest[];
-            const seen = new Set<string>();
-            const requests = rawReqs.filter((r) => {
-              const idKey = r.fromUser?.id || r.id;
-              if (seen.has(idKey)) return false;
-              seen.add(idKey);
-              return true;
-            });
-            setIncoming(requests);
+          const rawReqs = (inData.requests || []) as IncomingRequest[];
+          const seen = new Set<string>();
+          currentIncoming = rawReqs.filter((r) => {
+            const idKey = r.fromUser?.id || r.id;
+            if (seen.has(idKey)) return false;
+            seen.add(idKey);
+            return true;
+          });
+          setIncoming(currentIncoming);
 
-            // Sync unread status from server-authoritative unreadCount and latestMessage
-            requests.forEach((req: any) => {
-              if (req.status === "ACCEPTED" && req.fromUser?.handle) {
-                const peerHandle = req.fromUser.handle;
-                const latestMsg = req.latestMessage;
-
-                // Q-BEACON Priority Check
-                if (latestMsg?.content && latestMsg.content.includes("[Q-BEACON_EMERGENCY]:")) {
-                  const ackKey = `qlink_beacon_ack_${latestMsg.id}`;
-                  if (!localStorage.getItem(ackKey) && latestMsg.senderId !== myId) {
-                    localStorage.setItem(ackKey, "1");
-                    const rawContent = latestMsg.content.replace(/.*?\[Q-BEACON_EMERGENCY\]:\s*/, "").trim();
-                    setActiveBeacon({
-                      senderHandle: peerHandle,
-                      senderName: req.fromUser.name,
-                      senderImage: req.fromUser.profileImage,
-                      noteText: rawContent || "Priority Emergency Beacon!",
-                    });
-                    quantumAudio.warmup();
-                    quantumAudio.playEmergencyChime();
-                  }
-                }
-
-                const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
-                if (req.isUnread && latestMsg) {
-                  if (peerHandle !== activePeerHandle || isAppHidden) {
-                    setUnreadMessages((prev) => addUnreadMessage(prev, latestMsg.id, peerHandle));
-                  }
+          // Check Q-BEACON Priority alerts in incoming
+          currentIncoming.forEach((req: any) => {
+            if (req.status === "ACCEPTED" && req.fromUser?.handle && req.latestMessage) {
+              const latestMsg = req.latestMessage;
+              if (latestMsg?.content && latestMsg.content.includes("[Q-BEACON_EMERGENCY]:")) {
+                const ackKey = `qlink_beacon_ack_${latestMsg.id}`;
+                if (!localStorage.getItem(ackKey) && latestMsg.senderId !== myId) {
+                  localStorage.setItem(ackKey, "1");
+                  const rawContent = latestMsg.content.replace(/.*?\[Q-BEACON_EMERGENCY\]:\s*/, "").trim();
+                  setActiveBeacon({
+                    senderHandle: req.fromUser.handle,
+                    senderName: req.fromUser.name,
+                    senderImage: req.fromUser.profileImage,
+                    noteText: rawContent || "Priority Emergency Beacon!",
+                  });
+                  quantumAudio.warmup();
+                  quantumAudio.playEmergencyChime();
                 }
               }
-            });
-          }
+            }
+          });
         }
+
+        // Server-Authoritative Unread State Reconciliation:
+        // Collect all handles that genuinely have unread messages on the server
+        const activeServerUnreadHandles = new Set<string>();
+
+        currentOutgoing.forEach((req: any) => {
+          if (req.status === "ACCEPTED" && req.toUser?.handle && req.isUnread) {
+            const h = cleanHandle(req.toUser.handle);
+            if (h && !areHandlesEqual(h, activePeerHandle)) {
+              activeServerUnreadHandles.add(h);
+            }
+          }
+        });
+
+        currentIncoming.forEach((req: any) => {
+          if (req.status === "ACCEPTED" && req.fromUser?.handle && req.isUnread) {
+            const h = cleanHandle(req.fromUser.handle);
+            if (h && !areHandlesEqual(h, activePeerHandle)) {
+              activeServerUnreadHandles.add(h);
+            }
+          }
+        });
+
+        // Update local unreadMessages: Remove stale handles and add genuine unread handles
+        setUnreadMessages((prev) => {
+          // Filter out any handles that are NOT unread on the server or match current active room
+          const cleaned = prev.filter((m) => {
+            const h = cleanHandle(m.sender);
+            return h && activeServerUnreadHandles.has(h) && !areHandlesEqual(h, activePeerHandle);
+          });
+
+          // Add newly discovered unread handles
+          activeServerUnreadHandles.forEach((h) => {
+            if (!cleaned.some((m) => cleanHandle(m.sender) === h)) {
+              cleaned.push({ id: `srv-${h}-${Date.now()}`, sender: h });
+            }
+          });
+
+          // Only update state reference if contents actually changed
+          if (
+            cleaned.length === prev.length &&
+            cleaned.every((m, i) => m.id === prev[i].id && cleanHandle(m.sender) === cleanHandle(prev[i].sender))
+          ) {
+            return prev;
+          }
+
+          return cleaned;
+        });
+
       } catch {
-        // ignore
+        // ignore network poll hiccups
       }
     };
 
@@ -8400,7 +8434,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         <div className="min-w-0">
                           <p className="truncate text-xs text-slate-200 flex items-center">
                             @{req.toUser?.handle || "unknown"}
-                            {req.toUser?.handle && isHandleUnread(unreadMessages, req.toUser.handle) && (
+                            {(req.isUnread || (req.toUser?.handle && isHandleUnread(unreadMessages, req.toUser.handle))) && (
                               <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse ml-1.5" title="New Message!" />
                             )}
                           </p>
@@ -8434,7 +8468,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 </button>
                               )}
                               {(() => {
-                                const isUnread = req.toUser?.handle && isHandleUnread(unreadMessages, req.toUser.handle);
+                                const isUnread = Boolean(req.isUnread || (req.toUser?.handle && isHandleUnread(unreadMessages, req.toUser.handle)));
                                 return (
                                   <button
                                     type="button"
@@ -8569,7 +8603,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             <div className="min-w-0">
                               <p className="truncate text-[11px] text-slate-200 flex items-center">
                                 @{req.fromUser?.handle || "unknown"}
-                                {req.fromUser?.handle && isHandleUnread(unreadMessages, req.fromUser.handle) && (
+                                {(req.isUnread || (req.fromUser?.handle && isHandleUnread(unreadMessages, req.fromUser.handle))) && (
                                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse ml-1.5" title="New Message!" />
                                 )}
                               </p>
@@ -8638,7 +8672,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 </button>
                               )}
                               {(() => {
-                                const isUnread = req.fromUser?.handle && isHandleUnread(unreadMessages, req.fromUser.handle);
+                                const isUnread = Boolean(req.isUnread || (req.fromUser?.handle && isHandleUnread(unreadMessages, req.fromUser.handle)));
                                 return (
                                   <button
                                     type="button"
