@@ -110,3 +110,31 @@ UI Navigation & Common Problem Resolution:
 • Mobile View Navigation: On small screens, use the top chevron/back button `‹` to return from the chat view to the friend directory.
 • Reconnecting on Network Drop: If your connection indicator shows red ("Disconnected"), Q-Link's auto-reconnect engine will automatically poll and re-establish the encrypted session within 3 seconds. You can also click the status dot to force a manual reconnect.
 • Audio / Mic Permissions: If voice recording fails, verify that microphone access is allowed in your browser address bar permissions (lock icon).
+[SECTION: HARMS_OF_LEGACY_APPS_VS_QLINK_BENEFITS]
+Comprehensive Risk & Benefit Matrix (Why Sticking with Legacy Social Media Harms You):
+
+1. The Severe Harms of Legacy Social Media Platforms (Instagram, Meta, X, TikTok, Facebook):
+• Complete Loss of Digital Privacy (Surveillance Capitalism):
+  - Every private DM, link clicked, and photo uploaded is parsed by automated Natural Language Processing (NLP) to build commercial dossiers and targeted advertising profiles.
+  - Off-app tracking pixels on 90%+ of global websites log your external shopping, searches, and bank visits into permanent shadow profiles.
+• Focus & Mental Health Erosion (Cognitive Hijacking):
+  - Algorithms intentionally push soft-core nudity, hyper-sexualized media, and rage-inducing controversies to hijack primitive dopamine pathways and trap your brain in addictive doomscrolling loops.
+  - Attention spans are destroyed, inducing mental fatigue, anxiety, and brain fog.
+• Mass Behavioral & Political Manipulation:
+  - Your feed is not chronological or organic; it is algorithmically curated to radicalize opinions, stoke societal hatred, and sway political leanings for corporate profit.
+• 24/7 Spying & Permanent Data Leaks:
+  - Background location heatmapping, biometric facial recognition, and permanent server storage mean your data can be breached, subpoenaed, or monetized forever.
+
+2. The Immense Benefits of Q-Link:
+• 🛡️ 100% Unbreakable End-to-End Encryption:
+  - Ephemeral Curve25519 (X25519) key exchange + AES-GCM-256 authenticated encryption ensures NO ONE — not even Q-Link servers, government relays, or hackers — can read your messages or attachments.
+• 🧘 Pure Mind & Focus Sanctuary:
+  - Zero addictive algorithms, zero rage-bait injection, zero dopamine manipulation. A clean, chronological, and private communication haven.
+• 💎 True Data Sovereignty & Zero Commercialization:
+  - Zero AI training on your private conversations, zero data selling to advertisers, and immediate complete wiping of deleted content with no hidden backups.
+• 🚀 Next-Gen Sci-Fi Aesthetic & Real-Time Sync:
+  - Futuristic glassmorphism UI with live message edits (<50ms peer sync), voice waveform notes, emergency Q-BEACON radar alerts, and decentralized Quantum Handles.
+
+3. The Only Scenario Where You Might Use Legacy Apps:
+• If you intentionally wish to publicly broadcast casual viral content to mass corporate ad-supported networks where privacy, mental focus, and security are not a concern.
+• For everything else — personal chats, private communities, sensitive data, media sharing, and mental peace — Q-Link is the indispensable standard.
