@@ -85,6 +85,34 @@ function retrieveRelevantGuide(query: string): string {
 
   if (
     [
+      "why q-link",
+      "why qlink",
+      "better than",
+      "vs instagram",
+      "vs twitter",
+      "vs facebook",
+      "vs meta",
+      "vs x",
+      "tracking",
+      "privacy",
+      "surveillance",
+      "shadow profile",
+      "data selling",
+      "ai training",
+      "non profit",
+      "honest",
+      "addiction",
+      "dopamine",
+      "brainwash",
+      "snooping",
+      "dark reality",
+    ].some((k) => q.includes(k))
+  ) {
+    matchedTags.push("WHY_QLINK_VS_BIG_TECH_SURVEILLANCE");
+  }
+
+  if (
+    [
       "compare",
       "instagram",
       "twitter",

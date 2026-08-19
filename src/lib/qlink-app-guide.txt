@@ -1,5 +1,5 @@
 # ==============================================================================
-# Q-LINK QUANTUM PLATFORM — OFFICIAL KNOWLEDGE BASE & USER MANUAL
+# Q-LINK QUANTUM PLATFORM — OFFICIAL KNOWLEDGE BASE & ETHICAL MANIFESTO
 # ==============================================================================
 
 [SECTION: OVERVIEW_AND_ANALOGIES]
@@ -12,6 +12,37 @@ Social Media Comparisons:
 • Global Quantum Handle & Profile ➔ Similar to an Instagram/X username or a decentralized Web3 Identity (@handle). It features verified blue badge checkmarks, custom avatar cards, and bio descriptions.
 • Quantum Points (QP) & Aura Level ➔ Similar to Reddit Karma and VIP Gamer Ranks. Active messaging streaks, engagement, and verified interactions earn Quantum Points that increase your Aura level and unlock glowing holographic badges.
 • Q-BEACON Emergency Alert ➔ Similar to a high-priority SOS siren broadcast. Bypasses normal notifications with sound to alert your contacts during urgent situations.
+
+[SECTION: WHY_QLINK_VS_BIG_TECH_SURVEILLANCE]
+Why Choose Q-Link Over Big Tech (Meta, X, TikTok, Instagram & Facebook)?
+Q-Link was built on a radically honest, user-first, and ethical foundation — designed to completely eliminate the toxic psychological traps and surveillance capitalism of traditional social media.
+
+1. The Q-Link Promise & Pure Non-Profit Ethics:
+• 100% Data Sovereignty: You own your identity, messages, and content. When you delete a message or account, it is wiped from relays with zero residual server backups.
+• Zero AI Training on User Data: Q-Link NEVER feeds your private conversations, voice notes, photos, or documents into AI training sets or corporate LLMs.
+• Zero Data Selling & Zero Advertising: We do not sell your personal information, browsing patterns, or identity to advertisers or third-party data brokers.
+• 100% Self-Sustaining Infrastructure: Revenue generated from optional cosmetic tiers (Sapphire/Diamond VIP cards) goes directly into server maintenance, high-speed relay bandwidth, and cryptographic audits — 0 hidden profits, 0 predatory venture capitalist monetization games.
+• Futuristic Next-Gen Sci-Fi UI/UX: Sleek, luminous cyberpunk glassmorphism with instant responsive performance, built for high-tech enthusiasts rather than dull corporate ad billboards.
+
+2. The Dark Reality of Big Tech Surveillance Platforms (What They Do Behind Your Back):
+• 🔎 Off-App Tracking and Shadow Profiling:
+  - Tracking Pixels: Meta and Google embed tracking code across millions of third-party websites to covertly log your browsing history, purchases, and sign-ups.
+  - Shadow Profiles: Platforms build detailed advertising dossiers on individuals who do not even have an account, harvesting data from contact lists uploaded by other users.
+  - App Tracking Transparency (ATT) Bypasses: Traditional apps inject custom JavaScript into their in-app browsers to spy on external links and monitor every keystroke outside their main app.
+  - Device Fingerprinting: Combining IP address, canvas rendering, battery levels, OS version, and screen specs to track your device across incognito and private browsing modes.
+• 📊 Behavioral AI Manipulation & Psychological Profiling:
+  - Micro-Engagement Dwell Monitoring: Algorithms measure the exact millisecond you pause scrolling over a post to calculate your secret insecurities, desires, and mental vulnerabilities.
+  - Biometric & Facial Analysis: AI scans uploaded photos and videos to recognize facial micro-expressions, detect emotional states, and analyze room environments.
+  - Natural Language Processing (NLP) DM Snooping: Corporate AI systems parse private direct messages and comments to extract commercial buying intent, sexual preferences, and political leanings.
+  - Predictive Churn & Rage Injection: When AI detects you are losing interest or getting bored, it intentionally floods your feed with extreme, shocking, or rage-inducing posts to force emotional re-engagement.
+• 📈 Exploitative Engagement Math & Addiction Traps:
+  - Outrage Amplification: Algorithms are mathematically optimized to reward hatred and moral outrage, as negative emotions generate the highest ad dwell time.
+  - Echo Chambers & Polarizing Brainwashing: Users are isolated into algorithmic echo chambers that radicalize opinions and make behavior predictable for advertisers.
+  - Dopamine Intermittent Schedules: Push notifications are strategically delayed and batched by AI to ping your phone at psychological low points, inducing compulsive addictive checking.
+  - 24/7 Location & Health Spying: Continuous background GPS monitoring, movement velocity, and physical activity tracking to construct predictive lifestyle heatmaps.
+  - Opaque Shadowbanning: Secretly throttling organic reach and silencing dissent based on shifting corporate political agendas without notifying the user.
+
+Q-Link is the antidote: Pure end-to-end encryption, zero algorithmic manipulation, zero surveillance, and complete digital freedom.
 
 [SECTION: ENCRYPTED_CHAT_AND_E2EE]
 End-to-End Cryptographic Architecture:
