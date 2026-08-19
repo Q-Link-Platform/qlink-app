@@ -106,6 +106,14 @@ function retrieveRelevantGuide(query: string): string {
       "brainwash",
       "snooping",
       "dark reality",
+      "focus",
+      "attention",
+      "distract",
+      "nude",
+      "sexualized",
+      "manipulat",
+      "political",
+      "doomscroll",
     ].some((k) => q.includes(k))
   ) {
     matchedTags.push("WHY_QLINK_VS_BIG_TECH_SURVEILLANCE");
