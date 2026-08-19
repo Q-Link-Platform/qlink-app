@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 
 export const runtime = "nodejs";
 
@@ -9,6 +11,176 @@ const GEMINI_API_KEY =
 const OPENROUTER_API_KEY =
   process.env.OPENROUTER_API_KEY ||
   "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";
+
+// --- IN-MEMORY CACHED APP GUIDE KNOWLEDGE BASE ---
+let cachedGuideSections: Record<string, string> | null = null;
+
+function getGuideSections(): Record<string, string> {
+  if (cachedGuideSections) return cachedGuideSections;
+
+  const sections: Record<string, string> = {};
+  try {
+    const guidePath = path.join(process.cwd(), "src", "lib", "qlink-app-guide.txt");
+    if (fs.existsSync(guidePath)) {
+      const fileContent = fs.readFileSync(guidePath, "utf-8");
+      const matches = fileContent.matchAll(
+        /\[SECTION:\s*([A-Z0-9_]+)\]\n([\s\S]*?)(?=\n\[SECTION:|$)/g
+      );
+      for (const m of matches) {
+        sections[m[1]] = m[2].trim();
+      }
+    }
+  } catch (err) {
+    console.error("[Q-AI Knowledge Base Load Error]:", err);
+  }
+
+  cachedGuideSections = sections;
+  return sections;
+}
+
+// --- ON-DEMAND KNOWLEDGE RETRIEVAL AGENT (Token-Efficient Slicer) ---
+function retrieveRelevantGuide(query: string): string {
+  const q = query.toLowerCase();
+
+  const isAppOrFeatureQuery = [
+    "feature",
+    "app",
+    "q-link",
+    "qlink",
+    "console",
+    "feed",
+    "beacon",
+    "point",
+    "qp",
+    "streak",
+    "aura",
+    "edit",
+    "voice",
+    "mic",
+    "attach",
+    "file",
+    "instagram",
+    "twitter",
+    "x ",
+    "signal",
+    "telegram",
+    "reddit",
+    "karma",
+    "how to",
+    "how do i",
+    "how does",
+    "problem",
+    "reconnect",
+    "guide",
+    "manual",
+    "explain",
+    "button",
+    "where to tap",
+  ].some((k) => q.includes(k));
+
+  if (!isAppOrFeatureQuery) return "";
+
+  const sections = getGuideSections();
+  const matchedTags: string[] = [];
+
+  if (
+    [
+      "compare",
+      "instagram",
+      "twitter",
+      "x ",
+      "signal",
+      "telegram",
+      "reddit",
+      "karma",
+      "what is q-link",
+      "overview",
+      "what features",
+      "tell me about",
+    ].some((k) => q.includes(k))
+  ) {
+    matchedTags.push("OVERVIEW_AND_ANALOGIES");
+  }
+
+  if (
+    ["encrypt", "e2ee", "security", "crypto", "safe", "privacy", "tick", "receipt"].some(
+      (k) => q.includes(k)
+    )
+  ) {
+    matchedTags.push("ENCRYPTED_CHAT_AND_E2EE");
+  }
+
+  if (["edit", "sync", "modify message", "change message"].some((k) => q.includes(k))) {
+    matchedTags.push("LIVE_SYNC_AND_EDITS");
+  }
+
+  if (
+    [
+      "voice",
+      "mic",
+      "audio",
+      "attach",
+      "file",
+      "media",
+      "video",
+      "image",
+      "pdf",
+    ].some((k) => q.includes(k))
+  ) {
+    matchedTags.push("MEDIA_VOICE_ATTACHMENTS");
+  }
+
+  if (["beacon", "sos", "emergency", "siren", "urgent"].some((k) => q.includes(k))) {
+    matchedTags.push("Q_BEACON_EMERGENCY");
+  }
+
+  if (
+    ["point", "qp", "streak", "aura", "badge", "level", "vip", "diamond", "sapphire"].some(
+      (k) => q.includes(k)
+    )
+  ) {
+    matchedTags.push("QUANTUM_POINTS_AND_AURA");
+  }
+
+  if (
+    ["feed", "post", "broadcast", "hashtag", "community", "social"].some((k) =>
+      q.includes(k)
+    )
+  ) {
+    matchedTags.push("FEED_AND_COMMUNITY");
+  }
+
+  if (
+    [
+      "how to",
+      "where to tap",
+      "button",
+      "navigate",
+      "problem",
+      "error",
+      "disconnect",
+      "reconnect",
+      "permission",
+    ].some((k) => q.includes(k))
+  ) {
+    matchedTags.push("UI_NAVIGATION_AND_TROUBLESHOOTING");
+  }
+
+  if (matchedTags.length === 0) {
+    matchedTags.push("OVERVIEW_AND_ANALOGIES", "UI_NAVIGATION_AND_TROUBLESHOOTING");
+  }
+
+  const selectedTexts = matchedTags
+    .map((tag) => sections[tag])
+    .filter(Boolean)
+    .slice(0, 3); // Max 3 sliced sections to protect token budget
+
+  if (selectedTexts.length === 0) return "";
+
+  return `\n\n### Q-Link Official App Manual & Knowledge Base Context:\n${selectedTexts.join(
+    "\n\n"
+  )}\n(Use the above official manual to provide friendly, clear explanations, draw social media comparisons, and provide step-by-step UI button instructions.)`;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,7 +196,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
     }
 
-    // --- 1. OPTIMIZED STATIC PREFIX SYSTEM PROMPTS (KV-Cache Reuse) ---
+    // --- 1. SYSTEM PROMPT (Optimized Prefix Caching) ---
     let systemPrompt = "";
     if (mode === "polish") {
       systemPrompt = `You are the Q-Link Message Polisher Assistant.
@@ -46,10 +218,11 @@ Respond accurately, concisely, and helpfully with modern markdown formatting.`;
       systemPrompt = `You are Q-AI, the Quantum Link Intelligent Copilot.
 You are embedded directly beside the user's live encrypted conversation with their friend.
 You are ultra-intelligent, fast, concise, helpful, and empathetic.
-Whenever you draft or propose a message for the user to send to their friend, ALWAYS wrap the exact message draft in a blockquote > "..." so it can be autonomously extracted and inserted.`;
+Whenever you draft or propose a message for the user to send to their friend, ALWAYS wrap the exact message draft in a blockquote > "..." so it can be autonomously extracted and inserted.
+When explaining app features, be super friendly, use relatable social media comparisons (e.g. Feed like X/Instagram, Chat like Signal Secret Chats, QP/Aura like Reddit Karma/Gamer ranks), and give exact step-by-step UI button instructions.`;
     }
 
-    // --- 2. CONTEXT-AWARE FRIEND AGENT (Bounded 4-turn window) ---
+    // --- 2. CONTEXT-AWARE FRIEND AGENT ---
     let friendContextPrompt = "";
     if (
       friendContext &&
@@ -68,10 +241,15 @@ Whenever you draft or propose a message for the user to send to their friend, AL
       friendContextPrompt = `\n\n### Active Conversation Context (with friend @${friendContext.friendHandle}):\n${formattedRecent}\n(Use this context to draft accurate, personalized suggestions.)`;
     }
 
-    // --- 3. TIER 1: CHEAPEST NATIVE GEMINI 3.5-FLASH-LITE (High Speed & Lowest Cost) ---
+    // --- 3. ON-DEMAND APP GUIDE RETRIEVAL SLICER ---
+    const guideContextPrompt = retrieveRelevantGuide(prompt);
+
+    const completeSystemInstruction =
+      systemPrompt + friendContextPrompt + guideContextPrompt;
+
+    // --- 4. TIER 1: CHEAPEST NATIVE GEMINI 3.5-FLASH-LITE ---
     if (GEMINI_API_KEY) {
       try {
-        // Use gemini-3.5-flash-lite for maximum cost efficiency (~$0.0375 / 1M tokens)
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
 
         const contents = [
@@ -90,7 +268,7 @@ Whenever you draft or propose a message for the user to send to their friend, AL
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             systemInstruction: {
-              parts: [{ text: systemPrompt + friendContextPrompt }],
+              parts: [{ text: completeSystemInstruction }],
             },
             contents,
             generationConfig: {
@@ -128,9 +306,7 @@ Whenever you draft or propose a message for the user to send to their friend, AL
                       if (chunkText) {
                         controller.enqueue(encoder.encode(chunkText));
                       }
-                    } catch {
-                      // skip partial json chunks
-                    }
+                    } catch {}
                   }
                 }
               } catch (err) {
@@ -151,13 +327,13 @@ Whenever you draft or propose a message for the user to send to their friend, AL
           });
         }
       } catch (geminiErr) {
-        console.warn("[Gemini Primary Error -> Cascading to OpenRouter Failover]:", geminiErr);
+        console.warn("[Gemini Primary Fallback to OpenRouter]:", geminiErr);
       }
     }
 
-    // --- 4. TIER 2: HIGH-AVAILABILITY FAILOVER VIA OPENROUTER AUTO-ROUTING ---
+    // --- 5. TIER 2: HIGH-AVAILABILITY OPENROUTER FAILOVER ---
     const messages = [
-      { role: "system", content: systemPrompt + friendContextPrompt },
+      { role: "system", content: completeSystemInstruction },
       ...history.slice(-4).map((m: { role: string; content: string }) => ({
         role: m.role === "assistant" ? "assistant" : "user",
         content: m.content,

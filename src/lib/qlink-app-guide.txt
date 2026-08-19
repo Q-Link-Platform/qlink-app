@@ -1,0 +1,69 @@
+# ==============================================================================
+# Q-LINK QUANTUM PLATFORM — OFFICIAL KNOWLEDGE BASE & USER MANUAL
+# ==============================================================================
+
+[SECTION: OVERVIEW_AND_ANALOGIES]
+Platform Overview:
+Q-Link is a next-generation decentralized, ultra-fast, and quantum-grade encrypted communication platform that seamlessly fuses the social discovery of modern networks with the bulletproof privacy of military-grade cryptography.
+
+Social Media Comparisons:
+• Community Feed ➔ Similar to X (formerly Twitter) and Instagram combined. You can broadcast public quantum thoughts, post multimedia cards, like, comment, repost, and discover trending community hashtags (#QuantumWeb, #CyberSecurity, #Aura).
+• Direct Encrypted Chat ➔ Similar to Signal and Telegram "Secret Chats", but elevated with zero-knowledge Curve25519 (X25519) key exchange + AES-GCM-256 authenticated encryption, instant live message edits, and delivery tick receipts.
+• Global Quantum Handle & Profile ➔ Similar to an Instagram/X username or a decentralized Web3 Identity (@handle). It features verified blue badge checkmarks, custom avatar cards, and bio descriptions.
+• Quantum Points (QP) & Aura Level ➔ Similar to Reddit Karma and VIP Gamer Ranks. Active messaging streaks, engagement, and verified interactions earn Quantum Points that increase your Aura level and unlock glowing holographic badges.
+• Q-BEACON Emergency Alert ➔ Similar to a high-priority SOS siren broadcast. Bypasses normal notifications with sound to alert your contacts during urgent situations.
+
+[SECTION: ENCRYPTED_CHAT_AND_E2EE]
+End-to-End Cryptographic Architecture:
+• True Zero-Knowledge E2EE: All private messages and attachments are encrypted directly inside the sender's browser using ephemeral Curve25519 key negotiation and AES-GCM-256 ciphers before transmission.
+• Zero Server Interception: The backend server only routes encrypted binary cipher blobs. No plaintext messages or secret private keys are ever stored or accessible on the server.
+• Status Receipts:
+  - 🕒 Sending (Local queue)
+  - ✓ Single Grey Tick (Sent & Delivered to Relay)
+  - ✓✓ Double Cyan Ticks (Delivered to Peer's Device)
+  - 🔵 Blue Highlighted Ticks (Read by Recipient)
+
+[SECTION: LIVE_SYNC_AND_EDITS]
+Live Message Editing & Peer Synchronization:
+• How to Edit: Hover over any of your sent messages in chat and click the "✏️ Edit" pencil icon (or double tap on mobile). Modify the text and hit Enter or click "✓ Save".
+• Instant Peer Synchronization: The edit is encrypted with a new ephemeral tag and broadcasts across the WebSocket/SSE channel in <50ms. Both screens update live with an "(edited)" indicator.
+• Cancel Edit: Press Escape or click the "✕ Cancel" pill above the input console.
+
+[SECTION: MEDIA_VOICE_ATTACHMENTS]
+Voice Audio Notes & Media Sharing:
+• Voice Messaging: Tap the 🎙️ Microphone button in the chat console to start voice recording. An active animated waveform displays recording duration. Tap the ✓ Send button to send the encrypted audio clip, or ✕ to cancel.
+• File Attachments: Click the 📎 Paperclip button (or open the 3-dots more menu `...` on compact screens) to attach documents, PDFs, images, or code files up to 50MB with instant E2EE client encryption.
+• Image & Video Media: Drag and drop media directly onto the chat window or select via the Media picker.
+
+[SECTION: Q_BEACON_EMERGENCY]
+Emergency Q-BEACON Priority Alert:
+• What It Is: An instant high-priority emergency beacon that alerts your active peer with an audible radar chime and a glowing crimson priority banner.
+• How to Trigger: Tap the 🚨 Beacon icon in the chat input bar or open the 3-dots more menu `...` and tap "🚨 Emergency Beacon".
+• Behavior: Bypasses standard mute/DND settings on the recipient's client to ensure urgent distress or time-sensitive messages are immediately noticed.
+
+[SECTION: QUANTUM_POINTS_AND_AURA]
+Quantum Economy, Daily Streaks & Aura Badges:
+• Earning Quantum Points (QP):
+  - Daily Login & Messaging Streak: Earn bonus QP every consecutive day you message peers.
+  - Active Chat & Community Posts: Earn QP for high network interaction.
+  - Profile Verification: Earn a lump sum of QP upon verifying your cryptographic handle.
+• Aura Tier Levels:
+  - Tier 1: Neon Initiate (0 - 500 QP)
+  - Tier 2: Cyber Specialist (500 - 2,500 QP)
+  - Tier 3: Quantum Operative (2,500 - 10,000 QP)
+  - Tier 4: Sapphire VIP (10,000 - 25,000 QP) ➔ Unlocks luminous sapphire theme & glowing blue badge.
+  - Tier 5: Diamond Sovereign (25,000+ QP) ➔ Unlocks holographic rainbow avatar borders & priority relay routing.
+
+[SECTION: FEED_AND_COMMUNITY]
+Public Quantum Feed & Discovery:
+• Discovery Tab: Switch from the "💬 Chats" tab to the "🌐 Feed" tab on the left sidebar to view real-time public broadcasts from the global network.
+• Posting: Type in the top broadcast box, add tags (e.g. #Security #Tech), and hit "⚡ Broadcast".
+• Interactive Reactions: Like posts, leave threaded comments, and bookmark favorite quantum broadcasts.
+
+[SECTION: UI_NAVIGATION_AND_TROUBLESHOOTING]
+UI Navigation & Common Problem Resolution:
+• Opening Q-AI Copilot: Tap the glowing cyan AI pill or floating orb on the right side of the chat panel. It opens a docked 360px sidecar without disrupting your active chat.
+• Switching Chats: Click on any friend in the left sidebar to switch conversations. Unread badges indicate pending messages.
+• Mobile View Navigation: On small screens, use the top chevron/back button `‹` to return from the chat view to the friend directory.
+• Reconnecting on Network Drop: If your connection indicator shows red ("Disconnected"), Q-Link's auto-reconnect engine will automatically poll and re-establish the encrypted session within 3 seconds. You can also click the status dot to force a manual reconnect.
+• Audio / Mic Permissions: If voice recording fails, verify that microphone access is allowed in your browser address bar permissions (lock icon).
