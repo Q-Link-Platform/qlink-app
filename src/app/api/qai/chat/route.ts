@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+const GEMINI_API_KEY =
+  process.env.GEMINI_API_KEY ||
+  "AQ.Ab8RN6Kj6Hzv_-3XXzQLWYJuYAInz03XY_DfU0QGRNdPNNTz_w";
+
 const OPENROUTER_API_KEY =
   process.env.OPENROUTER_API_KEY ||
   "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";
@@ -13,14 +17,14 @@ export async function POST(req: NextRequest) {
       mode = "general",
       polishStyle = "professional",
       history = [],
-      friendContext = null, // { friendHandle: string, recentMessages: Array<{ sender: 'user'|'friend', text: string, timestamp?: string }> }
+      friendContext = null,
     } = await req.json();
 
     if (!prompt || typeof prompt !== "string") {
       return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
     }
 
-    // --- 1. OPTIMIZED STATIC PREFIX SYSTEM PROMPT (For KV-Cache Sharing & 90% Cost Reduction) ---
+    // --- 1. SYSTEM PROMPTS (Optimized for Prefix Caching) ---
     let systemPrompt = "";
     if (mode === "polish") {
       systemPrompt = `You are the Q-Link Message Polisher Assistant.
@@ -42,27 +46,116 @@ Respond accurately, concisely, and helpfully with modern markdown formatting.`;
       systemPrompt = `You are Q-AI, the Quantum Link Intelligent Copilot.
 You are embedded directly beside the user's live encrypted conversation with their friend.
 You are ultra-intelligent, fast, concise, helpful, and empathetic.
-You can help with general questions, problem solving, creative brainstorming, coding, and drafting contextual replies to their friend.
-Keep responses concise, modern, and beautifully formatted with markdown.`;
+Whenever you draft or propose a message for the user to send to their friend, ALWAYS wrap the exact message draft in a blockquote > "..." so it can be autonomously extracted and inserted.`;
     }
 
-    // --- 2. CONTEXT-AWARE FRIEND AGENT (Bounded 4-Message Sliding Window) ---
+    // --- 2. CONTEXT-AWARE FRIEND AGENT ---
     let friendContextPrompt = "";
-    if (friendContext && friendContext.friendHandle && Array.isArray(friendContext.recentMessages) && friendContext.recentMessages.length > 0) {
+    if (
+      friendContext &&
+      friendContext.friendHandle &&
+      Array.isArray(friendContext.recentMessages) &&
+      friendContext.recentMessages.length > 0
+    ) {
       const formattedRecent = friendContext.recentMessages
-        .slice(-8) // Strictly bounded to max 8 items (approx 4 from each side)
+        .slice(-8)
         .map(
           (m: { sender: string; text: string; timestamp?: string }) =>
             `[${m.timestamp || "Recent"}] ${m.sender === "user" ? "User (Me)" : `@${friendContext.friendHandle}`}: ${m.text}`
         )
         .join("\n");
 
-      friendContextPrompt = `\n\n### Active Conversation Context (with friend @${friendContext.friendHandle}):
-${formattedRecent}
-\n(Use this context to give highly personalized, accurate suggestions and answers when the user refers to their conversation or friend.)`;
+      friendContextPrompt = `\n\n### Active Conversation Context (with friend @${friendContext.friendHandle}):\n${formattedRecent}\n(Use this context to draft accurate, personalized suggestions.)`;
     }
 
-    // --- 3. BOUNDED SLIDING MEMORY (Prevents Token Explosion) ---
+    // --- 3. TRY DIRECT GOOGLE GEMINI 3.6-FLASH FIRST ---
+    if (GEMINI_API_KEY) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+        
+        // Build Gemini contents array
+        const contents = [
+          ...history.slice(-4).map((m: { role: string; content: string }) => ({
+            role: m.role === "assistant" ? "model" : "user",
+            parts: [{ text: m.content }],
+          })),
+          {
+            role: "user",
+            parts: [{ text: prompt }],
+          },
+        ];
+
+        const geminiRes = await fetch(geminiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: {
+              parts: [{ text: systemPrompt + friendContextPrompt }],
+            },
+            contents,
+            generationConfig: {
+              temperature: mode === "polish" ? 0.7 : 0.75,
+              maxOutputTokens: 1024,
+            },
+          }),
+        });
+
+        if (geminiRes.ok && geminiRes.body) {
+          const encoder = new TextEncoder();
+          const decoder = new TextDecoder();
+
+          const stream = new ReadableStream({
+            async start(controller) {
+              const reader = geminiRes.body!.getReader();
+              let buffer = "";
+
+              try {
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+
+                  buffer += decoder.decode(value, { stream: true });
+                  const lines = buffer.split("\n");
+                  buffer = lines.pop() || "";
+
+                  for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed || !trimmed.startsWith("data: ")) continue;
+                    try {
+                      const data = JSON.parse(trimmed.slice(6));
+                      const chunkText =
+                        data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+                      if (chunkText) {
+                        controller.enqueue(encoder.encode(chunkText));
+                      }
+                    } catch {
+                      // skip partial chunk parsing error
+                    }
+                  }
+                }
+              } catch (err) {
+                console.error("[Gemini Stream Read Error]:", err);
+                controller.error(err);
+              } finally {
+                controller.close();
+              }
+            },
+          });
+
+          return new Response(stream, {
+            headers: {
+              "Content-Type": "text/plain; charset=utf-8",
+              "Cache-Control": "no-cache, no-transform",
+              "Connection": "keep-alive",
+            },
+          });
+        }
+      } catch (geminiErr) {
+        console.warn("[Gemini Direct Stream Fallback to OpenRouter]:", geminiErr);
+      }
+    }
+
+    // --- 4. FALLBACK TO OPENROUTER AUTO ROUTING ---
     const messages = [
       { role: "system", content: systemPrompt + friendContextPrompt },
       ...history.slice(-4).map((m: { role: string; content: string }) => ({
@@ -72,7 +165,6 @@ ${formattedRecent}
       { role: "user", content: prompt },
     ];
 
-    // --- 4. CALL OPENROUTER API ---
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -94,12 +186,11 @@ ${formattedRecent}
       const errText = await response.text();
       console.error("[Q-AI OpenRouter Error]:", response.status, errText);
       return NextResponse.json(
-        { error: `OpenRouter API Error: ${response.status}` },
+        { error: `API Error: ${response.status}` },
         { status: response.status }
       );
     }
 
-    // Transform OpenRouter SSE stream into client readable stream
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
 
@@ -136,9 +227,7 @@ ${formattedRecent}
                   if (textChunk) {
                     controller.enqueue(encoder.encode(textChunk));
                   }
-                } catch {
-                  // Skip json parse error on partial lines
-                }
+                } catch {}
               }
             }
           }
