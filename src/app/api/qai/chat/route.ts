@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing prompt" }, { status: 400 });
     }
 
-    // --- 1. SYSTEM PROMPTS (Optimized for Prefix Caching) ---
+    // --- 1. OPTIMIZED STATIC PREFIX SYSTEM PROMPTS (KV-Cache Reuse) ---
     let systemPrompt = "";
     if (mode === "polish") {
       systemPrompt = `You are the Q-Link Message Polisher Assistant.
@@ -49,7 +49,7 @@ You are ultra-intelligent, fast, concise, helpful, and empathetic.
 Whenever you draft or propose a message for the user to send to their friend, ALWAYS wrap the exact message draft in a blockquote > "..." so it can be autonomously extracted and inserted.`;
     }
 
-    // --- 2. CONTEXT-AWARE FRIEND AGENT ---
+    // --- 2. CONTEXT-AWARE FRIEND AGENT (Bounded 4-turn window) ---
     let friendContextPrompt = "";
     if (
       friendContext &&
@@ -68,12 +68,12 @@ Whenever you draft or propose a message for the user to send to their friend, AL
       friendContextPrompt = `\n\n### Active Conversation Context (with friend @${friendContext.friendHandle}):\n${formattedRecent}\n(Use this context to draft accurate, personalized suggestions.)`;
     }
 
-    // --- 3. TRY DIRECT GOOGLE GEMINI 3.6-FLASH FIRST ---
+    // --- 3. TIER 1: CHEAPEST NATIVE GEMINI 3.5-FLASH-LITE (High Speed & Lowest Cost) ---
     if (GEMINI_API_KEY) {
       try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
-        
-        // Build Gemini contents array
+        // Use gemini-3.5-flash-lite for maximum cost efficiency (~$0.0375 / 1M tokens)
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+
         const contents = [
           ...history.slice(-4).map((m: { role: string; content: string }) => ({
             role: m.role === "assistant" ? "model" : "user",
@@ -129,7 +129,7 @@ Whenever you draft or propose a message for the user to send to their friend, AL
                         controller.enqueue(encoder.encode(chunkText));
                       }
                     } catch {
-                      // skip partial chunk parsing error
+                      // skip partial json chunks
                     }
                   }
                 }
@@ -151,11 +151,11 @@ Whenever you draft or propose a message for the user to send to their friend, AL
           });
         }
       } catch (geminiErr) {
-        console.warn("[Gemini Direct Stream Fallback to OpenRouter]:", geminiErr);
+        console.warn("[Gemini Primary Error -> Cascading to OpenRouter Failover]:", geminiErr);
       }
     }
 
-    // --- 4. FALLBACK TO OPENROUTER AUTO ROUTING ---
+    // --- 4. TIER 2: HIGH-AVAILABILITY FAILOVER VIA OPENROUTER AUTO-ROUTING ---
     const messages = [
       { role: "system", content: systemPrompt + friendContextPrompt },
       ...history.slice(-4).map((m: { role: string; content: string }) => ({
@@ -184,7 +184,7 @@ Whenever you draft or propose a message for the user to send to their friend, AL
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error("[Q-AI OpenRouter Error]:", response.status, errText);
+      console.error("[Q-AI OpenRouter Failover Error]:", response.status, errText);
       return NextResponse.json(
         { error: `API Error: ${response.status}` },
         { status: response.status }
@@ -215,7 +215,7 @@ Whenever you draft or propose a message for the user to send to their friend, AL
 
             for (const line of lines) {
               const trimmed = line.trim();
-              if (!trimmed || trimmed.startsWith(":")) continue;
+              if (!trimmed || !trimmed.startsWith(":")) continue;
               if (trimmed === "data: [DONE]") {
                 controller.close();
                 return;
