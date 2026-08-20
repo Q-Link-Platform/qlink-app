@@ -45,7 +45,14 @@ export default function QAIAssistantModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [insertedId, setInsertedId] = useState<string | null>(null);
-  const [scheduledStatusMap, setScheduledStatusMap] = useState<Record<string, "PENDING" | "SCHEDULED" | "ERROR">>({});
+  const [scheduledStatusMap, setScheduledStatusMap] = useState<Record<string, "PENDING" | "SCHEDULED" | "ERROR" | "CANCELLED">>({});
+  const handleCancelSchedule = async (msgId: string) => {
+    try {
+      setScheduledStatusMap((prev) => ({ ...prev, [msgId]: "CANCELLED" as any }));
+    } catch (e) {
+      console.error("Cancel schedule error:", e);
+    }
+  };
 
   const handleExecuteSchedule = async (msgId: string, actionData: { target: string; text: string; minutesFromNow?: number; timeDescription?: string }) => {
     try {
@@ -229,6 +236,17 @@ export default function QAIAssistantModal({
           onInsertToChat(autoSelectedDraft);
           setInsertedId(assistantMsgId);
           setTimeout(() => setInsertedId(null), 3000);
+        }
+      }
+
+      // --- AUTONOMOUS AGENT SCHEDULE EXECUTION (Auto-Taps the Schedule Action) ---
+      const scheduleMatch = accumulated.match(/<schedule_action>([\s\S]*?)<\/schedule_action>/);
+      if (scheduleMatch) {
+        try {
+          const scheduleData = JSON.parse(scheduleMatch[1].trim());
+          await handleExecuteSchedule(assistantMsgId, scheduleData);
+        } catch (e) {
+          console.error("Auto schedule execution error:", e);
         }
       }
     } catch {
@@ -442,18 +460,32 @@ export default function QAIAssistantModal({
                             "{scheduleData.text}"
                           </div>
 
-                          <div className="mt-2 flex items-center justify-end gap-2">
-                            {schedStatus === "SCHEDULED" ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400">
-                                ✓ Scheduled for Server Dispatch!
+                          <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/5 pt-1.5 text-[10px]">
+                            {schedStatus === "CANCELLED" ? (
+                              <span className="inline-flex items-center gap-1 font-semibold text-rose-400">
+                                ✕ Schedule Cancelled
                               </span>
+                            ) : schedStatus === "SCHEDULED" ? (
+                              <>
+                                <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-400">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                                  ✓ Auto-Scheduled on Server!
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCancelSchedule(m.id)}
+                                  className="rounded bg-white/10 px-2 py-0.5 text-[9px] text-slate-300 hover:bg-rose-500/20 hover:text-rose-300 transition-colors"
+                                >
+                                  ✕ Cancel
+                                </button>
+                              </>
                             ) : (
                               <button
                                 type="button"
                                 onClick={() => handleExecuteSchedule(m.id, scheduleData!)}
                                 className="inline-flex items-center gap-1 rounded-lg border border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-orange-500/20 px-2.5 py-1 text-[10px] font-bold text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.2)] hover:border-amber-300 hover:bg-amber-500/30 hover:text-white transition-all active:scale-95"
                               >
-                                ⚡ Confirm & Schedule
+                                ⚡ Auto-Scheduling...
                               </button>
                             )}
                           </div>
