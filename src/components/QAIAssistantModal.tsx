@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { AIMode, PolishStyle, QAIMessage, streamQAIResponse } from "@/lib/qai-engine";
-import { qaiActionBus, QAIToolAction } from "@/lib/qai-tools";
+import { qaiActionBus, QAIToolAction, QAIAppStateSnapshot } from "@/lib/qai-tools";
 
 export interface RawChatMessageItem {
   id?: string;
@@ -17,8 +17,10 @@ interface QAIAssistantModalProps {
   onInsertToChat?: (text: string) => void;
   activeDraftText?: string;
   activePeerHandle?: string | null;
-  rawChatMessages?: RawChatMessageItem[];
+  rawChatMessages?: any[];
   meId?: string;
+  onSendSchedule?: (target: string, text: string, scheduledAt: Date) => Promise<boolean>;
+  appState?: QAIAppStateSnapshot;
 }
 
 export default function QAIAssistantModal({
@@ -240,24 +242,40 @@ export default function QAIAssistantModal({
         }
       }
 
-      // --- FULL APP CONTROL SWARM ACTION DISPATCHER (<qai_action>) ---
-      const qaiActionMatch = accumulated.match(/<qai_action>([\s\S]*?)<\/qai_action>/);
-      if (qaiActionMatch) {
-        try {
-          const actionPayload: QAIToolAction = JSON.parse(qaiActionMatch[1].trim());
-          qaiActionBus.dispatch(actionPayload);
-          
-          if (actionPayload.tool === "schedule_message") {
-            await handleExecuteSchedule(assistantMsgId, actionPayload.params);
+      // --- REAC MULTI-ACTION CHAIN DISPATCHER (<qai_action>) ---
+      const actionMatches = Array.from(accumulated.matchAll(/<qai_action>([\s\S]*?)<\/qai_action>/g));
+      if (actionMatches.length > 0) {
+        const parsedActions: QAIToolAction[] = [];
+        for (const match of actionMatches) {
+          try {
+            const raw = JSON.parse(match[1].trim());
+            if (Array.isArray(raw)) {
+              parsedActions.push(...raw);
+            } else {
+              parsedActions.push(raw);
+            }
+          } catch (e) {
+            console.error("QAI Action parse error:", e);
           }
-        } catch (e) {
-          console.error("QAI Action dispatch error:", e);
+        }
+
+        if (parsedActions.length > 0) {
+          // Dispatch full compound action chain
+          qaiActionBus.dispatch(parsedActions);
+
+          for (const act of parsedActions) {
+            if (act.tool === "schedule_message") {
+              await handleExecuteSchedule(assistantMsgId, act.params as any);
+            } else if (act.tool === "insert_draft" && act.params?.text && onInsertToChat) {
+              onInsertToChat(act.params.text);
+            }
+          }
         }
       }
 
       // Legacy fallback: <schedule_action>
       const scheduleMatch = accumulated.match(/<schedule_action>([\s\S]*?)<\/schedule_action>/);
-      if (scheduleMatch && !qaiActionMatch) {
+      if (scheduleMatch && actionMatches.length === 0) {
         try {
           const scheduleData = JSON.parse(scheduleMatch[1].trim());
           await handleExecuteSchedule(assistantMsgId, scheduleData);

@@ -1694,64 +1694,71 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [showAIHelpButton, setShowAIHelpButton] = useState(false);
   const [isQAIOpen, setIsQAIOpen] = useState(false);
   // Full App Control Q-AI Swarm Action Bus Subscription
+  // Full App Control Q-AI ReAct Action Bus Subscription (Self-Healing & Multi-Tool Chaining)
   useEffect(() => {
-    const unsubscribe = qaiActionBus.subscribe((action: QAIToolAction) => {
+    const executeSingleAction = (action: QAIToolAction) => {
       try {
         if (action.tool === "open_quantum_console") {
-          // Autonomous Choreographed Ghost Cursor: Q-AI Sidecar -> Chat Back -> Quantum Link Console!
-          ghostCursorEngine.runSequence([
-            {
+          const steps: any[] = [];
+          if (isQAIOpen) {
+            steps.push({
               targetId: "qai-sidecar-close-btn",
               actionName: "Closing Q-AI Panel",
               delayBefore: 100,
-              duration: 450,
+              duration: 400,
               onReach: () => setIsQAIOpen(false),
-            },
-            {
+            });
+          }
+          if (isChatFull) {
+            steps.push({
               targetId: "chat-toggle-full-btn",
               actionName: "Exiting Chat Screen",
               delayBefore: 200,
               duration: 450,
               onReach: () => setIsChatFull(false),
+            });
+          }
+          steps.push({
+            targetId: "quantum-link-console-btn",
+            actionName: "Opening Quantum Link Console",
+            delayBefore: 250,
+            duration: 550,
+            onReach: () => {
+              setIsChatFull(false);
+              openDirectory();
             },
-            {
-              targetId: "quantum-link-console-btn",
-              actionName: "Clicking Quantum Link Console",
-              delayBefore: 250,
-              duration: 550,
-              onReach: () => {
-                setIsChatFull(false);
-                openDirectory();
-              },
-            },
-          ]);
+          });
+          ghostCursorEngine.runSequence(steps);
         } else if (action.tool === "navigate_tab" && action.params?.tab === "settings") {
-          // Autonomous Choreographed Ghost Cursor: Q-AI Sidecar -> Chat Back -> Settings Button!
-          ghostCursorEngine.runSequence([
-            {
+          const steps: any[] = [];
+          if (isQAIOpen) {
+            steps.push({
               targetId: "qai-sidecar-close-btn",
               actionName: "Closing Q-AI Panel",
               delayBefore: 100,
-              duration: 450,
+              duration: 400,
               onReach: () => setIsQAIOpen(false),
-            },
-            {
+            });
+          }
+          if (isChatFull) {
+            steps.push({
               targetId: "chat-toggle-full-btn",
               actionName: "Exiting Chat Screen",
               delayBefore: 200,
               duration: 450,
               onReach: () => setIsChatFull(false),
+            });
+          }
+          steps.push({
+            targetId: "settings-btn",
+            actionName: "Opening Platform Settings",
+            delayBefore: 250,
+            duration: 550,
+            onReach: () => {
+              openSettingsDirect();
             },
-            {
-              targetId: "settings-btn",
-              actionName: "Clicking Platform Settings",
-              delayBefore: 250,
-              duration: 550,
-              onReach: () => {
-                openSettingsDirect();
-              },
-            },
-          ]);
+          });
+          ghostCursorEngine.runSequence(steps);
         } else if (action.tool === "navigate_tab" && action.params?.tab === "chats") {
           ghostCursorEngine.runSequence([
             {
@@ -1763,7 +1770,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             },
           ]);
         } else if (action.tool === "trigger_beacon") {
-          // Autonomous Ghost Cursor: Glide to Beacon SOS button and trigger alert!
           ghostCursorEngine.runSequence([
             {
               targetId: "beacon-sos-btn",
@@ -1774,7 +1780,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             },
           ]);
         } else if (action.tool === "toggle_voice_record") {
-          // Autonomous Ghost Cursor: Glide to Mic recording button!
           ghostCursorEngine.runSequence([
             {
               targetId: "mic-record-btn",
@@ -1791,7 +1796,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             },
           ]);
         } else if (action.tool === "open_attachment_picker") {
-          // Autonomous Ghost Cursor: Glide to Attachment button!
           ghostCursorEngine.runSequence([
             {
               targetId: "attachment-btn",
@@ -1804,17 +1808,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         } else if (action.tool === "show_aura_guide") {
           ghostCursorEngine.runSequence([
             {
-              targetId: "qai-sidecar-close-btn",
-              actionName: "Closing Q-AI Panel",
-              delayBefore: 100,
-              duration: 400,
-              onReach: () => setIsQAIOpen(false),
-            },
-            {
               targetId: "quantum-link-console-btn",
               actionName: "Opening Aura Points Guide",
-              delayBefore: 200,
-              duration: 500,
+              delayBefore: 150,
+              duration: 450,
               onReach: () => setShowAuraHelp(true),
             },
           ]);
@@ -1830,14 +1827,30 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           }
         } else if (action.tool === "insert_draft" && action.params?.text) {
           setChatInput(action.params.text);
+          if (chatInputRef.current) {
+            chatInputRef.current.value = action.params.text;
+            chatInputRef.current.style.height = "auto";
+          }
+        } else if (action.tool === "switch_theme" && action.params?.theme) {
+          setSettingsGlassTheme(action.params.theme === "crystal" ? "crystal" : "quantum");
         }
       } catch (err) {
-        console.error("[Q-AI Action Execution Error]:", err);
+        console.error("Q-AI Action execution error:", err);
+      }
+    };
+
+    const unsubscribe = qaiActionBus.subscribe((payload: QAIToolAction | QAIToolAction[]) => {
+      if (Array.isArray(payload)) {
+        payload.forEach((act, idx) => {
+          setTimeout(() => executeSingleAction(act), idx * 800);
+        });
+      } else {
+        executeSingleAction(payload);
       }
     });
 
     return () => unsubscribe();
-  }, [activePeerHandle, isRecording, chatMessages, session]);
+  }, [isRecording, isQAIOpen, isChatFull, chatMessages, session]);
   // Auto-process due scheduled messages in the background
   useEffect(() => {
     const processScheduledQueue = async () => {
@@ -10262,6 +10275,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     <QAIAssistantModal
                       isOpen={isQAIOpen}
                       onClose={() => setIsQAIOpen(false)}
+                      appState={{
+                        activeScreen: (isChatFull ? "chat" : showDirectory ? "directory" : showSettings ? "settings" : "home") as "home" | "chat" | "directory" | "settings",
+                        isQAIOpen,
+                        isChatFull,
+                        showSettings,
+                        showDirectory,
+                        activePeerHandle: activePeerHandle || null,
+                        isRecording,
+                      }}
                       onInsertToChat={(text) => {
                         setChatInput(text);
                         if (chatInputRef.current) {
