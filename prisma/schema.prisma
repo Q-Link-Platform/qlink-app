@@ -8,6 +8,7 @@ datasource db {
 }
 
 model User {
+  scheduledMessages ScheduledMessage[] @relation("UserScheduledMessages")
   id            String   @id @default(cuid())
   name          String?
   email         String?   @unique
@@ -220,4 +221,20 @@ model PushSubscription {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+model ScheduledMessage {
+  id              String   @id @default(cuid())
+  senderId        String
+  recipientHandle String
+  roomId          String?
+  content         String
+  executeAt       DateTime
+  status          String   @default("PENDING") // PENDING, SENT, CANCELLED, FAILED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  sender User @relation("UserScheduledMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([executeAt, status])
+  @@index([senderId])
 }

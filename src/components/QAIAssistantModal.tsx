@@ -45,6 +45,34 @@ export default function QAIAssistantModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [insertedId, setInsertedId] = useState<string | null>(null);
+  const [scheduledStatusMap, setScheduledStatusMap] = useState<Record<string, "PENDING" | "SCHEDULED" | "ERROR">>({});
+
+  const handleExecuteSchedule = async (msgId: string, actionData: { target: string; text: string; minutesFromNow?: number; timeDescription?: string }) => {
+    try {
+      const minutes = actionData.minutesFromNow || 5;
+      const executeDate = new Date(Date.now() + minutes * 60 * 1000);
+      const targetHandle = actionData.target || activePeerHandle || "";
+
+      const res = await fetch("/api/chat/schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipientHandle: targetHandle,
+          content: actionData.text,
+          executeAt: executeDate.toISOString(),
+        }),
+      });
+
+      if (res.ok) {
+        setScheduledStatusMap((prev) => ({ ...prev, [msgId]: "SCHEDULED" }));
+      } else {
+        setScheduledStatusMap((prev) => ({ ...prev, [msgId]: "ERROR" }));
+      }
+    } catch (e) {
+      console.error("Schedule error:", e);
+      setScheduledStatusMap((prev) => ({ ...prev, [msgId]: "ERROR" }));
+    }
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -369,12 +397,71 @@ export default function QAIAssistantModal({
               }`}
             >
               <div className="whitespace-pre-wrap space-y-1">
-                {m.content || (
-                  <span className="inline-flex items-center gap-1 text-cyan-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                    Thinking...
-                  </span>
-                )}
+                {(() => {
+                  if (!m.content) {
+                    return (
+                      <span className="inline-flex items-center gap-1 text-cyan-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                        Thinking...
+                      </span>
+                    );
+                  }
+
+                  // Parse <schedule_action> if present
+                  const scheduleMatch = m.content.match(/<schedule_action>([\s\S]*?)<\/schedule_action>/);
+                  const cleanDisplayContent = m.content.replace(/<schedule_action>[\s\S]*?<\/schedule_action>/g, "").trim();
+
+                  let scheduleData: { target: string; text: string; minutesFromNow?: number; timeDescription?: string } | null = null;
+                  if (scheduleMatch) {
+                    try {
+                      scheduleData = JSON.parse(scheduleMatch[1].trim());
+                    } catch {}
+                  }
+
+                  const schedStatus = scheduledStatusMap[m.id];
+
+                  return (
+                    <>
+                      <div>{cleanDisplayContent}</div>
+
+                      {scheduleData && !m.isStreaming && (
+                        <div className="mt-2 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-950/40 to-slate-900/90 p-2.5 shadow-[0_0_15px_rgba(245,158,11,0.15)] backdrop-blur-xl">
+                          <div className="flex items-center justify-between gap-1 text-[10px]">
+                            <div className="flex items-center gap-1 font-bold text-amber-300">
+                              <span>⏰ Scheduled Message</span>
+                              <span className="rounded bg-amber-500/20 px-1 py-0.2 font-mono text-[9px] text-amber-200">
+                                {scheduleData.timeDescription || `In ${scheduleData.minutesFromNow || 5} mins`}
+                              </span>
+                            </div>
+                            <span className="font-mono text-[9px] text-slate-400">
+                              To: {scheduleData.target || `@${activePeerHandle}`}
+                            </span>
+                          </div>
+
+                          <div className="mt-1.5 rounded-lg border border-white/10 bg-black/40 p-1.5 text-[10px] italic text-slate-200">
+                            "{scheduleData.text}"
+                          </div>
+
+                          <div className="mt-2 flex items-center justify-end gap-2">
+                            {schedStatus === "SCHEDULED" ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400">
+                                ✓ Scheduled for Server Dispatch!
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleExecuteSchedule(m.id, scheduleData!)}
+                                className="inline-flex items-center gap-1 rounded-lg border border-amber-400/50 bg-gradient-to-r from-amber-500/20 to-orange-500/20 px-2.5 py-1 text-[10px] font-bold text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.2)] hover:border-amber-300 hover:bg-amber-500/30 hover:text-white transition-all active:scale-95"
+                              >
+                                ⚡ Confirm & Schedule
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
 
               {m.role === "assistant" && m.content && !m.isStreaming && (

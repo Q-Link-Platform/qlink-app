@@ -1683,6 +1683,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [showAuraHelp, setShowAuraHelp] = useState(false);
   const [showAIHelpButton, setShowAIHelpButton] = useState(false);
   const [isQAIOpen, setIsQAIOpen] = useState(false);
+  // Auto-process due scheduled messages in the background
+  useEffect(() => {
+    const processScheduledQueue = async () => {
+      try {
+        await fetch("/api/chat/schedule/process", { method: "POST" });
+      } catch {}
+    };
+    processScheduledQueue();
+    const interval = setInterval(processScheduledQueue, 30000);
+    return () => clearInterval(interval);
+  }, []);
   const [isAIArrowButtonVisible, setIsAIArrowButtonVisible] = useState(true);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
