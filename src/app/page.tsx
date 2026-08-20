@@ -1739,7 +1739,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               actionName: "Clicking Platform Settings",
               delayBefore: 250,
               duration: 550,
-              onReach: () => setShowSettings(true),
+              onReach: () => {
+                setIsSettingsAnimating(true);
+                setShowSettings(true);
+                setTimeout(() => {
+                  setIsSettingsAnimating(false);
+                }, 500);
+              },
             },
           ]);
         } else if (action.tool === "navigate_tab" && action.params?.tab === "chats") {
