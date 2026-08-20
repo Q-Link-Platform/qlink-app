@@ -1694,27 +1694,62 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           ghostCursorEngine.runSequence([
             {
               targetId: "qai-sidecar-close-btn",
-              actionName: "Dismissing Q-AI Copilot",
+              actionName: "Closing Q-AI Panel",
               delayBefore: 100,
-              duration: 400,
+              duration: 450,
               onReach: () => setIsQAIOpen(false),
             },
             {
               targetId: "chat-toggle-full-btn",
-              actionName: "Exiting Chat View",
-              delayBefore: 250,
+              actionName: "Exiting Chat Screen",
+              delayBefore: 200,
               duration: 450,
               onReach: () => setIsChatFull(false),
             },
             {
               targetId: "quantum-link-console-btn",
-              actionName: "Opening Quantum Link Console",
-              delayBefore: 300,
-              duration: 500,
+              actionName: "Clicking Quantum Link Console",
+              delayBefore: 250,
+              duration: 550,
               onReach: () => {
                 setIsChatFull(false);
                 openDirectory();
               },
+            },
+          ]);
+        } else if (action.tool === "navigate_tab" && action.params?.tab === "settings") {
+          // Autonomous Choreographed Ghost Cursor: Q-AI Sidecar -> Chat Back -> Settings Button!
+          ghostCursorEngine.runSequence([
+            {
+              targetId: "qai-sidecar-close-btn",
+              actionName: "Closing Q-AI Panel",
+              delayBefore: 100,
+              duration: 450,
+              onReach: () => setIsQAIOpen(false),
+            },
+            {
+              targetId: "chat-toggle-full-btn",
+              actionName: "Exiting Chat Screen",
+              delayBefore: 200,
+              duration: 450,
+              onReach: () => setIsChatFull(false),
+            },
+            {
+              targetId: "settings-btn",
+              actionName: "Clicking Platform Settings",
+              delayBefore: 250,
+              duration: 550,
+              onReach: () => setShowSettings(true),
+            },
+          ]);
+        } else if (action.tool === "navigate_tab" && action.params?.tab === "chats") {
+          ghostCursorEngine.runSequence([
+            {
+              targetId: "chat-toggle-full-btn",
+              actionName: "Collapsing Chat Fullscreen",
+              delayBefore: 150,
+              duration: 450,
+              onReach: () => setIsChatFull(false),
             },
           ]);
         } else if (action.tool === "trigger_beacon") {
@@ -1756,35 +1791,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               onReach: () => handleAttachButtonClick(),
             },
           ]);
-        } else if (action.tool === "navigate_tab") {
-          if (action.params?.tab === "settings") {
-            ghostCursorEngine.runSequence([
-              {
-                targetId: "settings-btn",
-                actionName: "Opening Platform Settings",
-                delayBefore: 150,
-                duration: 450,
-                onReach: () => setShowSettings(true),
-              },
-            ]);
-          } else if (action.params?.tab === "chats") {
-            ghostCursorEngine.runSequence([
-              {
-                targetId: "chat-toggle-full-btn",
-                actionName: "Collapsing Chat Fullscreen",
-                delayBefore: 150,
-                duration: 450,
-                onReach: () => setIsChatFull(false),
-              },
-            ]);
-          }
         } else if (action.tool === "show_aura_guide") {
           ghostCursorEngine.runSequence([
             {
+              targetId: "qai-sidecar-close-btn",
+              actionName: "Closing Q-AI Panel",
+              delayBefore: 100,
+              duration: 400,
+              onReach: () => setIsQAIOpen(false),
+            },
+            {
               targetId: "quantum-link-console-btn",
               actionName: "Opening Aura Points Guide",
-              delayBefore: 150,
-              duration: 450,
+              delayBefore: 200,
+              duration: 500,
               onReach: () => setShowAuraHelp(true),
             },
           ]);
