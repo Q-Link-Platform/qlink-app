@@ -1690,61 +1690,113 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     const unsubscribe = qaiActionBus.subscribe((action: QAIToolAction) => {
       try {
         if (action.tool === "open_quantum_console") {
-          // Autonomous Choreographed Ghost Cursor Sequence:
-          // Step 1: Close Q-AI Drawer -> Step 2: Exit Chat Full -> Step 3: Click Quantum Link Console!
+          // Autonomous Choreographed Ghost Cursor: Q-AI Sidecar -> Chat Back -> Quantum Link Console!
           ghostCursorEngine.runSequence([
             {
               targetId: "qai-sidecar-close-btn",
-              actionName: "Closing Q-AI Sidecar",
-              delayBefore: 150,
-              duration: 450,
+              actionName: "Dismissing Q-AI Copilot",
+              delayBefore: 100,
+              duration: 400,
               onReach: () => setIsQAIOpen(false),
             },
             {
               targetId: "chat-toggle-full-btn",
               actionName: "Exiting Chat View",
-              delayBefore: 300,
-              duration: 500,
+              delayBefore: 250,
+              duration: 450,
               onReach: () => setIsChatFull(false),
             },
             {
               targetId: "quantum-link-console-btn",
               actionName: "Opening Quantum Link Console",
-              delayBefore: 350,
-              duration: 600,
+              delayBefore: 300,
+              duration: 500,
               onReach: () => {
                 setIsChatFull(false);
                 openDirectory();
               },
             },
           ]);
+        } else if (action.tool === "trigger_beacon") {
+          // Autonomous Ghost Cursor: Glide to Beacon SOS button and trigger alert!
+          ghostCursorEngine.runSequence([
+            {
+              targetId: "beacon-sos-btn",
+              actionName: "Triggering Emergency SOS Beacon",
+              delayBefore: 150,
+              duration: 450,
+              onReach: () => handleTriggerEmergencyBeacon(),
+            },
+          ]);
+        } else if (action.tool === "toggle_voice_record") {
+          // Autonomous Ghost Cursor: Glide to Mic recording button!
+          ghostCursorEngine.runSequence([
+            {
+              targetId: "mic-record-btn",
+              actionName: !isRecording ? "Starting Audio Recording" : "Stopping Voice Recording",
+              delayBefore: 150,
+              duration: 450,
+              onReach: () => {
+                if (!isRecording) {
+                  startRecording();
+                } else {
+                  stopRecording(true);
+                }
+              },
+            },
+          ]);
+        } else if (action.tool === "open_attachment_picker") {
+          // Autonomous Ghost Cursor: Glide to Attachment button!
+          ghostCursorEngine.runSequence([
+            {
+              targetId: "attachment-btn",
+              actionName: "Opening Media Attachment Tray",
+              delayBefore: 150,
+              duration: 450,
+              onReach: () => handleAttachButtonClick(),
+            },
+          ]);
+        } else if (action.tool === "navigate_tab") {
+          if (action.params?.tab === "settings") {
+            ghostCursorEngine.runSequence([
+              {
+                targetId: "settings-btn",
+                actionName: "Opening Platform Settings",
+                delayBefore: 150,
+                duration: 450,
+                onReach: () => setShowSettings(true),
+              },
+            ]);
+          } else if (action.params?.tab === "chats") {
+            ghostCursorEngine.runSequence([
+              {
+                targetId: "chat-toggle-full-btn",
+                actionName: "Collapsing Chat Fullscreen",
+                delayBefore: 150,
+                duration: 450,
+                onReach: () => setIsChatFull(false),
+              },
+            ]);
+          }
+        } else if (action.tool === "show_aura_guide") {
+          ghostCursorEngine.runSequence([
+            {
+              targetId: "quantum-link-console-btn",
+              actionName: "Opening Aura Points Guide",
+              delayBefore: 150,
+              duration: 450,
+              onReach: () => setShowAuraHelp(true),
+            },
+          ]);
         } else if (action.tool === "open_chat" && action.params?.target) {
           const cleanHandle = String(action.params.target).replace(/^@/, "").trim();
           setActivePeerHandle(cleanHandle);
           setIsChatFull(true);
-        } else if (action.tool === "trigger_beacon") {
-          handleTriggerEmergencyBeacon();
-        } else if (action.tool === "toggle_voice_record") {
-          if (!isRecording) {
-            startRecording();
-          } else {
-            stopRecording(true);
-          }
-        } else if (action.tool === "open_attachment_picker") {
-          handleAttachButtonClick();
         } else if (action.tool === "edit_last_message") {
           const currentUserId = (session?.user as any)?.id;
           const myLastMsg = [...chatMessages].reverse().find((m) => m.senderId === currentUserId);
           if (myLastMsg) {
             setEditingMessage({ id: myLastMsg.id, content: myLastMsg.content });
-          }
-        } else if (action.tool === "show_aura_guide") {
-          setShowAuraHelp(true);
-        } else if (action.tool === "navigate_tab") {
-          if (action.params?.tab === "settings") {
-            setShowSettings(true);
-          } else if (action.params?.tab === "chats") {
-            setIsChatFull(false);
           }
         } else if (action.tool === "insert_draft" && action.params?.text) {
           setChatInput(action.params.text);
