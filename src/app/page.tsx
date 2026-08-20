@@ -1582,6 +1582,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [settingsGlassTheme, setSettingsGlassTheme] = useState<"quantum" | "crystal">("quantum");
   const settingsClickTimeRef = useRef<number>(0);
 
+  const openSettingsDirect = () => {
+    const now = Date.now();
+    settingsClickTimeRef.current = now;
+    setIsSettingsAnimating(true);
+    setShowSettings(true);
+    setSettingsScreen("main");
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("qlink_settings_glass_theme");
@@ -1740,11 +1748,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               delayBefore: 250,
               duration: 550,
               onReach: () => {
-                setIsSettingsAnimating(true);
-                setShowSettings(true);
-                setTimeout(() => {
-                  setIsSettingsAnimating(false);
-                }, 500);
+                openSettingsDirect();
               },
             },
           ]);
