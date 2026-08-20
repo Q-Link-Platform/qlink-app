@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { AIMode, PolishStyle, QAIMessage, streamQAIResponse } from "@/lib/qai-engine";
+import { qaiActionBus, QAIToolAction } from "@/lib/qai-tools";
 
 export interface RawChatMessageItem {
   id?: string;
@@ -239,9 +240,24 @@ export default function QAIAssistantModal({
         }
       }
 
-      // --- AUTONOMOUS AGENT SCHEDULE EXECUTION (Auto-Taps the Schedule Action) ---
+      // --- FULL APP CONTROL SWARM ACTION DISPATCHER (<qai_action>) ---
+      const qaiActionMatch = accumulated.match(/<qai_action>([\s\S]*?)<\/qai_action>/);
+      if (qaiActionMatch) {
+        try {
+          const actionPayload: QAIToolAction = JSON.parse(qaiActionMatch[1].trim());
+          qaiActionBus.dispatch(actionPayload);
+          
+          if (actionPayload.tool === "schedule_message") {
+            await handleExecuteSchedule(assistantMsgId, actionPayload.params);
+          }
+        } catch (e) {
+          console.error("QAI Action dispatch error:", e);
+        }
+      }
+
+      // Legacy fallback: <schedule_action>
       const scheduleMatch = accumulated.match(/<schedule_action>([\s\S]*?)<\/schedule_action>/);
-      if (scheduleMatch) {
+      if (scheduleMatch && !qaiActionMatch) {
         try {
           const scheduleData = JSON.parse(scheduleMatch[1].trim());
           await handleExecuteSchedule(assistantMsgId, scheduleData);
@@ -425,9 +441,18 @@ export default function QAIAssistantModal({
                     );
                   }
 
-                  // Parse <schedule_action> if present
+                  // Parse <qai_action> and <schedule_action>
+                  const qaiActionMatch = m.content.match(/<qai_action>([\s\S]*?)<\/qai_action>/);
+                  let parsedAction: QAIToolAction | null = null;
+                  if (qaiActionMatch) {
+                    try { parsedAction = JSON.parse(qaiActionMatch[1].trim()); } catch {}
+                  }
+
                   const scheduleMatch = m.content.match(/<schedule_action>([\s\S]*?)<\/schedule_action>/);
-                  const cleanDisplayContent = m.content.replace(/<schedule_action>[\s\S]*?<\/schedule_action>/g, "").trim();
+                  const cleanDisplayContent = m.content
+                    .replace(/<qai_action>[\s\S]*?<\/qai_action>/g, "")
+                    .replace(/<schedule_action>[\s\S]*?<\/schedule_action>/g, "")
+                    .trim();
 
                   let scheduleData: { target: string; text: string; minutesFromNow?: number; timeDescription?: string } | null = null;
                   if (scheduleMatch) {
@@ -441,6 +466,19 @@ export default function QAIAssistantModal({
                   return (
                     <>
                       <div>{cleanDisplayContent}</div>
+
+                      {parsedAction && !m.isStreaming && parsedAction.tool !== "schedule_message" && (
+                        <div className="mt-2 flex items-center justify-between rounded-xl border border-cyan-500/40 bg-gradient-to-r from-cyan-950/40 to-slate-900/90 px-3 py-1.5 shadow-[0_0_12px_rgba(6,182,212,0.2)] backdrop-blur-xl text-[10px]">
+                          <div className="flex items-center gap-1.5 font-bold text-cyan-300">
+                            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
+                            <span>⚡ Action Executed:</span>
+                            <span className="rounded bg-cyan-500/20 px-1.5 py-0.2 font-mono text-cyan-200 uppercase">
+                              {parsedAction.tool.replace(/_/g, " ")}
+                            </span>
+                          </div>
+                          <span className="font-medium text-slate-400 italic">0ms React Dispatch</span>
+                        </div>
+                      )}
 
                       {scheduleData && !m.isStreaming && (
                         <div className="mt-2 rounded-xl border border-amber-500/40 bg-gradient-to-br from-amber-950/40 to-slate-900/90 p-2.5 shadow-[0_0_15px_rgba(245,158,11,0.15)] backdrop-blur-xl">

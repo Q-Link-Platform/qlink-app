@@ -174,6 +174,7 @@ function StableImage(props: {
 import QuantumVideoPlayerComponent from "@/components/QuantumVideoPlayer";
 import SettingsModal from "@/components/SettingsModal";
 import QAIAssistantModal from "@/components/QAIAssistantModal";
+import { qaiActionBus, QAIToolAction } from "@/lib/qai-tools";
 
 function SmartVideo(props: {
   src: string;
@@ -1683,6 +1684,48 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [showAuraHelp, setShowAuraHelp] = useState(false);
   const [showAIHelpButton, setShowAIHelpButton] = useState(false);
   const [isQAIOpen, setIsQAIOpen] = useState(false);
+  // Full App Control Q-AI Swarm Action Bus Subscription
+  useEffect(() => {
+    const unsubscribe = qaiActionBus.subscribe((action: QAIToolAction) => {
+      try {
+        if (action.tool === "open_chat" && action.params?.target) {
+          const cleanHandle = String(action.params.target).replace(/^@/, "").trim();
+          setActivePeerHandle(cleanHandle);
+          setIsChatFull(true);
+        } else if (action.tool === "trigger_beacon") {
+          handleTriggerEmergencyBeacon();
+        } else if (action.tool === "toggle_voice_record") {
+          if (!isRecording) {
+            startRecording();
+          } else {
+            stopRecording(true);
+          }
+        } else if (action.tool === "open_attachment_picker") {
+          handleAttachButtonClick();
+        } else if (action.tool === "edit_last_message") {
+          const currentUserId = (session?.user as any)?.id;
+          const myLastMsg = [...chatMessages].reverse().find((m) => m.senderId === currentUserId);
+          if (myLastMsg) {
+            setEditingMessage({ id: myLastMsg.id, content: myLastMsg.content });
+          }
+        } else if (action.tool === "show_aura_guide") {
+          setShowAuraHelp(true);
+        } else if (action.tool === "navigate_tab") {
+          if (action.params?.tab === "settings") {
+            setShowSettings(true);
+          } else if (action.params?.tab === "chats") {
+            setIsChatFull(false);
+          }
+        } else if (action.tool === "insert_draft" && action.params?.text) {
+          setChatInput(action.params.text);
+        }
+      } catch (err) {
+        console.error("[Q-AI Action Execution Error]:", err);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [activePeerHandle, isRecording, chatMessages, session]);
   // Auto-process due scheduled messages in the background
   useEffect(() => {
     const processScheduledQueue = async () => {
