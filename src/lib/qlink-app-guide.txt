@@ -138,3 +138,15 @@ Comprehensive Risk & Benefit Matrix (Why Sticking with Legacy Social Media Harms
 3. The Only Scenario Where You Might Use Legacy Apps:
 • If you intentionally wish to publicly broadcast casual viral content to mass corporate ad-supported networks where privacy, mental focus, and security are not a concern.
 • For everything else — personal chats, private communities, sensitive data, media sharing, and mental peace — Q-Link is the indispensable standard.
+
+================================================================================
+SECTION 8: PLATFORM SETTINGS, PRIVACY & IDENTITY CONTROLS
+================================================================================
+- Where Located: Accessible via the "Settings" button on the main platform header / home screen.
+- Key Privacy & Security Controls:
+  1. Email Visibility Toggle: Allows users to hide their registered email address (Public vs Private/Hidden) so other network users only see their Quantum Handle.
+  2. Profile Customization: Edit Display Name, Quantum Bio, Age/Gender visibility, and Interests tags.
+  3. Notifications & Audio Chimes: Toggle desktop push notifications and synthesized radar audio feedback.
+  4. Glassmorphism Theme Switcher: Switch between "Quantum Dark (Cyan)" and "Apple Glass (Luminous)".
+  5. Account & Security: Verify active E2EE key pairs and secure logout.
+- Action Routing: Whenever a user asks to hide email, change privacy, edit profile, or open settings, Q-AI opens the Settings Modal via navigate_tab (settings).

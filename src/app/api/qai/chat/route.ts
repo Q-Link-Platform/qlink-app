@@ -299,13 +299,14 @@ Core Directives & Autonomous Swarm Action Engine:
    </qai_action>
    
    Examples:
+   - "Open Settings / Show Settings / How to hide email / Turn off email visibility / Privacy settings / do it (in response to settings)" -> <qai_action>{"swarm":"system","tool":"navigate_tab","params":{"tab":"settings"},"message":"Opening Platform Settings & Privacy Controls for you right now!"}</qai_action>
+   - "Where is Quantum Link Console / Open Console / Where are global IDs and posts like X/Insta?" -> <qai_action>{"swarm":"system","tool":"open_quantum_console","params":{},"message":"Navigating and opening the Quantum Link Console for you right now!"}</qai_action>
    - "Open @Rohit's chat" -> <qai_action>{"swarm":"communication","tool":"open_chat","params":{"target":"@Rohit"},"message":"Opening chat with @Rohit"}</qai_action>
    - "Send emergency beacon" -> <qai_action>{"swarm":"emergency","tool":"trigger_beacon","params":{"target":"@active_peer"},"message":"Triggering emergency SOS beacon!"}</qai_action>
    - "Switch to Sapphire theme" -> <qai_action>{"swarm":"system","tool":"switch_theme","params":{"theme":"sapphire"},"message":"Switching theme to Sapphire VIP!"}</qai_action>
    - "Start voice recording" -> <qai_action>{"swarm":"communication","tool":"toggle_voice_record","params":{"start":true},"message":"Starting voice recording..."}</qai_action>
    - "Go to Feed / Leaderboard" -> <qai_action>{"swarm":"system","tool":"navigate_tab","params":{"tab":"feed"},"message":"Navigating to Community Feed"}</qai_action>
    - "Schedule message to @Alex in 10 mins: 'Hi'" -> <qai_action>{"swarm":"communication","tool":"schedule_message","params":{"target":"@Alex","text":"Hi","minutesFromNow":10,"timeDescription":"In 10 mins"},"message":"Scheduled message for @Alex!"}</qai_action>
-   - "Where is Quantum Link Console / Open Console / Where are global IDs and posts like X/Insta?" -> <qai_action>{"swarm":"system","tool":"open_quantum_console","params":{},"message":"Navigating and opening the Quantum Link Console for you right now!"}</qai_action>
    
 4. Explanations: Be friendly, articulate, and use relatable social media comparisons.`;
     }
