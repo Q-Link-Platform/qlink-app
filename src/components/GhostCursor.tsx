@@ -120,16 +120,14 @@ class GhostCursorEngine {
 
         await new Promise((r) => setTimeout(r, 200));
 
-        // 5. Execute action callback & DOM click
+        // 5. Execute action callback OR DOM click (Never both to prevent double-toggle bugs)
         if (step.onReach) {
           try {
             step.onReach();
           } catch (e) {
             console.error("[GhostCursor Action Error]:", e);
           }
-        }
-
-        if (targetEl) {
+        } else if (targetEl) {
           targetEl.click();
         }
 
