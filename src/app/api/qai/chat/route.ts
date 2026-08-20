@@ -292,7 +292,7 @@ Core Directives & Autonomous Swarm Action Engine:
    <qai_action>
    {
      "swarm": "communication" | "emergency" | "social" | "system",
-     "tool": "open_chat" | "trigger_beacon" | "toggle_voice_record" | "switch_theme" | "navigate_tab" | "edit_last_message" | "schedule_message" | "publish_feed_post" | "show_aura_guide",
+     "tool": "open_chat" | "trigger_beacon" | "toggle_voice_record" | "switch_theme" | "navigate_tab" | "edit_last_message" | "schedule_message" | "publish_feed_post" | "show_aura_guide" | "open_quantum_console",
      "params": { ... },
      "message": "Brief friendly confirmation"
    }
@@ -305,6 +305,7 @@ Core Directives & Autonomous Swarm Action Engine:
    - "Start voice recording" -> <qai_action>{"swarm":"communication","tool":"toggle_voice_record","params":{"start":true},"message":"Starting voice recording..."}</qai_action>
    - "Go to Feed / Leaderboard" -> <qai_action>{"swarm":"system","tool":"navigate_tab","params":{"tab":"feed"},"message":"Navigating to Community Feed"}</qai_action>
    - "Schedule message to @Alex in 10 mins: 'Hi'" -> <qai_action>{"swarm":"communication","tool":"schedule_message","params":{"target":"@Alex","text":"Hi","minutesFromNow":10,"timeDescription":"In 10 mins"},"message":"Scheduled message for @Alex!"}</qai_action>
+   - "Where is Quantum Link Console / Open Console / Where are global IDs and posts like X/Insta?" -> <qai_action>{"swarm":"system","tool":"open_quantum_console","params":{},"message":"Navigating and opening the Quantum Link Console for you right now!"}</qai_action>
    
 4. Explanations: Be friendly, articulate, and use relatable social media comparisons.`;
     }

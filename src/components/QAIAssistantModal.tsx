@@ -345,6 +345,7 @@ export default function QAIAssistantModal({
 
         {/* Close Sidecar Button */}
         <button
+          id="qai-sidecar-close-btn"
           type="button"
           onClick={onClose}
           className="rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"

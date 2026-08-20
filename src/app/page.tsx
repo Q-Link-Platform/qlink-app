@@ -175,6 +175,7 @@ import QuantumVideoPlayerComponent from "@/components/QuantumVideoPlayer";
 import SettingsModal from "@/components/SettingsModal";
 import QAIAssistantModal from "@/components/QAIAssistantModal";
 import { qaiActionBus, QAIToolAction } from "@/lib/qai-tools";
+import GhostCursor, { ghostCursorEngine } from "@/components/GhostCursor";
 
 function SmartVideo(props: {
   src: string;
@@ -1688,7 +1689,36 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   useEffect(() => {
     const unsubscribe = qaiActionBus.subscribe((action: QAIToolAction) => {
       try {
-        if (action.tool === "open_chat" && action.params?.target) {
+        if (action.tool === "open_quantum_console") {
+          // Autonomous Choreographed Ghost Cursor Sequence:
+          // Step 1: Close Q-AI Drawer -> Step 2: Exit Chat Full -> Step 3: Click Quantum Link Console!
+          ghostCursorEngine.runSequence([
+            {
+              targetId: "qai-sidecar-close-btn",
+              actionName: "Closing Q-AI Sidecar",
+              delayBefore: 150,
+              duration: 450,
+              onReach: () => setIsQAIOpen(false),
+            },
+            {
+              targetId: "chat-toggle-full-btn",
+              actionName: "Exiting Chat View",
+              delayBefore: 300,
+              duration: 500,
+              onReach: () => setIsChatFull(false),
+            },
+            {
+              targetId: "quantum-link-console-btn",
+              actionName: "Opening Quantum Link Console",
+              delayBefore: 350,
+              duration: 600,
+              onReach: () => {
+                setIsChatFull(false);
+                openDirectory();
+              },
+            },
+          ]);
+        } else if (action.tool === "open_chat" && action.params?.target) {
           const cleanHandle = String(action.params.target).replace(/^@/, "").trim();
           setActivePeerHandle(cleanHandle);
           setIsChatFull(true);
@@ -8108,6 +8138,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 {!isFocusMode && (
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <button
+                      id="quantum-link-console-btn"
                       type="button"
                       onClick={openDirectory}
                       className={
@@ -8133,6 +8164,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     </Link>
 
                     <button
+                      id="settings-btn"
                       type="button"
                       onClick={() => {
                         // Prevent rapid double-clicks causing flicker
@@ -9384,6 +9416,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </p>
                       <div className="flex items-center gap-2">
                         <button
+                          id="chat-toggle-full-btn"
                           type="button"
                           onClick={toggleChatFull}
                           className={
@@ -10141,7 +10174,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </p>
                     )}
 
-                    {/* In-Chat Docked Q-AI Sidecar with Context-Aware Friend Agent */}
+                    <GhostCursor />
+
+      {/* In-Chat Docked Q-AI Sidecar with Context-Aware Friend Agent */}
                     <QAIAssistantModal
                       isOpen={isQAIOpen}
                       onClose={() => setIsQAIOpen(false)}

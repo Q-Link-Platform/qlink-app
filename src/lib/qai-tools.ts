@@ -37,7 +37,8 @@ export type QAIToolType =
   | "navigate_tab"
   | "toggle_sound_fx"
   | "customize_profile"
-  | "show_aura_guide";
+  | "show_aura_guide"
+  | "open_quantum_console";
 
 export interface QAIToolAction<T = any> {
   id?: string;
