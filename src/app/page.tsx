@@ -874,10 +874,26 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const myId = (effectiveSession?.user as any)?.id;
   const [mode, setMode] = useState<ViewMode>("home");
 
-  const [outgoing, setOutgoing] = useState<OutgoingRequest[]>([]);
+  const [outgoing, setOutgoing] = useState<OutgoingRequest[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("qlink_cached_outgoing");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return [];
+  });
   const [isLoadingOutgoing, setIsLoadingOutgoing] = useState(false);
 
-  const [incoming, setIncoming] = useState<IncomingRequest[]>([]);
+  const [incoming, setIncoming] = useState<IncomingRequest[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("qlink_cached_incoming");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return [];
+  });
   const [isLoadingIncoming, setIsLoadingIncoming] = useState(false);
   const [incomingError, setIncomingError] = useState<string | null>(null);
 
@@ -2156,7 +2172,40 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [showDirectory, setShowDirectory] = useState(false);
   const [showDirectoryMediaOnly, setShowDirectoryMediaOnly] = useState(false);
   const [mediaFilterTab, setMediaFilterTab] = useState<'all' | 'shorts' | 'posts' | 'tweets'>('all');
-  const [directoryItems, setDirectoryItems] = useState<DirectoryItem[] | null>(null);
+  const [directoryItems, setDirectoryItems] = useState<DirectoryItem[] | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("qlink_cached_directory");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
+  // Auto-persist connections & directory data for instant 0ms cached rendering on next launch
+  useEffect(() => {
+    if (typeof window !== "undefined" && outgoing && outgoing.length > 0) {
+      try {
+        localStorage.setItem("qlink_cached_outgoing", JSON.stringify(outgoing));
+      } catch {}
+    }
+  }, [outgoing]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && incoming && incoming.length > 0) {
+      try {
+        localStorage.setItem("qlink_cached_incoming", JSON.stringify(incoming));
+      } catch {}
+    }
+  }, [incoming]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && directoryItems && directoryItems.length > 0) {
+      try {
+        localStorage.setItem("qlink_cached_directory", JSON.stringify(directoryItems));
+      } catch {}
+    }
+  }, [directoryItems]);
+
   const [directoryLoading, setDirectoryLoading] = useState(false);
   const [directoryError, setDirectoryError] = useState<string | null>(null);
   const [directoryLatestPostsByAuthorId, setDirectoryLatestPostsByAuthorId] =
@@ -8766,13 +8815,33 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </div>
                       </button>
                     </div>
-                    {!isLoadingIncoming && !incomingError && incoming.length === 0 && (
-                      <p className="text-[11px] text-slate-500">
-                        No one has requested to connect yet.
-                      </p>
-                    )}
-                    <div className={`space-y-1 mt-2 ${isFocusMode ? "flex-1" : "max-h-[50vh]"} overflow-y-auto incoming-requests-scroll pr-1`} style={{ WebkitOverflowScrolling: 'touch' }}>
-                      {rankFriendRequests(incoming, unreadMessages, activePeerHandle, true).map((req) => (
+                    {isLoadingIncoming && incoming.length === 0 ? (
+                      <div className="space-y-1.5 mt-2 animate-pulse">
+                        {[1, 2].map((i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between gap-2 rounded-xl border border-slate-800/60 bg-gradient-to-r from-slate-950/80 via-slate-900/60 to-slate-950/80 px-3 py-2.5 shadow-[0_0_15px_rgba(6,182,212,0.03)]"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              <div className="h-5 w-5 rounded-full bg-slate-800 border border-slate-700/50 flex-shrink-0 animate-pulse" />
+                              <div className="space-y-1 min-w-0 flex-1">
+                                <div className="h-3 w-20 rounded-full bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 animate-pulse" />
+                                <div className="h-2 w-12 rounded-full bg-slate-800/60 animate-pulse" />
+                              </div>
+                            </div>
+                            <div className="h-4 w-12 rounded-full bg-slate-800/70 border border-slate-700/40 animate-pulse" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <>
+                        {!isLoadingIncoming && !incomingError && incoming.length === 0 && (
+                          <p className="text-[11px] text-slate-500">
+                            No one has requested to connect yet.
+                          </p>
+                        )}
+                        <div className={`space-y-1 mt-2 ${isFocusMode ? "flex-1" : "max-h-[50vh]"} overflow-y-auto incoming-requests-scroll pr-1`} style={{ WebkitOverflowScrolling: 'touch' }}>
+                          {rankFriendRequests(incoming, unreadMessages, activePeerHandle, true).map((req) => (
                         <div
                           key={req.id}
                           className={
@@ -8883,6 +8952,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </div>
                       ))}
                     </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
