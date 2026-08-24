@@ -232,6 +232,16 @@ export default function SettingsModal(props: SettingsModalProps) {
 
   const isElectron = typeof window !== "undefined" && Boolean((window as any).electronAPI);
   const [showAboutFeatures, setShowAboutFeatures] = useState(false);
+  const cardRef = React.useRef<HTMLDivElement>(null);
+
+  const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollTop = e.currentTarget.scrollTop;
+    if (cardRef.current) {
+      // Direct CSS Variable interpolation (120FPS GPU scroll-driven layout)
+      const progress = Math.min(1, Math.max(0, scrollTop / 160));
+      cardRef.current.style.setProperty("--scroll-progress", progress.toString());
+    }
+  };
 
   const interestsCategories = [
     "Technology", "Artificial Intelligence", "Machine Learning", "Deep Learning",
@@ -391,7 +401,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
 
                           {/* Scrollable Content Body - Native GPU Scroll-Timeline (120FPS Zero-Lag) */}
-                          <div className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container oneui-scroll-timeline-container [transform:translateZ(0)]">
+                          <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container oneui-scroll-timeline-container [transform:translateZ(0)]">
                             {/* Account Section */}
                             <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
@@ -1182,8 +1192,9 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
                         </div>
 
-                            {/* {/* About Q-Link & Micro-Features Showcase Section - Native GPU Scroll-Driven Dissolve Card */}
-                            <div className="oneui-scroll-driven-card rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3 transition-all duration-300 hover:border-cyan-400/30">
+                            {/* {/* About Q-Link & Micro-Features Showcase Section - Samsung One UI 8.5 Smooth CSS Variable Scroll Interpolation */}
+                            <div ref={cardRef} className="oneui-scroll-card-wrapper">
+                              <div className="rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3 transition-all duration-300 hover:border-cyan-400/30">
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2.5">
                                       <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
@@ -1290,6 +1301,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                                   </div>
                                 </div>
                               )}
+                              </div>
                             </div>
 
                           {/* Fixed Footer */}
