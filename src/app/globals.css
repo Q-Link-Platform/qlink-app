@@ -2953,3 +2953,44 @@ html.perf-low .settings-backdrop-exit {
   -webkit-backdrop-filter: blur(4px);
   white-space: nowrap;
 }
+
+/* =========================================================================
+   Samsung One UI 8.5 / Apple VisionOS Native GPU Scroll-Driven Animation
+   Pure Compositor Thread Physics - Zero CPU/GPU Re-render Lag
+   ========================================================================= */
+@keyframes oneui-scroll-dissolve {
+  0% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+    filter: blur(0px);
+  }
+  30% {
+    opacity: 0.85;
+    transform: translateY(4px) scale(0.99);
+    filter: blur(0px);
+  }
+  70% {
+    opacity: 0.35;
+    transform: translateY(12px) scale(0.97);
+    filter: blur(0.4px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.94);
+    filter: blur(0.8px);
+    pointer-events: none;
+  }
+}
+
+.oneui-scroll-timeline-container {
+  scroll-timeline: --settings-scroll y;
+  scroll-timeline-name: --settings-scroll;
+  scroll-timeline-axis: block;
+}
+
+.oneui-scroll-driven-card {
+  animation: oneui-scroll-dissolve linear both;
+  animation-timeline: --settings-scroll;
+  animation-range: 0px 160px;
+  will-change: transform, opacity, filter;
+}
