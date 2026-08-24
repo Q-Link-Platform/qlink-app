@@ -239,13 +239,14 @@ export default function SettingsModal(props: SettingsModalProps) {
     const currentY = e.currentTarget.scrollTop;
     const diff = currentY - lastScrollYRef.current;
 
-    if (currentY <= 10) {
+    // Gentle deadzone so animation feels deliberate and luxurious
+    if (currentY <= 12) {
       setIsScrollingDown(false);
-    } else if (diff > 2) {
-      // User is scrolling down -> smoothly slide down and hide
+    } else if (diff > 6) {
+      // Smooth downward glide
       setIsScrollingDown(true);
-    } else if (diff < -2) {
-      // User is scrolling up -> smoothly slide up and reveal
+    } else if (diff < -6) {
+      // Smooth upward restoration
       setIsScrollingDown(false);
     }
     lastScrollYRef.current = currentY;
@@ -1201,10 +1202,10 @@ export default function SettingsModal(props: SettingsModalProps) {
                         </div>
 
                                                       {/* About Q-Link & Micro-Features Showcase Section */}
-                            <div className={`rounded-2xl border bg-slate-950/40 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] space-y-3 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
+                            <div className={`rounded-2xl border bg-slate-950/40 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] space-y-3 transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[transform,opacity,max-height] ${
                               isScrollingDown
-                                ? "max-h-0 opacity-0 translate-y-8 scale-90 pointer-events-none p-0 m-0 border-transparent overflow-hidden shadow-none ring-0"
-                                : "max-h-[350px] opacity-100 translate-y-0 scale-100 pointer-events-auto p-4 border-white/10 ring-1 ring-white/5 overflow-visible"
+                                ? "max-h-0 opacity-0 translate-y-6 scale-[0.94] pointer-events-none p-0 m-0 border-transparent overflow-hidden shadow-none ring-0"
+                                : "max-h-[320px] opacity-100 translate-y-0 scale-100 pointer-events-auto p-4 border-white/10 ring-1 ring-white/5 overflow-visible"
                             }`}>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
@@ -1233,9 +1234,9 @@ export default function SettingsModal(props: SettingsModalProps) {
                               </div>
 
                               {/* Windows Desktop App Direct Link */}
-                              <div className={`rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2 transition-all duration-500 ease-out ${
+                              <div className={`rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2 transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
                                 isScrollingDown
-                                  ? "opacity-75 translate-y-1 scale-[0.99]"
+                                  ? "opacity-0 translate-y-4 scale-95"
                                   : "opacity-100 translate-y-0 scale-100"
                               }`}>
                                 <div className="min-w-0">
