@@ -232,21 +232,22 @@ export default function SettingsModal(props: SettingsModalProps) {
 
   const isElectron = typeof window !== "undefined" && Boolean((window as any).electronAPI);
   const [showAboutFeatures, setShowAboutFeatures] = useState(false);
-  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const lastScrollYRef = React.useRef(0);
 
   const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const currentY = e.currentTarget.scrollTop;
     const diff = currentY - lastScrollYRef.current;
 
-    if (currentY <= 15) {
-      setIsScrollingDown(false);
-    } else if (diff > 5) {
-      // Smooth 1.7s downward transition into invisible layer
-      setIsScrollingDown(true);
-    } else if (diff < -5) {
-      // Smooth 1.7s upward emergence
-      setIsScrollingDown(false);
+    // Mouse-synchronized fluid transition
+    if (currentY <= 10) {
+      setIsCollapsed(false);
+    } else if (diff > 3) {
+      // Mouse scroll-down -> smoothly glide down and disappear
+      setIsCollapsed(true);
+    } else if (diff < -3) {
+      // Mouse scroll-up -> smoothly emerge and appear
+      setIsCollapsed(false);
     }
     lastScrollYRef.current = currentY;
   };
@@ -1200,12 +1201,16 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
                         </div>
 
-                            {/* About Q-Link & Micro-Features Showcase Section (Zero-Gap Fluid Collapse & Spring Reveal) */}
-                            <div className={`grid transition-[grid-template-rows,opacity,transform,margin] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[grid-template-rows,opacity,transform] ${
-                              isScrollingDown
-                                ? "grid-rows-[0fr] opacity-0 translate-y-6 pointer-events-none -my-1.5"
-                                : "grid-rows-[1fr] opacity-100 translate-y-0 pointer-events-auto my-0"
-                            }`}>
+                            {/* About Q-Link & Micro-Features Showcase Section (Mouse-Synchronized Smooth Disappear & Appear) */}
+                            <div
+                              style={{
+                                gridTemplateRows: isCollapsed ? "0fr" : "1fr",
+                                opacity: isCollapsed ? 0 : 1,
+                                transform: isCollapsed ? "translateY(24px) scale(0.94)" : "translateY(0px) scale(1)",
+                                pointerEvents: isCollapsed ? "none" : "auto",
+                              }}
+                              className="grid transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[grid-template-rows,opacity,transform] overflow-hidden"
+                            >
                               <div className="overflow-hidden min-h-0">
                                 <div className="rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3">
                               <div className="flex items-center justify-between">
@@ -1236,7 +1241,7 @@ export default function SettingsModal(props: SettingsModalProps) {
 
                               {/* Windows Desktop App Direct Link */}
                               <div className={`rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
-                                isScrollingDown
+                                isCollapsed
                                   ? "opacity-0 translate-y-6 scale-95"
                                   : "opacity-100 translate-y-0 scale-100"
                               }`}>
