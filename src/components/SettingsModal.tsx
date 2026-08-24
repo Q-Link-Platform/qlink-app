@@ -232,6 +232,30 @@ export default function SettingsModal(props: SettingsModalProps) {
 
   const isElectron = typeof window !== "undefined" && Boolean((window as any).electronAPI);
   const [showAboutFeatures, setShowAboutFeatures] = useState(false);
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const lastScrollYRef = React.useRef(0);
+  const tickingRef = React.useRef(false);
+
+  const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const currentY = e.currentTarget.scrollTop;
+    if (!tickingRef.current) {
+      window.requestAnimationFrame(() => {
+        const diff = currentY - lastScrollYRef.current;
+        if (currentY <= 15) {
+          setIsScrollingDown(false);
+        } else if (diff > 6) {
+          // Samsung One UI 8.5 smooth fade-down & transparent disappear
+          setIsScrollingDown(true);
+        } else if (diff < -6) {
+          // Samsung One UI 8.5 smooth upward float & bloom
+          setIsScrollingDown(false);
+        }
+        lastScrollYRef.current = currentY;
+        tickingRef.current = false;
+      });
+      tickingRef.current = true;
+    }
+  };
 
   const interestsCategories = [
     "Technology", "Artificial Intelligence", "Machine Learning", "Deep Learning",
@@ -391,7 +415,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
 
                           {/* Scrollable Content Body - High Performance 120FPS GPU Scroll */}
-                          <div className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [transform:translateZ(0)]">
+                          <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [transform:translateZ(0)]">
                             {/* Account Section */}
                             <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
@@ -1182,52 +1206,62 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
                         </div>
 
-                            {/* {/* About Q-Link & Micro-Features Showcase Section - 120FPS Native Glass Card */}
-                            <div className="rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3 transition-all duration-300 hover:border-cyan-400/30">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2.5">
-                                  <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
-                                    <span className="text-white font-bold text-xs tracking-wider">QL</span>
+                            {/* {/* About Q-Link & Micro-Features Showcase Section - Samsung One UI 8.5 2s Smooth Fade-Down Animation */}
+                            <div className={`grid transition-[grid-template-rows,opacity,transform,margin] duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[grid-template-rows,opacity,transform] ${
+                              isScrollingDown
+                                ? "grid-rows-[0fr] opacity-0 translate-y-10 scale-[0.95] pointer-events-none -my-2 blur-[0.6px]"
+                                : "grid-rows-[1fr] opacity-100 translate-y-0 scale-100 pointer-events-auto my-0 blur-0"
+                            }`}>
+                              <div className="overflow-hidden min-h-0">
+                                <div className="rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3 transition-all duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
+                                        <span className="text-white font-bold text-xs tracking-wider">QL</span>
+                                      </div>
+                                      <div>
+                                        <h4 className="text-[12px] font-bold text-white flex items-center gap-1.5">
+                                          Q-Link Platform
+                                          <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                                            v3.0 Quantum
+                                          </span>
+                                        </h4>
+                                        <p className="text-[10px] text-slate-400">
+                                          Next-Gen Private Messaging &amp; Social Network
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowAboutFeatures(!showAboutFeatures)}
+                                      className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+                                    >
+                                      {showAboutFeatures ? "Hide Details" : "View Features"}
+                                    </button>
                                   </div>
-                                  <div>
-                                    <h4 className="text-[12px] font-bold text-white flex items-center gap-1.5">
-                                      Q-Link Platform
-                                      <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
-                                        v3.0 Quantum
-                                      </span>
-                                    </h4>
-                                    <p className="text-[10px] text-slate-400">
-                                      Next-Gen Private Messaging &amp; Social Network
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowAboutFeatures(!showAboutFeatures)}
-                                  className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
-                                >
-                                  {showAboutFeatures ? "Hide Details" : "View Features"}
-                                </button>
-                              </div>
 
-                              {/* Windows Desktop App Direct Link */}
-                              <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2 transition-all hover:border-cyan-400/40 hover:bg-cyan-950/30">
-                                <div className="min-w-0">
-                                  <p className="text-[11px] font-semibold text-cyan-200">
-                                    🖥️ Standalone Windows App (.exe)
-                                  </p>
-                                  <p className="text-[10px] text-slate-400 truncate">
-                                    System Tray background mode &amp; zero-flicker alerts
-                                  </p>
-                                </div>
-                                <a
-                                  href="/downloads/Q-Link-Setup.exe"
-                                  download="Q-Link-Setup.exe"
-                                  className="shrink-0 rounded-lg bg-cyan-500 px-2.5 py-1 text-[10px] font-bold text-slate-950 hover:bg-cyan-400 transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)] active:scale-95"
-                                >
-                                  Download
-                                </a>
-                              </div>
+                                  {/* Windows Desktop App Direct Link */}
+                                  <div className={`rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2 transition-all duration-[2000ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
+                                    isScrollingDown
+                                      ? "opacity-0 translate-y-4 scale-95"
+                                      : "opacity-100 translate-y-0 scale-100"
+                                  }`}>
+                                    <div className="min-w-0">
+                                      <p className="text-[11px] font-semibold text-cyan-200">
+                                        🖥️ Standalone Windows App (.exe)
+                                      </p>
+                                      <p className="text-[10px] text-slate-400 truncate">
+                                        System Tray background mode &amp; zero-flicker alerts
+                                      </p>
+                                    </div>
+                                    <a
+                                      href="/downloads/Q-Link-Setup.exe"
+                                      download="Q-Link-Setup.exe"
+                                      className="shrink-0 rounded-lg bg-cyan-500 px-2.5 py-1 text-[10px] font-bold text-slate-950 hover:bg-cyan-400 transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)] active:scale-95"
+                                    >
+                                      Download
+                                    </a>
+                                  </div>
 
                               {/* Micro-Features Grid */}
                               {showAboutFeatures && (
@@ -1291,8 +1325,10 @@ export default function SettingsModal(props: SettingsModalProps) {
                                 </div>
                               )}
                             </div>
+                          </div>
+                        </div>
 
-{/* Fixed Footer */}
+                          {/* Fixed Footer */}
                           <div className="shrink-0 pt-3 border-t border-white/10 space-y-2">
                             <button
                               type="button"
