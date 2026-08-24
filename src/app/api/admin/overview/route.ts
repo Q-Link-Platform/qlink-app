@@ -11,7 +11,11 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
     const userEmail = session?.user?.email;
 
-    if (!session || !session.user || !userEmail || !checkIsAdmin(userEmail)) {
+    // Check admin or allow local development inspection
+    const isDev = process.env.NODE_ENV === "development";
+    const authorized = (userEmail && checkIsAdmin(userEmail)) || isDev;
+
+    if (!authorized) {
       return NextResponse.json(
         { error: "Unauthorized: Platform Administrator clearance required." },
         { status: 403 }

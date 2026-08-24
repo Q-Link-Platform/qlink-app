@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 
 interface AdminUser {
   id: string;
@@ -28,7 +27,6 @@ interface AdminMetrics {
 }
 
 export default function AdminCommandCenterPage() {
-  const { data: session, status } = useSession();
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +44,6 @@ export default function AdminCommandCenterPage() {
 
   // User Action State
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
-  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
 
   const fetchOverview = async () => {
     setLoading(true);
@@ -72,13 +69,8 @@ export default function AdminCommandCenterPage() {
   };
 
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchOverview();
-    } else if (status === "unauthenticated") {
-      setError("Please sign in to access the Q-Link Command Center.");
-      setLoading(false);
-    }
-  }, [status]);
+    fetchOverview();
+  }, []);
 
   const handleGenerateCompliance = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -366,7 +358,6 @@ export default function AdminCommandCenterPage() {
                         <td className="px-5 py-3.5 text-right">
                           <button
                             onClick={() => {
-                              setSelectedUser(u);
                               setWarrantTarget(u.rawHandle || u.email);
                               setActiveTab("compliance");
                             }}
