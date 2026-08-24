@@ -1200,12 +1200,14 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
                         </div>
 
-                            {/* About Q-Link & Micro-Features Showcase Section (1.7s Smooth Invisible Layer Animation) */}
-                            <div className={`rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3 transition-all duration-[1700ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity,filter] ${
+                            {/* About Q-Link & Micro-Features Showcase Section (Zero-Gap Fluid Collapse & Spring Reveal) */}
+                            <div className={`grid transition-[grid-template-rows,opacity,transform,margin] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[grid-template-rows,opacity,transform] ${
                               isScrollingDown
-                                ? "opacity-0 translate-y-12 scale-[0.93] blur-[0.5px] pointer-events-none"
-                                : "opacity-100 translate-y-0 scale-100 blur-0 pointer-events-auto shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]"
+                                ? "grid-rows-[0fr] opacity-0 translate-y-6 pointer-events-none -my-1.5"
+                                : "grid-rows-[1fr] opacity-100 translate-y-0 pointer-events-auto my-0"
                             }`}>
+                              <div className="overflow-hidden min-h-0">
+                                <div className="rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
                                   <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
@@ -1233,7 +1235,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                               </div>
 
                               {/* Windows Desktop App Direct Link */}
-                              <div className={`rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2 transition-all duration-[1700ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
+                              <div className={`rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
                                 isScrollingDown
                                   ? "opacity-0 translate-y-6 scale-95"
                                   : "opacity-100 translate-y-0 scale-100"
@@ -1316,6 +1318,8 @@ export default function SettingsModal(props: SettingsModalProps) {
                                   </div>
                                 </div>
                               )}
+                                </div>
+                              </div>
                             </div>
 
                           {/* Fixed Footer */}
