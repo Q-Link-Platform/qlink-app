@@ -232,25 +232,6 @@ export default function SettingsModal(props: SettingsModalProps) {
 
   const isElectron = typeof window !== "undefined" && Boolean((window as any).electronAPI);
   const [showAboutFeatures, setShowAboutFeatures] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const lastScrollYRef = React.useRef(0);
-
-  const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const currentY = e.currentTarget.scrollTop;
-    const diff = currentY - lastScrollYRef.current;
-
-    // Mouse-synchronized fluid transition
-    if (currentY <= 10) {
-      setIsCollapsed(false);
-    } else if (diff > 3) {
-      // Mouse scroll-down -> smoothly glide down and disappear
-      setIsCollapsed(true);
-    } else if (diff < -3) {
-      // Mouse scroll-up -> smoothly emerge and appear
-      setIsCollapsed(false);
-    }
-    lastScrollYRef.current = currentY;
-  };
 
   const interestsCategories = [
     "Technology", "Artificial Intelligence", "Machine Learning", "Deep Learning",
@@ -409,8 +390,8 @@ export default function SettingsModal(props: SettingsModalProps) {
                             )}
                           </div>
 
-                          {/* Scrollable Content Body */}
-                          <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
+                          {/* Scrollable Content Body - High Performance 120FPS GPU Scroll */}
+                          <div className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [transform:translateZ(0)]">
                             {/* Account Section */}
                             <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
@@ -1201,18 +1182,8 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
                         </div>
 
-                            {/* About Q-Link & Micro-Features Showcase Section (Mouse-Synchronized Smooth Disappear & Appear) */}
-                            <div
-                              style={{
-                                gridTemplateRows: isCollapsed ? "0fr" : "1fr",
-                                opacity: isCollapsed ? 0 : 1,
-                                transform: isCollapsed ? "translateY(24px) scale(0.94)" : "translateY(0px) scale(1)",
-                                pointerEvents: isCollapsed ? "none" : "auto",
-                              }}
-                              className="grid transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[grid-template-rows,opacity,transform] overflow-hidden"
-                            >
-                              <div className="overflow-hidden min-h-0">
-                                <div className="rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3">
+                            {/* {/* About Q-Link & Micro-Features Showcase Section - 120FPS Native Glass Card */}
+                            <div className="rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3 transition-all duration-300 hover:border-cyan-400/30">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
                                   <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
@@ -1240,11 +1211,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                               </div>
 
                               {/* Windows Desktop App Direct Link */}
-                              <div className={`rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
-                                isCollapsed
-                                  ? "opacity-0 translate-y-6 scale-95"
-                                  : "opacity-100 translate-y-0 scale-100"
-                              }`}>
+                              <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2 transition-all hover:border-cyan-400/40 hover:bg-cyan-950/30">
                                 <div className="min-w-0">
                                   <p className="text-[11px] font-semibold text-cyan-200">
                                     🖥️ Standalone Windows App (.exe)
@@ -1256,7 +1223,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                                 <a
                                   href="/downloads/Q-Link-Setup.exe"
                                   download="Q-Link-Setup.exe"
-                                  className="shrink-0 rounded-lg bg-cyan-500 px-2.5 py-1 text-[10px] font-bold text-slate-950 hover:bg-cyan-400 transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+                                  className="shrink-0 rounded-lg bg-cyan-500 px-2.5 py-1 text-[10px] font-bold text-slate-950 hover:bg-cyan-400 transition-all shadow-[0_0_10px_rgba(6,182,212,0.3)] active:scale-95"
                                 >
                                   Download
                                 </a>
@@ -1323,11 +1290,9 @@ export default function SettingsModal(props: SettingsModalProps) {
                                   </div>
                                 </div>
                               )}
-                                </div>
-                              </div>
                             </div>
 
-                          {/* Fixed Footer */}
+{/* Fixed Footer */}
                           <div className="shrink-0 pt-3 border-t border-white/10 space-y-2">
                             <button
                               type="button"
