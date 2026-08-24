@@ -232,6 +232,24 @@ export default function SettingsModal(props: SettingsModalProps) {
 
   const isElectron = typeof window !== "undefined" && Boolean((window as any).electronAPI);
   const [showAboutFeatures, setShowAboutFeatures] = useState(false);
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const lastScrollYRef = React.useRef(0);
+
+  const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const currentY = e.currentTarget.scrollTop;
+    const diff = currentY - lastScrollYRef.current;
+
+    if (currentY <= 15) {
+      setIsScrollingDown(false);
+    } else if (diff > 6) {
+      // User is scrolling down -> smoothly animate down/collapse
+      setIsScrollingDown(true);
+    } else if (diff < -6) {
+      // User is scrolling up -> smoothly restore
+      setIsScrollingDown(false);
+    }
+    lastScrollYRef.current = currentY;
+  };
 
   const interestsCategories = [
     "Technology", "Artificial Intelligence", "Machine Learning", "Deep Learning",
@@ -391,7 +409,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
 
                           {/* Scrollable Content Body */}
-                          <div className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
+                          <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
                             {/* Account Section */}
                             <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
@@ -1183,7 +1201,11 @@ export default function SettingsModal(props: SettingsModalProps) {
                         </div>
 
                                                       {/* About Q-Link & Micro-Features Showcase Section */}
-                            <div className="rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3">
+                            <div className={`rounded-2xl border border-white/10 bg-slate-950/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(0,0,0,0.36),inset_0_1px_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 space-y-3 transition-all duration-500 ease-out will-change-transform ${
+                              isScrollingDown
+                                ? "opacity-60 translate-y-3 scale-[0.985] shadow-none"
+                                : "opacity-100 translate-y-0 scale-100 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]"
+                            }`}>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
                                   <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.4)]">
@@ -1211,7 +1233,11 @@ export default function SettingsModal(props: SettingsModalProps) {
                               </div>
 
                               {/* Windows Desktop App Direct Link */}
-                              <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2">
+                              <div className={`rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-2.5 flex items-center justify-between gap-2 transition-all duration-500 ease-out ${
+                                isScrollingDown
+                                  ? "opacity-75 translate-y-1 scale-[0.99]"
+                                  : "opacity-100 translate-y-0 scale-100"
+                              }`}>
                                 <div className="min-w-0">
                                   <p className="text-[11px] font-semibold text-cyan-200">
                                     🖥️ Standalone Windows App (.exe)
