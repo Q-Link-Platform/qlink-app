@@ -236,33 +236,35 @@ export default function SettingsModal(props: SettingsModalProps) {
   const lastScrollYRef = React.useRef(0);
   const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
+  const restoreCard = () => {
+    if (cardRef.current) {
+      cardRef.current.style.transform = "translateY(0px) scale(1)";
+      cardRef.current.style.opacity = "1";
+      cardRef.current.style.filter = "blur(0px)";
+    }
+  };
+
   const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     const currentY = e.currentTarget.scrollTop;
     const diff = currentY - lastScrollYRef.current;
     lastScrollYRef.current = currentY;
 
-    if (currentY > 20 && diff > 3) {
-      // Scrolling down -> smoothly glide down & fade soft (Zero React re-renders)
+    if (currentY > 20 && diff > 2.5) {
+      // Scrolling down -> smoothly glide down & fade soft
       cardRef.current.style.transform = "translateY(12px) scale(0.985)";
       cardRef.current.style.opacity = "0.35";
       cardRef.current.style.filter = "blur(0.4px)";
-    } else if (diff < -3 || currentY <= 15) {
-      // Scrolling up or top -> bloom smoothly back to full luster
-      cardRef.current.style.transform = "translateY(0px) scale(1)";
-      cardRef.current.style.opacity = "1";
-      cardRef.current.style.filter = "blur(0px)";
+    } else if (diff < -1.5 || currentY <= 15) {
+      // Sensitive scroll up or top -> bloom immediately back to normal
+      restoreCard();
     }
 
-    // Auto-restore gracefully when scrolling stops
+    // Fast auto-restore when user pauses or stops scrolling
     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     scrollTimeoutRef.current = setTimeout(() => {
-      if (cardRef.current) {
-        cardRef.current.style.transform = "translateY(0px) scale(1)";
-        cardRef.current.style.opacity = "1";
-        cardRef.current.style.filter = "blur(0px)";
-      }
-    }, 1000);
+      restoreCard();
+    }, 350);
   };
 
   const interestsCategories = [
@@ -423,7 +425,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
 
                           {/* Scrollable Content Body */}
-                          <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
+                          <div onScroll={handleSettingsScroll} onClick={restoreCard} onTouchStart={restoreCard} className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
                             {/* Account Section */}
                             <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
@@ -1215,7 +1217,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                         </div>
 
                             {/* About Q-Link & Standalone Windows App Card - Stable High-End Glassmorphism */}
-                            <div ref={cardRef} style={{ transition: "transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s cubic-bezier(0.16, 1, 0.3, 1)" }} className="rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(6,182,212,0.15),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 space-y-3 will-change-[transform,opacity,filter]">
+                            <div ref={cardRef} onMouseEnter={restoreCard} onTouchStart={restoreCard} style={{ transition: "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }} className="rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(6,182,212,0.15),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 space-y-3 will-change-[transform,opacity,filter] cursor-default">
                               {/* Header Row */}
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
