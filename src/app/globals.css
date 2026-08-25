@@ -2953,27 +2953,3 @@ html.perf-low .settings-backdrop-exit {
   -webkit-backdrop-filter: blur(4px);
   white-space: nowrap;
 }
-
-/* =========================================================================
-   Samsung One UI 8.5 Smooth CSS Variable Scroll Interpolation (120FPS GPU)
-   ========================================================================= */
-.oneui-scroll-card-wrapper {
-  --progress: var(--scroll-progress, 0);
-  
-  /* Smoothly collapse height and margins to prevent any black gap */
-  max-height: calc(320px * (1 - var(--progress)));
-  margin-bottom: calc(12px * (1 - var(--progress)));
-  opacity: calc(1 - var(--progress));
-  
-  /* VisionOS / One UI 8.5 progressive translation, scale and blur */
-  transform: translateY(calc(var(--progress) * 24px)) scale(calc(1 - var(--progress) * 0.05));
-  filter: blur(calc(var(--progress) * 0.8px));
-  
-  pointer-events: calc(1 - var(--progress)) < 0.15 ? none : auto;
-  will-change: transform, opacity, max-height, filter;
-  overflow: hidden;
-  transition: max-height 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
-              opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
-              transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
