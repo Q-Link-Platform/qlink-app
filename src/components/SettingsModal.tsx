@@ -1207,13 +1207,37 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
                         </div>
 
-                            {/* {/* About Q-Link & Micro-Features Showcase Section - Samsung One UI 8.5 Smooth Fade-Out & Bloom Animation */}
-                            <div className={`rounded-2xl p-4 space-y-3 transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity,filter,background-color,border-color] ${
+                            {/* About Q-Link & Micro-Features Showcase Section - Masked Secret-Line Downward Slide & Glass Shift */}
+                            <div className={`relative rounded-2xl overflow-hidden backdrop-blur-2xl transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity,max-height,padding,background-color,border-color] ${
                               isScrollingDown
-                                ? "opacity-0 translate-y-4 scale-[0.98] blur-[0.5px] border border-transparent bg-transparent shadow-none ring-0 pointer-events-none"
-                                : "opacity-100 translate-y-0 scale-100 blur-0 border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(6,182,212,0.2),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 pointer-events-auto"
+                                ? "max-h-12 p-3 border border-cyan-500/20 bg-gradient-to-r from-cyan-950/40 via-slate-950/70 to-blue-950/40 shadow-[0_4px_20px_0_rgba(6,182,212,0.1)] ring-1 ring-cyan-500/10"
+                                : "max-h-[420px] p-4 border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 shadow-[0_8px_32px_0_rgba(6,182,212,0.2),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 space-y-3"
                             }`}>
-                              <div className="flex items-center justify-between">
+                              {/* Sleek Compact Indicator when collapsed */}
+                              <div className={`flex items-center justify-between transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                                isScrollingDown
+                                  ? "opacity-100 translate-y-0 scale-100"
+                                  : "opacity-0 -translate-y-4 scale-95 pointer-events-none absolute inset-x-3 top-3"
+                              }`}>
+                                <div className="flex items-center gap-2">
+                                  <div className="h-5 w-5 rounded-lg bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.4)]">
+                                    <span className="text-white font-black text-[9px]">QL</span>
+                                  </div>
+                                  <span className="text-[11px] font-bold text-cyan-200">
+                                    Q-Link Platform v3.0 Quantum
+                                  </span>
+                                </div>
+                                <span className="text-[9px] font-mono text-cyan-400/80 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-400/20">
+                                  🖥️ Windows App
+                                </span>
+                              </div>
+
+                              {/* Top Header Row - Slides Down Past Secret Line on Scroll */}
+                              <div className={`flex items-center justify-between transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] ${
+                                isScrollingDown
+                                  ? "translate-y-12 opacity-0 scale-95 pointer-events-none"
+                                  : "translate-y-0 opacity-100 scale-100 pointer-events-auto"
+                              }`}>
                                 <div className="flex items-center gap-2.5">
                                   <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.5)] ring-1 ring-cyan-300/40">
                                     <span className="text-white font-black text-xs tracking-wider">QL</span>
@@ -1239,11 +1263,11 @@ export default function SettingsModal(props: SettingsModalProps) {
                                 </button>
                               </div>
 
-                              {/* Windows Desktop App Direct Link */}
-                              <div className={`rounded-xl p-2.5 flex items-center justify-between gap-2 transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                              {/* Windows Desktop App Direct Link Box - Shifts and Slides Downward Past Secret Line */}
+                              <div className={`rounded-xl border border-cyan-400/30 bg-cyan-950/40 p-2.5 flex items-center justify-between gap-2 shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-cyan-400/60 hover:bg-cyan-950/50 will-change-[transform,opacity] ${
                                 isScrollingDown
-                                  ? "border border-transparent bg-transparent shadow-none"
-                                  : "border border-cyan-400/30 bg-cyan-950/40 shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:border-cyan-400/60 hover:bg-cyan-950/50"
+                                  ? "translate-y-20 opacity-0 scale-90 pointer-events-none"
+                                  : "translate-y-0 opacity-100 scale-100 pointer-events-auto"
                               }`}>
                                 <div className="min-w-0">
                                   <p className="text-[11px] font-semibold text-cyan-100 flex items-center gap-1">
@@ -1264,7 +1288,11 @@ export default function SettingsModal(props: SettingsModalProps) {
 
                               {/* Micro-Features Grid */}
                               {showAboutFeatures && (
-                                <div className="space-y-2.5 pt-2 border-t border-cyan-500/20 text-[10px] text-slate-300 animate-fade-in max-h-72 overflow-y-auto pr-1">
+                                <div className={`space-y-2.5 pt-2 border-t border-cyan-500/20 text-[10px] text-slate-300 animate-fade-in max-h-72 overflow-y-auto pr-1 transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                                  isScrollingDown
+                                    ? "translate-y-16 opacity-0 pointer-events-none"
+                                    : "translate-y-0 opacity-100 pointer-events-auto"
+                                }`}>
                                   {/* Category 1: Chat & Messaging */}
                                   <div className="space-y-1.5">
                                     <p className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">💬 Chat &amp; Messaging</p>
@@ -1276,29 +1304,6 @@ export default function SettingsModal(props: SettingsModalProps) {
                                       <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
                                         <p className="font-semibold text-emerald-300">✓✓ Live Status Ticks</p>
                                         <p className="text-slate-400 text-[9px] leading-relaxed">Sent (1 tick), Delivered (2 grey), and Seen (2 glowing green).</p>
-                                      </div>
-                                      <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
-                                        <p className="font-semibold text-sky-300">🎙️ Voice Memos</p>
-                                        <p className="text-slate-400 text-[9px] leading-relaxed">One-tap audio recording with interactive waveform players.</p>
-                                      </div>
-                                      <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
-                                        <p className="font-semibold text-purple-300">📍 Smart Scroll Memory</p>
-                                        <p className="text-slate-400 text-[9px] leading-relaxed">Browses history without jumping, auto-snaps on new messages.</p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Category 2: Privacy & Security */}
-                                  <div className="space-y-1.5 pt-1 border-t border-cyan-500/20">
-                                    <p className="text-[10px] font-bold text-amber-300 uppercase tracking-wider">🛡️ Privacy &amp; Security</p>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                      <div className="rounded-xl border border-amber-500/20 bg-slate-950/60 p-2">
-                                        <p className="font-semibold text-amber-300">🔒 E2E Encryption</p>
-                                        <p className="text-slate-400 text-[9px] leading-relaxed">Device-to-device cryptography with Curve25519.</p>
-                                      </div>
-                                      <div className="rounded-xl border border-amber-500/20 bg-slate-950/60 p-2">
-                                        <p className="font-semibold text-amber-300">24-Hour Ephemeral Media</p>
-                                        <p className="text-slate-400 text-[9px] leading-relaxed">Photos &amp; audio self-clean automatically.</p>
                                       </div>
                                     </div>
                                   </div>
