@@ -2780,8 +2780,6 @@ html.perf-low .settings-backdrop-exit {
 /* Tech-Giant Compositor Layer & Scroll Container Isolation */
 .tech-giant-scroll-container {
   overscroll-behavior: contain;
-  contain: paint layout;
-  transform: translateZ(0);
   -webkit-overflow-scrolling: touch;
 }
 
