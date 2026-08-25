@@ -234,28 +234,20 @@ export default function SettingsModal(props: SettingsModalProps) {
   const [showAboutFeatures, setShowAboutFeatures] = useState(false);
   const [isScrollingDown, setIsScrollingDown] = useState(false);
   const lastScrollYRef = React.useRef(0);
-  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const currentY = e.currentTarget.scrollTop;
     const diff = currentY - lastScrollYRef.current;
 
-    if (currentY <= 15) {
+    // Anti-chatter threshold (prevents micro-oscillations and flickering)
+    if (currentY <= 10) {
       setIsScrollingDown(false);
-    } else if (diff > 4) {
-      // Scrolling down -> smoothly fade & glide down
+    } else if (diff > 12) {
       setIsScrollingDown(true);
-    } else if (diff < -4) {
-      // Scrolling up -> smoothly bloom back
+    } else if (diff < -12) {
       setIsScrollingDown(false);
     }
     lastScrollYRef.current = currentY;
-
-    // Reset softly when user stops scrolling
-    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-    scrollTimeoutRef.current = setTimeout(() => {
-      setIsScrollingDown(false);
-    }, 1200);
   };
 
   const interestsCategories = [
@@ -1207,35 +1199,16 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
                         </div>
 
-                            {/* About Q-Link & Micro-Features Showcase Section - Masked Secret-Line Downward Slide & Glass Shift */}
-                            <div className={`relative rounded-2xl overflow-hidden backdrop-blur-2xl transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity,max-height,padding,background-color,border-color] ${
+                            {/* About Q-Link & Micro-Features Showcase Section - 100% Zero-Flicker Masked Secret-Line Downward Slide */}
+                            <div className={`relative rounded-2xl overflow-hidden p-4 border transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity,filter] ${
                               isScrollingDown
-                                ? "max-h-12 p-3 border border-cyan-500/20 bg-gradient-to-r from-cyan-950/40 via-slate-950/70 to-blue-950/40 shadow-[0_4px_20px_0_rgba(6,182,212,0.1)] ring-1 ring-cyan-500/10"
-                                : "max-h-[420px] p-4 border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 shadow-[0_8px_32px_0_rgba(6,182,212,0.2),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 space-y-3"
+                                ? "border-cyan-500/15 bg-gradient-to-b from-cyan-950/20 via-slate-950/40 to-slate-900/30 backdrop-blur-xl shadow-[0_4px_16px_0_rgba(6,182,212,0.08)] ring-1 ring-cyan-500/10"
+                                : "border-cyan-500/30 bg-gradient-to-b from-cyan-950/40 via-slate-950/60 to-slate-900/50 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(6,182,212,0.25),inset_0_1px_1px_0_rgba(255,255,255,0.15)] ring-1 ring-cyan-400/25 space-y-3"
                             }`}>
-                              {/* Sleek Compact Indicator when collapsed */}
-                              <div className={`flex items-center justify-between transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                                isScrollingDown
-                                  ? "opacity-100 translate-y-0 scale-100"
-                                  : "opacity-0 -translate-y-4 scale-95 pointer-events-none absolute inset-x-3 top-3"
-                              }`}>
-                                <div className="flex items-center gap-2">
-                                  <div className="h-5 w-5 rounded-lg bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_0_10px_rgba(6,182,212,0.4)]">
-                                    <span className="text-white font-black text-[9px]">QL</span>
-                                  </div>
-                                  <span className="text-[11px] font-bold text-cyan-200">
-                                    Q-Link Platform v3.0 Quantum
-                                  </span>
-                                </div>
-                                <span className="text-[9px] font-mono text-cyan-400/80 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-400/20">
-                                  🖥️ Windows App
-                                </span>
-                              </div>
-
                               {/* Top Header Row - Slides Down Past Secret Line on Scroll */}
-                              <div className={`flex items-center justify-between transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] ${
+                              <div className={`flex items-center justify-between transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity] ${
                                 isScrollingDown
-                                  ? "translate-y-12 opacity-0 scale-95 pointer-events-none"
+                                  ? "translate-y-8 opacity-0 scale-[0.97] pointer-events-none"
                                   : "translate-y-0 opacity-100 scale-100 pointer-events-auto"
                               }`}>
                                 <div className="flex items-center gap-2.5">
@@ -1264,9 +1237,9 @@ export default function SettingsModal(props: SettingsModalProps) {
                               </div>
 
                               {/* Windows Desktop App Direct Link Box - Shifts and Slides Downward Past Secret Line */}
-                              <div className={`rounded-xl border border-cyan-400/30 bg-cyan-950/40 p-2.5 flex items-center justify-between gap-2 shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-cyan-400/60 hover:bg-cyan-950/50 will-change-[transform,opacity] ${
+                              <div className={`rounded-xl border border-cyan-400/30 bg-cyan-950/40 p-2.5 flex items-center justify-between gap-2 shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-cyan-400/60 hover:bg-cyan-950/50 will-change-[transform,opacity] ${
                                 isScrollingDown
-                                  ? "translate-y-20 opacity-0 scale-90 pointer-events-none"
+                                  ? "translate-y-12 opacity-0 scale-[0.95] pointer-events-none"
                                   : "translate-y-0 opacity-100 scale-100 pointer-events-auto"
                               }`}>
                                 <div className="min-w-0">
@@ -1288,9 +1261,9 @@ export default function SettingsModal(props: SettingsModalProps) {
 
                               {/* Micro-Features Grid */}
                               {showAboutFeatures && (
-                                <div className={`space-y-2.5 pt-2 border-t border-cyan-500/20 text-[10px] text-slate-300 animate-fade-in max-h-72 overflow-y-auto pr-1 transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                                <div className={`space-y-2.5 pt-2 border-t border-cyan-500/20 text-[10px] text-slate-300 animate-fade-in max-h-72 overflow-y-auto pr-1 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
                                   isScrollingDown
-                                    ? "translate-y-16 opacity-0 pointer-events-none"
+                                    ? "translate-y-10 opacity-0 pointer-events-none"
                                     : "translate-y-0 opacity-100 pointer-events-auto"
                                 }`}>
                                   {/* Category 1: Chat & Messaging */}
