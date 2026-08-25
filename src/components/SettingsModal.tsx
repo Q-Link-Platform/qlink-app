@@ -1208,10 +1208,10 @@ export default function SettingsModal(props: SettingsModalProps) {
                         </div>
 
                             {/* {/* About Q-Link & Micro-Features Showcase Section - Samsung One UI 8.5 Smooth Fade-Out & Bloom Animation */}
-                            <div className={`rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(6,182,212,0.12),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 space-y-3 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity,filter] ${
+                            <div className={`rounded-2xl p-4 space-y-3 transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[transform,opacity,filter,background-color,border-color] ${
                               isScrollingDown
-                                ? "opacity-25 translate-y-3 scale-[0.98] blur-[0.4px]"
-                                : "opacity-100 translate-y-0 scale-100 blur-0 shadow-[0_8px_32px_0_rgba(6,182,212,0.2)]"
+                                ? "opacity-0 translate-y-4 scale-[0.98] blur-[0.5px] border border-transparent bg-transparent shadow-none ring-0 pointer-events-none"
+                                : "opacity-100 translate-y-0 scale-100 blur-0 border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(6,182,212,0.2),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 pointer-events-auto"
                             }`}>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2.5">
@@ -1240,7 +1240,11 @@ export default function SettingsModal(props: SettingsModalProps) {
                               </div>
 
                               {/* Windows Desktop App Direct Link */}
-                              <div className="rounded-xl border border-cyan-400/30 bg-cyan-950/40 p-2.5 flex items-center justify-between gap-2 shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all hover:border-cyan-400/60 hover:bg-cyan-950/50">
+                              <div className={`rounded-xl p-2.5 flex items-center justify-between gap-2 transition-all duration-800 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                                isScrollingDown
+                                  ? "border border-transparent bg-transparent shadow-none"
+                                  : "border border-cyan-400/30 bg-cyan-950/40 shadow-[0_0_15px_rgba(6,182,212,0.15)] hover:border-cyan-400/60 hover:bg-cyan-950/50"
+                              }`}>
                                 <div className="min-w-0">
                                   <p className="text-[11px] font-semibold text-cyan-100 flex items-center gap-1">
                                     <span>🖥️</span> Standalone Windows App (.exe)
