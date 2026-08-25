@@ -5263,21 +5263,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               >
                 About &amp; Features
               </a>
-              <a
-                href="/llms.txt"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-full border border-white/10 bg-slate-900/60 px-3 py-1 font-medium text-slate-300 hover:border-cyan-400/40 hover:text-white transition-all"
-              >
-                AI Knowledge (llms.txt)
-              </a>
-              <a
-                href="/downloads/Q-Link-Setup.exe"
-                download="Q-Link-Setup.exe"
-                className="rounded-full border border-white/10 bg-slate-900/60 px-3 py-1 font-medium text-slate-300 hover:border-cyan-400/40 hover:text-white transition-all"
-              >
-                Windows .exe
-              </a>
             </div>
           </div>
 
