@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !(session.user as any).id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
     }
 
     const meId = (session.user as any).id as string;
@@ -21,17 +21,29 @@ export async function POST(req: NextRequest) {
     const { toHandle, voiceUrl, noteText } = body;
 
     if (!toHandle || typeof toHandle !== "string") {
-      return NextResponse.json({ error: "Recipient handle is required" }, { status: 400 });
+      return NextResponse.json({ error: "Recipient handle is required." }, { status: 400 });
     }
 
-    // Resolve target user
-    const recipient = await prisma.user.findUnique({
-      where: { handle: toHandle },
+    // Clean & normalize recipient handle
+    const cleanHandle = toHandle.replace(/^@/, "").trim();
+
+    // Resolve target user (by handle, id, or email, case-insensitive)
+    const recipient = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { handle: { equals: cleanHandle, mode: "insensitive" } },
+          { id: cleanHandle },
+          { email: { equals: cleanHandle, mode: "insensitive" } }
+        ]
+      },
       select: { id: true, handle: true, name: true },
     });
 
     if (!recipient) {
-      return NextResponse.json({ error: "Recipient user not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: `Recipient "@${cleanHandle}" was not found in the network.` },
+        { status: 404 }
+      );
     }
 
     // Resolve sender details
@@ -40,17 +52,13 @@ export async function POST(req: NextRequest) {
       select: { id: true, handle: true, name: true },
     });
 
-    const senderHandle = sender?.handle || "Someone";
-    const senderName = sender?.name || `@${senderHandle}`;
+    const senderHandle = sender?.handle || (session.user as any).handle || "Someone";
 
     // Compute room ID
     const userIds = [meId, recipient.id].sort();
     const roomId = `dm:${userIds[0]}:${userIds[1]}`;
 
-    // Rate limit check bypassed for testing as requested
-    const recentBeaconsCount = 0;
-
-    const beaconMessageContent = `⚡ [Q-BEACON_EMERGENCY]: ${voiceUrl || noteText || "Priority Emergency Pulse"}`;
+    const beaconMessageContent = `🚨 [Q-BEACON_EMERGENCY]: ${noteText || voiceUrl || "Priority Emergency Pulse"}`;
 
     // Save message record in database
     const message = await prisma.message.create({
@@ -58,50 +66,61 @@ export async function POST(req: NextRequest) {
         roomId,
         senderId: meId,
         content: beaconMessageContent,
+        status: "SENT",
       },
     });
 
-    // Send High-Priority VAPID WebPush to recipient's registered devices
-    const pushSubscriptions = await prisma.pushSubscription.findMany({
-      where: { userId: recipient.id },
-    });
+    // Send High-Priority VAPID WebPush to recipient's registered devices if available
+    try {
+      const pushSubscriptions = await prisma.pushSubscription.findMany({
+        where: { userId: recipient.id },
+      });
 
-    const pushPayload = {
-      title: `⚡ EMERGENCY BEACON from @${senderHandle}`,
-      body: noteText ? `"${noteText}" - Tap to view & play voice snippet` : `Urgent Priority Voice Pulse - Tap to play!`,
-      icon: "/icon.png",
-      url: `/?peer=${encodeURIComponent(senderHandle)}&beacon=1&msgId=${message.id}`,
-      urgency: "high" as const,
-      requireInteraction: true,
-      vibrate: [500, 200, 500, 200, 1000],
-      tag: `beacon-${message.id}`,
-      data: {
-        type: "EMERGENCY_BEACON",
-        senderHandle,
-        voiceUrl: voiceUrl || null,
-        messageId: message.id,
-      },
-    };
+      if (pushSubscriptions.length > 0) {
+        const pushPayload = {
+          title: `🚨 EMERGENCY BEACON from @${senderHandle}`,
+          body: noteText ? `"${noteText}" - Tap to open emergency channel` : `Urgent Priority Beacon - Tap to view!`,
+          icon: "/icon.png",
+          url: `/?peer=${encodeURIComponent(senderHandle)}&beacon=1&msgId=${message.id}`,
+          urgency: "high" as const,
+          requireInteraction: true,
+          vibrate: [500, 200, 500, 200, 1000],
+          tag: `beacon-${message.id}`,
+          data: {
+            type: "EMERGENCY_BEACON",
+            senderHandle,
+            voiceUrl: voiceUrl || null,
+            messageId: message.id,
+          },
+        };
 
-    // Dispatch push notifications synchronously to ensure Vercel serverless context stays alive until delivery
-    await Promise.allSettled(
-      pushSubscriptions.map((sub) =>
-        sendPushNotification(
-          { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
-          pushPayload
-        )
-      )
-    );
+        await Promise.allSettled(
+          pushSubscriptions.map((sub) =>
+            sendPushNotification(
+              { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+              pushPayload
+            ).catch((e) => {
+              console.warn(`[api/chat/beacon] Push dispatch failed for subscription:`, e?.message);
+            })
+          )
+        );
+      }
+    } catch (pushErr: any) {
+      console.warn("[api/chat/beacon] Push notification system warning:", pushErr?.message);
+    }
 
     return NextResponse.json({
       ok: true,
       messageId: message.id,
       senderHandle,
       recipientHandle: recipient.handle,
-      quotaRemaining: 2 - recentBeaconsCount,
+      quotaRemaining: 2,
     });
   } catch (err: any) {
     console.error("[api/chat/beacon] Emergency beacon error:", err);
-    return NextResponse.json({ error: "Failed to dispatch emergency beacon" }, { status: 500 });
+    return NextResponse.json(
+      { error: err?.message || "Failed to dispatch emergency beacon." },
+      { status: 500 }
+    );
   }
 }
