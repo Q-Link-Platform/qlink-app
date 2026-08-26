@@ -5275,11 +5275,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             >
               {/* Subtle Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
-              <div className="flex h-8 w-8 items-center justify-center overflow-visible pr-1.5 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-110 group-hover:-rotate-3">
+              <div className="flex h-8 w-8 items-center justify-center overflow-visible pr-1.5">
                 <img
                   src="/google-icon.ico"
                   alt="Google"
-                  className="h-8 w-8 object-contain -ml-px"
+                  className="h-8 w-8 object-contain -ml-px animate-smooth-rotate-120 will-change-transform"
+                  style={{ animationDelay: '0s' }}
                 />
               </div>
               <span className="text-center tracking-wide">Continue with Google</span>
@@ -5293,11 +5294,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             >
               {/* Subtle Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
-              <div className="flex h-6 w-6 items-center justify-center overflow-visible transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-110 group-hover:rotate-3">
+              <div className="flex h-6 w-6 items-center justify-center overflow-visible">
                 <img
                   src="/microsoft-icon.ico"
                   alt="Microsoft"
-                  className="h-5.5 w-5.5 object-contain -ml-px"
+                  className="h-5.5 w-5.5 object-contain -ml-px animate-smooth-rotate-microsoft will-change-transform"
+                  style={{ animationDelay: '0.6s' }}
                 />
               </div>
               <span className="text-center whitespace-nowrap pl-3 tracking-wide">Continue with Microsoft</span>
@@ -5311,11 +5313,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             >
               {/* Subtle Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
-              <div className="flex h-6 w-6 items-center justify-center overflow-visible transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-110 group-hover:-rotate-3">
+              <div className="flex h-6 w-6 items-center justify-center overflow-visible">
                 <img
                   src="/github-icon.ico"
                   alt="GitHub"
-                  className="h-6 w-6 object-contain -ml-px"
+                  className="h-6 w-6 object-contain -ml-px animate-smooth-rotate-120 will-change-transform"
+                  style={{ animationDelay: '1.2s' }}
                 />
               </div>
               <span className="text-center pr-2 tracking-wide">Continue with GitHub</span>
