@@ -5270,11 +5270,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl backdrop-blur-xl">
             {/* Google Sign-in Button */}
             <button
-              className="group relative overflow-hidden grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700/80 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-md transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 hover:shadow-[0_12px_24px_-6px_rgba(0,0,0,0.35),0_0_20px_rgba(255,255,255,0.25)] hover:ring-2 hover:ring-slate-300/50 active:translate-y-0 active:scale-[0.98]"
+              className="group relative overflow-hidden grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700/80 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
               onClick={() => signIn("google")}
             >
-              {/* Subtle Light Beam Sheen on Exact Hover */}
-              <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
+              {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
+              <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/[0.08] to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
               <div className="flex h-8 w-8 items-center justify-center overflow-visible pr-1.5">
                 <img
                   src="/google-icon.ico"
@@ -5289,11 +5289,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
             {/* Microsoft Sign-in Button */}
             <button
-              className="group relative overflow-hidden mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700/80 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-md transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 hover:shadow-[0_12px_24px_-6px_rgba(0,0,0,0.35),0_0_20px_rgba(255,255,255,0.25)] hover:ring-2 hover:ring-slate-300/50 active:translate-y-0 active:scale-[0.98]"
+              className="group relative overflow-hidden mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700/80 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
               onClick={() => signIn("azure-ad")}
             >
-              {/* Subtle Light Beam Sheen on Exact Hover */}
-              <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
+              {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
+              <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/[0.08] to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
               <div className="flex h-6 w-6 items-center justify-center overflow-visible">
                 <img
                   src="/microsoft-icon.ico"
@@ -5308,11 +5308,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
             {/* GitHub Sign-in Button */}
             <button
-              className="group relative overflow-hidden mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700/80 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-md transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-50 hover:shadow-[0_12px_24px_-6px_rgba(0,0,0,0.35),0_0_20px_rgba(255,255,255,0.25)] hover:ring-2 hover:ring-slate-300/50 active:translate-y-0 active:scale-[0.98]"
+              className="group relative overflow-hidden mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700/80 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
               onClick={() => signIn("github")}
             >
-              {/* Subtle Light Beam Sheen on Exact Hover */}
-              <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
+              {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
+              <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/[0.08] to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
               <div className="flex h-6 w-6 items-center justify-center overflow-visible">
                 <img
                   src="/github-icon.ico"
@@ -5327,15 +5327,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
             {/* Unified Phone Login/Signup Button */}
             <button
-              className="group relative overflow-hidden mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-cyan-500/20 bg-slate-800/40 text-slate-200 px-4 py-3 text-sm font-medium transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:border-cyan-400/50 hover:bg-slate-800/80 hover:text-white hover:shadow-[0_12px_24px_-6px_rgba(0,0,0,0.4),0_0_20px_rgba(6,182,212,0.25)] hover:ring-1 hover:ring-cyan-400/30 active:translate-y-0 active:scale-[0.98]"
+              className="group relative overflow-hidden mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-cyan-500/20 bg-slate-800/40 text-slate-200 px-4 py-3 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-cyan-400/50 hover:bg-slate-800/80 hover:text-white hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.45),0_0_25px_rgba(6,182,212,0.3)] hover:ring-1 hover:ring-cyan-400/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
               onClick={() => {
                 setShowNoAccountModal(true);
                 setPhoneSignInStep("menu");
               }}
             >
-              {/* Subtle Cyan Light Beam Sheen on Exact Hover */}
-              <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full" />
-              <div className="flex h-6 w-6 items-center justify-center overflow-hidden transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:scale-110">
+              {/* Silky Smooth Cyan Light Beam Sheen on Exact Hover */}
+              <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-cyan-400/15 to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
+              <div className="flex h-6 w-6 items-center justify-center overflow-hidden">
                 <span className="text-lg">📱</span>
               </div>
               <span className="text-center pr-2 tracking-wide">Continue with Phone</span>
