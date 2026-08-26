@@ -278,7 +278,7 @@ export default function SettingsModal(props: SettingsModalProps) {
 
   const modalContent = (
                       <div
-                        className={`fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-xl px-4 ${showSettings ? (isSettingsAnimating ? 'settings-backdrop-enter' : '') : 'settings-backdrop-exit'
+                        className={`fixed inset-0 z-[1000] flex items-end sm:items-center justify-center bg-black/60 sm:bg-black/40 backdrop-blur-xl sm:px-4 ${showSettings ? (isSettingsAnimating ? 'settings-backdrop-enter' : '') : 'settings-backdrop-exit'
                           }`}
                         onMouseDown={() => {
                           if (showOnboarding) return;
@@ -287,10 +287,10 @@ export default function SettingsModal(props: SettingsModalProps) {
                         }}
                       >
                         <div
-                          className={`w-full max-w-[390px] max-h-[88vh] flex flex-col rounded-[32px] transition-all duration-300 ${
+                          className={`w-full h-[100dvh] sm:h-auto sm:max-h-[88vh] sm:max-w-[410px] flex flex-col rounded-none sm:rounded-[32px] transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
-                              ? "border border-cyan-500/30 bg-gradient-to-b from-slate-900/60 via-slate-950/75 to-[#030712]/90 backdrop-blur-3xl p-5 text-[12px] text-white shadow-[0_0_50px_rgba(6,182,212,0.18),0_25px_70px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.4),inset_0_0_30px_rgba(6,182,212,0.08)] ring-1 ring-cyan-400/25"
-                              : "border border-white/20 bg-gradient-to-b from-white/[0.12] via-slate-900/40 to-slate-950/60 backdrop-blur-3xl p-5 text-[12px] text-white shadow-[0_25px_70px_rgba(0,0,0,0.6),inset_0_1px_1.5px_rgba(255,255,255,0.4),inset_0_0_30px_rgba(255,255,255,0.03)] ring-1 ring-white/10"
+                              ? "border-0 sm:border border-cyan-500/30 bg-gradient-to-b from-slate-950/95 via-[#030712]/95 to-black/95 sm:from-slate-900/60 sm:via-slate-950/75 sm:to-[#030712]/90 backdrop-blur-3xl p-4 sm:p-5 text-[12px] text-white shadow-[0_0_50px_rgba(6,182,212,0.18),0_25px_70px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.4),inset_0_0_30px_rgba(6,182,212,0.08)] ring-0 sm:ring-1 ring-cyan-400/25"
+                              : "border-0 sm:border border-white/20 bg-gradient-to-b from-slate-950/95 via-slate-900/95 to-black/95 sm:from-white/[0.12] sm:via-slate-900/40 sm:to-slate-950/60 backdrop-blur-3xl p-4 sm:p-5 text-[12px] text-white shadow-[0_25px_70px_rgba(0,0,0,0.6),inset_0_1px_1.5px_rgba(255,255,255,0.4),inset_0_0_30px_rgba(255,255,255,0.03)] ring-0 sm:ring-1 ring-white/10"
                           } ${showSettings ? (isSettingsAnimating ? 'settings-modal-enter' : '') : 'settings-modal-exit'}`}
                           style={{
                             boxShadow: isSettingsAnimating
@@ -303,6 +303,10 @@ export default function SettingsModal(props: SettingsModalProps) {
                           <div className={`shrink-0 space-y-2 pb-3 border-b transition-all duration-300 ${
                             settingsGlassTheme === "quantum" ? "border-cyan-500/20" : "border-white/[0.12]"
                           }`}>
+                            {/* Mobile Pull-Down Indicator Bar (Visible on mobile screens) */}
+                            <div className="flex sm:hidden justify-center pb-1">
+                              <div className="h-1 w-10 rounded-full bg-slate-600/60" />
+                            </div>
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2.5">
                                 <span className="relative flex h-2.5 w-2.5">
@@ -411,7 +415,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
 
                           {/* Scrollable Content Body */}
-                          <div onScroll={handleSettingsScroll} onClick={restoreCard} onTouchStart={restoreCard} className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
+                          <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [touch-action:pan-y] overscroll-contain">
                             {/* Account Section */}
                             <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
