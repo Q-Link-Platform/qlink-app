@@ -232,39 +232,25 @@ export default function SettingsModal(props: SettingsModalProps) {
 
   const isElectron = typeof window !== "undefined" && Boolean((window as any).electronAPI);
   const [showAboutFeatures, setShowAboutFeatures] = useState(false);
-  const cardRef = React.useRef<HTMLDivElement>(null);
+  const [isCardCollapsed, setIsCardCollapsed] = useState(false);
   const lastScrollYRef = React.useRef(0);
-  const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const restoreCard = () => {
-    if (cardRef.current) {
-      cardRef.current.style.transform = "translateY(0px) scale(1)";
-      cardRef.current.style.opacity = "1";
-      cardRef.current.style.filter = "blur(0px)";
-    }
+    setIsCardCollapsed(false);
   };
 
   const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
     const currentY = e.currentTarget.scrollTop;
     const diff = currentY - lastScrollYRef.current;
     lastScrollYRef.current = currentY;
 
-    if (currentY > 20 && diff > 2.5) {
-      // Scrolling down -> smoothly glide down & fade soft
-      cardRef.current.style.transform = "translateY(12px) scale(0.985)";
-      cardRef.current.style.opacity = "0.35";
-      cardRef.current.style.filter = "blur(0.4px)";
-    } else if (diff < -1.5 || currentY <= 15) {
-      // Sensitive scroll up or top -> bloom immediately back to normal
-      restoreCard();
+    if (currentY > 35 && diff > 5) {
+      // One UI / ColorOS Velocity Clamped Scroll Down -> Smooth Fluid Collapse
+      if (!isCardCollapsed) setIsCardCollapsed(true);
+    } else if (diff < -5 || currentY <= 15) {
+      // One UI / ColorOS Scroll Up or Top -> Spring Bloom Emerge
+      if (isCardCollapsed) setIsCardCollapsed(false);
     }
-
-    // Fast auto-restore when user pauses or stops scrolling
-    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-    scrollTimeoutRef.current = setTimeout(() => {
-      restoreCard();
-    }, 350);
   };
 
   const interestsCategories = [
@@ -1216,80 +1202,99 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
                         </div>
 
-                            {/* About Q-Link & Standalone Windows App Card - Stable High-End Glassmorphism */}
-                            <div ref={cardRef} onMouseEnter={restoreCard} onTouchStart={restoreCard} style={{ transition: "transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }} className="rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(6,182,212,0.15),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 space-y-3 will-change-[transform,opacity,filter] cursor-default">
-                              {/* Header Row */}
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2.5">
-                                  <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.5)] ring-1 ring-cyan-300/40 shrink-0">
-                                    <span className="text-white font-black text-xs tracking-wider">QL</span>
-                                  </div>
-                                  <div>
-                                    <h4 className="text-[12px] font-bold text-white flex items-center gap-1.5">
-                                      Q-Link Platform
-                                      <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
-                                        v3.0 Quantum
-                                      </span>
-                                    </h4>
-                                    <p className="text-[10px] text-slate-300">
-                                      Next-Gen Private Messaging &amp; Social Network
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => setShowAboutFeatures(!showAboutFeatures)}
-                                  className="text-[11px] font-semibold text-cyan-300 hover:text-cyan-200 transition-colors"
+                            {/* About Q-Link & Standalone Windows App Card - ColorOS Aquamorphic / One UI Fluid Grid Motion */}
+                            <div
+                              onClick={restoreCard}
+                              className={`grid transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                                isCardCollapsed
+                                  ? "grid-rows-[0fr] opacity-0 pointer-events-none mt-0 select-none"
+                                  : "grid-rows-[1fr] opacity-100 pointer-events-auto mt-3 select-auto"
+                              }`}
+                            >
+                              <div className="overflow-hidden">
+                                <div
+                                  className={`rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(6,182,212,0.15),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 space-y-3 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+                                    isCardCollapsed ? "translate-y-8 scale-[0.96]" : "translate-y-0 scale-100"
+                                  }`}
                                 >
-                                  {showAboutFeatures ? "Hide Details" : "View Features"}
-                                </button>
-                              </div>
-
-                              {/* Windows Desktop App Box */}
-                              <div className="rounded-xl border border-cyan-400/30 bg-cyan-950/40 p-2.5 flex items-center justify-between gap-2 shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all hover:border-cyan-400/60 hover:bg-cyan-950/50">
-                                <div className="min-w-0">
-                                  <p className="text-[11px] font-semibold text-cyan-100 flex items-center gap-1">
-                                    <span>🖥️</span> Standalone Windows App (.exe)
-                                  </p>
-                                  <p className="text-[10px] text-slate-300 truncate">
-                                    System Tray background mode &amp; zero-flicker alerts
-                                  </p>
-                                </div>
-                                <a
-                                  href="/downloads/Q-Link-Setup.exe"
-                                  download="Q-Link-Setup.exe"
-                                  className="shrink-0 rounded-lg bg-gradient-to-r from-cyan-400 to-cyan-500 px-3 py-1 text-[10px] font-bold text-slate-950 hover:from-cyan-300 hover:to-cyan-400 transition-all shadow-[0_0_12px_rgba(6,182,212,0.4)] active:scale-95"
-                                >
-                                  Download
-                                </a>
-                              </div>
-
-                              {/* Micro-Features Expandable Grid */}
-                              {showAboutFeatures && (
-                                <div className="space-y-2.5 pt-2 border-t border-cyan-500/20 text-[10px] text-slate-300 animate-fade-in max-h-72 overflow-y-auto pr-1">
-                                  <div className="space-y-1.5">
-                                    <p className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">💬 Chat &amp; Messaging</p>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                      <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
-                                        <p className="font-semibold text-cyan-300">⚡ Dynamic Recency Ranking</p>
-                                        <p className="text-slate-400 text-[9px] leading-relaxed">Active and newly messaged chats instantly bubble to the top.</p>
+                                  {/* Header Row */}
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.5)] ring-1 ring-cyan-300/40 shrink-0">
+                                        <span className="text-white font-black text-xs tracking-wider">QL</span>
                                       </div>
-                                      <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
-                                        <p className="font-semibold text-emerald-300">✓✓ Live Status Ticks</p>
-                                        <p className="text-slate-400 text-[9px] leading-relaxed">Sent (1 tick), Delivered (2 grey), and Seen (2 glowing green).</p>
-                                      </div>
-                                      <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
-                                        <p className="font-semibold text-sky-300">🎙️ Voice Memos</p>
-                                        <p className="text-slate-400 text-[9px] leading-relaxed">One-tap audio recording with interactive waveform players.</p>
-                                      </div>
-                                      <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
-                                        <p className="font-semibold text-purple-300">📍 Smart Scroll Memory</p>
-                                        <p className="text-slate-400 text-[9px] leading-relaxed">Browses history without jumping, auto-snaps on new messages.</p>
+                                      <div>
+                                        <h4 className="text-[12px] font-bold text-white flex items-center gap-1.5">
+                                          Q-Link Platform
+                                          <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                                            v3.0 Quantum
+                                          </span>
+                                        </h4>
+                                        <p className="text-[10px] text-slate-300">
+                                          Next-Gen Private Messaging &amp; Social Network
+                                        </p>
                                       </div>
                                     </div>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowAboutFeatures(!showAboutFeatures);
+                                      }}
+                                      className="text-[11px] font-semibold text-cyan-300 hover:text-cyan-200 transition-colors"
+                                    >
+                                      {showAboutFeatures ? "Hide Details" : "View Features"}
+                                    </button>
                                   </div>
+
+                                  {/* Windows Desktop App Box */}
+                                  <div className="rounded-xl border border-cyan-400/30 bg-cyan-950/40 p-2.5 flex items-center justify-between gap-2 shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all hover:border-cyan-400/60 hover:bg-cyan-950/50">
+                                    <div className="min-w-0">
+                                      <p className="text-[11px] font-semibold text-cyan-100 flex items-center gap-1">
+                                        <span>🖥️</span> Standalone Windows App (.exe)
+                                      </p>
+                                      <p className="text-[10px] text-slate-300 truncate">
+                                        System Tray background mode &amp; zero-flicker alerts
+                                      </p>
+                                    </div>
+                                    <a
+                                      href="/downloads/Q-Link-Setup.exe"
+                                      download="Q-Link-Setup.exe"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="shrink-0 rounded-lg bg-gradient-to-r from-cyan-400 to-cyan-500 px-3 py-1 text-[10px] font-bold text-slate-950 hover:from-cyan-300 hover:to-cyan-400 transition-all shadow-[0_0_12px_rgba(6,182,212,0.4)] active:scale-95"
+                                    >
+                                      Download
+                                    </a>
+                                  </div>
+
+                                  {/* Micro-Features Expandable Grid */}
+                                  {showAboutFeatures && (
+                                    <div className="space-y-2.5 pt-2 border-t border-cyan-500/20 text-[10px] text-slate-300 animate-fade-in max-h-72 overflow-y-auto pr-1">
+                                      <div className="space-y-1.5">
+                                        <p className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">💬 Chat &amp; Messaging</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                          <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
+                                            <p className="font-semibold text-cyan-300">⚡ Dynamic Recency Ranking</p>
+                                            <p className="text-slate-400 text-[9px] leading-relaxed">Active and newly messaged chats instantly bubble to the top.</p>
+                                          </div>
+                                          <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
+                                            <p className="font-semibold text-emerald-300">✓✓ Live Status Ticks</p>
+                                            <p className="text-slate-400 text-[9px] leading-relaxed">Sent (1 tick), Delivered (2 grey), and Seen (2 glowing green).</p>
+                                          </div>
+                                          <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
+                                            <p className="font-semibold text-sky-300">🎙️ Voice Memos</p>
+                                            <p className="text-slate-400 text-[9px] leading-relaxed">One-tap audio recording with interactive waveform players.</p>
+                                          </div>
+                                          <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
+                                            <p className="font-semibold text-purple-300">📍 Smart Scroll Memory</p>
+                                            <p className="text-slate-400 text-[9px] leading-relaxed">Browses history without jumping, auto-snaps on new messages.</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
-                              )}
+                              </div>
                             </div>
 
                           {/* Fixed Footer */}
