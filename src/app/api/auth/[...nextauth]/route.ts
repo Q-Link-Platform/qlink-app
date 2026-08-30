@@ -286,6 +286,11 @@ export const authOptions: NextAuthOptions = {
         //   return { expires: new Date(0).toISOString() } as any;
         // }
 
+        if (!dbUser) {
+          // User was deleted/reset from DB - invalidate stale session token immediately
+          return { expires: new Date(0).toISOString(), user: null } as any;
+        }
+
         if (dbUser) {
           // Expose database real-time attributes to session
           sUser.points = dbUser.points ?? 0;
