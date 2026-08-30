@@ -858,20 +858,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 }) {
   const { data: session, status, update: updateSession } = useSession();
 
-  // Temporary bypass for testing animations
-  const isTempBypass = typeof window !== 'undefined' && localStorage.getItem('temp_bypass') === 'true';
-  const mockSession = isTempBypass ? {
-    user: {
-      name: "Test User",
-      email: "test@example.com",
-      image: null,
-      handle: "TEST_USER"
-    },
-    expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-  } : null;
-
-  const effectiveSession = session || mockSession;
-  const myId = (effectiveSession?.user as any)?.id;
+  // Strict authentication enforcement - no bypasses
+  const myId = (session?.user as any)?.id;
   const [mode, setMode] = useState<ViewMode>("home");
 
   const [outgoing, setOutgoing] = useState<OutgoingRequest[]>(() => {
@@ -2095,11 +2083,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   useEffect(() => {
     const checkUserOnboarding = async () => {
-      if (status === "authenticated" && effectiveSession && canUseDom) {
-        setDisplayName(effectiveSession.user?.name || null);
-        setCurrentHandle((effectiveSession.user as any)?.handle || null);
-        if (effectiveSession.user?.image) {
-          setProfilePicUrl(getHighResProfilePic(effectiveSession.user.image));
+      if (status === "authenticated" && session && canUseDom) {
+        setDisplayName(session.user?.name || null);
+        setCurrentHandle((session.user as any)?.handle || null);
+        if (session.user?.image) {
+          setProfilePicUrl(getHighResProfilePic(session.user.image));
         }
 
         // Check if user has completed onboarding (you can store this in localStorage or backend)
@@ -3256,13 +3244,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Initialize E2E Encryption Keys on login
   useEffect(() => {
-    if (!effectiveSession?.user) return;
+    if (!session?.user) return;
 
     const setupE2EKeys = async () => {
       try {
-        const serverPublicKey = (effectiveSession.user as any).publicKeyString;
-        const serverEncryptedPrivateKey = (effectiveSession.user as any).encryptedPrivateKey;
-        const masterSeed = (effectiveSession.user as any).e2eMasterSeed;
+        const serverPublicKey = (session.user as any).publicKeyString;
+        const serverEncryptedPrivateKey = (session.user as any).encryptedPrivateKey;
+        const masterSeed = (session.user as any).e2eMasterSeed;
 
         const { initE2EKeys, backupPrivateKey } = await import("@/lib/e2e-crypto");
         const publicKeyString = await initE2EKeys(
@@ -3319,7 +3307,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     };
 
     setupE2EKeys();
-  }, [effectiveSession?.user, updateSession]);
+  }, [session?.user, updateSession]);
 
   // Delayed loading indicator - only show "Loading..." after 300ms to prevent flash
   useEffect(() => {
@@ -4022,7 +4010,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
 
     const tempId = "temp-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7);
-    const meId = (effectiveSession?.user as any)?.id;
+    const meId = (session?.user as any)?.id;
 
     const optimisticMsg: ChatMessage = {
       id: tempId,
@@ -4078,7 +4066,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     } catch (err) {
       console.error("Message send network error:", err);
     }
-  }, [activePeerHandle, activePeerPublicKey, effectiveSession?.user, isE2EEnabled, editingMessage]);
+  }, [activePeerHandle, activePeerPublicKey, session?.user, isE2EEnabled, editingMessage]);
 
   const processSelectedFile = async (
     selected: File,
@@ -5230,8 +5218,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     );
   }
 
-  // Unauthenticated: show login gate (only when explicitly unauthenticated)
-  if (status === "unauthenticated" || !effectiveSession) {
+  // Unauthenticated: strictly show login gate to every user before granting app access
+  if (status === "unauthenticated" || !session?.user || !(session.user as any)?.id) {
     return (
       <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-slate-950">
         {/* Background glow effects */}
@@ -6232,9 +6220,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }, 3000);
   };
 
-  const quantumId = currentHandle || (effectiveSession.user as any)?.handle || "your-id";
-  const meId = (effectiveSession.user as any)?.id as string | undefined;
-  const meEmail = (effectiveSession.user as any)?.email as string | undefined;
+  const quantumId = currentHandle || (session.user as any)?.handle || "your-id";
+  const meId = (session.user as any)?.id as string | undefined;
+  const meEmail = (session.user as any)?.email as string | undefined;
   const effectiveBlueTickStatus = localBlueTickOverride !== null
     ? localBlueTickOverride
     : ((session?.user as any)?.blue_tick_status || 'NONE');
@@ -9064,20 +9052,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </div>
                       </div>
 
-                      {/* Clear Bypass Button - Only show when using temp bypass */}
-                      {isTempBypass && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            localStorage.removeItem('temp_bypass');
-                            window.location.reload();
-                          }}
-                          className="text-[10px] text-red-400 hover:text-red-300 transition-colors"
-                          title="Clear Test Bypass"
-                        >
-                          Clear Test
-                        </button>
-                      )}
+                      
                       <div className="flex w-full flex-row items-center justify-between text-left sm:w-auto sm:flex-col sm:items-end sm:text-right">
                         <span className="text-[10px] uppercase tracking-[0.18em] text-slate-500">
                           Status
