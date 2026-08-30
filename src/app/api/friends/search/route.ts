@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { cleanHandle } from "@/lib/handle-utils";
 
 export async function POST(request: Request) {
   try {
@@ -10,10 +11,18 @@ export async function POST(request: Request) {
     }
 
     const raw = handle.trim();
-    const normalizedHandle = raw.startsWith("@") ? raw.slice(1) : raw;
+    const cleaned = cleanHandle(raw);
 
-    const user = await prisma.user.findUnique({
-      where: { handle: normalizedHandle },
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { handle: { equals: raw, mode: "insensitive" } },
+          { handle: { equals: cleaned, mode: "insensitive" } },
+          { email: { equals: raw, mode: "insensitive" } },
+          { id: raw },
+          { name: { contains: cleaned, mode: "insensitive" } },
+        ],
+      },
       select: {
         id: true,
         handle: true,
@@ -26,7 +35,7 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json({ error: `User "@${handle}" not found` }, { status: 404 });
     }
 
     return NextResponse.json({ user });

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { cleanHandle } from "@/lib/handle-utils";
 
 export async function POST(request: Request) {
   try {
@@ -25,9 +26,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "You can select at most two categories" }, { status: 400 });
     }
 
-    const toUser = await prisma.user.findUnique({ where: { handle: toHandle } });
+    const raw = toHandle.trim();
+    const cleaned = cleanHandle(raw);
+
+    const toUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { handle: { equals: raw, mode: "insensitive" } },
+          { handle: { equals: cleaned, mode: "insensitive" } },
+          { email: { equals: raw, mode: "insensitive" } },
+          { id: raw },
+          { name: { contains: cleaned, mode: "insensitive" } },
+        ],
+      },
+    });
+
     if (!toUser) {
-      return NextResponse.json({ error: "Target user not found" }, { status: 404 });
+      return NextResponse.json({ error: `Target user "@${toHandle}" not found` }, { status: 404 });
     }
 
     if (toUser.id === fromUserId) {
@@ -80,7 +95,7 @@ export async function POST(request: Request) {
       if (pushSubscriptions && pushSubscriptions.length > 0) {
         const senderHandle = (session.user as any).handle || "Someone";
         const payload = {
-          title: "New Connection Request! ⚡",
+          title: "New Connection Request!",
           body: `@${senderHandle} wants to connect with you.`,
           url: "/?tab=requests",
         };
@@ -93,7 +108,6 @@ export async function POST(request: Request) {
               if (err.statusCode === 410 || err.statusCode === 404) {
                 try {
                   await (prisma as any).pushSubscription.delete({ where: { id: sub.id } });
-                  console.log(`[PUSH] Pruned expired subscription: ${sub.id}`);
                 } catch (dbErr) {
                   console.error(`[PUSH] Failed to prune subscription: ${sub.id}`, dbErr);
                 }
