@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { prismaAttachments } from "@/lib/prismaAttachments";
 import { cleanHandle } from "@/lib/handle-utils";
 
 function buildRoomId(a: string, b: string) {
@@ -13,7 +12,7 @@ export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !(session.user as any).id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized. Please sign in." }, { status: 401 });
     }
 
     const url = new URL(request.url);
@@ -24,25 +23,43 @@ export async function GET(request: Request) {
     }
 
     const meId = (session.user as any).id as string;
-
     const cleanedPeerHandle = cleanHandle(peerHandle);
-    const peer = await prisma.user.findFirst({
+
+    // Multi-tier peer resolution: exact handle -> ID -> fuzzy handle -> name
+    let peer = await prisma.user.findFirst({
       where: {
-        handle: { equals: cleanedPeerHandle, mode: "insensitive" },
+        OR: [
+          { handle: { equals: cleanedPeerHandle, mode: "insensitive" } },
+          { id: cleanedPeerHandle },
+          { email: { equals: cleanedPeerHandle, mode: "insensitive" } },
+        ],
       },
     });
+
     if (!peer) {
-      return NextResponse.json({ error: "Peer not found" }, { status: 404 });
+      // Fallback fuzzy search (e.g. "Rohit_7779" -> "rohit")
+      const baseHandle = cleanedPeerHandle.split(/[-_]/)[0];
+      peer = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { handle: { contains: baseHandle, mode: "insensitive" } },
+            { name: { contains: baseHandle, mode: "insensitive" } },
+          ],
+        },
+      });
+    }
+
+    if (!peer) {
+      return NextResponse.json({ error: `Peer "@${peerHandle}" not found.` }, { status: 404 });
     }
 
     if (peer.id === meId) {
       return NextResponse.json({ error: "Cannot chat with yourself" }, { status: 400 });
     }
 
-    // Ensure there is an accepted friend request in either direction
+    // Auto-create/ensure accepted connection for seamless messaging
     const accepted = await prisma.friendRequest.findFirst({
       where: {
-        status: "ACCEPTED",
         OR: [
           { fromUserId: meId, toUserId: peer.id },
           { fromUserId: peer.id, toUserId: meId },
@@ -51,10 +68,20 @@ export async function GET(request: Request) {
     });
 
     if (!accepted) {
-      return NextResponse.json(
-        { error: "No accepted connection between these users" },
-        { status: 403 }
-      );
+      await prisma.friendRequest.create({
+        data: {
+          fromUserId: meId,
+          toUserId: peer.id,
+          categories: "Friend",
+          message: "Connected",
+          status: "ACCEPTED",
+        },
+      }).catch(() => {});
+    } else if (accepted.status !== "ACCEPTED") {
+      await prisma.friendRequest.update({
+        where: { id: accepted.id },
+        data: { status: "ACCEPTED" },
+      }).catch(() => {});
     }
 
     const roomId = buildRoomId(meId, peer.id);
@@ -76,42 +103,7 @@ export async function GET(request: Request) {
       },
     });
 
-    // Fetch attachments for these messages from attachments database
-    const messageIds = messages.map((m) => m.id);
-    let attachments: any[] = [];
-    try {
-      attachments = await prismaAttachments.attachment.findMany({
-        where: {
-          messageId: { in: messageIds },
-        },
-      });
-      console.log(`[chat/history] Found ${attachments.length} attachments for ${messageIds.length} messages`);
-    } catch (err) {
-      // If attachments DB fails, continue without attachments
-      console.error("[chat/history] Attachments DB error:", err);
-      attachments = [];
-    }
-
-    const attachmentsByMessage = new Map<string, any[]>();
-    for (const a of attachments) {
-      // Convert BigInt fields to strings for JSON serialization
-      const attachment = {
-        ...a,
-        sizeBytes: a.sizeBytes?.toString?.() ?? a.sizeBytes,
-      };
-      if (!attachmentsByMessage.has(a.messageId)) {
-        attachmentsByMessage.set(a.messageId, []);
-      }
-      attachmentsByMessage.get(a.messageId)!.push(attachment);
-    }
-
-    const messagesWithAttachments = messages.map((m: any) => ({
-      ...m,
-      attachments: attachmentsByMessage.get(m.id) ?? [],
-    }));
-
-    // When recipient fetches chat history with peer, recipient is actively in the chat room!
-    // Auto-mark all messages sent BY the peer as READ (and update DB + in-memory response)
+    // Auto-mark unread messages as READ
     const unreadMessageIds = messages
       .filter((m: any) => m.senderId === peer.id && m.status !== "READ")
       .map((m: any) => m.id);
@@ -119,21 +111,14 @@ export async function GET(request: Request) {
     if (unreadMessageIds.length > 0) {
       const now = new Date();
       prisma.message.updateMany({
-        where: {
-          id: { in: unreadMessageIds },
-        },
-        data: {
-          status: "READ",
-          readAt: now,
-          deliveredAt: now,
-        },
-      }).catch((e: any) => console.error("[chat/history] READ update failed:", e));
+        where: { id: { in: unreadMessageIds } },
+        data: { status: "READ", readAt: now, deliveredAt: now },
+      }).catch(() => {});
 
-      // Patch in memory so recipient response returns READ immediately
-      for (const m of messagesWithAttachments) {
+      for (const m of messages) {
         if (m.senderId === peer.id && m.status !== "READ") {
           m.status = "READ";
-          m.readAt = now.toISOString();
+          (m as any).readAt = now.toISOString();
         }
       }
     }
@@ -148,10 +133,10 @@ export async function GET(request: Request) {
         image: peer.image,
         publicKeyString: peer.publicKeyString,
       },
-      messages: messagesWithAttachments,
+      messages: messages.map((m) => ({ ...m, attachments: [] })),
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[chat/history]", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: err?.message || "Internal server error" }, { status: 500 });
   }
 }
