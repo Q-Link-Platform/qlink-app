@@ -862,26 +862,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const myId = (session?.user as any)?.id;
   const [mode, setMode] = useState<ViewMode>("home");
 
-  const [outgoing, setOutgoing] = useState<OutgoingRequest[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem("qlink_cached_outgoing");
-        if (cached) return JSON.parse(cached);
-      } catch {}
-    }
-    return [];
-  });
+  const [outgoing, setOutgoing] = useState<OutgoingRequest[]>([]);
   const [isLoadingOutgoing, setIsLoadingOutgoing] = useState(false);
 
-  const [incoming, setIncoming] = useState<IncomingRequest[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const cached = localStorage.getItem("qlink_cached_incoming");
-        if (cached) return JSON.parse(cached);
-      } catch {}
-    }
-    return [];
-  });
+  const [incoming, setIncoming] = useState<IncomingRequest[]>([]);
   const [isLoadingIncoming, setIsLoadingIncoming] = useState(false);
   const [incomingError, setIncomingError] = useState<string | null>(null);
 
@@ -5199,6 +5183,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    // Purge stale unscoped legacy caches to prevent cross-account ghost flashing
+    try {
+      localStorage.removeItem("qlink_cached_outgoing");
+      localStorage.removeItem("qlink_cached_incoming");
+      localStorage.removeItem("qlink_cached_directory");
+    } catch {}
     const seen = window.localStorage.getItem("qc_seen_guide_v1");
     if (!seen) {
       setShowGuide(true);
@@ -8798,20 +8788,22 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </button>
                     </div>
                     {isLoadingIncoming && incoming.length === 0 ? (
-                      <div className="space-y-1.5 mt-2 animate-pulse">
+                      <div className={`space-y-1 mt-2 ${isFocusMode ? "flex-1" : "max-h-[50vh]"} overflow-hidden pr-1`}>
                         {[1, 2].map((i) => (
                           <div
                             key={i}
-                            className="flex items-center justify-between gap-2 rounded-xl border border-slate-800/60 bg-gradient-to-r from-slate-950/80 via-slate-900/60 to-slate-950/80 px-3 py-2.5 shadow-[0_0_15px_rgba(6,182,212,0.03)]"
+                            className="flex flex-col gap-1 rounded-xl border border-slate-800/60 bg-slate-950/45 px-3 py-2 animate-pulse"
                           >
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                              <div className="h-5 w-5 rounded-full bg-slate-800 border border-slate-700/50 flex-shrink-0 animate-pulse" />
-                              <div className="space-y-1 min-w-0 flex-1">
-                                <div className="h-3 w-20 rounded-full bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 animate-pulse" />
-                                <div className="h-2 w-12 rounded-full bg-slate-800/60 animate-pulse" />
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="min-w-0 space-y-1.5 flex-1">
+                                <div className="h-3 w-24 rounded-full bg-slate-800" />
+                                <div className="h-2 w-16 rounded-full bg-slate-800/60" />
                               </div>
+                              <div className="h-4 w-14 rounded-full bg-slate-800/70 border border-slate-700/40" />
                             </div>
-                            <div className="h-4 w-12 rounded-full bg-slate-800/70 border border-slate-700/40 animate-pulse" />
+                            <div className="flex items-center gap-2 pt-1">
+                              <div className="h-4 w-12 rounded-full bg-slate-800/50" />
+                            </div>
                           </div>
                         ))}
                       </div>
