@@ -8614,10 +8614,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         : "")
                     }
                   >
-                    {isLoadingOutgoing && (
-                      <p className="text-[11px] text-slate-500">
-                        Loading your outgoing links…
-                      </p>
+                    {isLoadingOutgoing && outgoing.length === 0 && (
+                      <div className="space-y-1 overflow-hidden animate-pulse">
+                        <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-800/60 bg-slate-950/45 px-3 py-2.5">
+                          <div className="min-w-0 space-y-1.5 flex-1">
+                            <div className="h-3 w-28 rounded-full bg-slate-800" />
+                            <div className="h-2 w-16 rounded-full bg-slate-800/60" />
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <div className="h-5 w-16 rounded-full bg-slate-800/70 border border-slate-700/40" />
+                            <div className="h-5 w-12 rounded-full bg-slate-800/50 border border-slate-700/30" />
+                          </div>
+                        </div>
+                      </div>
                     )}
                     {!isLoadingOutgoing && outgoing.length === 0 && (
                       <p className="text-[11px] text-slate-500">
@@ -8709,11 +8718,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         Incoming connection requests
                       </p>
                     </div>
-                    {isLoadingIncoming && (
-                      <p className="text-[11px] text-slate-500">
-                        Loading incoming requests…
-                      </p>
-                    )}
                     {incomingError && (
                       <p className="text-[11px] text-rose-300">{incomingError}</p>
                     )}
