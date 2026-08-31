@@ -863,10 +863,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [mode, setMode] = useState<ViewMode>("home");
 
   const [outgoing, setOutgoing] = useState<OutgoingRequest[]>([]);
-  const [isLoadingOutgoing, setIsLoadingOutgoing] = useState(false);
+  const [isLoadingOutgoing, setIsLoadingOutgoing] = useState(true);
+  const outgoingFetchedRef = useRef(false);
 
   const [incoming, setIncoming] = useState<IncomingRequest[]>([]);
-  const [isLoadingIncoming, setIsLoadingIncoming] = useState(false);
+  const [isLoadingIncoming, setIsLoadingIncoming] = useState(true);
+  const incomingFetchedRef = useRef(false);
   const [incomingError, setIncomingError] = useState<string | null>(null);
 
   const [activePeerHandle, setActivePeerHandle] = useState<string | null>(null);
@@ -4770,31 +4772,32 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     const loadOutgoingAndIncoming = async () => {
       try {
-        setIsLoadingOutgoing(true);
-        setIsLoadingIncoming(true);
+        if (!outgoingFetchedRef.current) setIsLoadingOutgoing(true);
+        if (!incomingFetchedRef.current) setIsLoadingIncoming(true);
         setIncomingError(null);
 
-        const res = await fetch("/api/friends/outgoing");
-        if (!res.ok) return;
-        const data = await res.json();
-        setOutgoing(deduplicateByToUser((data.requests || []) as OutgoingRequest[]));
-      } catch {
-        // ignore for now
-      } finally {
-        setIsLoadingOutgoing(false);
-      }
+        const [outRes, inRes] = await Promise.allSettled([
+          fetch("/api/friends/outgoing"),
+          fetch("/api/friends/incoming"),
+        ]);
 
-      try {
-        const res = await fetch("/api/friends/incoming");
-        if (!res.ok) {
-          setIncomingError("Unable to load incoming requests.");
-          return;
+        if (outRes.status === "fulfilled" && outRes.value.ok) {
+          const outData = await outRes.value.json();
+          setOutgoing(deduplicateByToUser((outData.requests || []) as OutgoingRequest[]));
         }
-        const data = await res.json();
-        setIncoming(deduplicateByFromUser((data.requests || []) as IncomingRequest[]));
+
+        if (inRes.status === "fulfilled" && inRes.value.ok) {
+          const inData = await inRes.value.json();
+          setIncoming(deduplicateByFromUser((inData.requests || []) as IncomingRequest[]));
+        } else if (inRes.status === "fulfilled" && !inRes.value.ok) {
+          setIncomingError("Unable to load incoming requests.");
+        }
       } catch {
-        setIncomingError("Unable to load incoming requests.");
+        // Safe fallback
       } finally {
+        outgoingFetchedRef.current = true;
+        incomingFetchedRef.current = true;
+        setIsLoadingOutgoing(false);
         setIsLoadingIncoming(false);
       }
     };
@@ -5180,6 +5183,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       setDisplayName(name);
     }
   }, [status, session, currentHandle, displayName]);
+
+  useEffect(() => {
+    // Reset smart skeleton fetch locks when user identity changes
+    outgoingFetchedRef.current = false;
+    incomingFetchedRef.current = false;
+  }, [session?.user?.id]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -8614,7 +8623,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         : "")
                     }
                   >
-                    {isLoadingOutgoing && outgoing.length === 0 && (
+                    {isLoadingOutgoing && !outgoingFetchedRef.current && outgoing.length === 0 && (
                       <div className="space-y-1 overflow-hidden animate-pulse">
                         <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-800/60 bg-slate-950/45 px-3 py-2.5">
                           <div className="min-w-0 space-y-1.5 flex-1">
@@ -8791,7 +8800,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </div>
                       </button>
                     </div>
-                    {isLoadingIncoming && incoming.length === 0 ? (
+                    {isLoadingIncoming && !incomingFetchedRef.current && incoming.length === 0 ? (
                       <div className={`space-y-1 mt-2 ${isFocusMode ? "flex-1" : "max-h-[50vh]"} overflow-hidden pr-1`}>
                         {[1, 2].map((i) => (
                           <div
