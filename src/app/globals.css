@@ -2951,3 +2951,124 @@ html.perf-low .settings-backdrop-exit {
   -webkit-backdrop-filter: blur(4px);
   white-space: nowrap;
 }
+
+/* ==========================================================================
+   X / TWITTER-STYLE HIGH-PRECISION MAGNETIC CURSOR SPOTLIGHT & BORDER GLOW
+   ========================================================================== */
+.x-magnetic-card {
+  position: relative !important;
+  overflow: hidden !important;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  --spotlight-opacity: 0;
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  will-change: transform;
+}
+
+.x-magnetic-card > * {
+  position: relative;
+  z-index: 3;
+}
+
+.x-magnetic-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--spotlight-opacity, 0);
+  background: radial-gradient(
+    280px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(6, 182, 212, 0.18),
+    rgba(147, 51, 234, 0.08) 45%,
+    transparent 80%
+  );
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+
+.x-magnetic-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--spotlight-opacity, 0);
+  background: radial-gradient(
+    180px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(34, 211, 238, 0.65),
+    rgba(168, 85, 247, 0.3) 50%,
+    transparent 80%
+  );
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  padding: 1px;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+}
+
+.x-magnetic-card:hover {
+  transform: translateY(-1.5px) scale(1.008);
+  box-shadow: 0 6px 24px -2px rgba(6, 182, 212, 0.18), inset 0 1px 0 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Red / Crimson Magnetic Logout Button */
+.x-magnetic-logout {
+  position: relative !important;
+  overflow: hidden !important;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  --spotlight-opacity: 0;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.x-magnetic-logout > * {
+  position: relative;
+  z-index: 3;
+}
+
+.x-magnetic-logout::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--spotlight-opacity, 0);
+  background: radial-gradient(
+    260px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(244, 63, 94, 0.4),
+    rgba(225, 29, 72, 0.18) 50%,
+    transparent 80%
+  );
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+
+.x-magnetic-logout::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--spotlight-opacity, 0);
+  background: radial-gradient(
+    200px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(251, 113, 133, 0.85),
+    rgba(244, 63, 94, 0.4) 50%,
+    transparent 80%
+  );
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  padding: 1.5px;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+}
+
+.x-magnetic-logout:hover {
+  transform: scale(1.015);
+  box-shadow: 0 0 30px rgba(244, 63, 94, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.25) !important;
+}

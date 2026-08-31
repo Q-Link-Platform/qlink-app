@@ -231,6 +231,20 @@ export default function SettingsModal(props: SettingsModalProps) {
   } = props;
 
   const isElectron = typeof window !== "undefined" && Boolean((window as any).electronAPI);
+
+  // X / Twitter-Style 120fps Magnetic Cursor Tracking
+  const handleSpotlightMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+    e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
+    e.currentTarget.style.setProperty("--spotlight-opacity", "1");
+  };
+
+  const handleSpotlightMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+    e.currentTarget.style.setProperty("--spotlight-opacity", "0");
+  };
   const [showAboutFeatures, setShowAboutFeatures] = useState(false);
   const [isCardCollapsed, setIsCardCollapsed] = useState(false);
   const lastScrollYRef = React.useRef(0);
@@ -706,6 +720,8 @@ export default function SettingsModal(props: SettingsModalProps) {
                                 <div
                                   role="button"
                                   tabIndex={0}
+                                  onMouseMove={handleSpotlightMouseMove}
+                                  onMouseLeave={handleSpotlightMouseLeave}
                                   onClick={() => {
                                     setSettingsScreen("main");
                                     setShowOnboarding(true);
@@ -718,10 +734,10 @@ export default function SettingsModal(props: SettingsModalProps) {
                                     setShowOnboarding(true);
                                     setOnboardingStep(1);
                                   }}
-                                  className="flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/[0.05] hover:bg-white/[0.09] backdrop-blur-xl px-3 py-2 text-left hover:border-white/30 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                                  className="x-magnetic-card flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/[0.05] backdrop-blur-xl px-3 py-2 text-left transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] cursor-pointer"
                                 >
-                                  <span className="text-slate-300">Name</span>
-                                  <span className="truncate text-slate-100">
+                                  <span className="text-slate-300 font-medium">Name</span>
+                                  <span className="truncate text-slate-100 font-semibold">
                                     {displayName || nameDraft || (session as any)?.user?.name || "Not set"}
                                   </span>
                                 </div>
@@ -729,6 +745,8 @@ export default function SettingsModal(props: SettingsModalProps) {
                                 <div
                                   role="button"
                                   tabIndex={0}
+                                  onMouseMove={handleSpotlightMouseMove}
+                                  onMouseLeave={handleSpotlightMouseLeave}
                                   onClick={() => {
                                     setSettingsScreen("main");
                                     setShowOnboarding(true);
@@ -741,7 +759,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                                     setShowOnboarding(true);
                                     setOnboardingStep(4);
                                   }}
-                                  className="flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/[0.05] hover:bg-white/[0.09] backdrop-blur-xl px-3 py-2 text-left hover:border-white/30 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                                  className="x-magnetic-card flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/[0.05] backdrop-blur-xl px-3 py-2 text-left transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] cursor-pointer"
                                 >
                                   <span className="text-slate-300">Age</span>
                                   <div className="flex items-center gap-2">
@@ -784,6 +802,8 @@ export default function SettingsModal(props: SettingsModalProps) {
                                 <div
                                   role="button"
                                   tabIndex={0}
+                                  onMouseMove={handleSpotlightMouseMove}
+                                  onMouseLeave={handleSpotlightMouseLeave}
                                   onClick={() => {
                                     setSettingsScreen("main");
                                     setShowOnboarding(true);
@@ -796,7 +816,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                                     setShowOnboarding(true);
                                     setOnboardingStep(5);
                                   }}
-                                  className="flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/[0.05] hover:bg-white/[0.09] backdrop-blur-xl px-3 py-2 text-left hover:border-white/30 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                                  className="x-magnetic-card flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/[0.05] backdrop-blur-xl px-3 py-2 text-left transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] cursor-pointer"
                                 >
                                   <span className="text-slate-300">Gender</span>
                                   <div className="flex items-center gap-2">
@@ -839,6 +859,8 @@ export default function SettingsModal(props: SettingsModalProps) {
                                 <div
                                   role="button"
                                   tabIndex={0}
+                                  onMouseMove={handleSpotlightMouseMove}
+                                  onMouseLeave={handleSpotlightMouseLeave}
                                   onClick={() => {
                                     setSettingsScreen("main");
                                     setShowOnboarding(true);
@@ -851,7 +873,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                                     setShowOnboarding(true);
                                     setOnboardingStep(3);
                                   }}
-                                  className="flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/[0.05] hover:bg-white/[0.09] backdrop-blur-xl px-3 py-2 text-left hover:border-white/30 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
+                                  className="x-magnetic-card flex w-full items-center justify-between rounded-xl border border-white/15 bg-white/[0.05] backdrop-blur-xl px-3 py-2 text-left transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] cursor-pointer"
                                 >
                                   <span className="text-slate-300">Bio</span>
                                   <div className="flex items-center gap-2">
