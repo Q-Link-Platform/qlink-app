@@ -861,6 +861,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   // Strict authentication enforcement - no bypasses
   const myId = (session?.user as any)?.id;
   const [mode, setMode] = useState<ViewMode>("home");
+  const [connectionsTab, setConnectionsTab] = useState<"friends" | "requests">("friends");
 
   const [outgoing, setOutgoing] = useState<OutgoingRequest[]>([]);
   const [isLoadingOutgoing, setIsLoadingOutgoing] = useState(true);
@@ -8597,351 +8598,328 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     </button>
                   </div>
 
-                  <div
-                    ref={connectRef}
-                    className="mt-3 flex items-center justify-between gap-2"
-                  >
-                    <p className="text-xs text-slate-400">
-                      Outgoing connection requests
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setMode("connect")}
-                      className="rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-200 hover:bg-cyan-500/20"
-                    >
-                      + Connect to a friend
-                    </button>
-                  </div>
+                  {/* UNIFIED CONNECTIONS HUB WITH SEGMENTED TABS */}
+                  {(() => {
+                    // Combine and deduplicate accepted friends from both directions
+                    const acceptedFriendsMap = new Map<string, any>();
 
-                  <div
-                    ref={requestsRef}
-                    className={
-                      "mt-2 space-y-1 overflow-y-auto scrollbar-hide smooth-gpu-scroll " +
-                      (isFocusMode ? "max-h-[45vh] " : "max-h-[50vh] ") +
-                      (highlightRequests
-                        ? "glow-pulse border border-cyan-400/80 rounded-xl"
-                        : "")
+                    // Outgoing accepted
+                    for (const req of outgoing) {
+                      if (req.status === "ACCEPTED" && req.toUser?.handle) {
+                        acceptedFriendsMap.set(req.toUser.handle.toLowerCase(), {
+                          id: req.id,
+                          peerHandle: req.toUser.handle,
+                          peerName: req.toUser.name,
+                          categories: req.categories || [],
+                          direction: "outgoing",
+                          status: req.status,
+                          isUnread: req.isUnread || isHandleUnread(unreadMessages, req.toUser.handle),
+                        });
+                      }
                     }
-                  >
-                    {isLoadingOutgoing && !outgoingFetchedRef.current && outgoing.length === 0 && (
-                      <div className="space-y-1 overflow-hidden animate-pulse">
-                        <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-800/60 bg-slate-950/45 px-3 py-2.5">
-                          <div className="min-w-0 space-y-1.5 flex-1">
-                            <div className="h-3 w-28 rounded-full bg-slate-800" />
-                            <div className="h-2 w-16 rounded-full bg-slate-800/60" />
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <div className="h-5 w-16 rounded-full bg-slate-800/70 border border-slate-700/40" />
-                            <div className="h-5 w-12 rounded-full bg-slate-800/50 border border-slate-700/30" />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    {!isLoadingOutgoing && outgoing.length === 0 && (
-                      <p className="text-[11px] text-slate-500">
-                        No outgoing requests yet. Use "Connect to a friend" to
-                        start.
-                      </p>
-                    )}
-                    {rankFriendRequests(outgoing, unreadMessages, activePeerHandle, false).map((req) => (
-                      <div
-                        key={req.id}
-                        className={
-                          "flex items-center justify-between gap-2 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2 transition-all duration-200 hover:shadow-[0_0_15px_rgba(6,182,212,0.08)] " +
-                          (req.status === "ACCEPTED" && req.toUser?.handle
-                            ? "cursor-pointer hover:bg-slate-900/60 hover:border-cyan-500/35 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)]"
-                            : "")
+
+                    // Incoming accepted
+                    for (const req of incoming) {
+                      if (req.status === "ACCEPTED" && req.fromUser?.handle) {
+                        const key = req.fromUser.handle.toLowerCase();
+                        if (!acceptedFriendsMap.has(key)) {
+                          acceptedFriendsMap.set(key, {
+                            id: req.id,
+                            peerHandle: req.fromUser.handle,
+                            peerName: req.fromUser.name,
+                            categories: req.categories || [],
+                            direction: "incoming",
+                            status: req.status,
+                            isUnread: req.isUnread || isHandleUnread(unreadMessages, req.fromUser.handle),
+                          });
                         }
-                        onClick={() => {
-                          if (req.status === "ACCEPTED" && req.toUser?.handle) {
-                            openChatWithPeer(req.toUser.handle);
-                            setIsChatFull(true);
-                          }
-                        }}
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-xs text-slate-200 flex items-center">
-                            @{req.toUser?.handle || "unknown"}
-                            {(req.isUnread || (req.toUser?.handle && isHandleUnread(unreadMessages, req.toUser.handle))) && (
-                              <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse ml-1.5" title="New Message!" />
-                            )}
-                          </p>
-                          <p className="truncate text-[11px] text-slate-500">
-                            {(req.categories || []).join(" · ")}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${req.status === "ACCEPTED"
-                                ? "bg-emerald-500/15 text-emerald-300 border border-emerald-400/40"
-                                : req.status === "REJECTED"
-                                  ? "bg-rose-500/15 text-rose-300 border border-rose-400/40"
-                                  : "bg-amber-500/10 text-amber-200 border border-amber-400/40"
+                      }
+                    }
+
+                    const acceptedFriends = Array.from(acceptedFriendsMap.values());
+                    const pendingIncoming = incoming.filter((r) => r.status === "PENDING");
+                    const pendingOutgoing = outgoing.filter((r) => r.status === "PENDING");
+                    const totalPending = pendingIncoming.length + pendingOutgoing.length;
+
+                    const isInitialLoading = (isLoadingOutgoing || isLoadingIncoming) && (!outgoingFetchedRef.current || !incomingFetchedRef.current);
+
+                    return (
+                      <div className="mt-3 space-y-2.5">
+                        {/* Segmented Control Bar */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center rounded-xl border border-slate-800/80 bg-slate-950/80 p-1 backdrop-blur-md shadow-inner">
+                            <button
+                              type="button"
+                              onClick={() => setConnectionsTab("friends")}
+                              className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-300 ${
+                                connectionsTab === "friends"
+                                  ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                                  : "text-slate-400 hover:text-slate-200"
                               }`}
-                          >
-                            {req.status}
-                          </span>
-                          {req.status === "ACCEPTED" && req.toUser?.handle && (
-                            <div className="flex items-center gap-1.5">
-                              {isFounder && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenFounderGrantModal(req.toUser.handle);
-                                  }}
-                                  className="inline-flex items-center rounded-full border border-fuchsia-400/80 bg-fuchsia-500/10 px-2 py-0.5 text-[10px] font-semibold text-fuchsia-200 hover:bg-fuchsia-500/20 shadow-[0_0_10px_rgba(240,46,170,0.2)] active:scale-95 transition-all"
-                                >
-                                  💎 Give QP
-                                </button>
-                              )}
-                              {(() => {
-                                const isUnread = Boolean(req.isUnread || (req.toUser?.handle && isHandleUnread(unreadMessages, req.toUser.handle)));
-                                return (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openChatWithPeer(req.toUser.handle);
-                                    }}
-                                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium transition-all ${isUnread
-                                        ? "border-orange-500 bg-orange-500/20 text-orange-200 shadow-[0_0_12px_rgba(249,115,22,0.4)] animate-pulse"
-                                        : "border-cyan-400/70 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
-                                      }`}
-                                  >
-                                    Chat
-                                  </button>
-                                );
-                              })()}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Incoming requests */}
-                  <div className="mt-4 border-t border-slate-700/60 pt-3 space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs text-slate-400">
-                        Incoming connection requests
-                      </p>
-                    </div>
-                    {incomingError && (
-                      <p className="text-[11px] text-rose-300">{incomingError}</p>
-                    )}
-                    {/* Global Founder section visible to all users */}
-                    <div className="mt-2 space-y-1">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                        Founder
-                      </p>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          setMode("connect");
-                          setFriendIdInput("Rohit_7779");
-                          setSearching(true);
-                          setSearchError(null);
-                          setFoundUser(null);
-                          setSelectedCategories([]);
-                          setComment("");
-                          setRequestError(null);
-                          setRequestSuccess(null);
-
-                          try {
-                            const res = await fetch("/api/friends/search", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ handle: "Rohit_7779" }),
-                            });
-
-                            if (!res.ok) {
-                              const data = await res.json().catch(() => ({}));
-                              setSearchError(data.error || "Quantum ID not found.");
-                              return;
-                            }
-
-                            const data = await res.json();
-                            setFoundUser(data.user as FoundUser);
-                          } catch {
-                            setSearchError("Unable to reach quantum directory. Try again.");
-                          } finally {
-                            setSearching(false);
-                          }
-                        }}
-                        className="w-full text-left"
-                      >
-                        <div className="founder-vip-aurora rounded-2xl border border-red-500/80 bg-slate-950/95 p-2.5 overflow-hidden [clip-path:inset(0_round_1rem)] drop-shadow-[0_0_30px_rgba(248,113,113,0.55)]">
-                          <div className="founder-vip-aurora-inner founder-vip-shine space-y-1.5 rounded-2xl bg-gradient-to-br from-slate-950/90 via-slate-900/90 to-slate-950/90 px-3 py-2 relative overflow-hidden [clip-path:inset(0_round_1rem)] isolation-isolate">
-                            <div className="founder-vip-line-full absolute inset-x-0 -top-2 -bottom-2 rounded-2xl"></div>
-                            <div className="relative z-10 flex items-center justify-between gap-2">
-                              <div className="min-w-0">
-                                <p className="truncate text-[11px] font-semibold text-slate-50 flex items-center gap-1">
-                                  <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-red-400/80 bg-red-600/60 text-[8px] font-bold text-slate-50">
-                                    ✓
-                                  </span>
-                                  @MR_ROHIT
-                                </p>
-                                <p className="text-[10px] font-semibold text-slate-200">
-                                  Founder & CEO at Q‑Link
-                                </p>
-                              </div>
-                              <span className="rounded-full border border-red-400/80 bg-red-500/20 px-2 py-0.5 text-[9px] font-medium text-red-200">
-                                Elite Founder
-                              </span>
-                            </div>
-                            <div className="relative z-10">
-                              <p className="text-[10px] text-slate-400">
-                                Tap to open the founder's VIP profile and send a direct feedback
-                                request.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    </div>
-                    {isLoadingIncoming && !incomingFetchedRef.current && incoming.length === 0 ? (
-                      <div className={`space-y-1 mt-2 ${isFocusMode ? "flex-1" : "max-h-[50vh]"} overflow-hidden pr-1`}>
-                        {[1, 2].map((i) => (
-                          <div
-                            key={i}
-                            className="flex flex-col gap-1 rounded-xl border border-slate-800/60 bg-slate-950/45 px-3 py-2 animate-pulse"
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="min-w-0 space-y-1.5 flex-1">
-                                <div className="h-3 w-24 rounded-full bg-slate-800" />
-                                <div className="h-2 w-16 rounded-full bg-slate-800/60" />
-                              </div>
-                              <div className="h-4 w-14 rounded-full bg-slate-800/70 border border-slate-700/40" />
-                            </div>
-                            <div className="flex items-center gap-2 pt-1">
-                              <div className="h-4 w-12 rounded-full bg-slate-800/50" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <>
-                        {!isLoadingIncoming && !incomingError && incoming.length === 0 && (
-                          <p className="text-[11px] text-slate-500">
-                            No one has requested to connect yet.
-                          </p>
-                        )}
-                        <div className={`space-y-1 mt-2 ${isFocusMode ? "flex-1" : "max-h-[50vh]"} overflow-y-auto incoming-requests-scroll pr-1`} style={{ WebkitOverflowScrolling: 'touch' }}>
-                          {rankFriendRequests(incoming, unreadMessages, activePeerHandle, true).map((req) => (
-                        <div
-                          key={req.id}
-                          className={
-                            "flex flex-col gap-1 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2 transition-all duration-200 hover:shadow-[0_0_15px_rgba(6,182,212,0.08)] " +
-                            (req.status === "ACCEPTED" && req.fromUser?.handle
-                              ? "cursor-pointer hover:bg-slate-900/60 hover:border-cyan-500/35 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)]"
-                              : "")
-                          }
-                          onClick={() => {
-                            if (req.status === "ACCEPTED" && req.fromUser?.handle) {
-                              openChatWithPeer(req.fromUser.handle || "");
-                              setIsChatFull(true);
-                            }
-                          }}
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="min-w-0">
-                              <p className="truncate text-[11px] text-slate-200 flex items-center">
-                                @{req.fromUser?.handle || "unknown"}
-                                {(req.isUnread || (req.fromUser?.handle && isHandleUnread(unreadMessages, req.fromUser.handle))) && (
-                                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse ml-1.5" title="New Message!" />
-                                )}
-                              </p>
-                              <p className="truncate text-[10px] text-slate-500">
-                                {(req.categories || []).join(" · ")}
-                              </p>
-                            </div>
-                            <span
-                              className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${req.status === "ACCEPTED"
-                                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-400/40"
-                                  : req.status === "REJECTED"
-                                    ? "bg-rose-500/15 text-rose-300 border border-rose-400/40"
-                                    : "bg-amber-500/10 text-amber-200 border border-amber-400/40"
-                                }`}
                             >
-                              {req.status}
-                            </span>
-                          </div>
-                          {req.message && (
-                            <p className="text-[10px] text-slate-400 line-clamp-2">
-                              {req.message}
-                            </p>
-                          )}
-                          {req.status === "PENDING" && (
-                            <div className="flex items-center gap-2 pt-1">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleIncomingDecision(
-                                    req.id,
-                                    "ACCEPT",
-                                    req.fromUser?.handle || ""
-                                  )
-                                }
-                                className="rounded-full border border-emerald-400/70 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-200 hover:bg-emerald-500/20"
-                              >
-                                Accept
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleIncomingDecision(
-                                    req.id,
-                                    "REJECT",
-                                    req.fromUser?.handle || ""
-                                  )
-                                }
-                                className="rounded-full border border-rose-400/70 bg-rose-500/10 px-2.5 py-0.5 text-[10px] font-medium text-rose-200 hover:bg-rose-500/20"
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          )}
-                          {req.status === "ACCEPTED" && req.fromUser?.handle && (
-                            <div className="flex items-center gap-2 pt-1">
-                              {isFounder && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenFounderGrantModal(req.fromUser.handle);
-                                  }}
-                                  className="inline-flex items-center rounded-full border border-fuchsia-400/80 bg-fuchsia-500/10 px-2.5 py-0.5 text-[10px] font-semibold text-fuchsia-200 hover:bg-fuchsia-500/20 shadow-[0_0_10px_rgba(240,46,170,0.2)] active:scale-95 transition-all"
-                                >
-                                  💎 Give QP
-                                </button>
+                              <span>Friends</span>
+                              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                                connectionsTab === "friends" ? "bg-cyan-400/20 text-cyan-200" : "bg-slate-800 text-slate-400"
+                              }`}>
+                                {acceptedFriends.length}
+                              </span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setConnectionsTab("requests")}
+                              className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-300 ${
+                                connectionsTab === "requests"
+                                  ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                                  : "text-slate-400 hover:text-slate-200"
+                              }`}
+                            >
+                              <span>Requests</span>
+                              {totalPending > 0 && (
+                                <span className="rounded-full bg-orange-500 px-1.5 py-0.2 text-[10px] font-bold text-white shadow-[0_0_8px_#f97316] animate-pulse">
+                                  {totalPending}
+                                </span>
                               )}
-                              {(() => {
-                                const isUnread = Boolean(req.isUnread || (req.fromUser?.handle && isHandleUnread(unreadMessages, req.fromUser.handle)));
-                                return (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openChatWithPeer(req.fromUser?.handle || "");
-                                    }}
-                                    className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-all ${isUnread
-                                        ? "border-orange-500 bg-orange-500/20 text-orange-200 shadow-[0_0_12px_rgba(249,115,22,0.4)] animate-pulse"
-                                        : "border-cyan-400/70 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
-                                      }`}
-                                  >
-                                    Chat
-                                  </button>
-                                );
-                              })()}
+                            </button>
+                          </div>
+
+                          <div ref={connectRef}>
+                            <button
+                              type="button"
+                              onClick={() => setMode("connect")}
+                              className="rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20 hover:border-cyan-300 transition-all shadow-[0_0_10px_rgba(6,182,212,0.15)] active:scale-95"
+                            >
+                              + Connect
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Global Founder VIP Card */}
+                        <div className="space-y-1">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setMode("connect");
+                              setFriendIdInput("Rohit_7779");
+                              setSearching(true);
+                              setSearchError(null);
+                              setFoundUser(null);
+                              setSelectedCategories([]);
+                              setComment("");
+                              setRequestError(null);
+                              setRequestSuccess(null);
+
+                              try {
+                                const res = await fetch("/api/friends/search", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ handle: "Rohit_7779" }),
+                                });
+
+                                if (!res.ok) {
+                                  const data = await res.json().catch(() => ({}));
+                                  setSearchError(data.error || "Quantum ID not found.");
+                                  return;
+                                }
+
+                                const data = await res.json();
+                                setFoundUser(data.user as FoundUser);
+                              } catch {
+                                setSearchError("Unable to reach quantum directory. Try again.");
+                              } finally {
+                                setSearching(false);
+                              }
+                            }}
+                            className="w-full text-left"
+                          >
+                            <div className="founder-vip-aurora rounded-2xl border border-red-500/80 bg-slate-950/95 p-2.5 overflow-hidden [clip-path:inset(0_round_1rem)] drop-shadow-[0_0_30px_rgba(248,113,113,0.55)] hover:border-red-400 transition-all">
+                              <div className="founder-vip-aurora-inner founder-vip-shine space-y-1.5 rounded-2xl bg-gradient-to-br from-slate-950/90 via-slate-900/90 to-slate-950/90 px-3 py-2 relative overflow-hidden [clip-path:inset(0_round_1rem)] isolation-isolate">
+                                <div className="founder-vip-line-full absolute inset-x-0 -top-2 -bottom-2 rounded-2xl"></div>
+                                <div className="relative z-10 flex items-center justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <p className="truncate text-[11px] font-semibold text-slate-50 flex items-center gap-1">
+                                      <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full border border-red-400/80 bg-red-600/60 text-[8px] font-bold text-slate-50">
+                                        ✓
+                                      </span>
+                                      @MR_ROHIT
+                                    </p>
+                                    <p className="text-[10px] font-semibold text-slate-200">
+                                      Founder & CEO at Q-Link
+                                    </p>
+                                  </div>
+                                  <span className="rounded-full border border-red-400/80 bg-red-500/20 px-2 py-0.5 text-[9px] font-medium text-red-200">
+                                    Elite Founder
+                                  </span>
+                                </div>
+                                <div className="relative z-10">
+                                  <p className="text-[10px] text-slate-400">
+                                    Tap to open the founder's VIP profile and send a direct feedback request.
+                                  </p>
+                                </div>
+                              </div>
                             </div>
+                          </button>
+                        </div>
+
+                        {/* SINGLE UNIFIED SCROLL CONTAINER */}
+                        <div
+                          ref={requestsRef}
+                          className={
+                            "space-y-1.5 overflow-y-auto scrollbar-hide smooth-gpu-scroll pr-1 " +
+                            (isFocusMode ? "max-h-[50vh] " : "max-h-[52vh] ") +
+                            (highlightRequests ? "glow-pulse border border-cyan-400/80 rounded-xl" : "")
+                          }
+                        >
+                          {/* 1 SINGLE UNIFIED SKELETON LIST ON COLD LAUNCH */}
+                          {isInitialLoading ? (
+                            <div className="space-y-1.5 animate-pulse">
+                              {[1, 2, 3].map((i) => (
+                                <div
+                                  key={i}
+                                  className="flex items-center justify-between gap-2 rounded-xl border border-slate-800/60 bg-slate-950/45 px-3 py-2.5"
+                                >
+                                  <div className="min-w-0 space-y-1.5 flex-1">
+                                    <div className="h-3 w-28 rounded-full bg-slate-800" />
+                                    <div className="h-2 w-16 rounded-full bg-slate-800/60" />
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <div className="h-5 w-16 rounded-full bg-slate-800/70 border border-slate-700/40" />
+                                    <div className="h-5 w-12 rounded-full bg-slate-800/50 border border-slate-700/30" />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : connectionsTab === "friends" ? (
+                            /* TAB 1: ALL ACCEPTED FRIENDS & CHATS */
+                            acceptedFriends.length === 0 ? (
+                              <div className="flex flex-col items-center justify-center py-8 text-center bg-slate-950/30 rounded-xl border border-slate-800/50 p-4">
+                                <p className="text-xs font-medium text-slate-400">No active connections yet</p>
+                                <p className="text-[10px] text-slate-500 mt-0.5">Use "+ Connect" to link with friends</p>
+                              </div>
+                            ) : (
+                              acceptedFriends.map((f) => (
+                                <div
+                                  key={f.id}
+                                  onClick={() => {
+                                    openChatWithPeer(f.peerHandle);
+                                    setIsChatFull(true);
+                                  }}
+                                  className="group flex items-center justify-between gap-2 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2 transition-all duration-200 hover:bg-slate-900/60 hover:border-cyan-500/35 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] cursor-pointer"
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <p className="truncate text-xs font-semibold text-slate-100 flex items-center gap-1.5 group-hover:text-cyan-200 transition-colors">
+                                      @{f.peerHandle}
+                                      {f.isUnread && (
+                                        <span className="inline-block w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_#f97316] animate-pulse" title="New message!" />
+                                      )}
+                                    </p>
+                                    <p className="truncate text-[10px] text-slate-500">
+                                      {(f.categories || []).join(" • ") || "Friend"}
+                                    </p>
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
+                                      Connected
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openChatWithPeer(f.peerHandle);
+                                        setIsChatFull(true);
+                                      }}
+                                      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-all ${
+                                        f.isUnread
+                                          ? "border-orange-500 bg-orange-500/20 text-orange-200 shadow-[0_0_12px_rgba(249,115,22,0.4)] animate-pulse"
+                                          : "border-cyan-400/70 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
+                                      }`}
+                                    >
+                                      Chat
+                                    </button>
+                                  </div>
+                                </div>
+                              ))
+                            )
+                          ) : (
+                            /* TAB 2: PENDING REQUESTS (INCOMING & OUTGOING) */
+                            totalPending === 0 ? (
+                              <div className="flex flex-col items-center justify-center py-8 text-center bg-slate-950/30 rounded-xl border border-slate-800/50 p-4">
+                                <p className="text-xs font-medium text-slate-400">No pending requests</p>
+                                <p className="text-[10px] text-slate-500 mt-0.5">All requests have been accepted</p>
+                              </div>
+                            ) : (
+                              <>
+                                {/* Pending Incoming Requests */}
+                                {pendingIncoming.map((req) => (
+                                  <div
+                                    key={req.id}
+                                    className="flex flex-col gap-1.5 rounded-xl border border-amber-500/30 bg-slate-950/60 px-3 py-2 shadow-[0_0_15px_rgba(245,158,11,0.05)]"
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="min-w-0">
+                                        <p className="truncate text-xs font-semibold text-slate-200">
+                                          @{req.fromUser?.handle || "unknown"}
+                                        </p>
+                                        <p className="truncate text-[10px] text-slate-400">
+                                          {(req.categories || []).join(" • ")}
+                                        </p>
+                                      </div>
+                                      <span className="rounded-full border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-300">
+                                        Incoming
+                                      </span>
+                                    </div>
+                                    {req.message && (
+                                      <p className="text-[10px] text-slate-400 line-clamp-2 italic">
+                                        "{req.message}"
+                                      </p>
+                                    )}
+                                    <div className="flex items-center gap-2 pt-1 border-t border-slate-800/60">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleIncomingDecision(req.id, "ACCEPT", req.fromUser?.handle || "")}
+                                        className="flex-1 rounded-full border border-emerald-400/70 bg-emerald-500/15 py-1 text-[10px] font-semibold text-emerald-200 hover:bg-emerald-500/25 transition-all text-center"
+                                      >
+                                        Accept
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleIncomingDecision(req.id, "REJECT", req.fromUser?.handle || "")}
+                                        className="flex-1 rounded-full border border-rose-400/70 bg-rose-500/15 py-1 text-[10px] font-semibold text-rose-200 hover:bg-rose-500/25 transition-all text-center"
+                                      >
+                                        Reject
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+
+                                {/* Pending Outgoing Requests */}
+                                {pendingOutgoing.map((req) => (
+                                  <div
+                                    key={req.id}
+                                    className="flex items-center justify-between gap-2 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2"
+                                  >
+                                    <div className="min-w-0">
+                                      <p className="truncate text-xs font-semibold text-slate-200">
+                                        @{req.toUser?.handle || "unknown"}
+                                      </p>
+                                      <p className="truncate text-[10px] text-slate-500">
+                                        {(req.categories || []).join(" • ")}
+                                      </p>
+                                    </div>
+                                    <span className="rounded-full border border-amber-400/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-300">
+                                      Pending Sent
+                                    </span>
+                                  </div>
+                                ))}
+                              </>
+                            )
                           )}
                         </div>
-                      ))}
-                    </div>
-                      </>
-                    )}
-                  </div>
+                      </div>
+                    );
+                  })()}
+
                 </div>
 
                 {isFocusMode && (
