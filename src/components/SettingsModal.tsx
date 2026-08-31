@@ -12,9 +12,24 @@ function PerformanceSettingsCard({ isQuantum = true }: { isQuantum?: boolean }) 
     setPerfMode(mode);
   };
 
+  const handleSpotlightMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+    e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
+    e.currentTarget.style.setProperty("--spotlight-opacity", "1");
+  };
+
+  const handleSpotlightMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+    e.currentTarget.style.setProperty("--spotlight-opacity", "0");
+  };
+
   return (
     <div
-      className={`space-y-3 rounded-2xl p-4 transition-all duration-300 ${
+      onMouseMove={handleSpotlightMouseMove}
+      onMouseLeave={handleSpotlightMouseLeave}
+      className={`x-magnetic-card space-y-3 rounded-2xl p-4 transition-all duration-300 ${
         isQuantum
           ? "border border-cyan-500/25 bg-gradient-to-b from-cyan-950/25 via-slate-900/40 to-slate-950/60 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.2),inset_0_0_20px_rgba(6,182,212,0.06)] hover:border-cyan-400/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)]"
           : "border border-white/[0.15] bg-gradient-to-b from-white/[0.09] to-white/[0.03] backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:border-white/30 hover:from-white/[0.12]"
@@ -431,7 +446,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           {/* Scrollable Content Body */}
                           <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [touch-action:pan-y] overscroll-contain">
                             {/* Account Section */}
-                            <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                            <div onMouseMove={handleSpotlightMouseMove} onMouseLeave={handleSpotlightMouseLeave} className={`x-magnetic-card space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
                               ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
                               : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
@@ -483,7 +498,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                             </div>
 
                           {/* Theme Toggle Section */}
-                          <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                          <div onMouseMove={handleSpotlightMouseMove} onMouseLeave={handleSpotlightMouseLeave} className={`x-magnetic-card space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
                               ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
                               : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
@@ -499,7 +514,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
 
                           {/* AI Assistant & Floating Button Toggle Section */}
-                          <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                          <div onMouseMove={handleSpotlightMouseMove} onMouseLeave={handleSpotlightMouseLeave} className={`x-magnetic-card space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
                               ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
                               : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
@@ -568,7 +583,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           {/* Notifications Section — smart: Desktop vs PWA/Web */}
                           {isElectron ? (
                             /* ── ELECTRON DESKTOP: Native Windows Notifications Toggle ── */
-                            <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                            <div onMouseMove={handleSpotlightMouseMove} onMouseLeave={handleSpotlightMouseLeave} className={`x-magnetic-card space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
                               ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
                               : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
@@ -612,7 +627,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                             </div>
                           ) : (
                             /* ── BROWSER / PWA: Web Push Notifications ── */
-                            <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                            <div onMouseMove={handleSpotlightMouseMove} onMouseLeave={handleSpotlightMouseLeave} className={`x-magnetic-card space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
                               ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
                               : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
@@ -654,7 +669,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           )}
 
                           {/* E2E Encryption Toggle Section */}
-                          <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                          <div onMouseMove={handleSpotlightMouseMove} onMouseLeave={handleSpotlightMouseLeave} className={`x-magnetic-card space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
                               ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
                               : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
@@ -704,7 +719,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                             </div>
                           </div>
 
-                          <div className={`space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
+                          <div onMouseMove={handleSpotlightMouseMove} onMouseLeave={handleSpotlightMouseLeave} className={`x-magnetic-card space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
                               ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
                               : "border border-white/[0.14] bg-gradient-to-b from-white/[0.08] to-white/[0.03] shadow-[0_4px_24px_rgba(0,0,0,0.18),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:border-white/30 hover:from-white/[0.10]"
