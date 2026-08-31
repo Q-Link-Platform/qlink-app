@@ -863,6 +863,33 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [mode, setMode] = useState<ViewMode>("home");
   const [connectionsTab, setConnectionsTab] = useState<"friends" | "requests">("friends");
 
+  // Predictive Smart Skeleton: Dynamically memorizes exact friend count per user ID
+  const [predictedFriendsCount, setPredictedFriendsCount] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("qc_friends_count");
+        if (saved !== null) {
+          const parsed = parseInt(saved, 10);
+          if (!isNaN(parsed) && parsed > 0) return Math.min(parsed, 6);
+        }
+      } catch {}
+    }
+    return 1; // Default to 1 exact card, never arbitrary 3
+  });
+
+  const [predictedRequestsCount, setPredictedRequestsCount] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("qc_requests_count");
+        if (saved !== null) {
+          const parsed = parseInt(saved, 10);
+          if (!isNaN(parsed) && parsed > 0) return Math.min(parsed, 6);
+        }
+      } catch {}
+    }
+    return 1;
+  });
+
   const [outgoing, setOutgoing] = useState<OutgoingRequest[]>([]);
   const [isLoadingOutgoing, setIsLoadingOutgoing] = useState(true);
   const outgoingFetchedRef = useRef(false);
@@ -8641,6 +8668,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     const pendingOutgoing = outgoing.filter((r) => r.status === "PENDING");
                     const totalPending = pendingIncoming.length + pendingOutgoing.length;
 
+                    // Automatically calibrate skeleton count whenever data updates
+                    if (typeof window !== "undefined" && (!isLoadingOutgoing && !isLoadingIncoming)) {
+                      try {
+                        const actualFriendCount = acceptedFriends.length;
+                        const actualReqCount = totalPending;
+                        if (actualFriendCount > 0 && actualFriendCount !== predictedFriendsCount) {
+                          localStorage.setItem("qc_friends_count", String(actualFriendCount));
+                        }
+                        if (actualReqCount > 0 && actualReqCount !== predictedRequestsCount) {
+                          localStorage.setItem("qc_requests_count", String(actualReqCount));
+                        }
+                      } catch {}
+                    }
+
                     const isInitialLoading = (isLoadingOutgoing || isLoadingIncoming) && (!outgoingFetchedRef.current || !incomingFetchedRef.current);
 
                     return (
@@ -8770,10 +8811,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             (highlightRequests ? "glow-pulse border border-cyan-400/80 rounded-xl" : "")
                           }
                         >
-                          {/* 1 SINGLE UNIFIED SKELETON LIST ON COLD LAUNCH */}
+                          {/* ADAPTIVE PREDICTIVE SKELETON (EXACT QUANTITY = ACTUAL ID COUNT) */}
                           {isInitialLoading ? (
                             <div className="space-y-1.5 animate-pulse">
-                              {[1, 2, 3].map((i) => (
+                              {Array.from({ length: connectionsTab === "friends" ? Math.max(1, predictedFriendsCount) : Math.max(1, predictedRequestsCount) }).map((_, i) => (
                                 <div
                                   key={i}
                                   className="flex items-center justify-between gap-2 rounded-xl border border-slate-800/60 bg-slate-950/45 px-3 py-2.5"
