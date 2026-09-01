@@ -6730,6 +6730,30 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             cat.toLowerCase().includes(trimmedQuery)
           );
 
+          // Substring Highlight Engine for Real-Time Precision Query Sync
+          const highlightMatch = (textVal: string, query: string) => {
+            const cleanQuery = query.trim();
+            if (!cleanQuery) return textVal;
+
+            const escaped = cleanQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const regex = new RegExp(`(${escaped})`, "gi");
+            const parts = textVal.split(regex);
+
+            return parts.map((part, idx) => {
+              if (part.toLowerCase() === cleanQuery.toLowerCase()) {
+                return (
+                  <span
+                    key={idx}
+                    className="rounded-[3px] bg-cyan-400/25 px-0.5 font-bold text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.85)] border border-cyan-400/40"
+                  >
+                    {part}
+                  </span>
+                );
+              }
+              return <span key={idx}>{part}</span>;
+            });
+          };
+
           const handleSpotlightMouseMove = (e: React.MouseEvent<HTMLElement>) => {
             const rect = e.currentTarget.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -6869,7 +6893,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           >
                             <div className="flex items-center gap-2">
                               <span className={`h-1.5 w-1.5 rounded-full transition-all ${active ? "bg-cyan-300 shadow-[0_0_6px_#22d3ee]" : "bg-slate-600 group-hover:bg-cyan-400"}`} />
-                              <span className="truncate">{cat}</span>
+                              <span className="truncate text-slate-200 group-hover:text-white">
+                                {highlightMatch(cat, categorySearchQuery)}
+                              </span>
                             </div>
                             {active && (
                               <span className="flex items-center gap-1 rounded-full bg-cyan-400/20 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-cyan-300 border border-cyan-400/40">
