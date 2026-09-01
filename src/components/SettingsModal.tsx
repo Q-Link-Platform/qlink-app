@@ -444,7 +444,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
 
                           {/* Scrollable Content Body */}
-                          <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto pr-1 py-3 space-y-3 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [touch-action:pan-y] overscroll-contain">
+                          <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto px-2 sm:px-3 py-3 space-y-3.5 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [touch-action:pan-y] overscroll-contain">
                             {/* Account Section */}
                             <div onMouseMove={handleSpotlightMouseMove} onMouseLeave={handleSpotlightMouseLeave} className={`x-magnetic-card space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
