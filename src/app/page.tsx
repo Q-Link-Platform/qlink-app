@@ -8782,16 +8782,29 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             <button
                               type="button"
                               onClick={() => setConnectionsTab("requests")}
-                              className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-300 ${
+                              className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-300 ${
                                 connectionsTab === "requests"
                                   ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
-                                  : "text-slate-400 hover:text-slate-200"
+                                  : pendingIncoming.length > 0
+                                    ? "text-amber-200 border border-amber-500/60 bg-amber-500/20 shadow-[0_0_16px_rgba(245,158,11,0.4)] animate-[pulse_2.2s_ease-in-out_infinite]"
+                                    : "text-slate-400 hover:text-slate-200"
                               }`}
                             >
                               <span>Requests</span>
                               {totalPending > 0 && (
-                                <span className="rounded-full bg-orange-500 px-1.5 py-0.2 text-[10px] font-bold text-white shadow-[0_0_8px_#f97316] animate-pulse">
-                                  {totalPending}
+                                <span className="relative inline-flex items-center ml-0.5">
+                                  {pendingIncoming.length > 0 && (
+                                    <span className="absolute -inset-0.5 rounded-full bg-orange-500 opacity-80 animate-ping" />
+                                  )}
+                                  <span
+                                    className={`relative inline-flex items-center justify-center rounded-full px-1.5 py-0.2 text-[10px] font-bold transition-transform ${
+                                      pendingIncoming.length > 0
+                                        ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_0_10px_#f97316]"
+                                        : "bg-slate-800 text-slate-300 border border-slate-700"
+                                    }`}
+                                  >
+                                    {totalPending}
+                                  </span>
                                 </span>
                               )}
                             </button>
