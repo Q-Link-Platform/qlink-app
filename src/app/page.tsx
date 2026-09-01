@@ -4861,36 +4861,39 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       });
     };
 
-    const loadOutgoingAndIncoming = async () => {
-      try {
-        if (!outgoingFetchedRef.current) setIsLoadingOutgoing(true);
-        if (!incomingFetchedRef.current) setIsLoadingIncoming(true);
-        setIncomingError(null);
+    const loadOutgoingAndIncoming = () => {
+      if (!outgoingFetchedRef.current) setIsLoadingOutgoing(true);
+      if (!incomingFetchedRef.current) setIsLoadingIncoming(true);
+      setIncomingError(null);
 
-        const [outRes, inRes] = await Promise.allSettled([
-          fetch("/api/friends/outgoing"),
-          fetch("/api/friends/incoming"),
-        ]);
+      // Independent high-speed parallel fetches for instant millisecond UI hydration
+      fetch("/api/friends/outgoing")
+        .then(async (res) => {
+          if (res.ok) {
+            const outData = await res.json();
+            setOutgoing(deduplicateByToUser((outData.requests || []) as OutgoingRequest[]));
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          outgoingFetchedRef.current = true;
+          setIsLoadingOutgoing(false);
+        });
 
-        if (outRes.status === "fulfilled" && outRes.value.ok) {
-          const outData = await outRes.value.json();
-          setOutgoing(deduplicateByToUser((outData.requests || []) as OutgoingRequest[]));
-        }
-
-        if (inRes.status === "fulfilled" && inRes.value.ok) {
-          const inData = await inRes.value.json();
-          setIncoming(deduplicateByFromUser((inData.requests || []) as IncomingRequest[]));
-        } else if (inRes.status === "fulfilled" && !inRes.value.ok) {
-          setIncomingError("Unable to load incoming requests.");
-        }
-      } catch {
-        // Safe fallback
-      } finally {
-        outgoingFetchedRef.current = true;
-        incomingFetchedRef.current = true;
-        setIsLoadingOutgoing(false);
-        setIsLoadingIncoming(false);
-      }
+      fetch("/api/friends/incoming")
+        .then(async (res) => {
+          if (res.ok) {
+            const inData = await res.json();
+            setIncoming(deduplicateByFromUser((inData.requests || []) as IncomingRequest[]));
+          } else {
+            setIncomingError("Unable to load incoming requests.");
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          incomingFetchedRef.current = true;
+          setIsLoadingIncoming(false);
+        });
     };
 
     loadOutgoingAndIncoming();
@@ -8751,7 +8754,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       } catch {}
                     }
 
-                    const isInitialLoading = (isLoadingOutgoing || isLoadingIncoming) && (!outgoingFetchedRef.current || !incomingFetchedRef.current);
+                    const hasDataLoaded = acceptedFriends.length > 0 || totalPending > 0;
+                    const isInitialLoading = !hasDataLoaded && (isLoadingOutgoing || isLoadingIncoming) && (!outgoingFetchedRef.current || !incomingFetchedRef.current);
 
                     return (
                       <div className="mt-3 space-y-2.5">
