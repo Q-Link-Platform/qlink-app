@@ -9796,7 +9796,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       type="button"
                                       onClick={() => toggleCategory(cat)}
                                       className={`rounded-full border px-2.5 py-1 text-[11px] transition ${active
-                                          ? "border-cyan-400/70 bg-cyan-500/15 text-cyan-200"
+                                          ? "border-cyan-400/70 bg-cyan-500/15 text-cyan-200 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
                                           : "border-slate-600/70 bg-slate-900/70 text-slate-300 hover:border-cyan-400/60 hover:text-cyan-200"
                                         }`}
                                     >
@@ -9804,12 +9804,41 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     </button>
                                   );
                                 })}
+
+                                {/* Custom & Extended Selected Roles Dynamic Luminous Badge */}
+                                {selectedCategories
+                                  .filter((cat) => !allCategories.includes(cat))
+                                  .map((customCat) => (
+                                    <button
+                                      key={customCat}
+                                      type="button"
+                                      onClick={() => toggleCategory(customCat)}
+                                      className="inline-flex items-center gap-1.5 rounded-full border border-fuchsia-400/90 bg-fuchsia-500/25 px-3 py-1 text-[11px] font-semibold text-fuchsia-200 shadow-[0_0_15px_rgba(217,70,239,0.4),inset_0_1px_1px_rgba(255,255,255,0.25)] animate-in zoom-in-95 duration-200 hover:bg-fuchsia-500/35 transition-all"
+                                      title="Click to remove role"
+                                    >
+                                      <span className="flex h-1.5 w-1.5 rounded-full bg-fuchsia-300 shadow-[0_0_6px_#f472b6]" />
+                                      <span>{customCat}</span>
+                                      <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-fuchsia-400/30 text-[9px] text-white hover:bg-fuchsia-400/60 transition-colors">
+                                        ✕
+                                      </span>
+                                    </button>
+                                  ))}
+
                                 <button
                                   type="button"
                                   onClick={() => setShowMoreCategories(true)}
-                                  className="rounded-full border border-slate-600/70 bg-slate-900/70 px-2.5 py-1 text-[11px] text-slate-300 hover:border-cyan-400/60 hover:text-cyan-200"
+                                  className={`rounded-full border px-2.5 py-1 text-[11px] transition ${
+                                    selectedCategories.some((c) => !allCategories.includes(c))
+                                      ? "border-fuchsia-400/70 bg-fuchsia-500/20 text-fuchsia-200 shadow-[0_0_12px_rgba(217,70,239,0.35)]"
+                                      : "border-slate-600/70 bg-slate-900/70 text-slate-300 hover:border-cyan-400/60 hover:text-cyan-200"
+                                  }`}
                                 >
-                                  More
+                                  <span>More</span>
+                                  {selectedCategories.filter((c) => !allCategories.includes(c)).length > 0 && (
+                                    <span className="ml-1 rounded-full bg-fuchsia-500 px-1.5 py-0.2 text-[9.5px] font-bold text-white shadow-[0_0_6px_#d946ef]">
+                                      {selectedCategories.filter((c) => !allCategories.includes(c)).length}
+                                    </span>
+                                  )}
                                 </button>
                               </div>
                               <p className="text-[10px] text-slate-500">
