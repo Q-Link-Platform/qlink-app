@@ -3614,6 +3614,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showMoreCategories, setShowMoreCategories] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState("");
+  const [customRoleInput, setCustomRoleInput] = useState("");
+  const [isCustomRoleOpen, setIsCustomRoleOpen] = useState(false);
   const [comment, setComment] = useState("");
   const [requestSuccess, setRequestSuccess] = useState<string | null>(null);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -6851,26 +6853,127 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       )}
                     </div>
 
-                    {/* Result Counter & Active Filter Strip */}
+                    {/* Result Counter & Custom Role Toolbar */}
                     <div className="flex items-center justify-between px-1 text-[10.5px] font-medium text-slate-400">
                       <span className="flex items-center gap-1.5">
                         <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
                         <span>{filteredCategories.length} {filteredCategories.length === 1 ? "type" : "types"} found</span>
                       </span>
-                      {categorySearchQuery && (
+                      <div className="flex items-center gap-2">
+                        {categorySearchQuery && (
+                          <button
+                            type="button"
+                            onClick={() => setCategorySearchQuery("")}
+                            className="text-cyan-400 hover:text-cyan-300 hover:underline transition-colors mr-1"
+                          >
+                            Reset Filter
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => setCategorySearchQuery("")}
-                          className="text-cyan-400 hover:text-cyan-300 hover:underline transition-colors"
+                          onClick={() => setIsCustomRoleOpen((prev) => !prev)}
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-all ${
+                            isCustomRoleOpen
+                              ? "bg-fuchsia-500/25 text-fuchsia-200 border border-fuchsia-400/50 shadow-[0_0_10px_rgba(217,70,239,0.3)]"
+                              : "bg-slate-900/80 text-slate-300 border border-slate-700 hover:border-fuchsia-400/60 hover:text-fuchsia-300"
+                          }`}
                         >
-                          Reset Filter
+                          <span>✨ + Custom Private Tag</span>
                         </button>
-                      )}
+                      </div>
                     </div>
+
+                    {/* Inline Expandable Quiet Luxury Custom Role Input */}
+                    {isCustomRoleOpen && (
+                      <div className="relative rounded-2xl border border-fuchsia-500/40 bg-gradient-to-b from-fuchsia-950/30 via-slate-900/70 to-slate-950/90 p-3 shadow-[0_4px_20px_rgba(217,70,239,0.2)] animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[10.5px] font-bold text-fuchsia-300 flex items-center gap-1">
+                            <span>🔒 Custom Private Relationship</span>
+                          </span>
+                          <span className="text-[9.5px] text-slate-400 font-medium">Only visible to you</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={customRoleInput}
+                            onChange={(e) => setCustomRoleInput(e.target.value)}
+                            placeholder="Enter custom nickname or tag (e.g. VIP Investor, Gym Partner)..."
+                            className="flex-1 rounded-xl border border-slate-700/80 bg-slate-950/80 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-fuchsia-400 focus:outline-none focus:shadow-[0_0_12px_rgba(217,70,239,0.25)]"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && customRoleInput.trim()) {
+                                e.preventDefault();
+                                const newRole = customRoleInput.trim();
+                                toggleCategory(newRole);
+                                setCustomRoleInput("");
+                                setIsCustomRoleOpen(false);
+                                setShowMoreCategories(false);
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            disabled={!customRoleInput.trim()}
+                            onClick={() => {
+                              const newRole = customRoleInput.trim();
+                              if (newRole) {
+                                toggleCategory(newRole);
+                                setCustomRoleInput("");
+                                setIsCustomRoleOpen(false);
+                                setShowMoreCategories(false);
+                              }
+                            }}
+                            className="rounded-xl border border-fuchsia-400/60 bg-fuchsia-500/20 px-3 py-1.5 text-xs font-semibold text-fuchsia-200 transition-all hover:bg-fuchsia-500/30 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed shadow-[0_0_10px_rgba(217,70,239,0.2)] active:scale-95"
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Scrollable Categories List */}
                   <div className="relative mt-2.5 flex-1 overflow-y-auto px-1 py-1 space-y-1.5 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container">
+                    {/* Instant Dynamic Custom Role Match Card if Query Not Exactly in List */}
+                    {categorySearchQuery.trim().length > 0 &&
+                      !extendedCategories.some(
+                        (cat) => cat.toLowerCase() === categorySearchQuery.trim().toLowerCase()
+                      ) && (
+                        <button
+                          type="button"
+                          onMouseMove={handleSpotlightMouseMove}
+                          onMouseLeave={handleSpotlightMouseLeave}
+                          onClick={() => {
+                            const customRole = categorySearchQuery.trim();
+                            if (customRole) {
+                              toggleCategory(customRole);
+                              setShowMoreCategories(false);
+                              setCategorySearchQuery("");
+                            }
+                          }}
+                          className="x-magnetic-card group flex w-full items-center justify-between rounded-xl border border-fuchsia-500/40 bg-gradient-to-r from-fuchsia-950/40 via-purple-900/30 to-slate-900/70 px-3.5 py-2.5 text-[11.5px] font-medium text-left transition-all duration-200 shadow-[0_0_15px_rgba(217,70,239,0.25)] hover:border-fuchsia-400 hover:text-white"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/40 font-bold text-xs">
+                              +
+                            </span>
+                            <div className="flex flex-col">
+                              <span className="text-white font-semibold flex items-center gap-1.5">
+                                <span>Create Custom:</span>
+                                <span className="text-fuchsia-300 font-bold drop-shadow-[0_0_8px_rgba(217,70,239,0.6)]">
+                                  "{categorySearchQuery.trim()}"
+                                </span>
+                              </span>
+                              <span className="text-[9.5px] text-slate-400 font-normal">
+                                🔒 Private to your account only — never shown on global public directory
+                              </span>
+                            </div>
+                          </div>
+                          <span className="flex items-center gap-1 rounded-full bg-fuchsia-500/20 px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-fuchsia-300 border border-fuchsia-500/30">
+                            Private Tag
+                          </span>
+                        </button>
+                      )}
+
                     {filteredCategories.length > 0 ? (
                       filteredCategories.map((cat) => {
                         const active = selectedCategories.includes(cat);
