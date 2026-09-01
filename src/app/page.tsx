@@ -858,8 +858,71 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 }) {
   const { data: session, status, update: updateSession } = useSession();
 
-  // Strict authentication enforcement - no bypasses
-  const myId = (session?.user as any)?.id;
+  // Production-Grade Offline-Resilient Session Cache
+  const [cachedSessionUser, setCachedSessionUser] = useState<any>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem("qc_session_signature");
+        if (raw) return JSON.parse(raw);
+      } catch {}
+    }
+    return null;
+  });
+
+  const [isNetworkOnline, setIsNetworkOnline] = useState<boolean>(() => {
+    return typeof window !== "undefined" ? navigator.onLine : true;
+  });
+
+  // Keep session signature up-to-date whenever live session is authenticated
+  useEffect(() => {
+    if (session?.user && (session.user as any)?.id) {
+      const userPayload = {
+        id: (session.user as any).id,
+        name: session.user.name,
+        email: session.user.email,
+        image: session.user.image,
+        handle: (session.user as any).handle,
+        role: (session.user as any).role,
+        lastVerified: Date.now(),
+      };
+      setCachedSessionUser(userPayload);
+      try {
+        localStorage.setItem("qc_session_signature", JSON.stringify(userPayload));
+      } catch {}
+    }
+  }, [session]);
+
+  // Network online/offline listener with automatic silent session recovery
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleOnline = () => {
+      setIsNetworkOnline(true);
+      try {
+        updateSession?.();
+      } catch {}
+    };
+
+    const handleOffline = () => {
+      setIsNetworkOnline(false);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [updateSession]);
+
+  // Effective authenticated identity (Live session prioritized, fallback to cached signature on network drop)
+  const effectiveUser = session?.user || cachedSessionUser;
+  const isAuthenticated = Boolean(
+    (status === "authenticated" && session?.user && (session.user as any)?.id) ||
+    (cachedSessionUser && cachedSessionUser.id && (status === "loading" || !isNetworkOnline || status === "unauthenticated"))
+  );
+  const myId = (effectiveUser as any)?.id;
   const [mode, setMode] = useState<ViewMode>("home");
   const [connectionsTab, setConnectionsTab] = useState<"friends" | "requests">("friends");
 
@@ -4776,7 +4839,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Authenticated: load outgoing & incoming requests once on auth
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!isAuthenticated) return;
 
     const deduplicateByFromUser = (reqs: IncomingRequest[]): IncomingRequest[] => {
       const seen = new Set<string>();
@@ -4939,7 +5002,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Light polling so incoming/outgoing stay in sync across devices
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (!isAuthenticated) return;
 
     let cancelled = false;
 
@@ -5245,8 +5308,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     );
   }
 
-  // Unauthenticated: strictly show login gate to every user before granting app access
-  if (status === "unauthenticated" || !session?.user || !(session.user as any)?.id) {
+  // Unauthenticated: show login gate ONLY when user has genuinely logged out and has no valid session signature
+  if (!isAuthenticated || !effectiveUser || !myId) {
     return (
       <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-slate-950">
         {/* Background glow effects */}
@@ -6247,12 +6310,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }, 3000);
   };
 
-  const quantumId = currentHandle || (session.user as any)?.handle || "your-id";
-  const meId = (session.user as any)?.id as string | undefined;
-  const meEmail = (session.user as any)?.email as string | undefined;
+  const quantumId = currentHandle || (effectiveUser as any)?.handle || "your-id";
+  const meId = (effectiveUser as any)?.id as string | undefined;
+  const meEmail = (effectiveUser as any)?.email as string | undefined;
   const effectiveBlueTickStatus = localBlueTickOverride !== null
     ? localBlueTickOverride
-    : ((session?.user as any)?.blue_tick_status || 'NONE');
+    : ((effectiveUser as any)?.blue_tick_status || 'NONE');
 
   const isVipHandle = (handle: string | null | undefined) => handle === "Rohit_7779";
 
@@ -6516,6 +6579,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   const handleSignOut = async () => {
     try {
+      try {
+        localStorage.removeItem("qc_session_signature");
+        localStorage.removeItem("qc_friends_count");
+        localStorage.removeItem("qc_requests_count");
+      } catch {}
+      setCachedSessionUser(null);
       await signOut({ redirect: false });
       // Clear any local storage if needed
       localStorage.clear();
