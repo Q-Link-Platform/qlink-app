@@ -261,26 +261,6 @@ export default function SettingsModal(props: SettingsModalProps) {
     e.currentTarget.style.setProperty("--spotlight-opacity", "0");
   };
   const [showAboutFeatures, setShowAboutFeatures] = useState(false);
-  const [isCardCollapsed, setIsCardCollapsed] = useState(false);
-  const lastScrollYRef = React.useRef(0);
-
-  const restoreCard = () => {
-    setIsCardCollapsed(false);
-  };
-
-  const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const currentY = e.currentTarget.scrollTop;
-    const diff = currentY - lastScrollYRef.current;
-    lastScrollYRef.current = currentY;
-
-    if (currentY > 35 && diff > 5) {
-      // One UI / ColorOS Velocity Clamped Scroll Down -> Smooth Fluid Collapse
-      if (!isCardCollapsed) setIsCardCollapsed(true);
-    } else if (diff < -5 || currentY <= 15) {
-      // One UI / ColorOS Scroll Up or Top -> Spring Bloom Emerge
-      if (isCardCollapsed) setIsCardCollapsed(false);
-    }
-  };
 
   const interestsCategories = [
     "Technology", "Artificial Intelligence", "Machine Learning", "Deep Learning",
@@ -444,7 +424,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
 
                           {/* Scrollable Content Body */}
-                          <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto px-2 sm:px-3 py-3 space-y-3.5 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [touch-action:pan-y] overscroll-contain">
+                          <div className="flex-1 overflow-y-auto px-2 sm:px-3 py-3 space-y-3.5 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [touch-action:pan-y] overscroll-contain">
                             {/* Account Section */}
                             <div onMouseMove={handleSpotlightMouseMove} onMouseLeave={handleSpotlightMouseLeave} className={`x-magnetic-card space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
@@ -1245,19 +1225,10 @@ export default function SettingsModal(props: SettingsModalProps) {
 
                             {/* About Q-Link & Standalone Windows App Card - ColorOS Aquamorphic / One UI Fluid Grid Motion */}
                             <div
-                              onClick={restoreCard}
-                              className={`grid transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                                isCardCollapsed
-                                  ? "grid-rows-[0fr] opacity-0 pointer-events-none mt-0 select-none"
-                                  : "grid-rows-[1fr] opacity-100 pointer-events-auto mt-3 select-auto"
-                              }`}
+                              onMouseMove={handleSpotlightMouseMove}
+                              onMouseLeave={handleSpotlightMouseLeave}
+                              className="x-magnetic-card rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(6,182,212,0.15),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 space-y-3 transition-all duration-300"
                             >
-                              <div className="overflow-hidden">
-                                <div
-                                  className={`rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(6,182,212,0.15),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 space-y-3 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
-                                    isCardCollapsed ? "translate-y-8 scale-[0.96]" : "translate-y-0 scale-100"
-                                  }`}
-                                >
                                   {/* Header Row */}
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2.5">
@@ -1349,9 +1320,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                                       Log out
                                     </button>
                                   </div>
-                                </div>
                               </div>
-                            </div>
 
                           {/* Clean Minimal Safe Exit Hint */}
                           <div className="shrink-0 pt-2 pb-1 text-center">
