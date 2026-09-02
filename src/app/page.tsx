@@ -5351,29 +5351,29 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           </div>
 
                     {/* Sign-in Card */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl backdrop-blur-xl">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 sm:p-6 shadow-2xl backdrop-blur-xl space-y-3">
             {/* Google Sign-in Button */}
             <button
-              className="group relative overflow-hidden grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700/80 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
+              className="group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-slate-700/80 bg-white px-3.5 text-xs sm:text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
               onClick={() => signIn("google")}
             >
               {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/[0.08] to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
-              <div className="flex h-8 w-8 items-center justify-center overflow-visible pr-1.5">
+              <div className="flex h-6 w-6 items-center justify-center overflow-visible">
                 <img
                   src="/google-icon.ico"
                   alt="Google"
-                  className="h-8 w-8 object-contain -ml-px animate-smooth-rotate-120 will-change-transform"
+                  className="h-5.5 w-5.5 object-contain animate-smooth-rotate-120 will-change-transform"
                   style={{ animationDelay: '0s' }}
                 />
               </div>
-              <span className="text-center tracking-wide">Continue with Google</span>
+              <span className="text-center whitespace-nowrap tracking-wide truncate">Continue with Google</span>
               <div />
             </button>
 
             {/* Microsoft Sign-in Button */}
             <button
-              className="group relative overflow-hidden mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700/80 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
+              className="group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-slate-700/80 bg-white px-3.5 text-xs sm:text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
               onClick={() => signIn("azure-ad")}
             >
               {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
@@ -5382,17 +5382,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 <img
                   src="/microsoft-icon.ico"
                   alt="Microsoft"
-                  className="h-5.5 w-5.5 object-contain -ml-px animate-smooth-rotate-microsoft will-change-transform"
+                  className="h-5.5 w-5.5 object-contain animate-smooth-rotate-microsoft will-change-transform"
                   style={{ animationDelay: '0.6s' }}
                 />
               </div>
-              <span className="text-center whitespace-nowrap pl-3 tracking-wide">Continue with Microsoft</span>
+              <span className="text-center whitespace-nowrap tracking-wide truncate">Continue with Microsoft</span>
               <div />
             </button>
 
             {/* GitHub Sign-in Button */}
             <button
-              className="group relative overflow-hidden mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-slate-700/80 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
+              className="group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-slate-700/80 bg-white px-3.5 text-xs sm:text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
               onClick={() => signIn("github")}
             >
               {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
@@ -5401,17 +5401,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 <img
                   src="/github-icon.ico"
                   alt="GitHub"
-                  className="h-6 w-6 object-contain -ml-px animate-smooth-rotate-120 will-change-transform"
+                  className="h-5.5 w-5.5 object-contain animate-smooth-rotate-120 will-change-transform"
                   style={{ animationDelay: '1.2s' }}
                 />
               </div>
-              <span className="text-center pr-2 tracking-wide">Continue with GitHub</span>
+              <span className="text-center whitespace-nowrap tracking-wide truncate">Continue with GitHub</span>
               <div />
             </button>
 
             {/* Unified Phone Login/Signup Button */}
             <button
-              className="group relative overflow-hidden mt-3 grid w-full grid-cols-[48px_1fr_48px] items-center rounded-xl border border-cyan-500/20 bg-slate-800/40 text-slate-200 px-4 py-3 text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-cyan-400/50 hover:bg-slate-800/80 hover:text-white hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.45),0_0_25px_rgba(6,182,212,0.3)] hover:ring-1 hover:ring-cyan-400/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
+              className="group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-cyan-500/20 bg-slate-800/40 text-slate-200 px-3.5 text-xs sm:text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-cyan-400/50 hover:bg-slate-800/80 hover:text-white hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.45),0_0_25px_rgba(6,182,212,0.3)] hover:ring-1 hover:ring-cyan-400/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
               onClick={() => {
                 setShowNoAccountModal(true);
                 setPhoneSignInStep("menu");
@@ -5420,9 +5420,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               {/* Silky Smooth Cyan Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-cyan-400/15 to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
               <div className="flex h-6 w-6 items-center justify-center overflow-hidden">
-                <span className="text-lg">📱</span>
+                <span className="text-base sm:text-lg">📱</span>
               </div>
-              <span className="text-center pr-2 tracking-wide">Continue with Phone</span>
+              <span className="text-center whitespace-nowrap tracking-wide truncate">Continue with Phone</span>
               <div />
             </button>
 
