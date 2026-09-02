@@ -261,6 +261,17 @@ export default function SettingsModal(props: SettingsModalProps) {
     e.currentTarget.style.setProperty("--spotlight-opacity", "0");
   };
   const [showAboutFeatures, setShowAboutFeatures] = useState(false);
+  const [isHeroDocked, setIsHeroDocked] = useState(false);
+
+  // Precision 120FPS Scroll Position Synced Engine
+  const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const currentScrollTop = e.currentTarget.scrollTop;
+    if (currentScrollTop <= 15) {
+      if (isHeroDocked) setIsHeroDocked(false);
+    } else if (currentScrollTop > 45) {
+      if (!isHeroDocked) setIsHeroDocked(true);
+    }
+  };
 
   const interestsCategories = [
     "Technology", "Artificial Intelligence", "Machine Learning", "Deep Learning",
@@ -424,7 +435,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                           </div>
 
                           {/* Scrollable Content Body */}
-                          <div className="flex-1 overflow-y-auto px-2 sm:px-3 py-3 space-y-3.5 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [touch-action:pan-y] overscroll-contain">
+                          <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto px-2 sm:px-3 py-3 space-y-3.5 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [touch-action:pan-y] overscroll-contain">
                             {/* Account Section */}
                             <div onMouseMove={handleSpotlightMouseMove} onMouseLeave={handleSpotlightMouseLeave} className={`x-magnetic-card space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
@@ -1221,14 +1232,66 @@ export default function SettingsModal(props: SettingsModalProps) {
                               </div>
                             )}
                           </div>
-                        </div>
 
                             {/* About Q-Link & Standalone Windows App Card - ColorOS Aquamorphic / One UI Fluid Grid Motion */}
                             <div
                               onMouseMove={handleSpotlightMouseMove}
                               onMouseLeave={handleSpotlightMouseLeave}
-                              className="x-magnetic-card rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(6,182,212,0.15),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 space-y-3 transition-all duration-300"
+                              onClick={() => {
+                                if (isHeroDocked) setIsHeroDocked(false);
+                              }}
+                              className={`x-magnetic-card rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(6,182,212,0.15),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                                isHeroDocked
+                                  ? "p-2.5 sm:p-3 cursor-pointer hover:border-cyan-400/50 hover:shadow-[0_0_25px_rgba(6,182,212,0.25)]"
+                                  : "p-4 space-y-3"
+                              }`}
                             >
+                              {/* Sleek Docked Capsule View (When Scrolled Down) */}
+                              {isHeroDocked ? (
+                                <div className="flex items-center justify-between gap-2 animate-fade-in">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <div className="h-7 w-7 rounded-lg bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_0_12px_rgba(6,182,212,0.5)] ring-1 ring-cyan-300/40 shrink-0">
+                                      <span className="text-white font-black text-[10px] tracking-wider">QL</span>
+                                    </div>
+                                    <div className="truncate">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-[11px] font-bold text-white truncate">Q-Link Platform</span>
+                                        <span className="text-[8px] font-mono px-1 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                                          v3.0
+                                        </span>
+                                      </div>
+                                      <p className="text-[9px] text-emerald-400 font-medium flex items-center gap-1">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                        Quantum Network Active
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5 shrink-0">
+                                    <a
+                                      href="/downloads/Q-Link-Setup.exe"
+                                      download="Q-Link-Setup.exe"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 px-2 py-1 text-[9px] font-semibold text-cyan-200 transition-all active:scale-95 flex items-center gap-1"
+                                      title="Download Windows App"
+                                    >
+                                      <span>💻</span> .exe
+                                    </a>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setIsHeroDocked(false);
+                                      }}
+                                      className="rounded-lg bg-white/5 hover:bg-white/10 px-2 py-1 text-[9px] font-medium text-slate-300 transition-all"
+                                    >
+                                      Expand ▾
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                /* Full Detailed Card View (When at Top or Expanded) */
+                                <div className="space-y-3 animate-fade-in">
                                   {/* Header Row */}
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2.5">
@@ -1243,7 +1306,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                                           </span>
                                         </h4>
                                         <p className="text-[10px] text-slate-300">
-                                          Next-Gen Private Messaging &amp; Social Network
+                                          Next-Gen Private Messaging & Social Network
                                         </p>
                                       </div>
                                     </div>
@@ -1260,13 +1323,13 @@ export default function SettingsModal(props: SettingsModalProps) {
                                   </div>
 
                                   {/* Windows Desktop App Box */}
-                                  <div className="rounded-xl border border-cyan-400/30 bg-cyan-950/40 p-2.5 flex items-center justify-between gap-2 shadow-[0_0_15px_rgba(6,182,212,0.15)] transition-all hover:border-cyan-400/60 hover:bg-cyan-950/50">
+                                  <div className="rounded-xl border border-cyan-400/30 bg-cyan-950/40 p-2.5 flex items-center justify-between gap-3">
                                     <div className="min-w-0">
-                                      <p className="text-[11px] font-semibold text-cyan-100 flex items-center gap-1">
-                                        <span>🖥️</span> Standalone Windows App (.exe)
+                                      <p className="text-[11px] font-semibold text-white flex items-center gap-1.5">
+                                        <span>💻</span> Standalone Windows App (.exe)
                                       </p>
                                       <p className="text-[10px] text-slate-300 truncate">
-                                        System Tray background mode &amp; zero-flicker alerts
+                                        System Tray background mode & zero-flicker alerts
                                       </p>
                                     </div>
                                     <a
@@ -1283,10 +1346,10 @@ export default function SettingsModal(props: SettingsModalProps) {
                                   {showAboutFeatures && (
                                     <div className="space-y-2.5 pt-2 border-t border-cyan-500/20 text-[10px] text-slate-300 animate-fade-in max-h-72 overflow-y-auto pr-1">
                                       <div className="space-y-1.5">
-                                        <p className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">💬 Chat &amp; Messaging</p>
+                                        <p className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">⚡ Chat & Messaging</p>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                                           <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
-                                            <p className="font-semibold text-cyan-300">⚡ Dynamic Recency Ranking</p>
+                                            <p className="font-semibold text-cyan-300">🔥 Dynamic Recency Ranking</p>
                                             <p className="text-slate-400 text-[9px] leading-relaxed">Active and newly messaged chats instantly bubble to the top.</p>
                                           </div>
                                           <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
@@ -1298,14 +1361,23 @@ export default function SettingsModal(props: SettingsModalProps) {
                                             <p className="text-slate-400 text-[9px] leading-relaxed">One-tap audio recording with interactive waveform players.</p>
                                           </div>
                                           <div className="rounded-xl border border-cyan-500/20 bg-slate-950/60 p-2">
-                                            <p className="font-semibold text-purple-300">📍 Smart Scroll Memory</p>
+                                            <p className="font-semibold text-purple-300">📜 Smart Scroll Memory</p>
                                             <p className="text-slate-400 text-[9px] leading-relaxed">Browses history without jumping, auto-snaps on new messages.</p>
                                           </div>
                                         </div>
                                       </div>
                                     </div>
                                   )}
-                                  
+
+                                  {/* Action Footnote */}
+                                  <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800/80">
+                                    <span>Status</span>
+                                    <span className="text-emerald-400 font-medium">● Online</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
                                   {/* Log Out Action Card Inside Scroll Body */}
                                   <div className="pt-2 pb-2">
                                     <button
