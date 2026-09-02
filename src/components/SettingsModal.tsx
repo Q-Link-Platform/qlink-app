@@ -316,7 +316,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                         }}
                       >
                         <div
-                          className={`w-full h-[100dvh] sm:h-auto sm:max-h-[88vh] sm:max-w-[410px] flex flex-col rounded-none sm:rounded-[32px] transition-all duration-300 ${
+                          className={`w-full h-[100dvh] sm:h-auto sm:max-h-[88vh] sm:max-w-[420px] flex flex-col rounded-none sm:rounded-[32px] overflow-hidden transition-all duration-300 pt-[max(env(safe-area-inset-top),16px)] sm:pt-5 pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-5 px-4 sm:px-5 ${
                             settingsGlassTheme === "quantum"
                               ? "border-0 sm:border border-cyan-500/30 bg-gradient-to-b from-slate-950/95 via-[#030712]/95 to-black/95 sm:from-slate-900/60 sm:via-slate-950/75 sm:to-[#030712]/90 backdrop-blur-3xl p-4 sm:p-5 text-[12px] text-white shadow-[0_0_50px_rgba(6,182,212,0.18),0_25px_70px_rgba(0,0,0,0.8),inset_0_1px_2px_rgba(255,255,255,0.4),inset_0_0_30px_rgba(6,182,212,0.08)] ring-0 sm:ring-1 ring-cyan-400/25"
                               : "border-0 sm:border border-white/20 bg-gradient-to-b from-slate-950/95 via-slate-900/95 to-black/95 sm:from-white/[0.12] sm:via-slate-900/40 sm:to-slate-950/60 backdrop-blur-3xl p-4 sm:p-5 text-[12px] text-white shadow-[0_25px_70px_rgba(0,0,0,0.6),inset_0_1px_1.5px_rgba(255,255,255,0.4),inset_0_0_30px_rgba(255,255,255,0.03)] ring-0 sm:ring-1 ring-white/10"
@@ -329,8 +329,8 @@ export default function SettingsModal(props: SettingsModalProps) {
                           onMouseDown={(e) => e.stopPropagation()}
                         >
                           {/* Navigation Header with Dual-Theme Glass Switcher */}
-                          <div className={`shrink-0 space-y-2 pb-3 border-b transition-all duration-300 ${
-                            settingsGlassTheme === "quantum" ? "border-cyan-500/20" : "border-white/[0.12]"
+                          <div className={`shrink-0 space-y-2 pb-3 border-b transition-all duration-300 z-10 ${
+                            settingsGlassTheme === "quantum" ? "border-cyan-500/25 bg-slate-950/40 backdrop-blur-xl" : "border-white/[0.15] bg-slate-950/40 backdrop-blur-xl"
                           }`}>
                             {/* Mobile Pull-Down Indicator Bar (Visible on mobile screens) */}
                             <div className="flex sm:hidden justify-center pb-1">
@@ -1334,23 +1334,28 @@ export default function SettingsModal(props: SettingsModalProps) {
                                       </div>
                                     </div>
                                   )}
+                                  
+                                  {/* Log Out Action Card Inside Scroll Body */}
+                                  <div className="pt-2 pb-2">
+                                    <button
+                                      type="button"
+                                      onMouseMove={handleSpotlightMouseMove}
+                                      onMouseLeave={handleSpotlightMouseLeave}
+                                      onClick={() => {
+                                        setShowLogoutConfirm(true);
+                                      }}
+                                      className="x-magnetic-logout x-magnetic-card w-full rounded-2xl border border-rose-500/40 bg-gradient-to-r from-rose-950/40 via-red-900/30 to-pink-950/40 hover:from-rose-600/30 hover:to-pink-600/30 backdrop-blur-2xl py-3 text-[12px] font-bold uppercase tracking-wider text-rose-300 hover:text-white shadow-[0_0_25px_rgba(244,63,94,0.2),inset_0_1px_1px_rgba(255,255,255,0.2)] active:scale-[0.98] transition-all"
+                                    >
+                                      Log out
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
 
-                          {/* Fixed Footer */}
-                          <div className="shrink-0 pt-3 border-t border-white/10 space-y-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setShowLogoutConfirm(true);
-                              }}
-                              className="w-full rounded-2xl border border-rose-500/40 bg-gradient-to-r from-rose-950/40 via-red-900/30 to-pink-950/40 hover:from-rose-600/30 hover:to-pink-600/30 backdrop-blur-2xl py-3 text-[12px] font-bold uppercase tracking-wider text-rose-300 hover:text-white shadow-[0_0_25px_rgba(244,63,94,0.2),inset_0_1px_1px_rgba(255,255,255,0.2)] active:scale-[0.98] transition-all"
-                            >
-                              Log out
-                            </button>
-
-                            <p className="text-center text-[10px] text-slate-400/80 font-medium">
+                          {/* Clean Minimal Safe Exit Hint */}
+                          <div className="shrink-0 pt-2 pb-1 text-center">
+                            <p className="text-[10px] text-slate-400/70 font-medium">
                               Tap backdrop or Close button to exit
                             </p>
                           </div>
