@@ -268,20 +268,31 @@ export default function SettingsModal(props: SettingsModalProps) {
     setIsCardCollapsed(false);
   };
 
-  // ColorOS Aquamorphic / One UI 2.0s Synchronized Motion Engine
+  // ColorOS Aquamorphic / One UI 2.0s Synchronized Motion Engine with Anti-Flicker Bottom-Lock
   const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const currentY = e.currentTarget.scrollTop;
+    const target = e.currentTarget;
+    const currentY = target.scrollTop;
+    const maxScroll = Math.max(0, target.scrollHeight - target.clientHeight);
     const diff = currentY - lastScrollYRef.current;
     lastScrollYRef.current = currentY;
 
-    if (currentY <= 20) {
-      // Guaranteed bloom when reaching near top
+    // 1. Anti-Flicker Bottom Lock: Ignore rubber-band bounce at bottom
+    if (currentY >= maxScroll - 40 && maxScroll > 60) {
+      return;
+    }
+
+    // 2. Guaranteed Top Bloom
+    if (currentY <= 25) {
       if (isCardCollapsed) setIsCardCollapsed(false);
-    } else if (currentY > 35 && diff > 3) {
-      // Velocity-Clamped Fluid Collapse on Scroll Down
+      return;
+    }
+
+    // 3. Intentional Downward Scroll (Hysteresis Deadband)
+    if (currentY > 60 && diff > 6) {
       if (!isCardCollapsed) setIsCardCollapsed(true);
-    } else if (diff < -3) {
-      // Spring Bloom Emerge on Scroll Up
+    } 
+    // 4. Intentional Upward Scroll (Safely Away From Bottom Boundary)
+    else if (diff < -12 && currentY < maxScroll - 80) {
       if (isCardCollapsed) setIsCardCollapsed(false);
     }
   };
