@@ -6146,8 +6146,32 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     if (!activePeerHandle || !chatInput.trim()) return;
 
     const text = chatInput.trim();
+    setChatInput(""); // Instant 0ms clear input
     setChatError(null);
 
+    const tempId = "temp-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7);
+    const mySenderId = myId || meId || (effectiveUser as any)?.id || "me";
+
+    const optimisticMsg: ChatMessage = {
+      id: tempId,
+      content: text,
+      createdAt: new Date().toISOString(),
+      senderId: mySenderId,
+      isEncrypted: isE2EEnabled,
+      status: "SENT",
+    };
+
+    // 1. Instant 0ms Optimistic Dispatch to RIGHT SIDE (Zero Lag feel)
+    setChatMessages((prev) => [...prev, optimisticMsg]);
+
+    // Instant smooth auto-scroll to bottom
+    setTimeout(() => {
+      if (chatScrollRef.current) {
+        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+      }
+    }, 10);
+
+    // 2. Perform background encryption & server sync
     try {
       let contentToSend = text;
       if (activePeerPublicKey && isE2EEnabled) {
@@ -6168,24 +6192,28 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setChatError(data.error || "Unable to send message.");
+        // Rollback optimistic message on network error
+        setChatMessages((prev) => prev.filter((m) => m.id !== tempId));
+        setChatInput(text); // Restore text
         return;
       }
 
       const data = await res.json();
       const rawMessage = data.message as ChatMessage;
       const decryptedArray = await decryptMessageList([rawMessage], activePeerPublicKey);
-      const message = decryptedArray[0];
+      const message = decryptedArray[0] || rawMessage;
 
       setChatMessages((prev) => {
-        // Replace optimistic temp message with confirmed server message (with real status)
+        // Swap temp optimistic message with real confirmed server message smoothly
+        const hasTemp = prev.some((m) => m.id === tempId);
+        if (hasTemp) {
+          return prev.map((m) => (m.id === tempId ? { ...message, status: message.status || "SENT" } : m));
+        }
         const alreadyExists = prev.some((m) => m.id === message.id);
         if (alreadyExists) {
-          // Update existing entry with latest status from server
-          return prev.map((m) => m.id === message.id ? { ...m, ...message } : m);
+          return prev.map((m) => (m.id === message.id ? { ...m, ...message } : m));
         }
-        // Remove ALL pending temp messages then append the confirmed one from server
-        const withoutTemps = prev.filter((m) => !m.id.startsWith("temp-"));
-        return [...withoutTemps, { ...message, status: message.status || "SENT" }];
+        return [...prev, { ...message, status: message.status || "SENT" }];
       });
 
       // Real-time Dynamic Ranking: Instantly bump peer to the top of the friends/chats sidebar
@@ -10009,7 +10037,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         )}
 
                         {chatMessages.map((m, msgIdx) => {
-                          const isMe = meId && m.senderId === meId;
+                          const isMe = Boolean(
+                            m.id.startsWith("temp-") ||
+                            m.senderId === "me" ||
+                            (meId && m.senderId === meId) ||
+                            (myId && m.senderId === myId) ||
+                            ((effectiveUser as any)?.id && m.senderId === (effectiveUser as any).id)
+                          );
                           const prevMsg = msgIdx > 0 ? chatMessages[msgIdx - 1] : null;
                           const showDateSep = !prevMsg || !isSameDay(prevMsg.createdAt, m.createdAt);
 
