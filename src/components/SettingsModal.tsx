@@ -261,15 +261,28 @@ export default function SettingsModal(props: SettingsModalProps) {
     e.currentTarget.style.setProperty("--spotlight-opacity", "0");
   };
   const [showAboutFeatures, setShowAboutFeatures] = useState(false);
-  const [isHeroDocked, setIsHeroDocked] = useState(false);
+  const [isCardCollapsed, setIsCardCollapsed] = useState(false);
+  const lastScrollYRef = React.useRef(0);
 
-  // Precision 120FPS Scroll Position Synced Engine
+  const restoreCard = () => {
+    setIsCardCollapsed(false);
+  };
+
+  // ColorOS Aquamorphic / One UI 2.0s Synchronized Motion Engine
   const handleSettingsScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const currentScrollTop = e.currentTarget.scrollTop;
-    if (currentScrollTop <= 15) {
-      if (isHeroDocked) setIsHeroDocked(false);
-    } else if (currentScrollTop > 45) {
-      if (!isHeroDocked) setIsHeroDocked(true);
+    const currentY = e.currentTarget.scrollTop;
+    const diff = currentY - lastScrollYRef.current;
+    lastScrollYRef.current = currentY;
+
+    if (currentY <= 20) {
+      // Guaranteed bloom when reaching near top
+      if (isCardCollapsed) setIsCardCollapsed(false);
+    } else if (currentY > 35 && diff > 3) {
+      // Velocity-Clamped Fluid Collapse on Scroll Down
+      if (!isCardCollapsed) setIsCardCollapsed(true);
+    } else if (diff < -3) {
+      // Spring Bloom Emerge on Scroll Up
+      if (isCardCollapsed) setIsCardCollapsed(false);
     }
   };
 
@@ -1235,63 +1248,21 @@ export default function SettingsModal(props: SettingsModalProps) {
 
                             {/* About Q-Link & Standalone Windows App Card - ColorOS Aquamorphic / One UI Fluid Grid Motion */}
                             <div
-                              onMouseMove={handleSpotlightMouseMove}
-                              onMouseLeave={handleSpotlightMouseLeave}
-                              onClick={() => {
-                                if (isHeroDocked) setIsHeroDocked(false);
-                              }}
-                              className={`x-magnetic-card rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(6,182,212,0.15),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-                                isHeroDocked
-                                  ? "p-2.5 sm:p-3 cursor-pointer hover:border-cyan-400/50 hover:shadow-[0_0_25px_rgba(6,182,212,0.25)]"
-                                  : "p-4 space-y-3"
+                              onClick={restoreCard}
+                              className={`grid transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                                isCardCollapsed
+                                  ? "grid-rows-[0fr] opacity-0 pointer-events-none mt-0 select-none"
+                                  : "grid-rows-[1fr] opacity-100 pointer-events-auto mt-3 select-auto"
                               }`}
                             >
-                              {/* Sleek Docked Capsule View (When Scrolled Down) */}
-                              {isHeroDocked ? (
-                                <div className="flex items-center justify-between gap-2 animate-fade-in">
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <div className="h-7 w-7 rounded-lg bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center shadow-[0_0_12px_rgba(6,182,212,0.5)] ring-1 ring-cyan-300/40 shrink-0">
-                                      <span className="text-white font-black text-[10px] tracking-wider">QL</span>
-                                    </div>
-                                    <div className="truncate">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-[11px] font-bold text-white truncate">Q-Link Platform</span>
-                                        <span className="text-[8px] font-mono px-1 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
-                                          v3.0
-                                        </span>
-                                      </div>
-                                      <p className="text-[9px] text-emerald-400 font-medium flex items-center gap-1">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                        Quantum Network Active
-                                      </p>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center gap-1.5 shrink-0">
-                                    <a
-                                      href="/downloads/Q-Link-Setup.exe"
-                                      download="Q-Link-Setup.exe"
-                                      onClick={(e) => e.stopPropagation()}
-                                      className="rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 px-2 py-1 text-[9px] font-semibold text-cyan-200 transition-all active:scale-95 flex items-center gap-1"
-                                      title="Download Windows App"
-                                    >
-                                      <span>💻</span> .exe
-                                    </a>
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setIsHeroDocked(false);
-                                      }}
-                                      className="rounded-lg bg-white/5 hover:bg-white/10 px-2 py-1 text-[9px] font-medium text-slate-300 transition-all"
-                                    >
-                                      Expand ▾
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                /* Full Detailed Card View (When at Top or Expanded) */
-                                <div className="space-y-3 animate-fade-in">
+                              <div className="overflow-hidden">
+                                <div
+                                  onMouseMove={handleSpotlightMouseMove}
+                                  onMouseLeave={handleSpotlightMouseLeave}
+                                  className={`x-magnetic-card rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/30 via-slate-950/50 to-slate-900/40 backdrop-blur-2xl p-4 shadow-[0_8px_32px_0_rgba(6,182,212,0.15),inset_0_1px_1px_0_rgba(255,255,255,0.12)] ring-1 ring-cyan-400/20 space-y-3 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform ${
+                                    isCardCollapsed ? "translate-y-8 scale-[0.96]" : "translate-y-0 scale-100"
+                                  }`}
+                                >
                                   {/* Header Row */}
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2.5">
@@ -1375,7 +1346,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                                     <span className="text-emerald-400 font-medium">● Online</span>
                                   </div>
                                 </div>
-                              )}
+                              </div>
                             </div>
 
                                   {/* Log Out Action Card Inside Scroll Body */}
