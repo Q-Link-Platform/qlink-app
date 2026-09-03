@@ -16,10 +16,10 @@ function getDatabaseUrl(): string | undefined {
     .replace("?channel_binding=require", "");
 
   if (!cleanUrl.includes("connect_timeout=")) {
-    cleanUrl += cleanUrl.includes("?") ? "&connect_timeout=30" : "?connect_timeout=30";
+    cleanUrl += cleanUrl.includes("?") ? "&connect_timeout=10" : "?connect_timeout=10";
   }
   if (!cleanUrl.includes("pool_timeout=")) {
-    cleanUrl += "&pool_timeout=30";
+    cleanUrl += "&pool_timeout=10";
   }
   return cleanUrl;
 }

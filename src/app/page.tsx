@@ -5221,7 +5221,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     // Initial fetch and interval
     poll();
-    const id = setInterval(poll, 3000);
+    const id = setInterval(poll, 1200);
 
     return () => {
       cancelled = true;
