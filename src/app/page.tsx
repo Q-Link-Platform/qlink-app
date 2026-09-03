@@ -2746,7 +2746,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     };
 
     fetchPresence();
-    const interval = setInterval(fetchPresence, 5_000);
+    const interval = setInterval(fetchPresence, 1_800);
 
     return () => {
       cancelled = true;

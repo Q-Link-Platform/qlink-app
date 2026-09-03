@@ -63,12 +63,14 @@ export async function GET(
 
     const online = now - lastSeen <= 45_000; // 45 seconds window for robust presence tracking
 
+    const cleanViewer = (viewerHandle || "").trim().toLowerCase().replace(/^@/, "");
+    const cleanTarget = (user.lastTypingForHandle || "").trim().toLowerCase().replace(/^@/, "");
     const typing =
-      !!viewerHandle &&
-      !!user.lastTypingForHandle &&
-      user.lastTypingForHandle === viewerHandle &&
+      !!cleanViewer &&
+      !!cleanTarget &&
+      cleanViewer === cleanTarget &&
       !!lastTyping &&
-      now - lastTyping <= 5_000; // typing valid for 5 seconds
+      now - lastTyping <= 6_000; // typing valid for 6 seconds
 
     return NextResponse.json({
       online,
