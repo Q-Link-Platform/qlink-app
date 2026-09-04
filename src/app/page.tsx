@@ -37,6 +37,7 @@ import dynamic from "next/dynamic";
 import { FeedVideoManagerProvider } from "@/context/FeedVideoManager";
 import { PerformanceProvider, usePerformance } from "@/app/providers/PerformanceProvider";
 import { ChatInputConsole } from "@/components/ChatInputConsole";
+import { YouTubeInlinePreview } from "@/components/YouTubeInlinePreview";
 
 const StoreModal = dynamic(() => import("@/components/StoreModal"), {
   ssr: false,
@@ -548,6 +549,13 @@ function rankFriendRequests<T extends {
   });
 }
 
+
+function extractYouTubeVideoId(text: string): string | null {
+  if (!text) return null;
+  const regExp = /(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
+  const match = text.match(regExp);
+  return match ? match[1] : null;
+}
 
 function renderMessageText(text: string, isMe: boolean) {
   if (!text) return null;
@@ -10186,6 +10194,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                           <span>{renderMessageText(displayContent, !!isMe)}</span>
                                         )}
                                       </p>
+                                    )}
+
+                                    {/* YouTube Inline Rich Video Preview */}
+                                    {extractYouTubeVideoId(displayContent) && (
+                                      <YouTubeInlinePreview
+                                        videoId={extractYouTubeVideoId(displayContent)!}
+                                        isMe={!!isMe}
+                                      />
                                     )}
 
                                     {/* Attachments, if any */}
