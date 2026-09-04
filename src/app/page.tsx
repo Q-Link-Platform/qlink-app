@@ -564,25 +564,84 @@ function extractYouTubeVideoId(text: string): string | null {
   return info ? info.videoId : null;
 }
 
+function parseUrlDetails(urlStr: string) {
+  try {
+    const parsed = new URL(urlStr);
+    const domain = parsed.hostname.replace(/^www\./, "");
+    const pathname = parsed.pathname === "/" ? "" : parsed.pathname;
+    const search = parsed.search ? parsed.search : "";
+    const pathAndQuery = pathname + search;
+    return {
+      domain,
+      path: pathAndQuery,
+      isValid: true,
+    };
+  } catch {
+    return {
+      domain: "",
+      path: urlStr,
+      isValid: false,
+    };
+  }
+}
+
 function renderMessageText(text: string, isMe: boolean) {
   if (!text) return null;
   const URL_REGEX = /(https?:\/\/[^\s]+)/g;
   const parts = text.split(URL_REGEX);
   return parts.map((part, index) => {
     if (part.match(URL_REGEX)) {
+      const { domain, path, isValid } = parseUrlDetails(part);
       return (
         <a
           key={index}
           href={part}
           target="_blank"
           rel="noopener noreferrer"
-          className={
+          onClick={(e) => e.stopPropagation()}
+          title={part}
+          className={`group/link relative inline-flex items-center gap-1.5 align-middle my-0.5 px-2.5 py-1 rounded-xl text-[12px] sm:text-[12.5px] font-sans font-medium no-underline overflow-hidden backdrop-blur-md transition-all duration-300 ease-out select-text ${
             isMe
-              ? "underline text-blue-900 hover:text-blue-950 font-semibold break-all"
-              : "underline text-cyan-400 hover:text-cyan-300 font-semibold break-all"
-          }
+              ? "bg-slate-950/85 hover:bg-slate-950 text-white border border-cyan-400/40 hover:border-cyan-300 shadow-[0_2px_10px_rgba(0,0,0,0.35)] hover:shadow-[0_0_20px_rgba(34,211,238,0.5)]"
+              : "bg-slate-900/90 hover:bg-slate-800 text-slate-100 border border-cyan-500/30 hover:border-cyan-400/70 shadow-[0_2px_8px_rgba(0,0,0,0.25)] hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]"
+          }`}
         >
-          {part}
+          {/* Luminous Shimmer Sweep Highlight */}
+          <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 ease-in-out group-hover/link:translate-x-full" />
+
+          {/* Micro-badge with animated link arrow */}
+          <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-300 transition-all duration-300 group-hover/link:bg-cyan-400 group-hover/link:text-slate-950 group-hover/link:scale-105">
+            <svg
+              className="h-2.5 w-2.5 transition-transform duration-300 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
+            </svg>
+          </span>
+
+          {/* Structured Domain & Path Highlight */}
+          {isValid ? (
+            <span className="inline-flex items-center gap-1.5 max-w-[85vw] sm:max-w-[650px] truncate">
+              <span className="font-semibold text-cyan-300 group-hover/link:text-cyan-200 tracking-tight">
+                {domain}
+              </span>
+              {path && (
+                <>
+                  <span className="text-white/30 text-[10px] select-none">•</span>
+                  <span className="font-mono text-[11px] text-slate-300 group-hover/link:text-white/90 truncate tracking-tight">
+                    {path}
+                  </span>
+                </>
+              )}
+            </span>
+          ) : (
+            <span className="font-mono text-[11.5px] text-cyan-200 truncate max-w-[85vw] sm:max-w-[650px]">
+              {part}
+            </span>
+          )}
         </a>
       );
     }
