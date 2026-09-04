@@ -345,7 +345,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                         >
                           {/* Navigation Header with Dual-Theme Glass Switcher */}
                           <div className={`shrink-0 space-y-2 pb-3 border-b transition-all duration-300 z-10 ${
-                            settingsGlassTheme === "quantum" ? "border-cyan-500/25 bg-slate-950/40 backdrop-blur-xl" : "border-white/[0.15] bg-slate-950/40 backdrop-blur-xl"
+                            settingsGlassTheme === "quantum" ? "border-cyan-500/20" : "border-white/[0.12]"
                           }`}>
                             {/* Mobile Pull-Down Indicator Bar (Visible on mobile screens) */}
                             <div className="flex sm:hidden justify-center pb-1">
