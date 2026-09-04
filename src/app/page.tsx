@@ -9203,37 +9203,44 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       <div className="mt-3 space-y-2.5">
                         {/* Segmented Control Bar */}
                         <div className="flex items-center justify-between gap-2">
-                          <div className="relative grid grid-cols-2 items-center rounded-xl border border-slate-800/80 bg-slate-950/90 p-1 backdrop-blur-md shadow-inner w-[230px] select-none">
-                            {/* The Signature Radiant Blue Bubble with Live Spotlight Glow */}
+                          <div
+                            onMouseMove={(e) => {
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const x = e.clientX - rect.left;
+                              const y = e.clientY - rect.top;
+                              e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+                              e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
+                              e.currentTarget.style.setProperty("--spotlight-opacity", "1");
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.setProperty("--spotlight-opacity", "0");
+                            }}
+                            className="x-magnetic-card relative grid grid-cols-2 items-center rounded-xl border border-slate-800/80 bg-slate-950/80 p-1 backdrop-blur-md shadow-inner w-[230px] select-none overflow-hidden"
+                          >
+                            {/* Sliding Original Blue/Cyan Glass Pill Indicator */}
                             <div
-                              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 shadow-[0_0_24px_rgba(34,211,238,0.75),0_0_48px_rgba(56,189,248,0.45)] transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] pointer-events-none ${
+                              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-gradient-to-r from-cyan-500/25 via-sky-500/20 to-blue-500/25 border border-cyan-400/50 shadow-[0_0_14px_rgba(6,182,212,0.35)] backdrop-blur-md transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none z-0 ${
                                 connectionsTab === "friends"
                                   ? "left-1 translate-x-0"
                                   : "left-1 translate-x-full"
                               }`}
-                            >
-                              {/* Inner Glass Sheen & Spotlight Specular Highlight */}
-                              <div className="absolute inset-0 rounded-lg bg-white/20 mix-blend-overlay" />
-                              <div className="absolute inset-0 rounded-lg bg-gradient-to-b from-white/40 to-transparent opacity-70" />
-                              {/* Ambient Spotlight Luminous Ring */}
-                              <div className="absolute -inset-0.5 rounded-lg border border-white/50 opacity-80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.6)]" />
-                            </div>
+                            />
 
                             {/* Friends Button */}
                             <button
                               type="button"
                               onClick={() => setConnectionsTab("friends")}
-                              className={`relative z-10 flex items-center justify-center gap-1.5 rounded-lg py-1.5 px-2 text-xs font-semibold transition-all duration-300 ${
+                              className={`relative z-10 flex items-center justify-center gap-1.5 rounded-lg py-1 px-2 text-xs font-semibold overflow-hidden transition-colors duration-200 select-none ${
                                 connectionsTab === "friends"
-                                  ? "text-slate-950 font-bold drop-shadow-sm scale-[1.02]"
+                                  ? "text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.4)] font-bold"
                                   : "text-slate-400 hover:text-slate-200"
                               }`}
                             >
                               <span>Friends</span>
                               <span
-                                className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold transition-all duration-300 ${
+                                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold transition-colors duration-200 leading-none ${
                                   connectionsTab === "friends"
-                                    ? "bg-slate-950/25 text-slate-950 border border-slate-950/20 font-extrabold"
+                                    ? "bg-cyan-400/20 text-cyan-200 border border-cyan-400/30"
                                     : "bg-slate-800 text-slate-400 border border-slate-700/50"
                                 }`}
                               >
@@ -9245,9 +9252,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             <button
                               type="button"
                               onClick={() => setConnectionsTab("requests")}
-                              className={`relative z-10 flex items-center justify-center gap-1.5 rounded-lg py-1.5 px-2 text-xs font-semibold transition-all duration-300 ${
+                              className={`relative z-10 flex items-center justify-center gap-1.5 rounded-lg py-1 px-2 text-xs font-semibold overflow-hidden transition-colors duration-200 select-none ${
                                 connectionsTab === "requests"
-                                  ? "text-slate-950 font-bold drop-shadow-sm scale-[1.02]"
+                                  ? "text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.4)] font-bold"
                                   : pendingIncoming.length > 0
                                     ? "text-amber-200"
                                     : "text-slate-400 hover:text-slate-200"
@@ -9260,12 +9267,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     <span className="absolute -inset-0.5 rounded-full bg-orange-500 opacity-80 animate-ping" />
                                   )}
                                   <span
-                                    className={`relative inline-flex items-center justify-center rounded-full px-1.5 py-0.2 text-[10px] font-bold transition-transform ${
-                                      connectionsTab === "requests"
-                                        ? "bg-slate-950/25 text-slate-950 border border-slate-950/20 font-extrabold"
-                                        : pendingIncoming.length > 0
-                                          ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_0_10px_#f97316]"
-                                          : "bg-slate-800 text-slate-300 border border-slate-700"
+                                    className={`relative inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none transition-transform ${
+                                      pendingIncoming.length > 0
+                                        ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_0_10px_#f97316]"
+                                        : "bg-slate-800 text-slate-300 border border-slate-700"
                                     }`}
                                   >
                                     {totalPending}
