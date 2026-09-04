@@ -12,12 +12,24 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
   isMe = false,
 }: YouTubeInlinePreviewProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isIframeLoaded, setIsIframeLoaded] = useState(false);
   const [thumbnailError, setThumbnailError] = useState(false);
 
   // Use maxresdefault first, fallback to hqdefault
   const thumbnailUrl = thumbnailError
     ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
     : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+
+  const handlePlay = () => {
+    setIsPlaying(true);
+    setIsIframeLoaded(false);
+  };
+
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsPlaying(false);
+    setIsIframeLoaded(false);
+  };
 
   return (
     <div
@@ -41,7 +53,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
       >
         {!isPlaying ? (
           <div
-            onClick={() => setIsPlaying(true)}
+            onClick={handlePlay}
             className="group absolute inset-0 h-full w-full cursor-pointer select-none"
             role="button"
             tabIndex={0}
@@ -49,7 +61,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                setIsPlaying(true);
+                handlePlay();
               }
             }}
           >
@@ -92,22 +104,70 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
             </div>
           </div>
         ) : (
-          <div className="absolute inset-0 h-full w-full">
-            {/* Close / Collapse Video Button */}
+          <div className="relative h-full w-full bg-black">
+            {/* Close / Collapse Video Button (always visible on top) */}
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsPlaying(false);
-              }}
+              onClick={handleClose}
               title="Close video"
-              className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1 rounded-full bg-black/80 px-2.5 py-0.5 text-[10px] font-semibold text-white/90 backdrop-blur-md border border-white/20 hover:bg-black hover:text-white transition active:scale-95 shadow-xl"
+              className="absolute top-2.5 right-2.5 z-30 flex items-center gap-1.5 rounded-full bg-black/80 px-2.5 py-1 text-[11px] font-semibold text-white/90 backdrop-blur-md border border-white/20 hover:bg-black hover:text-white transition active:scale-95 shadow-xl"
             >
               <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
               <span>Close</span>
             </button>
+
+            {/* Circular Loading Animation Overlay - Shown until iframe is loaded */}
+            <div
+              className={`absolute inset-0 z-20 flex flex-col items-center justify-center bg-black transition-opacity duration-500 ease-out ${
+                isIframeLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
+              }`}
+            >
+              {/* Blurred Ambient Thumbnail Background */}
+              <img
+                src={thumbnailUrl}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full object-cover opacity-25 filter blur-md scale-105"
+              />
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+              {/* Rotating Circular Spinner & Pulse Glow */}
+              <div className="relative z-10 flex flex-col items-center justify-center">
+                <div className="relative flex items-center justify-center">
+                  {/* Subtle Red Ambient Glow */}
+                  <div className="absolute h-16 w-16 rounded-full bg-red-600/30 blur-xl animate-pulse" />
+
+                  {/* Rotating Circular Spinner SVG */}
+                  <svg
+                    className="h-12 w-12 animate-spin text-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,0.8)]"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-20"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="3.5"
+                    />
+                    <path
+                      className="opacity-90"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                </div>
+
+                <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-white/90 tracking-wide drop-shadow-md">
+                  <span>Loading video</span>
+                  <span className="inline-flex tracking-widest animate-pulse">...</span>
+                </div>
+              </div>
+            </div>
 
             {/* Embedded In-Place Video Player */}
             <iframe
@@ -117,6 +177,10 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
               style={{ width: "100%", height: "100%" }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
+              onLoad={() => {
+                // Short buffer to let YouTube iframe finish first frame paint
+                setTimeout(() => setIsIframeLoaded(true), 400);
+              }}
             />
           </div>
         )}
