@@ -23,7 +23,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
 
   return (
     <div
-      className={`mt-2 w-full max-w-[340px] sm:max-w-[400px] overflow-hidden rounded-2xl border shadow-xl transition-all duration-300 ${
+      className={`mt-2 w-full min-w-[280px] sm:min-w-[460px] max-w-[640px] lg:max-w-[720px] overflow-hidden rounded-2xl border shadow-2xl transition-all duration-300 ${
         isMe
           ? "border-blue-400/30 bg-slate-900/90 shadow-blue-950/30"
           : "border-slate-700/60 bg-slate-950/90 shadow-black/40"
