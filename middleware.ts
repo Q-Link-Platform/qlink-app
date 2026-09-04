@@ -193,12 +193,12 @@ export async function middleware(request: NextRequest) {
     // Allows necessary resources while blocking malicious scripts
     const cspDirectives = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net",
+      "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net https://www.youtube.com https://s.ytimg.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: https: blob:",
       "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' https://*.supabase.co https://*.upstash.io",
-      "frame-src 'self'",
+      "connect-src 'self' https://*.supabase.co https://*.upstash.io https://www.youtube.com https://*.googlevideo.com",
+      "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

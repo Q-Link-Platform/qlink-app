@@ -103,7 +103,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
 
             {/* Embedded In-Place Video Player */}
             <iframe
-              src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`}
+              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
               title="YouTube inline video player"
               className="h-full w-full border-0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
