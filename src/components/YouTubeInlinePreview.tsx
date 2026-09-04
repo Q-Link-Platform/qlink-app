@@ -23,13 +23,13 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
 
   return (
     <div
-      className={`mt-2 w-full overflow-hidden rounded-2xl border shadow-2xl transition-all duration-300 ${
+      className={`mt-2 w-full mx-auto overflow-hidden rounded-2xl border shadow-2xl transition-all duration-300 ${
         isMe
           ? "border-blue-400/40 bg-slate-900/95 shadow-blue-950/40"
           : "border-slate-700/70 bg-slate-950/95 shadow-black/50"
       }`}
       style={{
-        maxWidth: isShort ? "320px" : "640px",
+        maxWidth: isShort ? "330px" : "670px",
       }}
     >
       {/* Strict Aspect Ratio Container (16:9 for normal videos, 9:16 for Shorts) */}
