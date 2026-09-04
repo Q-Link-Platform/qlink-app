@@ -1229,6 +1229,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Clear unread state for the active chat peer (using canonical handle comparison)
   useEffect(() => {
+    const bar = connectionsTabBarRef.current;
+    if (!bar) return;
+    const isFriends = connectionsTab === "friends";
+    const pillWidth = (bar.offsetWidth - 8) / 2;
+    const targetX = isFriends ? 0 : pillWidth;
+    bar.style.setProperty("--pill-x", `${targetX}px`);
+    bar.style.setProperty("--pill-transition", "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)");
+  }, [connectionsTab]);
+
+  useEffect(() => {
     if (activePeerHandle) {
       setUnreadMessages((prev) => markHandleAsRead(prev, activePeerHandle));
     }
@@ -1814,6 +1824,29 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const quantumIdRef = useRef<HTMLDivElement | null>(null);
   const connectRef = useRef<HTMLDivElement | null>(null);
   const requestsRef = useRef<HTMLDivElement | null>(null);
+  const connectionsTabBarRef = useRef<HTMLDivElement | null>(null);
+
+  const handleTabBarMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const bar = connectionsTabBarRef.current;
+    if (!bar) return;
+    const rect = bar.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const pillWidth = (rect.width - 8) / 2;
+    const maxShift = pillWidth;
+    const shift = Math.max(0, Math.min(maxShift, mouseX - pillWidth / 2));
+    bar.style.setProperty("--pill-x", `${shift}px`);
+    bar.style.setProperty("--pill-transition", "transform 0.08s ease-out");
+  };
+
+  const handleTabBarMouseLeave = () => {
+    const bar = connectionsTabBarRef.current;
+    if (!bar) return;
+    const isFriends = connectionsTab === "friends";
+    const pillWidth = (bar.offsetWidth - 8) / 2;
+    const targetX = isFriends ? 0 : pillWidth;
+    bar.style.setProperty("--pill-x", `${targetX}px`);
+    bar.style.setProperty("--pill-transition", "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)");
+  };
 
   // Typing debounce timer + state (optimize calls to presence/typing)
   const typingTimeoutRef = useRef<any | null>(null);
@@ -9198,108 +9231,64 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       <div className="mt-3 space-y-2.5">
                         {/* Segmented Control Bar */}
                         <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center rounded-xl border border-slate-800/80 bg-slate-950/80 p-1 backdrop-blur-md shadow-inner">
-                            {/* Friends Button with Horizontal Mouse-Tracking Blue Light */}
+                          <div
+                            ref={connectionsTabBarRef}
+                            onMouseMove={handleTabBarMouseMove}
+                            onMouseLeave={handleTabBarMouseLeave}
+                            className="relative grid grid-cols-2 items-center rounded-xl border border-slate-800/80 bg-slate-950/80 p-1 backdrop-blur-md shadow-inner w-[240px] select-none overflow-hidden"
+                            style={{
+                              "--pill-x": connectionsTab === "friends" ? "0px" : "116px",
+                              "--pill-transition": "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                            } as React.CSSProperties}
+                          >
+                            {/* The Live Sticky Moving Blue Light Spotlight Layer across the whole bar */}
+                            <div
+                              className="pointer-events-none absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-gradient-to-r from-cyan-500/25 via-sky-500/20 to-blue-500/25 border border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.35)] backdrop-blur-md z-0 will-change-transform"
+                              style={{
+                                left: "4px",
+                                transform: "translateX(var(--pill-x, 0px))",
+                                transition: "var(--pill-transition, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1))",
+                              }}
+                            >
+                              {/* Inner Radial Spotlight Glow */}
+                              <div className="absolute inset-0 rounded-lg bg-[radial-gradient(60px_circle_at_50%_50%,rgba(34,211,238,0.35),transparent_100%)]" />
+                              {/* Top Specular Shine */}
+                              <div className="absolute inset-x-0 top-0 h-[1px] bg-[radial-gradient(45px_1px_at_50%_0%,rgba(255,255,255,0.85),rgba(34,211,238,0.5)_50%,transparent_100%)]" />
+                            </div>
+
+                            {/* Friends Button */}
                             <button
                               type="button"
                               onClick={() => setConnectionsTab("friends")}
-                              onMouseMove={(e) => {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const x = e.clientX - rect.left;
-                                e.currentTarget.style.setProperty("--tab-x", `${x}px`);
-                                e.currentTarget.style.setProperty("--tab-glow-opacity", "1");
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.setProperty("--tab-x", "50%");
-                                e.currentTarget.style.setProperty("--tab-glow-opacity", "0.75");
-                              }}
-                              className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold overflow-hidden transition-all duration-300 select-none ${
+                              className={`relative z-10 flex items-center justify-center gap-1.5 rounded-lg py-1 px-2 text-xs font-semibold overflow-hidden transition-colors duration-200 select-none cursor-pointer ${
                                 connectionsTab === "friends"
-                                  ? "text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
-                                  : "text-slate-400 hover:text-slate-200 border border-transparent"
+                                  ? "text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.4)] font-bold"
+                                  : "text-slate-400 hover:text-slate-200"
                               }`}
-                              style={{
-                                "--tab-x": "50%",
-                                "--tab-glow-opacity": "0.75",
-                              } as React.CSSProperties}
                             >
-                              {/* The Live Horizontal Mouse-Tracking Blue Light Spotlight */}
-                              {connectionsTab === "friends" && (
-                                <>
-                                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20" />
-                                  <span
-                                    className="pointer-events-none absolute inset-0 transition-opacity duration-200"
-                                    style={{
-                                      opacity: "var(--tab-glow-opacity, 0.75)",
-                                      background: "radial-gradient(55px 32px at var(--tab-x, 50%) 50%, rgba(34, 211, 238, 0.45) 0%, rgba(6, 182, 212, 0.2) 50%, transparent 100%)",
-                                    }}
-                                  />
-                                  <span
-                                    className="pointer-events-none absolute inset-x-0 top-0 h-[1px] transition-opacity duration-200"
-                                    style={{
-                                      opacity: "var(--tab-glow-opacity, 0.75)",
-                                      background: "radial-gradient(40px 1px at var(--tab-x, 50%) 0%, rgba(255, 255, 255, 0.8) 0%, rgba(34, 211, 238, 0.5) 50%, transparent 100%)",
-                                    }}
-                                  />
-                                </>
-                              )}
-                              <span className="relative z-10">Friends</span>
-                              <span className={`relative z-10 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
+                              <span>Friends</span>
+                              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold transition-colors duration-200 leading-none ${
                                 connectionsTab === "friends" ? "bg-cyan-400/20 text-cyan-200 border border-cyan-400/30" : "bg-slate-800 text-slate-400"
                               }`}>
                                 {acceptedFriends.length}
                               </span>
                             </button>
 
-                            {/* Requests Button with Horizontal Mouse-Tracking Blue Light */}
+                            {/* Requests Button */}
                             <button
                               type="button"
                               onClick={() => setConnectionsTab("requests")}
-                              onMouseMove={(e) => {
-                                const rect = e.currentTarget.getBoundingClientRect();
-                                const x = e.clientX - rect.left;
-                                e.currentTarget.style.setProperty("--tab-x", `${x}px`);
-                                e.currentTarget.style.setProperty("--tab-glow-opacity", "1");
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.setProperty("--tab-x", "50%");
-                                e.currentTarget.style.setProperty("--tab-glow-opacity", "0.75");
-                              }}
-                              className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold overflow-hidden transition-all duration-300 select-none ${
+                              className={`relative z-10 flex items-center justify-center gap-1.5 rounded-lg py-1 px-2 text-xs font-semibold overflow-hidden transition-colors duration-200 select-none cursor-pointer ${
                                 connectionsTab === "requests"
-                                  ? "text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                                  ? "text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.4)] font-bold"
                                   : pendingIncoming.length > 0
-                                    ? "text-amber-200 border border-amber-500/60 bg-amber-500/20 shadow-[0_0_16px_rgba(245,158,11,0.4)] animate-[pulse_2.2s_ease-in-out_infinite]"
-                                    : "text-slate-400 hover:text-slate-200 border border-transparent"
+                                    ? "text-amber-200"
+                                    : "text-slate-400 hover:text-slate-200"
                               }`}
-                              style={{
-                                "--tab-x": "50%",
-                                "--tab-glow-opacity": "0.75",
-                              } as React.CSSProperties}
                             >
-                              {/* The Live Horizontal Mouse-Tracking Blue Light Spotlight */}
-                              {connectionsTab === "requests" && (
-                                <>
-                                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20" />
-                                  <span
-                                    className="pointer-events-none absolute inset-0 transition-opacity duration-200"
-                                    style={{
-                                      opacity: "var(--tab-glow-opacity, 0.75)",
-                                      background: "radial-gradient(55px 32px at var(--tab-x, 50%) 50%, rgba(34, 211, 238, 0.45) 0%, rgba(6, 182, 212, 0.2) 50%, transparent 100%)",
-                                    }}
-                                  />
-                                  <span
-                                    className="pointer-events-none absolute inset-x-0 top-0 h-[1px] transition-opacity duration-200"
-                                    style={{
-                                      opacity: "var(--tab-glow-opacity, 0.75)",
-                                      background: "radial-gradient(40px 1px at var(--tab-x, 50%) 0%, rgba(255, 255, 255, 0.8) 0%, rgba(34, 211, 238, 0.5) 50%, transparent 100%)",
-                                    }}
-                                  />
-                                </>
-                              )}
-                              <span className="relative z-10">Requests</span>
+                              <span>Requests</span>
                               {totalPending > 0 && (
-                                <span className="relative z-10 inline-flex items-center ml-0.5">
+                                <span className="relative inline-flex items-center ml-0.5">
                                   {pendingIncoming.length > 0 && (
                                     <span className="absolute -inset-0.5 rounded-full bg-orange-500 opacity-80 animate-ping" />
                                   )}
