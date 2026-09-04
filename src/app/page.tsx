@@ -999,7 +999,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const myId = (effectiveUser as any)?.id;
   const [mode, setMode] = useState<ViewMode>("home");
   const [connectionsTab, setConnectionsTab] = useState<"friends" | "requests">("friends");
-  const [justAcceptedHandle, setJustAcceptedHandle] = useState<string | null>(null);
 
   // Predictive Smart Skeleton: Dynamically memorizes exact friend count per user ID
   const [predictedFriendsCount, setPredictedFriendsCount] = useState<number>(() => {
@@ -6275,10 +6274,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       );
 
       if (action === "ACCEPT") {
-        // Smoothly glide segmented control indicator from Requests to Friends tab
-        setConnectionsTab("friends");
-        setJustAcceptedHandle(peerHandle.toLowerCase());
-        setTimeout(() => setJustAcceptedHandle(null), 3500);
         await openChatWithPeer(peerHandle);
       }
     } catch {
@@ -9203,60 +9198,32 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       <div className="mt-3 space-y-2.5">
                         {/* Segmented Control Bar */}
                         <div className="flex items-center justify-between gap-2">
-                          <div
-                            onMouseMove={(e) => {
-                              const rect = e.currentTarget.getBoundingClientRect();
-                              const x = e.clientX - rect.left;
-                              const y = e.clientY - rect.top;
-                              e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
-                              e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
-                              e.currentTarget.style.setProperty("--spotlight-opacity", "1");
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.setProperty("--spotlight-opacity", "0");
-                            }}
-                            className="x-magnetic-card relative grid grid-cols-2 items-center rounded-xl border border-slate-800/80 bg-slate-950/80 p-1 backdrop-blur-md shadow-inner w-[230px] select-none overflow-hidden"
-                          >
-                            {/* Sliding Original Blue/Cyan Glass Pill Indicator */}
-                            <div
-                              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-gradient-to-r from-cyan-500/25 via-sky-500/20 to-blue-500/25 border border-cyan-400/50 shadow-[0_0_14px_rgba(6,182,212,0.35)] backdrop-blur-md transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none z-0 ${
-                                connectionsTab === "friends"
-                                  ? "left-1 translate-x-0"
-                                  : "left-1 translate-x-full"
-                              }`}
-                            />
-
-                            {/* Friends Button */}
+                          <div className="flex items-center rounded-xl border border-slate-800/80 bg-slate-950/80 p-1 backdrop-blur-md shadow-inner">
                             <button
                               type="button"
                               onClick={() => setConnectionsTab("friends")}
-                              className={`relative z-10 flex items-center justify-center gap-1.5 rounded-lg py-1 px-2 text-xs font-semibold overflow-hidden transition-colors duration-200 select-none ${
+                              className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-300 ${
                                 connectionsTab === "friends"
-                                  ? "text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.4)] font-bold"
+                                  ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
                                   : "text-slate-400 hover:text-slate-200"
                               }`}
                             >
                               <span>Friends</span>
-                              <span
-                                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold transition-colors duration-200 leading-none ${
-                                  connectionsTab === "friends"
-                                    ? "bg-cyan-400/20 text-cyan-200 border border-cyan-400/30"
-                                    : "bg-slate-800 text-slate-400 border border-slate-700/50"
-                                }`}
-                              >
+                              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                                connectionsTab === "friends" ? "bg-cyan-400/20 text-cyan-200" : "bg-slate-800 text-slate-400"
+                              }`}>
                                 {acceptedFriends.length}
                               </span>
                             </button>
 
-                            {/* Requests Button */}
                             <button
                               type="button"
                               onClick={() => setConnectionsTab("requests")}
-                              className={`relative z-10 flex items-center justify-center gap-1.5 rounded-lg py-1 px-2 text-xs font-semibold overflow-hidden transition-colors duration-200 select-none ${
+                              className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-300 ${
                                 connectionsTab === "requests"
-                                  ? "text-cyan-300 drop-shadow-[0_0_8px_rgba(6,182,212,0.4)] font-bold"
+                                  ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
                                   : pendingIncoming.length > 0
-                                    ? "text-amber-200"
+                                    ? "text-amber-200 border border-amber-500/60 bg-amber-500/20 shadow-[0_0_16px_rgba(245,158,11,0.4)] animate-[pulse_2.2s_ease-in-out_infinite]"
                                     : "text-slate-400 hover:text-slate-200"
                               }`}
                             >
@@ -9267,7 +9234,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     <span className="absolute -inset-0.5 rounded-full bg-orange-500 opacity-80 animate-ping" />
                                   )}
                                   <span
-                                    className={`relative inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none transition-transform ${
+                                    className={`relative inline-flex items-center justify-center rounded-full px-1.5 py-0.2 text-[10px] font-bold transition-transform ${
                                       pendingIncoming.length > 0
                                         ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_0_10px_#f97316]"
                                         : "bg-slate-800 text-slate-300 border border-slate-700"
@@ -9358,13 +9325,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           </button>
                         </div>
 
-                        {/* SINGLE UNIFIED SCROLL CONTAINER WITH SLIDING CONTENT TRANSITION */}
+                        {/* SINGLE UNIFIED SCROLL CONTAINER */}
                         <div
                           ref={requestsRef}
-                          key={connectionsTab}
                           className={
-                            "space-y-1.5 overflow-y-auto scrollbar-hide smooth-gpu-scroll pr-1 transition-all duration-300 " +
-                            (connectionsTab === "friends" ? "animate-in fade-in slide-in-from-left-2 duration-300 " : "animate-in fade-in slide-in-from-right-2 duration-300 ") +
+                            "space-y-1.5 overflow-y-auto scrollbar-hide smooth-gpu-scroll pr-1 " +
                             (isFocusMode ? "max-h-[50vh] " : "max-h-[52vh] ") +
                             (highlightRequests ? "glow-pulse border border-cyan-400/80 rounded-xl" : "")
                           }
@@ -9396,20 +9361,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 <p className="text-[10px] text-slate-500 mt-0.5">Use "+ Connect" to link with friends</p>
                               </div>
                             ) : (
-                              acceptedFriends.map((f) => {
-                                const isJustAccepted = justAcceptedHandle === f.peerHandle?.toLowerCase();
-                                return (
+                              acceptedFriends.map((f) => (
                                 <div
                                   key={f.id}
                                   onClick={() => {
                                     openChatWithPeer(f.peerHandle);
                                     setIsChatFull(true);
                                   }}
-                                  className={`group flex items-center justify-between gap-2 rounded-xl border px-3 py-2 transition-all duration-500 cursor-pointer ${
-                                    isJustAccepted
-                                      ? "border-cyan-400 bg-cyan-950/50 shadow-[0_0_20px_rgba(6,182,212,0.4)] ring-1 ring-cyan-400/50 animate-pulse"
-                                      : "border-slate-800/70 bg-slate-950/45 hover:bg-slate-900/60 hover:border-cyan-500/35 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)]"
-                                  }`}
+                                  className="group flex items-center justify-between gap-2 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2 transition-all duration-200 hover:bg-slate-900/60 hover:border-cyan-500/35 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] cursor-pointer"
                                 >
                                   <div className="min-w-0 flex-1">
                                     <p className="truncate text-xs font-semibold text-slate-100 flex items-center gap-1.5 group-hover:text-cyan-200 transition-colors">
@@ -9444,8 +9403,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     </button>
                                   </div>
                                 </div>
-                                );
-                              })
+                              ))
                             )
                           ) : (
                             /* TAB 2: PENDING REQUESTS (INCOMING & OUTGOING) */
