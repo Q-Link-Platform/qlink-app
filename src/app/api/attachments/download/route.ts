@@ -38,6 +38,24 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Native Database Vault handler
+    if (attachment.bucket === "database" || attachment.objectKey.startsWith("data:")) {
+      const parts = attachment.objectKey.split(",");
+      const base64Str = parts.length > 1 ? parts[1] : parts[0];
+      const buffer = Buffer.from(base64Str, "base64");
+      const contentType = attachment.mimeType || "application/octet-stream";
+      const filename = attachment.originalName || "download";
+
+      return new Response(buffer as any, {
+        status: 200,
+        headers: {
+          "Content-Type": contentType,
+          "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
+          "Cache-Control": "public, max-age=31536000, immutable",
+        },
+      });
+    }
+
     const isVideo = attachment.kind === "video";
     const supabase = isVideo ? supabaseVideos : supabaseFiles;
 

@@ -20,14 +20,25 @@ function isAudience(value: unknown): value is Audience {
   );
 }
 
-async function getSignedMediaUrl(params: { bucket: string; objectKey: string }) {
+async function getSignedMediaUrl(params: { bucket: string; objectKey: string; id?: string }) {
   if (!params?.bucket || !params?.objectKey) return null;
-  const client = supabasePostsAdmin || supabasePosts;
-  if (!client) return null;
 
-  // Prefer getPublicUrl for direct edge CDN caching and native browser Range streaming!
-  const pub = client.storage.from(params.bucket).getPublicUrl(params.objectKey);
-  if (pub.data?.publicUrl) return pub.data.publicUrl;
+  // Native Database Vault items stream directly via resilient internal proxy
+  if (params.bucket === "database" || params.objectKey.startsWith("data:")) {
+    return `/api/media/stream?id=${params.id}`;
+  }
+
+  const client = supabasePostsAdmin || supabasePosts;
+  if (!client) {
+    return params.id ? `/api/media/stream?id=${params.id}` : null;
+  }
+
+  try {
+    const pub = client.storage.from(params.bucket).getPublicUrl(params.objectKey);
+    if (pub.data?.publicUrl) return pub.data.publicUrl;
+  } catch {
+    // fallback to proxy
+  }
 
   try {
     const res = await client.storage
@@ -36,9 +47,9 @@ async function getSignedMediaUrl(params: { bucket: string; objectKey: string }) 
 
     if (res.data?.signedUrl) return res.data.signedUrl;
   } catch (err) {
-    console.error("[posts] Error in getSignedMediaUrl", err);
+    console.warn("[posts] Error in getSignedMediaUrl, falling back to stream proxy:", err);
   }
-  return null;
+  return params.id ? `/api/media/stream?id=${params.id}` : null;
 }
 
 export async function GET(request: Request) {
@@ -282,6 +293,7 @@ export async function GET(request: Request) {
         const signedUrl = await getSignedMediaUrl({
           bucket: att.bucket as string,
           objectKey: att.objectKey as string,
+          id: att.id as string,
         });
 
         return {

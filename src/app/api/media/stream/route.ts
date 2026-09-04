@@ -31,6 +31,44 @@ export async function GET(request: Request) {
         return new NextResponse("Attachment not found", { status: 404 });
       }
 
+      // Native Database Vault Handler (Zero-downtime base64 storage)
+      if (att.bucket === "database" || att.objectKey.startsWith("data:")) {
+        const parts = att.objectKey.split(",");
+        const base64Str = parts.length > 1 ? parts[1] : parts[0];
+        const buffer = Buffer.from(base64Str, "base64");
+        const mime = att.mimeType || "image/jpeg";
+
+        const rangeHeader = request.headers.get("range");
+        if (rangeHeader) {
+          const rangeParts = rangeHeader.replace(/bytes=/, "").split("-");
+          const start = parseInt(rangeParts[0], 10);
+          const end = rangeParts[1] ? parseInt(rangeParts[1], 10) : buffer.length - 1;
+          const chunk = buffer.subarray(start, end + 1);
+          return new NextResponse(chunk, {
+            status: 206,
+            headers: {
+              "Content-Range": `bytes ${start}-${end}/${buffer.length}`,
+              "Accept-Ranges": "bytes",
+              "Content-Length": String(chunk.length),
+              "Content-Type": mime,
+              "Cache-Control": "public, max-age=31536000, immutable",
+              "Access-Control-Allow-Origin": "*",
+            },
+          });
+        }
+
+        return new NextResponse(buffer, {
+          status: 200,
+          headers: {
+            "Content-Type": mime,
+            "Content-Length": String(buffer.length),
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "Access-Control-Allow-Origin": "*",
+          },
+        });
+      }
+
       targetBucket = att.bucket;
       targetKey = att.objectKey;
       mimeType = att.mimeType || "video/mp4";
@@ -47,9 +85,13 @@ export async function GET(request: Request) {
     let streamUrl: string | null = null;
 
     if (client) {
-      const pub = client.storage.from(targetBucket).getPublicUrl(targetKey);
-      if (pub.data?.publicUrl) {
-        streamUrl = pub.data.publicUrl;
+      try {
+        const pub = client.storage.from(targetBucket).getPublicUrl(targetKey);
+        if (pub.data?.publicUrl) {
+          streamUrl = pub.data.publicUrl;
+        }
+      } catch {
+        // ignore
       }
     }
 
@@ -64,14 +106,20 @@ export async function GET(request: Request) {
       fetchHeaders["Range"] = rangeHeader;
     }
 
-    const upstreamRes = await fetch(streamUrl, {
-      headers: fetchHeaders,
-      cache: "no-store",
-    });
+    let upstreamRes: Response | null = null;
+    try {
+      upstreamRes = await fetch(streamUrl, {
+        headers: fetchHeaders,
+        cache: "no-store",
+      });
+    } catch (fetchErr: any) {
+      console.warn("[media/stream] External upstream fetch unreachable:", fetchErr?.message || fetchErr);
+      return new NextResponse("Media storage temporarily unreachable", { status: 503 });
+    }
 
-    if (!upstreamRes.ok && upstreamRes.status !== 206) {
-      console.error("[media/stream] Upstream fetch failed:", upstreamRes.status, upstreamRes.statusText);
-      return new NextResponse("Video stream unavailable", { status: upstreamRes.status });
+    if (!upstreamRes || (!upstreamRes.ok && upstreamRes.status !== 206)) {
+      console.error("[media/stream] Upstream fetch failed:", upstreamRes?.status, upstreamRes?.statusText);
+      return new NextResponse("Video stream unavailable", { status: upstreamRes?.status || 502 });
     }
 
     const responseHeaders = new Headers();

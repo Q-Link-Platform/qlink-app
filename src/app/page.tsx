@@ -3561,57 +3561,86 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           ? postMediaFile.type
           : (postMediaKind === "video" ? "video/mp4" : "image/jpeg");
 
-        const signRes = await fetch("/api/posts/upload", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            requestSignedUrl: true,
-            kind: postMediaKind,
-            filename: postMediaFile.name,
-            mimeType: uploadMime,
-            size: postMediaFile.size,
-          }),
-        });
+        let signData: any = null;
+        try {
+          const signRes = await fetch("/api/posts/upload", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              requestSignedUrl: true,
+              kind: postMediaKind,
+              filename: postMediaFile.name,
+              mimeType: uploadMime,
+              size: postMediaFile.size,
+            }),
+          });
 
-        if (!signRes.ok) {
-          const err = await signRes.json().catch(() => ({}));
-          setIdConsolePostStatus(err?.error || "Preparation failed");
-          return;
+          if (signRes.ok) {
+            signData = await signRes.json();
+          }
+        } catch (signErr) {
+          console.warn("[idConsolePost] Sign URL request exception, falling back to direct upload:", signErr);
         }
 
-        const signData = await signRes.json();
-        const { signedUrl, attachment } = signData;
+        let directUploadSuccess = false;
 
-        setIdConsolePostStatus("Uploading…");
-        const directUploadSuccess = await new Promise<boolean>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open("PUT", signedUrl);
-          xhr.setRequestHeader("Content-Type", uploadMime);
-          xhr.upload.onprogress = (e) => {
-            if (!e.lengthComputable) return;
-            const pct = Math.max(0, Math.min(100, Math.round((e.loaded / e.total) * 100)));
-            setIdConsoleUploadProgress(pct);
-          };
-          xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-              resolve(true);
-            } else {
-              reject(new Error("Direct upload failed"));
+        if (signData?.signedUrl) {
+          const { signedUrl, attachment } = signData;
+          setIdConsolePostStatus("Uploading…");
+          try {
+            directUploadSuccess = await new Promise<boolean>((resolve, reject) => {
+              const xhr = new XMLHttpRequest();
+              xhr.open("PUT", signedUrl);
+              xhr.setRequestHeader("Content-Type", uploadMime);
+              xhr.upload.onprogress = (e) => {
+                if (!e.lengthComputable) return;
+                const pct = Math.max(0, Math.min(100, Math.round((e.loaded / e.total) * 100)));
+                setIdConsoleUploadProgress(pct);
+              };
+              xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                  resolve(true);
+                } else {
+                  reject(new Error("Direct upload failed"));
+                }
+              };
+              xhr.onerror = () => reject(new Error("Direct upload failed"));
+              xhr.send(postMediaFile);
+            });
+            if (directUploadSuccess) {
+              attachmentId = attachment?.id || null;
+              attachmentKind = attachment?.kind === "video" ? "video" : "image";
             }
-          };
-          xhr.onerror = () => reject(new Error("Direct upload failed"));
-          xhr.send(postMediaFile);
-        }).catch((e) => {
-          setIdConsolePostStatus(e?.message || "Upload failed");
-          return null;
-        });
+          } catch (uploadErr) {
+            console.warn("[idConsolePost] XHR PUT upload exception, falling back to multipart:", uploadErr);
+          }
+        }
 
-        if (!directUploadSuccess) return;
+        // Automatic Resilient Fallback to Multipart FormData Upload
+        if (!directUploadSuccess) {
+          setIdConsolePostStatus("Uploading to vault…");
+          const formData = new FormData();
+          formData.append("kind", postMediaKind);
+          formData.append("file", postMediaFile);
 
-        attachmentId = attachment?.id || null;
-        attachmentKind = attachment?.kind === "video" ? "video" : "image";
+          const formRes = await fetch("/api/posts/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!formRes.ok) {
+            const err = await formRes.json().catch(() => ({}));
+            setIdConsolePostStatus(err?.error || "Upload failed");
+            return;
+          }
+
+          const formJson = await formRes.json();
+          attachmentId = formJson.attachment?.id || null;
+          attachmentKind = formJson.attachment?.kind === "video" ? "video" : "image";
+          directUploadSuccess = true;
+        }
       }
 
       setIdConsolePostStatus("Posting…");
