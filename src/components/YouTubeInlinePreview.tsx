@@ -28,7 +28,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
       }`}
       style={{
         width: "100%",
-        maxWidth: "705px",
+        maxWidth: "775px",
       }}
     >
       {/* 16:9 Aspect Ratio Container - Clean, Edge-to-Edge Thumbnail & Player */}
