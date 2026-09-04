@@ -8,6 +8,22 @@ function buildRoomId(a: string, b: string) {
   return [a, b].sort().join(":");
 }
 
+// In-memory peer resolution cache (10 min TTL) - cuts 2 redundant DB queries out of every poll
+interface CachedPeerResolution {
+  peer: {
+    id: string;
+    handle: string | null;
+    name: string | null;
+    email: string | null;
+    image: string | null;
+    publicKeyString: string | null;
+  };
+  roomId: string;
+  cachedAt: number;
+}
+const peerResolutionCache = new Map<string, CachedPeerResolution>();
+const CACHE_TTL_MS = 10 * 60 * 1000;
+
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -24,67 +40,107 @@ export async function GET(request: Request) {
 
     const meId = (session.user as any).id as string;
     const cleanedPeerHandle = cleanHandle(peerHandle);
+    const cacheKey = `${meId}:${cleanedPeerHandle.toLowerCase()}`;
 
-    // Multi-tier peer resolution: exact handle -> ID -> fuzzy handle -> name
-    let peer = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { handle: { equals: cleanedPeerHandle, mode: "insensitive" } },
-          { id: cleanedPeerHandle },
-          { email: { equals: cleanedPeerHandle, mode: "insensitive" } },
-        ],
-      },
-    });
+    const cached = peerResolutionCache.get(cacheKey);
+    let peer: {
+      id: string;
+      handle: string | null;
+      name: string | null;
+      email: string | null;
+      image: string | null;
+      publicKeyString: string | null;
+    };
+    let roomId: string;
 
-    if (!peer) {
-      // Fallback fuzzy search (e.g. "Rohit_7779" -> "rohit")
-      const baseHandle = cleanedPeerHandle.split(/[-_]/)[0];
-      peer = await prisma.user.findFirst({
+    if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) {
+      peer = cached.peer;
+      roomId = cached.roomId;
+    } else {
+      // Multi-tier peer resolution: exact handle -> ID -> fuzzy handle -> name
+      let dbPeer = await prisma.user.findFirst({
         where: {
           OR: [
-            { handle: { contains: baseHandle, mode: "insensitive" } },
-            { name: { contains: baseHandle, mode: "insensitive" } },
+            { handle: { equals: cleanedPeerHandle, mode: "insensitive" } },
+            { id: cleanedPeerHandle },
+            { email: { equals: cleanedPeerHandle, mode: "insensitive" } },
+          ],
+        },
+        select: {
+          id: true,
+          handle: true,
+          name: true,
+          email: true,
+          image: true,
+          publicKeyString: true,
+        },
+      });
+
+      if (!dbPeer) {
+        // Fallback fuzzy search (e.g. "Rohit_7779" -> "rohit")
+        const baseHandle = cleanedPeerHandle.split(/[-_]/)[0];
+        dbPeer = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { handle: { contains: baseHandle, mode: "insensitive" } },
+              { name: { contains: baseHandle, mode: "insensitive" } },
+            ],
+          },
+          select: {
+            id: true,
+            handle: true,
+            name: true,
+            email: true,
+            image: true,
+            publicKeyString: true,
+          },
+        });
+      }
+
+      if (!dbPeer) {
+        return NextResponse.json({ error: `Peer "@${peerHandle}" not found.` }, { status: 404 });
+      }
+
+      if (dbPeer.id === meId) {
+        return NextResponse.json({ error: "Cannot chat with yourself" }, { status: 400 });
+      }
+
+      peer = dbPeer;
+      roomId = buildRoomId(meId, peer.id);
+
+      // Auto-create/ensure accepted connection for seamless messaging
+      const accepted = await prisma.friendRequest.findFirst({
+        where: {
+          OR: [
+            { fromUserId: meId, toUserId: peer.id },
+            { fromUserId: peer.id, toUserId: meId },
           ],
         },
       });
+
+      if (!accepted) {
+        await prisma.friendRequest.create({
+          data: {
+            fromUserId: meId,
+            toUserId: peer.id,
+            categories: "Friend",
+            message: "Connected",
+            status: "ACCEPTED",
+          },
+        }).catch(() => {});
+      } else if (accepted.status !== "ACCEPTED") {
+        await prisma.friendRequest.update({
+          where: { id: accepted.id },
+          data: { status: "ACCEPTED" },
+        }).catch(() => {});
+      }
+
+      peerResolutionCache.set(cacheKey, {
+        peer,
+        roomId,
+        cachedAt: Date.now(),
+      });
     }
-
-    if (!peer) {
-      return NextResponse.json({ error: `Peer "@${peerHandle}" not found.` }, { status: 404 });
-    }
-
-    if (peer.id === meId) {
-      return NextResponse.json({ error: "Cannot chat with yourself" }, { status: 400 });
-    }
-
-    // Auto-create/ensure accepted connection for seamless messaging
-    const accepted = await prisma.friendRequest.findFirst({
-      where: {
-        OR: [
-          { fromUserId: meId, toUserId: peer.id },
-          { fromUserId: peer.id, toUserId: meId },
-        ],
-      },
-    });
-
-    if (!accepted) {
-      await prisma.friendRequest.create({
-        data: {
-          fromUserId: meId,
-          toUserId: peer.id,
-          categories: "Friend",
-          message: "Connected",
-          status: "ACCEPTED",
-        },
-      }).catch(() => {});
-    } else if (accepted.status !== "ACCEPTED") {
-      await prisma.friendRequest.update({
-        where: { id: accepted.id },
-        data: { status: "ACCEPTED" },
-      }).catch(() => {});
-    }
-
-    const roomId = buildRoomId(meId, peer.id);
 
     const messages = await prisma.message.findMany({
       where: { roomId },

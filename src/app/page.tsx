@@ -2760,12 +2760,29 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     };
 
-    fetchPresence();
-    const interval = setInterval(fetchPresence, 1_800);
+    const safeFetchPresence = () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      fetchPresence();
+    };
+
+    safeFetchPresence();
+    const interval = setInterval(safeFetchPresence, 3500);
+
+    const onVisChange = () => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        safeFetchPresence();
+      }
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisChange);
+    }
 
     return () => {
       cancelled = true;
       clearInterval(interval);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisChange);
+      }
       if (offlineTimeout) clearTimeout(offlineTimeout);
     };
   }, [activePeerHandle]);
@@ -5146,12 +5163,30 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     };
 
-    refresh();
-    const id = setInterval(refresh, 3000); // 3-second rapid sync
+    const safeRefresh = () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      refresh();
+    };
+
+    safeRefresh();
+    // 25s smart background sync when visible - prevents CPU exhaustion
+    const id = setInterval(safeRefresh, 25000);
+
+    const onVisChangeRefresh = () => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        safeRefresh();
+      }
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisChangeRefresh);
+    }
 
     return () => {
       cancelled = true;
       clearInterval(id);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisChangeRefresh);
+      }
     };
   }, [status, activePeerHandle, session?.user?.id, desktopNotificationsEnabled]);
 
@@ -5247,13 +5282,30 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     };
 
-    // Initial fetch and interval
-    poll();
-    const id = setInterval(poll, 1200);
+    const safePoll = () => {
+      if (typeof document !== "undefined" && document.hidden) return;
+      poll();
+    };
+
+    // Initial fetch and smart interval (pauses in background)
+    safePoll();
+    const id = setInterval(safePoll, 1800);
+
+    const onVisChangePoll = () => {
+      if (typeof document !== "undefined" && !document.hidden) {
+        safePoll();
+      }
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisChangePoll);
+    }
 
     return () => {
       cancelled = true;
       clearInterval(id);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisChangePoll);
+      }
     };
   }, [activePeerHandle, desktopNotificationsEnabled]);
 
