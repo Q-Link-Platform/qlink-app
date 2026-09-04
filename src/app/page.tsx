@@ -9199,42 +9199,112 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         {/* Segmented Control Bar */}
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center rounded-xl border border-slate-800/80 bg-slate-950/80 p-1 backdrop-blur-md shadow-inner">
+                            {/* Friends Button with Horizontal Mouse-Tracking Blue Light */}
                             <button
                               type="button"
                               onClick={() => setConnectionsTab("friends")}
-                              className={`flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-300 ${
+                              onMouseMove={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const x = e.clientX - rect.left;
+                                e.currentTarget.style.setProperty("--tab-x", `${x}px`);
+                                e.currentTarget.style.setProperty("--tab-glow-opacity", "1");
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.setProperty("--tab-x", "50%");
+                                e.currentTarget.style.setProperty("--tab-glow-opacity", "0.75");
+                              }}
+                              className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold overflow-hidden transition-all duration-300 select-none ${
                                 connectionsTab === "friends"
-                                  ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
-                                  : "text-slate-400 hover:text-slate-200"
+                                  ? "text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                                  : "text-slate-400 hover:text-slate-200 border border-transparent"
                               }`}
+                              style={{
+                                "--tab-x": "50%",
+                                "--tab-glow-opacity": "0.75",
+                              } as React.CSSProperties}
                             >
-                              <span>Friends</span>
-                              <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                connectionsTab === "friends" ? "bg-cyan-400/20 text-cyan-200" : "bg-slate-800 text-slate-400"
+                              {/* The Live Horizontal Mouse-Tracking Blue Light Spotlight */}
+                              {connectionsTab === "friends" && (
+                                <>
+                                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20" />
+                                  <span
+                                    className="pointer-events-none absolute inset-0 transition-opacity duration-200"
+                                    style={{
+                                      opacity: "var(--tab-glow-opacity, 0.75)",
+                                      background: "radial-gradient(55px 32px at var(--tab-x, 50%) 50%, rgba(34, 211, 238, 0.45) 0%, rgba(6, 182, 212, 0.2) 50%, transparent 100%)",
+                                    }}
+                                  />
+                                  <span
+                                    className="pointer-events-none absolute inset-x-0 top-0 h-[1px] transition-opacity duration-200"
+                                    style={{
+                                      opacity: "var(--tab-glow-opacity, 0.75)",
+                                      background: "radial-gradient(40px 1px at var(--tab-x, 50%) 0%, rgba(255, 255, 255, 0.8) 0%, rgba(34, 211, 238, 0.5) 50%, transparent 100%)",
+                                    }}
+                                  />
+                                </>
+                              )}
+                              <span className="relative z-10">Friends</span>
+                              <span className={`relative z-10 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
+                                connectionsTab === "friends" ? "bg-cyan-400/20 text-cyan-200 border border-cyan-400/30" : "bg-slate-800 text-slate-400"
                               }`}>
                                 {acceptedFriends.length}
                               </span>
                             </button>
 
+                            {/* Requests Button with Horizontal Mouse-Tracking Blue Light */}
                             <button
                               type="button"
                               onClick={() => setConnectionsTab("requests")}
-                              className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold transition-all duration-300 ${
+                              onMouseMove={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const x = e.clientX - rect.left;
+                                e.currentTarget.style.setProperty("--tab-x", `${x}px`);
+                                e.currentTarget.style.setProperty("--tab-glow-opacity", "1");
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.setProperty("--tab-x", "50%");
+                                e.currentTarget.style.setProperty("--tab-glow-opacity", "0.75");
+                              }}
+                              className={`relative flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold overflow-hidden transition-all duration-300 select-none ${
                                 connectionsTab === "requests"
-                                  ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                                  ? "text-cyan-300 border border-cyan-400/40 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
                                   : pendingIncoming.length > 0
                                     ? "text-amber-200 border border-amber-500/60 bg-amber-500/20 shadow-[0_0_16px_rgba(245,158,11,0.4)] animate-[pulse_2.2s_ease-in-out_infinite]"
-                                    : "text-slate-400 hover:text-slate-200"
+                                    : "text-slate-400 hover:text-slate-200 border border-transparent"
                               }`}
+                              style={{
+                                "--tab-x": "50%",
+                                "--tab-glow-opacity": "0.75",
+                              } as React.CSSProperties}
                             >
-                              <span>Requests</span>
+                              {/* The Live Horizontal Mouse-Tracking Blue Light Spotlight */}
+                              {connectionsTab === "requests" && (
+                                <>
+                                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-blue-500/20" />
+                                  <span
+                                    className="pointer-events-none absolute inset-0 transition-opacity duration-200"
+                                    style={{
+                                      opacity: "var(--tab-glow-opacity, 0.75)",
+                                      background: "radial-gradient(55px 32px at var(--tab-x, 50%) 50%, rgba(34, 211, 238, 0.45) 0%, rgba(6, 182, 212, 0.2) 50%, transparent 100%)",
+                                    }}
+                                  />
+                                  <span
+                                    className="pointer-events-none absolute inset-x-0 top-0 h-[1px] transition-opacity duration-200"
+                                    style={{
+                                      opacity: "var(--tab-glow-opacity, 0.75)",
+                                      background: "radial-gradient(40px 1px at var(--tab-x, 50%) 0%, rgba(255, 255, 255, 0.8) 0%, rgba(34, 211, 238, 0.5) 50%, transparent 100%)",
+                                    }}
+                                  />
+                                </>
+                              )}
+                              <span className="relative z-10">Requests</span>
                               {totalPending > 0 && (
-                                <span className="relative inline-flex items-center ml-0.5">
+                                <span className="relative z-10 inline-flex items-center ml-0.5">
                                   {pendingIncoming.length > 0 && (
                                     <span className="absolute -inset-0.5 rounded-full bg-orange-500 opacity-80 animate-ping" />
                                   )}
                                   <span
-                                    className={`relative inline-flex items-center justify-center rounded-full px-1.5 py-0.2 text-[10px] font-bold transition-transform ${
+                                    className={`relative inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none transition-transform ${
                                       pendingIncoming.length > 0
                                         ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-[0_0_10px_#f97316]"
                                         : "bg-slate-800 text-slate-300 border border-slate-700"
