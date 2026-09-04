@@ -1834,7 +1834,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     const pillWidth = (rect.width - 8) / 2;
     const maxShift = pillWidth;
     const shift = Math.max(0, Math.min(maxShift, mouseX - pillWidth / 2));
+
+    // Calculate relative mouse position inside the moving pill (0% to 100%)
+    const mouseInPillX = Math.max(0, Math.min(pillWidth, mouseX - shift));
+    const mouseInPillPercent = (mouseInPillX / pillWidth) * 100;
+
     bar.style.setProperty("--pill-x", `${shift}px`);
+    bar.style.setProperty("--mouse-in-pill", `${mouseInPillPercent}%`);
     bar.style.setProperty("--pill-transition", "transform 0.08s ease-out");
   };
 
@@ -1845,6 +1851,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     const pillWidth = (bar.offsetWidth - 8) / 2;
     const targetX = isFriends ? 0 : pillWidth;
     bar.style.setProperty("--pill-x", `${targetX}px`);
+    bar.style.setProperty("--mouse-in-pill", "50%");
     bar.style.setProperty("--pill-transition", "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)");
   };
 
@@ -9241,19 +9248,32 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               "--pill-transition": "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
                             } as React.CSSProperties}
                           >
-                            {/* The Live Sticky Moving Blue Light Spotlight Layer across the whole bar */}
+                            {/* The Live Sticky Moving Blue-Purple-Pink Prismatic Spotlight Layer */}
                             <div
-                              className="pointer-events-none absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-gradient-to-r from-cyan-500/25 via-sky-500/20 to-blue-500/25 border border-cyan-400/50 shadow-[0_0_15px_rgba(6,182,212,0.35)] backdrop-blur-md z-0 will-change-transform"
+                              className="pointer-events-none absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-gradient-to-r from-cyan-500/25 via-sky-500/20 to-blue-500/25 border border-cyan-400/50 shadow-[0_0_16px_rgba(6,182,212,0.35),0_0_30px_rgba(168,85,247,0.15)] backdrop-blur-md z-0 will-change-transform"
                               style={{
                                 left: "4px",
                                 transform: "translateX(var(--pill-x, 0px))",
                                 transition: "var(--pill-transition, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1))",
                               }}
                             >
-                              {/* Inner Radial Spotlight Glow */}
-                              <div className="absolute inset-0 rounded-lg bg-[radial-gradient(60px_circle_at_50%_50%,rgba(34,211,238,0.35),transparent_100%)]" />
-                              {/* Top Specular Shine */}
-                              <div className="absolute inset-x-0 top-0 h-[1px] bg-[radial-gradient(45px_1px_at_50%_0%,rgba(255,255,255,0.85),rgba(34,211,238,0.5)_50%,transparent_100%)]" />
+                              {/* Prismatic Cyan-Purple-Pink Ambient Spotlight Glow */}
+                              <div
+                                className="absolute inset-0 rounded-lg pointer-events-none transition-opacity duration-300"
+                                style={{
+                                  background:
+                                    "radial-gradient(90px circle at var(--mouse-in-pill, 50%) 50%, rgba(34, 211, 238, 0.45) 0%, rgba(168, 85, 247, 0.3) 45%, rgba(244, 63, 94, 0.16) 72%, transparent 100%)",
+                                }}
+                              />
+
+                              {/* Specular Sheen across top edge */}
+                              <div
+                                className="absolute inset-x-0 top-0 h-[1px] pointer-events-none"
+                                style={{
+                                  background:
+                                    "radial-gradient(55px 1px at var(--mouse-in-pill, 50%) 0%, rgba(255, 255, 255, 0.9) 0%, rgba(34, 211, 238, 0.6) 40%, rgba(168, 85, 247, 0.4) 75%, transparent 100%)",
+                                }}
+                              />
                             </div>
 
                             {/* Friends Button */}
