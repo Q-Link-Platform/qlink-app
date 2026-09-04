@@ -5,13 +5,11 @@ import React, { useState, memo } from "react";
 interface YouTubeInlinePreviewProps {
   videoId: string;
   isMe?: boolean;
-  isShort?: boolean;
 }
 
 export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
   videoId,
   isMe = false,
-  isShort = false,
 }: YouTubeInlinePreviewProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [thumbnailError, setThumbnailError] = useState(false);
@@ -23,20 +21,21 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
 
   return (
     <div
-      className={`mt-2 w-full mx-auto overflow-hidden rounded-2xl border shadow-2xl transition-all duration-300 ${
+      className={`mt-2 w-full overflow-hidden rounded-2xl border shadow-2xl transition-all duration-300 ${
         isMe
           ? "border-blue-400/40 bg-slate-900/95 shadow-blue-950/40"
           : "border-slate-700/70 bg-slate-950/95 shadow-black/50"
       }`}
       style={{
-        maxWidth: isShort ? "330px" : "670px",
+        width: "100%",
+        maxWidth: "670px",
       }}
     >
-      {/* Strict Aspect Ratio Container (16:9 for normal videos, 9:16 for Shorts) */}
+      {/* 16:9 Aspect Ratio Container - Clean, Edge-to-Edge Thumbnail & Player */}
       <div
         className="relative w-full overflow-hidden bg-black select-none"
         style={{
-          aspectRatio: isShort ? "9 / 16" : "16 / 9",
+          aspectRatio: "16 / 9",
           width: "100%",
         }}
       >
@@ -54,7 +53,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
               }
             }}
           >
-            {/* Thumbnail Image - Strictly covers the entire 16:9 / 9:16 box */}
+            {/* Thumbnail Image - Strictly covers the entire 16:9 box */}
             <img
               src={thumbnailUrl}
               alt="YouTube Video Thumbnail"
@@ -84,7 +83,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
                 <svg className="h-3.5 w-3.5 fill-red-500" viewBox="0 0 24 24">
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                 </svg>
-                <span>{isShort ? "Shorts" : "YouTube"}</span>
+                <span>YouTube</span>
               </span>
 
               <span className="rounded-full bg-black/65 px-2 py-0.5 text-[10px] text-white/80 backdrop-blur-md border border-white/10 group-hover:text-white transition">
@@ -110,7 +109,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
               <span>Close</span>
             </button>
 
-            {/* Embedded In-Place Video Player - Strictly fills 100% of container */}
+            {/* Embedded In-Place Video Player */}
             <iframe
               src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
               title="YouTube inline video player"

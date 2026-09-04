@@ -10167,13 +10167,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     style={{ WebkitTouchCallout: "none" }}
                                     className={
                                       isMe
-                                        ? `${(() => { const yt = extractYouTubeInfo(displayContent); if (!yt) return "max-w-[75%]"; return yt.isShort ? "w-fit max-w-[350px]" : "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[750px]"; })()} rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-3 py-2 text-slate-950 select-none cursor-pointer transition-all duration-500 ${isHighlighted
+                                        ? `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[694px]" : "max-w-[75%]"} rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-3 py-2 text-slate-950 select-none cursor-pointer transition-all duration-500 ${isHighlighted
                                           ? "shadow-[0_0_30px_#22d3ee,0_0_15px_#38bdf8] ring-2 ring-cyan-200 ring-offset-2 ring-offset-slate-950 scale-[1.03]"
                                           : isSelected
                                             ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-[0_0_18px_rgba(56,189,248,0.7)]"
                                             : "shadow-[0_0_18px_rgba(56,189,248,0.7)]"
                                         }`
-                                        : `${(() => { const yt = extractYouTubeInfo(displayContent); if (!yt) return "max-w-[75%]"; return yt.isShort ? "w-fit max-w-[350px]" : "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[750px]"; })()} rounded-2xl rounded-bl-sm bg-slate-800/90 px-3 py-2 text-slate-100 select-none cursor-pointer transition-all duration-500 ${isHighlighted
+                                        : `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[694px]" : "max-w-[75%]"} rounded-2xl rounded-bl-sm bg-slate-800/90 px-3 py-2 text-slate-100 select-none cursor-pointer transition-all duration-500 ${isHighlighted
                                           ? "bg-slate-700/95 ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 shadow-[0_0_25px_rgba(34,211,238,0.6)] scale-[1.03]"
                                           : isSelected
                                             ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-md"
@@ -10204,17 +10204,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     )}
 
                                     {/* YouTube Inline Rich Video Preview */}
-                                    {(() => {
-                                      const ytInfo = extractYouTubeInfo(displayContent);
-                                      if (!ytInfo) return null;
-                                      return (
-                                        <YouTubeInlinePreview
-                                          videoId={ytInfo.videoId}
-                                          isShort={ytInfo.isShort}
-                                          isMe={!!isMe}
-                                        />
-                                      );
-                                    })()}
+                                    {extractYouTubeVideoId(displayContent) && (
+                                      <YouTubeInlinePreview
+                                        videoId={extractYouTubeVideoId(displayContent)!}
+                                        isMe={!!isMe}
+                                      />
+                                    )}
 
                                     {/* Attachments, if any */}
                                     {attachments && attachments.length > 0 && (
