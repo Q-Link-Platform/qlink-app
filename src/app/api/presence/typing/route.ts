@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const toHandle = (body.toHandle || "").trim();
+  const toHandle = (body.toHandle || "").trim().replace(/^@/, "").toLowerCase();
   const typing = Boolean(body.typing);
 
   if (!toHandle) {

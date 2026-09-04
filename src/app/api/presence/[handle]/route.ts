@@ -14,7 +14,17 @@ export async function GET(
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const viewerHandle = ((session.user as any).handle as string | undefined) || null;
+  let viewerHandle = ((session.user as any).handle as string | undefined) || null;
+  const viewerId = (session.user as any)?.id as string | undefined;
+
+  // Fallback: If handle is not attached to session token, fetch directly from DB
+  if (!viewerHandle && viewerId) {
+    const me = await prisma.user.findUnique({
+      where: { id: viewerId },
+      select: { handle: true },
+    });
+    viewerHandle = me?.handle || null;
+  }
 
   const { handle: rawHandle } = await params;
   let cleanHandle = (rawHandle || "").trim();
@@ -43,13 +53,11 @@ export async function GET(
     });
 
     if (!user) {
-      // If the user handle does not exist, correctly return offline state rather than a fake online fallback
       return NextResponse.json({ online: false, lastSeenAt: null, typing: false });
     }
 
     const now = Date.now();
     
-    // If the user has never logged in/pinged presence (lastSeenAt is null), correctly report offline
     if (!user.lastSeenAt) {
       return NextResponse.json({
         online: false,
@@ -61,7 +69,7 @@ export async function GET(
     const lastSeen = user.lastSeenAt.getTime();
     const lastTyping = user.lastTypingAt ? user.lastTypingAt.getTime() : null;
 
-    const online = now - lastSeen <= 45_000; // 45 seconds window for robust presence tracking
+    const online = now - lastSeen <= 45_000;
 
     const cleanViewer = (viewerHandle || "").trim().toLowerCase().replace(/^@/, "");
     const cleanTarget = (user.lastTypingForHandle || "").trim().toLowerCase().replace(/^@/, "");
@@ -70,7 +78,7 @@ export async function GET(
       !!cleanTarget &&
       cleanViewer === cleanTarget &&
       !!lastTyping &&
-      now - lastTyping <= 6_000; // typing valid for 6 seconds
+      now - lastTyping <= 6_000;
 
     return NextResponse.json({
       online,
@@ -79,5 +87,41 @@ export async function GET(
     });
   } catch {
     return NextResponse.json({ error: "Unable to read presence" }, { status: 500 });
+  }
+}
+
+// Fallback POST handler for presence/typing pings
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ handle: string }> },
+) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const userId = (session.user as any)?.id as string | undefined;
+  if (!userId) {
+    return NextResponse.json({ error: "User id missing" }, { status: 400 });
+  }
+
+  const { handle: rawHandle } = await params;
+  let toHandle = (rawHandle || "").trim().replace(/^@/, "").toLowerCase();
+
+  const url = new URL(req.url);
+  const typingParam = url.searchParams.get("typing");
+  const isTyping = typingParam === null || typingParam === "1" || typingParam === "true";
+
+  try {
+    await prisma.user.updateMany({
+      where: { id: userId },
+      data: {
+        lastTypingAt: isTyping ? new Date() : null,
+        lastTypingForHandle: isTyping ? toHandle : null,
+      },
+    });
+    return NextResponse.json({ ok: true });
+  } catch {
+    return NextResponse.json({ ok: true });
   }
 }

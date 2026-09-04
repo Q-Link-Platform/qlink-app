@@ -74,13 +74,15 @@ export const ChatInputConsole = memo(function ChatInputConsole({
     }
   }, [externalValue, onExternalValueConsumed]);
 
-  // Debounced typing notification trigger
+  // Instant typing notification trigger with 2s throttle
+  const lastTypingPingRef = useRef<number>(0);
   const triggerTyping = useCallback(() => {
     if (!onTypingPing) return;
-    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
-    typingTimerRef.current = setTimeout(() => {
+    const now = Date.now();
+    if (now - lastTypingPingRef.current > 1800) {
+      lastTypingPingRef.current = now;
       onTypingPing();
-    }, 250);
+    }
   }, [onTypingPing]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

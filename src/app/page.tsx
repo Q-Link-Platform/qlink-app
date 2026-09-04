@@ -4038,7 +4038,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   const handleTypingPing = useCallback(() => {
     if (!activePeerHandle) return;
-    fetch(`/api/presence/${encodeURIComponent(activePeerHandle)}?typing=1`, { method: "POST" }).catch(() => {});
+    fetch("/api/presence/typing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ toHandle: activePeerHandle, typing: true }),
+    }).catch(() => {});
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      fetch("/api/presence/typing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toHandle: activePeerHandle, typing: false }),
+      }).catch(() => {});
+    }, 3500);
   }, [activePeerHandle]);
 
   const handleSendMessage = useCallback(async (text: string) => {
@@ -6144,6 +6157,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   const actuallySendChat = async () => {
     if (!activePeerHandle || !chatInput.trim()) return;
+
+    // Instantly cancel typing indicator on send
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    fetch("/api/presence/typing", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ toHandle: activePeerHandle, typing: false }),
+    }).catch(() => {});
 
     const text = chatInput.trim();
     setChatInput(""); // Instant 0ms clear input
