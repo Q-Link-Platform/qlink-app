@@ -550,11 +550,18 @@ function rankFriendRequests<T extends {
 }
 
 
-function extractYouTubeVideoId(text: string): string | null {
+function extractYouTubeInfo(text: string): { videoId: string; isShort: boolean } | null {
   if (!text) return null;
+  const isShort = /youtube\.com\/shorts\//i.test(text);
   const regExp = /(?:https?:\/\/)?(?:www\.|m\.)?(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/i;
   const match = text.match(regExp);
-  return match ? match[1] : null;
+  if (!match) return null;
+  return { videoId: match[1], isShort };
+}
+
+function extractYouTubeVideoId(text: string): string | null {
+  const info = extractYouTubeInfo(text);
+  return info ? info.videoId : null;
 }
 
 function renderMessageText(text: string, isMe: boolean) {
@@ -10197,12 +10204,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     )}
 
                                     {/* YouTube Inline Rich Video Preview */}
-                                    {extractYouTubeVideoId(displayContent) && (
-                                      <YouTubeInlinePreview
-                                        videoId={extractYouTubeVideoId(displayContent)!}
-                                        isMe={!!isMe}
-                                      />
-                                    )}
+                                    {(() => {
+                                      const ytInfo = extractYouTubeInfo(displayContent);
+                                      if (!ytInfo) return null;
+                                      return (
+                                        <YouTubeInlinePreview
+                                          videoId={ytInfo.videoId}
+                                          isShort={ytInfo.isShort}
+                                          isMe={!!isMe}
+                                        />
+                                      );
+                                    })()}
 
                                     {/* Attachments, if any */}
                                     {attachments && attachments.length > 0 && (
