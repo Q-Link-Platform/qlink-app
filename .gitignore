@@ -45,3 +45,7 @@ next-env.d.ts
 
 # Compiled desktop installer binaries
 public/downloads/Q-Link-Setup.exe
+
+# scratch files
+scratch/
+

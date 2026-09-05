@@ -338,6 +338,14 @@ export async function POST(request: Request) {
     const meId = (session.user as any).id as string;
     touchUserPresence(meId);
 
+    const userExists = await prisma.user.findUnique({
+      where: { id: meId },
+      select: { id: true },
+    });
+    if (!userExists) {
+      return NextResponse.json({ error: "User profile not found. Please log in again." }, { status: 401 });
+    }
+
     const body = await request.json();
     
     // Validate request body using Zod schema
@@ -399,6 +407,6 @@ export async function POST(request: Request) {
         err?.code === 'P2021' || err?.message?.includes('does not exist')) {
       return NextResponse.json({ error: "Database unavailable. Please try again." }, { status: 503 });
     }
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: err?.message || "Failed to create post. Please try again." }, { status: 500 });
   }
 }

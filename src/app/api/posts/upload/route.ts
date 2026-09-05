@@ -11,14 +11,32 @@ export const runtime = "nodejs";
 const MAX_IMAGE_BYTES = 3 * 1024 * 1024; // 3MB
 const MAX_VIDEO_BYTES = 45 * 1024 * 1024; // 45MB
 
+let supabasePostsOnline = true;
+let lastSupabasePostsCheck = 0;
+
+function isSupabasePostsAvailable(): boolean {
+  if (!supabasePostsAdmin) return false;
+  const now = Date.now();
+  if (!supabasePostsOnline && now - lastSupabasePostsCheck < 60_000) {
+    return false; // Circuit open: fail fast to resilient native vault
+  }
+  return true;
+}
+
+function markSupabasePostsDown(reason?: string) {
+  supabasePostsOnline = false;
+  lastSupabasePostsCheck = Date.now();
+  console.warn("[posts/upload] Supabase Posts storage marked offline, routing to native vault:", reason || "unknown");
+}
+
 /**
- * Helper to safely attempt Supabase signed upload URL with timeout and full error insulation.
+ * Helper to safely attempt Supabase signed upload URL with timeout and circuit-breaker.
  */
 async function trySupabaseSignUpload(bucket: string, objectKey: string): Promise<{ signedUrl: string; token: string } | null> {
-  if (!supabasePostsAdmin || !bucket) return null;
+  if (!isSupabasePostsAvailable() || !supabasePostsAdmin || !bucket) return null;
   try {
     const timeoutPromise = new Promise<null>((_, reject) =>
-      setTimeout(() => reject(new Error("Supabase sign timeout")), 2500)
+      setTimeout(() => reject(new Error("Supabase sign timeout")), 2000)
     );
     const signPromise = supabasePostsAdmin.storage
       .from(bucket)
@@ -26,15 +44,16 @@ async function trySupabaseSignUpload(bucket: string, objectKey: string): Promise
 
     const signResult: any = await Promise.race([signPromise, timeoutPromise]);
     if (signResult && !signResult.error && signResult.data?.signedUrl) {
+      supabasePostsOnline = true;
       return {
         signedUrl: signResult.data.signedUrl,
         token: signResult.data.token,
       };
     }
-    console.warn("[posts/upload] Supabase sign upload returned error, activating resilient vault:", signResult?.error?.message || "unknown");
+    markSupabasePostsDown(signResult?.error?.message);
     return null;
   } catch (err: any) {
-    console.warn("[posts/upload] Supabase sign exception, activating resilient vault:", err?.message || err);
+    markSupabasePostsDown(err?.message);
     return null;
   }
 }
@@ -43,10 +62,10 @@ async function trySupabaseSignUpload(bucket: string, objectKey: string): Promise
  * Helper to safely attempt direct Supabase upload.
  */
 async function trySupabaseUpload(bucket: string, objectKey: string, buffer: Uint8Array, contentType: string): Promise<boolean> {
-  if (!supabasePostsAdmin || !bucket) return false;
+  if (!isSupabasePostsAvailable() || !supabasePostsAdmin || !bucket) return false;
   try {
     const timeoutPromise = new Promise<null>((_, reject) =>
-      setTimeout(() => reject(new Error("Supabase upload timeout")), 4000)
+      setTimeout(() => reject(new Error("Supabase upload timeout")), 3000)
     );
     const uploadPromise = supabasePostsAdmin.storage
       .from(bucket)
@@ -58,12 +77,13 @@ async function trySupabaseUpload(bucket: string, objectKey: string, buffer: Uint
 
     const result: any = await Promise.race([uploadPromise, timeoutPromise]);
     if (result && !result.error) {
+      supabasePostsOnline = true;
       return true;
     }
-    console.warn("[posts/upload] Supabase direct upload returned error, falling back to native vault:", result?.error?.message);
+    markSupabasePostsDown(result?.error?.message);
     return false;
   } catch (err: any) {
-    console.warn("[posts/upload] Supabase direct upload exception, falling back to native vault:", err?.message || err);
+    markSupabasePostsDown(err?.message);
     return false;
   }
 }
@@ -227,6 +247,8 @@ export async function POST(request: Request) {
           },
         });
       }
+
+      return NextResponse.json({ error: "Invalid JSON request parameters" }, { status: 400 });
     }
 
     // -------------------------------------------------------------
@@ -375,9 +397,12 @@ export async function POST(request: Request) {
         size: buffer.length,
       },
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[posts/upload] Unhandled error", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: err?.message || "Upload encountered an internal error. Please try again." },
+      { status: 500 }
+    );
   }
 }
 

@@ -3592,6 +3592,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           try {
             directUploadSuccess = await new Promise<boolean>((resolve, reject) => {
               const xhr = new XMLHttpRequest();
+              xhr.withCredentials = true;
               xhr.open("PUT", signedUrl);
               xhr.setRequestHeader("Content-Type", uploadMime);
               xhr.upload.onprogress = (e) => {
