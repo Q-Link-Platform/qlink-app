@@ -6921,15 +6921,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         flexDirection: 'column',
         width: '100%',
         height: '100dvh',
-        overflowX: 'hidden',
-        overflowY: isChatExpanded ? 'hidden' : 'auto',
+        overflow: 'hidden',
         WebkitOverflowScrolling: 'touch',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
-        overflowAnchor: 'none',
       }}
     >
-      <div style={{ width: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: isChatExpanded ? '100%' : 'auto', flex: isChatExpanded ? '1' : 'unset', overflowAnchor: 'none' }}>
+      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
         {showInstallPrompt && (
           <div className="pointer-events-auto fixed inset-0 z-45 flex items-center justify-center bg-slate-950/80 px-4">
             <div className="max-w-md w-full rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-5 text-xs text-slate-100 shadow-[0_0_50px_rgba(6,182,212,0.25)] backdrop-blur-md">
@@ -8585,8 +8583,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         <div
           className={
             isFocusMode
-              ? "flex w-full flex-1 relative px-0 py-0 h-auto min-h-screen overflow-y-visible"
-              : `flex w-full flex-1 glass-panel-responsive neon-border-responsive relative px-0 py-0 sm:px-6 md:px-8 lg:px-10 sm:py-6 md:py-8 ${isChatFull ? "h-full min-h-0 overflow-hidden" : "h-auto min-h-screen overflow-y-visible"} ${isGlowActive ? "glow-active" : ""}`
+              ? "flex w-full flex-1 relative px-0 py-0 h-full min-h-0 overflow-hidden"
+              : `flex w-full flex-1 glass-panel-responsive neon-border-responsive relative px-0 py-0 sm:px-6 md:px-8 lg:px-10 sm:py-6 md:py-8 h-full min-h-0 overflow-hidden ${isGlowActive ? "glow-active" : ""}`
           }
           onTouchStart={() => setIsGlowActive(true)}
           onTouchEnd={() => setIsGlowActive(false)}
@@ -8595,7 +8593,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             scrollBehavior: 'auto',
             overscrollBehaviorY: 'contain',
             WebkitOverflowScrolling: 'touch',
-            overflowAnchor: 'none',
           }}>
           <style jsx>{`
           @keyframes glow-pulse {
@@ -8866,8 +8863,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               isChatExpanded
                 ? "relative grid h-full min-h-0 gap-8 overflow-hidden"
                 : isFocusMode
-                  ? "relative flex justify-center w-full h-auto min-h-full overflow-y-visible"
-                  : "relative grid w-full h-auto min-h-full gap-0 overflow-y-visible lg:grid-cols-2 lg:items-start"
+                  ? "relative flex justify-center w-full h-full min-h-0 overflow-hidden"
+                  : "relative grid w-full h-full min-h-0 gap-4 overflow-hidden lg:grid-cols-2 lg:items-stretch"
             }
           >
             {isFocusMode && <div className="ambient-breathing-bg" />}
@@ -8879,7 +8876,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   ? "hidden"
                   : isFocusMode
                     ? "fixed inset-0 z-[9999] bg-slate-950/95 overflow-y-auto px-0 py-0 flex flex-col"
-                    : "space-y-4 sm:space-y-6 px-4 lg:px-6 py-4"
+                    : "h-full min-h-0 overflow-y-auto space-y-4 sm:space-y-6 px-4 lg:px-6 py-4 custom-directory-scroll"
               }
             >
               <div className={isFocusMode ? "w-full min-h-screen relative flex flex-col" : "contents"}>

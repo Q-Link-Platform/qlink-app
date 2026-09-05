@@ -125,9 +125,9 @@ body::-webkit-scrollbar-horizontal {
   height: 0 !important;
 }
 
-/* Disable Chromium scroll anchoring jump across all elements */
+/* Chromium scroll stabilization */
 * {
-  overflow-anchor: none !important;
+  overflow-anchor: auto;
 }
 
 /* Smooth Theme Transition */
@@ -2058,12 +2058,11 @@ html.black .glass-panel {
 }
 
 .smooth-gpu-scroll {
-  -webkit-overflow-scrolling: touch !important;
-  scroll-behavior: smooth !important;
-  will-change: scroll-position !important;
-  transform: translate3d(0, 0, 0) !important;
-  backface-visibility: hidden !important;
-  perspective: 1000px !important;
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .incoming-requests-scroll:hover {
@@ -2894,6 +2893,37 @@ html.perf-low .settings-backdrop-exit {
 .tech-giant-scroll-container {
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Quiet Luxury Ultra-Smooth Chat Scrollbar */
+.custom-chat-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 211, 238, 0.25) transparent;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.custom-chat-scroll:hover {
+  scrollbar-color: rgba(34, 211, 238, 0.5) transparent;
+}
+
+.custom-chat-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-chat-scroll::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.25);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+.custom-chat-scroll:hover::-webkit-scrollbar-thumb,
+.custom-chat-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 211, 238, 0.55);
 }
 
 /* Production Chat & Image Rendering Optimization */
