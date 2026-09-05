@@ -10265,7 +10265,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           }
                           title={isChatExpanded ? "Minimize chat" : "Expand to full chat"}
                         >
-                          {isChatExpanded ? "×" : "Full chat"}
+                          {isChatExpanded ? (
+                            <span className="fullchat-x-icon inline-flex items-center justify-center font-semibold text-[11px] leading-none">
+                              ×
+                            </span>
+                          ) : (
+                            "Full chat"
+                          )}
                         </button>
                       </div>
                     </div>
