@@ -10239,67 +10239,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           id="chat-toggle-full-btn"
                           type="button"
                           onClick={toggleChatFull}
-                          onMouseMove={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const x = e.clientX - rect.left;
-                            const y = e.clientY - rect.top;
-                            e.currentTarget.style.setProperty("--btn-mouse-x", `${x}px`);
-                            e.currentTarget.style.setProperty("--btn-mouse-y", `${y}px`);
-                            e.currentTarget.style.setProperty("--spotlight-strength", "1");
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.setProperty("--spotlight-strength", "0");
-                          }}
                           className={
-                            "chat-spotlight-btn group relative overflow-hidden transition-all duration-300 ease-out " +
-                            (isChatFull
-                              ? "h-7 w-7 rounded-full flex items-center justify-center p-0 border border-cyan-400/50 bg-slate-900/90 text-slate-200 shadow-[0_0_15px_rgba(6,182,212,0.35)] hover:border-cyan-300 hover:shadow-[0_0_22px_rgba(6,182,212,0.6)] active:scale-95"
-                              : "inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-slate-900/80 px-2.5 py-1 text-[10px] font-medium text-slate-200 shadow-[0_0_12px_rgba(6,182,212,0.25)] hover:border-cyan-400/80 hover:text-cyan-100 hover:shadow-[0_0_20px_rgba(6,182,212,0.5)] active:scale-95 ") +
+                            "rounded-full border bg-slate-900 px-2 py-0.5 text-[10px] text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 fullchat-toggle " +
                             (highlightFullChat || (activePeerHandle && !isChatFull)
-                              ? " chat-spotlight-pulse"
-                              : "")
+                              ? "glow-pulse border-cyan-400/80 shadow-[0_0_10px_rgba(34,211,238,0.4)]"
+                              : "border-slate-600/70 ") +
+                            (isChatFull ? "fullchat-x-spotlight" : "")
                           }
                           title={isChatFull ? "Minimize chat" : "Expand to full chat"}
                         >
-                          {/* Inner ambient spotlight beam overlay */}
-                          <span className="chat-spotlight-flare pointer-events-none absolute inset-0 rounded-full" />
-
-                          {isChatFull ? (
-                            <span className="relative z-10 flex items-center justify-center">
-                              <svg
-                                className="h-3.5 w-3.5 text-cyan-300 transition-all duration-300 group-hover:rotate-90 group-hover:scale-110 group-hover:text-cyan-100"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                              </svg>
-                            </span>
-                          ) : (
-                            <span className="relative z-10 flex items-center gap-1.5">
-                              <svg
-                                className="h-3 w-3 text-cyan-400 transition-transform duration-300 group-hover:scale-110"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <polyline points="15 3 21 3 21 9" />
-                                <polyline points="9 21 3 21 3 15" />
-                                <line x1="21" y1="3" x2="14" y2="10" />
-                                <line x1="3" y1="21" x2="10" y2="14" />
-                              </svg>
-                              <span className="font-semibold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-slate-100 via-cyan-200 to-sky-300">
-                                Full chat
-                              </span>
-                            </span>
-                          )}
+                          {isChatFull ? "×" : "Full chat"}
                         </button>
                       </div>
                     </div>
