@@ -239,3 +239,40 @@ model ScheduledMessage {
   @@index([executeAt, status])
   @@index([senderId])
 }
+
+model Attachment {
+  id           String   @id @default(cuid())
+  messageId    String?
+  roomId       String?
+  senderId     String?
+  postId       String?
+  kind         String   // "file" | "image" | "video"
+  bucket       String
+  objectKey    String
+  originalName String
+  mimeType     String
+  sizeBytes    BigInt
+  status       String   @default("uploaded") // uploaded | deleted | failed
+  error        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  logs AttachmentLog[]
+
+  @@index([messageId])
+  @@index([postId])
+}
+
+model AttachmentLog {
+  id           String   @id @default(cuid())
+  attachmentId String
+  event        String   // upload | download | delete
+  ip           String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+
+  attachment Attachment @relation(fields: [attachmentId], references: [id], onDelete: Cascade)
+
+  @@index([attachmentId])
+}
+

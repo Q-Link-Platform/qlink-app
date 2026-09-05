@@ -5,6 +5,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prismaAttachments } from "@/lib/prismaAttachments";
 import { supabasePostsAdmin } from "@/lib/supabasePosts";
 import { touchUserPresence } from "@/lib/presence";
+import { ensureAttachmentSchema } from "@/lib/ensureAttachmentSchema";
 
 export const runtime = "nodejs";
 
@@ -97,6 +98,7 @@ export async function POST(request: Request) {
 
     const meId = (session.user as any).id as string;
     touchUserPresence(meId);
+    await ensureAttachmentSchema();
 
     const bucket = process.env.SUPABASE_POSTS_BUCKET || "Autark-3";
     const imagesPrefix = process.env.SUPABASE_POSTS_IMAGES_PREFIX || "images";
@@ -417,6 +419,7 @@ export async function PUT(request: Request) {
     }
 
     const meId = (session.user as any).id as string;
+    await ensureAttachmentSchema();
     const url = new URL(request.url);
     const directAttachmentId = url.searchParams.get("directAttachmentId");
 

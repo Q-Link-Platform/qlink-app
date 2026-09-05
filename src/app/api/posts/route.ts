@@ -6,6 +6,7 @@ import { prismaAttachments } from "@/lib/prismaAttachments";
 import { supabasePosts, supabasePostsAdmin } from "@/lib/supabasePosts";
 import { createPostSchema, validateRequest } from "@/lib/validation";
 import { touchUserPresence } from "@/lib/presence";
+import { ensureAttachmentSchema } from "@/lib/ensureAttachmentSchema";
 
 export const runtime = "nodejs";
 
@@ -337,6 +338,7 @@ export async function POST(request: Request) {
 
     const meId = (session.user as any).id as string;
     touchUserPresence(meId);
+    await ensureAttachmentSchema();
 
     const userExists = await prisma.user.findUnique({
       where: { id: meId },
