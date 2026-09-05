@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { prismaAttachments } from "@/lib/prismaAttachments";
+import {
+  findManyAttachmentRecords,
+  createAttachmentLogRecord,
+  updateAttachmentRecord,
+  deleteAttachmentRecord,
+} from "@/lib/attachmentDb";
 import { supabasePosts } from "@/lib/supabasePosts";
 
 export const runtime = "nodejs";
@@ -37,9 +42,10 @@ export async function POST(request: Request) {
       .filter((id): id is string => Boolean(id));
 
     if (attachmentIds.length && supabasePosts) {
-      const attachments = await prismaAttachments.attachment.findMany({
-        where: { id: { in: attachmentIds } },
-        select: { id: true, bucket: true, objectKey: true },
+      const attachments = await findManyAttachmentRecords(attachmentIds, {
+        id: true,
+        bucket: true,
+        objectKey: true,
       });
 
       for (const a of attachments) {
@@ -58,17 +64,14 @@ export async function POST(request: Request) {
         }
 
         try {
-          await prismaAttachments.attachmentLog.create({
+          await createAttachmentLogRecord({
             data: {
               attachmentId: a.id,
               event: "auto-delete-24h-post",
             },
           });
-          await prismaAttachments.attachment.update({
-            where: { id: a.id },
-            data: { status: "deleted" },
-          });
-          await prismaAttachments.attachment.delete({ where: { id: a.id } });
+          await updateAttachmentRecord(a.id, { status: "deleted" });
+          await deleteAttachmentRecord(a.id);
         } catch (err) {
           console.error("[posts/cleanup] Failed to delete attachment row", a.id, err);
         }

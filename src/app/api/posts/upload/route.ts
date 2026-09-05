@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import crypto from "crypto";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { prismaAttachments } from "@/lib/prismaAttachments";
 import { supabasePostsAdmin } from "@/lib/supabasePosts";
 import { touchUserPresence } from "@/lib/presence";
 import { ensureAttachmentSchema } from "@/lib/ensureAttachmentSchema";
+import {
+  createAttachmentRecord,
+  createAttachmentLogRecord,
+  findAttachmentRecord,
+  updateAttachmentRecord,
+} from "@/lib/attachmentDb";
 
 export const runtime = "nodejs";
 
@@ -164,7 +169,7 @@ export async function POST(request: Request) {
         const supabaseSign = await trySupabaseSignUpload(bucket, objectKey);
 
         if (supabaseSign) {
-          const attachment = await prismaAttachments.attachment.create({
+          const attachment = await createAttachmentRecord({
             data: {
               messageId: null,
               roomId: null,
@@ -189,7 +194,7 @@ export async function POST(request: Request) {
             },
           });
 
-          await prismaAttachments.attachmentLog.create({
+          await createAttachmentLogRecord({
             data: {
               attachmentId: attachment.id,
               event: "prepare-upload",
@@ -208,7 +213,7 @@ export async function POST(request: Request) {
 
         // Tier 2: Resilient Native PostgreSQL Vault
         // If external cloud storage is down or paused, seamlessly provide direct endpoint
-        const fallbackAttachment = await prismaAttachments.attachment.create({
+        const fallbackAttachment = await createAttachmentRecord({
           data: {
             messageId: null,
             roomId: null,
@@ -233,7 +238,7 @@ export async function POST(request: Request) {
           },
         });
 
-        await prismaAttachments.attachmentLog.create({
+        await createAttachmentLogRecord({
           data: {
             attachmentId: fallbackAttachment.id,
             event: "prepare-upload-native",
@@ -317,7 +322,7 @@ export async function POST(request: Request) {
     );
 
     if (supabaseUploaded) {
-      const attachment = await prismaAttachments.attachment.create({
+      const attachment = await createAttachmentRecord({
         data: {
           messageId: null,
           roomId: null,
@@ -342,7 +347,7 @@ export async function POST(request: Request) {
         },
       });
 
-      await prismaAttachments.attachmentLog.create({
+      await createAttachmentLogRecord({
         data: {
           attachmentId: attachment.id,
           event: "upload-post",
@@ -361,7 +366,7 @@ export async function POST(request: Request) {
     const mimeType = file.type || (kind === "video" ? "video/mp4" : "image/jpeg");
     const base64Data = `data:${mimeType};base64,${buffer.toString("base64")}`;
 
-    const nativeAttachment = await prismaAttachments.attachment.create({
+    const nativeAttachment = await createAttachmentRecord({
       data: {
         messageId: null,
         roomId: null,
@@ -386,7 +391,7 @@ export async function POST(request: Request) {
       },
     });
 
-    await prismaAttachments.attachmentLog.create({
+    await createAttachmentLogRecord({
       data: {
         attachmentId: nativeAttachment.id,
         event: "upload-post-native-direct",
@@ -427,9 +432,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Missing directAttachmentId" }, { status: 400 });
     }
 
-    const attachment = await (prismaAttachments as any).attachment.findUnique({
-      where: { id: directAttachmentId },
-    });
+    const attachment = await findAttachmentRecord(directAttachmentId);
 
     if (!attachment || attachment.senderId !== meId) {
       return NextResponse.json({ error: "Attachment not found or unauthorized" }, { status: 404 });
@@ -451,16 +454,13 @@ export async function PUT(request: Request) {
     const mimeType = request.headers.get("content-type") || attachment.mimeType || (attachment.kind === "video" ? "video/mp4" : "image/jpeg");
     const base64Data = `data:${mimeType};base64,${buffer.toString("base64")}`;
 
-    await (prismaAttachments as any).attachment.update({
-      where: { id: directAttachmentId },
-      data: {
-        objectKey: base64Data,
-        status: "uploaded",
-        sizeBytes: BigInt(buffer.length),
-      },
+    await updateAttachmentRecord(directAttachmentId, {
+      objectKey: base64Data,
+      status: "uploaded",
+      sizeBytes: BigInt(buffer.length),
     });
 
-    await (prismaAttachments as any).attachmentLog.create({
+    await createAttachmentLogRecord({
       data: {
         attachmentId: directAttachmentId,
         event: "upload-post-native-put-success",

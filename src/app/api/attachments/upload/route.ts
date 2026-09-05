@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { prismaAttachments } from "@/lib/prismaAttachments";
+import { createAttachmentRecord, createAttachmentLogRecord } from "@/lib/attachmentDb";
 import { supabaseFiles } from "@/lib/supabaseFiles";
 import { supabaseVideos } from "@/lib/supabaseVideos";
 import crypto from "crypto";
@@ -179,7 +179,7 @@ export async function POST(request: Request) {
     // 2) Store full attachment metadata in the Supabase attachments DB
     let attachmentRecord;
     try {
-      attachmentRecord = await prismaAttachments.attachment.create({
+      attachmentRecord = await createAttachmentRecord({
         data: {
           messageId: message.id,
           roomId,
@@ -195,7 +195,7 @@ export async function POST(request: Request) {
       });
 
       // 3) Log upload event for auditing purposes
-      await prismaAttachments.attachmentLog.create({
+      await createAttachmentLogRecord({
         data: {
           attachmentId: attachmentRecord?.id,
           event: "upload",

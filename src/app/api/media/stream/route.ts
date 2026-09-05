@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prismaAttachments } from "@/lib/prismaAttachments";
+import { findAttachmentRecord } from "@/lib/attachmentDb";
 import { supabasePostsAdmin, supabasePosts } from "@/lib/supabasePosts";
 
 export const runtime = "nodejs";
@@ -17,14 +17,11 @@ export async function GET(request: Request) {
     let totalSize: number | null = null;
 
     if (id) {
-      const att = await (prismaAttachments as any).attachment.findUnique({
-        where: { id },
-        select: {
-          bucket: true,
-          objectKey: true,
-          mimeType: true,
-          sizeBytes: true,
-        },
+      const att = await findAttachmentRecord(id, {
+        bucket: true,
+        objectKey: true,
+        mimeType: true,
+        sizeBytes: true,
       });
 
       if (!att || !att.bucket || !att.objectKey) {

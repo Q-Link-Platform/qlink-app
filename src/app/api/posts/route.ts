@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { prismaAttachments } from "@/lib/prismaAttachments";
+import { findManyAttachmentRecords, updateAttachmentRecord } from "@/lib/attachmentDb";
 import { supabasePosts, supabasePostsAdmin } from "@/lib/supabasePosts";
 import { createPostSchema, validateRequest } from "@/lib/validation";
 import { touchUserPresence } from "@/lib/presence";
@@ -110,16 +110,13 @@ export async function GET(request: Request) {
         .filter((id: any): id is string => typeof id === "string" && id.length > 0);
 
       const attachments: any[] = attachmentIds.length
-        ? await (prismaAttachments as any).attachment.findMany({
-            where: { id: { in: attachmentIds } },
-            select: {
-              id: true,
-              kind: true,
-              bucket: true,
-              objectKey: true,
-              mimeType: true,
-              sizeBytes: true,
-            },
+        ? await findManyAttachmentRecords(attachmentIds, {
+            id: true,
+            kind: true,
+            bucket: true,
+            objectKey: true,
+            mimeType: true,
+            sizeBytes: true,
           })
         : [];
 
@@ -263,16 +260,13 @@ export async function GET(request: Request) {
       .filter((id: any): id is string => typeof id === "string" && id.length > 0);
 
     const attachments: any[] = attachmentIds.length
-      ? await (prismaAttachments as any).attachment.findMany({
-          where: { id: { in: attachmentIds } },
-          select: {
-            id: true,
-            kind: true,
-            bucket: true,
-            objectKey: true,
-            mimeType: true,
-            sizeBytes: true,
-          },
+      ? await findManyAttachmentRecords(attachmentIds, {
+          id: true,
+          kind: true,
+          bucket: true,
+          objectKey: true,
+          mimeType: true,
+          sizeBytes: true,
         })
       : [];
 
@@ -386,9 +380,9 @@ export async function POST(request: Request) {
     if (attachmentId) {
       // Link attachment metadata to this post in attachments DB and mark status uploaded.
       try {
-        await (prismaAttachments as any).attachment.update({
-          where: { id: attachmentId },
-          data: { postId: post.id, status: "uploaded" },
+        await updateAttachmentRecord(attachmentId, {
+          postId: post.id,
+          status: "uploaded",
         });
       } catch (err) {
         console.error("[posts] Failed to link attachment to post", err);

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { prismaAttachments } from "@/lib/prismaAttachments";
+import { findAttachmentRecord } from "@/lib/attachmentDb";
 import { supabaseFiles } from "@/lib/supabaseFiles";
 import { supabaseVideos } from "@/lib/supabaseVideos";
 
@@ -22,9 +22,7 @@ export async function GET(request: Request) {
     }
     const meId = (session.user as any).id as string;
 
-    const attachment = await prismaAttachments.attachment.findUnique({
-      where: { id },
-    });
+    const attachment = await findAttachmentRecord(id);
 
     if (!attachment) {
       return NextResponse.json({ error: "Attachment not found" }, { status: 404 });
