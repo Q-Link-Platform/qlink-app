@@ -1812,14 +1812,31 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Full chat animation state
   const [isChatAnimating, setIsChatAnimating] = useState(false);
+  const [chatAnimMode, setChatAnimMode] = useState<'idle' | 'opening' | 'closing'>('idle');
 
-  // Smooth chat toggle with animations
+  // Smooth chat toggle with spotlight animations
   const toggleChatFull = () => {
-    setIsChatAnimating(true);
-    setIsChatFull(!isChatFull);
-    // Reset animation state after transition completes
-    setTimeout(() => setIsChatAnimating(false), 480);
+    if (chatAnimMode !== 'idle') return;
+    if (!isChatFull) {
+      setIsChatFull(true);
+      setChatAnimMode('opening');
+      setIsChatAnimating(true);
+      setTimeout(() => {
+        setChatAnimMode('idle');
+        setIsChatAnimating(false);
+      }, 500);
+    } else {
+      setChatAnimMode('closing');
+      setIsChatAnimating(true);
+      setTimeout(() => {
+        setIsChatFull(false);
+        setChatAnimMode('idle');
+        setIsChatAnimating(false);
+      }, 450);
+    }
   };
+
+  const isChatExpanded = isChatFull || chatAnimMode === 'closing';
 
   const quantumIdRef = useRef<HTMLDivElement | null>(null);
   const connectRef = useRef<HTMLDivElement | null>(null);
@@ -8847,7 +8864,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
           <div
             className={
-              isChatFull
+              isChatExpanded
                 ? "relative grid h-full min-h-0 gap-8 overflow-hidden"
                 : isFocusMode
                   ? "relative flex justify-center w-full h-auto min-h-full overflow-y-visible"
@@ -8859,7 +8876,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             {/* LEFT: HOME / STATUS */}
             <section
               className={
-                isChatFull
+                isChatExpanded
                   ? "hidden"
                   : isFocusMode
                     ? "fixed inset-0 z-[9999] bg-slate-950/95 overflow-y-auto px-0 py-0 flex flex-col"
@@ -9617,7 +9634,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               onDrop={handleDrop}
               className={
                 "relative overflow-hidden scrollbar-hide " +
-                (isChatFull
+                (isChatExpanded
                   ? "fixed inset-0 z-[9999] flex h-[100dvh] w-screen"
                   : isFocusMode
                     ? "hidden"
@@ -9672,15 +9689,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               <div
                 className={
                   "glass-panel relative z-10 rounded-2xl border bg-slate-900/80 shadow-xl fullchat-panel overflow-hidden " +
-                  (isChatFull ? "fullscreen rounded-none border-none " : "") +
-                  (isChatAnimating ? (isChatFull ? "opening" : "closing") : "") +
-                  (isChatFull
+                  (isChatExpanded ? "fullscreen rounded-none border-none " : "") +
+                  (chatAnimMode !== 'idle' ? chatAnimMode + " " : "") +
+                  (isChatExpanded
                     ? "flex-1 flex h-[100dvh] min-h-0 w-full flex-col space-y-3 p-0 sm:p-3"
                     : "flex h-auto min-h-0 flex-col space-y-5 p-5") +
                   " border-slate-500/60"
                 }
               >
-                {!isChatFull && (
+                {!isChatExpanded && (
                   <>
                     <header className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
                       <div className="flex items-center gap-4">
@@ -10168,7 +10185,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   <div
                     className={
                       "glass-panel flex flex-col gap-3 text-xs text-slate-300 relative overflow-y-hidden scrollbar-hide transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[360px] " : "") +
-                      (isChatFull
+                      (isChatExpanded
                         ? "flex-1 min-h-0 mt-0 sm:mt-2 rounded-none sm:rounded-2xl border-none sm:border bg-slate-900/80 p-2 sm:p-4 " +
                         (highlightChatPanel ? "glow-pulse border-cyan-400/80" : "border-slate-600/70")
                         : "flex-1 min-h-0 mt-4 -mx-5 -mb-5 p-4 rounded-t-2xl border-t bg-slate-900/80 " +
@@ -10177,8 +10194,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           : "border-slate-600/70 border-x-0 border-b-0"))
                     }
                     style={{
-                      minHeight: isChatFull ? '100%' : '400px',
-                      maxHeight: isChatFull ? '100%' : '85vh'
+                      minHeight: isChatExpanded ? '100%' : '400px',
+                      maxHeight: isChatExpanded ? '100%' : '85vh'
                     }}
                   >
                     {/* Fixed header at top of chat card */}
@@ -10241,14 +10258,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           onClick={toggleChatFull}
                           className={
                             "rounded-full border bg-slate-900 px-2 py-0.5 text-[10px] text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 fullchat-toggle " +
-                            (highlightFullChat || (activePeerHandle && !isChatFull)
+                            (highlightFullChat || (activePeerHandle && !isChatExpanded)
                               ? "glow-pulse border-cyan-400/80 shadow-[0_0_10px_rgba(34,211,238,0.4)]"
                               : "border-slate-600/70 ") +
-                            (isChatFull ? "fullchat-x-spotlight" : "")
+                            (isChatExpanded ? "fullchat-x-spotlight" : "")
                           }
-                          title={isChatFull ? "Minimize chat" : "Expand to full chat"}
+                          title={isChatExpanded ? "Minimize chat" : "Expand to full chat"}
                         >
-                          {isChatFull ? "×" : "Full chat"}
+                          {isChatExpanded ? "×" : "Full chat"}
                         </button>
                       </div>
                     </div>
