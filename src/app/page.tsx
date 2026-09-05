@@ -8590,9 +8590,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           onTouchEnd={() => setIsGlowActive(false)}
           onTouchCancel={() => setIsGlowActive(false)}
           style={{
-            scrollBehavior: 'smooth',
+            scrollBehavior: 'auto',
             overscrollBehaviorY: 'contain',
             WebkitOverflowScrolling: 'touch',
+            overflowAnchor: 'none',
           }}>
           <style jsx>{`
           @keyframes glow-pulse {

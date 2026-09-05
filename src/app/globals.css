@@ -1737,8 +1737,8 @@ body {
   font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
   height: 100vh;
-  overflow-x: hidden;
-  overflow-y: auto;
+  height: 100dvh;
+  overflow: hidden !important;
 }
 
 /* Subtle dark scrollbars to match the glass UI - strictly excluding html and body */
