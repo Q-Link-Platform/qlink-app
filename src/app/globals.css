@@ -99,16 +99,35 @@
   --background: #020817;
   --foreground: #e5e7eb;
   color-scheme: dark;
-  overflow-x: hidden;
+  overflow: hidden !important;
 }
 
-/* Hide scrollbars at document level */
-:root::-webkit-scrollbar {
-  display: none;
+/* Strictly hide and eliminate window-level scrollbars */
+html,
+body {
+  height: 100% !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-:root::-webkit-scrollbar-horizontal {
-  display: none;
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+:root::-webkit-scrollbar,
+:root::-webkit-scrollbar-horizontal,
+html::-webkit-scrollbar-horizontal,
+body::-webkit-scrollbar-horizontal {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Disable Chromium scroll anchoring jump across all elements */
+* {
+  overflow-anchor: none !important;
 }
 
 /* Smooth Theme Transition */
@@ -1722,35 +1741,35 @@ body {
   overflow-y: auto;
 }
 
-/* Subtle dark scrollbars to match the glass UI */
-* {
+/* Subtle dark scrollbars to match the glass UI - strictly excluding html and body */
+*:not(html):not(body) {
   scrollbar-width: thin;
   /* Firefox */
-  scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+  scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
 }
 
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+*:not(html):not(body)::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-*::-webkit-scrollbar-track {
+*:not(html):not(body)::-webkit-scrollbar-track {
   background: transparent;
 }
 
-*::-webkit-scrollbar-thumb {
+*:not(html):not(body)::-webkit-scrollbar-thumb {
   background: linear-gradient(to bottom,
-      rgba(148, 163, 184, 0.65),
-      rgba(51, 65, 85, 0.9));
+      rgba(148, 163, 184, 0.45),
+      rgba(51, 65, 85, 0.7));
   border-radius: 9999px;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   background-clip: padding-box;
 }
 
-*::-webkit-scrollbar-thumb:hover {
+*:not(html):not(body)::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(to bottom,
-      rgba(148, 163, 184, 0.85),
-      rgba(15, 23, 42, 0.95));
+      rgba(148, 163, 184, 0.75),
+      rgba(15, 23, 42, 0.9));
 }
 
 /* Glass and glow utilities for sci-fi feel */

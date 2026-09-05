@@ -4022,11 +4022,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         // Just polling refresh / tick delivery status update / read receipt update -> do NOT jump or scroll!
         lastMessageIdRef.current = lastMessage?.id || null;
         lastMessagesLengthRef.current = chatMessages.length;
-
-        // Keep pinned to bottom only if user was already at bottom (within 40px)
-        if (!isUserScrolledUpRef.current && el.scrollHeight - el.scrollTop - el.clientHeight <= 40) {
-          scrollToBottom();
-        }
       }
     }
   }, [chatMessages, pendingImagePreviewUrl, activePeerHandle, session?.user, scrollToBottom]);
@@ -6925,13 +6920,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         width: '100%',
         height: '100dvh',
         overflowX: 'hidden',
-        overflowY: isChatFull ? 'hidden' : 'auto',
+        overflowY: isChatExpanded ? 'hidden' : 'auto',
         WebkitOverflowScrolling: 'touch',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
+        overflowAnchor: 'none',
       }}
     >
-      <div style={{ width: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: isChatFull ? '100%' : 'auto', flex: isChatFull ? '1' : 'unset' }}>
+      <div style={{ width: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: isChatExpanded ? '100%' : 'auto', flex: isChatExpanded ? '1' : 'unset', overflowAnchor: 'none' }}>
         {showInstallPrompt && (
           <div className="pointer-events-auto fixed inset-0 z-45 flex items-center justify-center bg-slate-950/80 px-4">
             <div className="max-w-md w-full rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-5 text-xs text-slate-100 shadow-[0_0_50px_rgba(6,182,212,0.25)] backdrop-blur-md">

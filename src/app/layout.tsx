@@ -52,13 +52,15 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Q-link Chat" />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased h-[100dvh] w-full overflow-hidden`}
         style={{
           backgroundColor: 'var(--bg-primary)',
-          color: 'var(--text-primary)'
+          color: 'var(--text-primary)',
+          height: '100dvh',
+          overflow: 'hidden',
         }}
       >
-        <div className="relative h-[100dvh] w-full overflow-x-hidden flex flex-col">
+        <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col">
           {/* Ambient background orbs - repositioned to avoid UI interference */}
           <div className="pointer-events-none absolute inset-0 -z-10">
             <div className="absolute inset-0" style={{ backgroundColor: 'var(--bg-primary)' }} />
