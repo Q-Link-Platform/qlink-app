@@ -1818,7 +1818,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setIsChatAnimating(true);
     setIsChatFull(!isChatFull);
     // Reset animation state after transition completes
-    setTimeout(() => setIsChatAnimating(false), 450);
+    setTimeout(() => setIsChatAnimating(false), 480);
   };
 
   const quantumIdRef = useRef<HTMLDivElement | null>(null);

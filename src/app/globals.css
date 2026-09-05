@@ -1473,20 +1473,20 @@ body::-webkit-scrollbar-vertical {
 
 /* Full chat smooth opening and closing animations */
 /* ==========================================================================
-   HIGH-END SPOTLIGHT ANIMATION & SMOOTH EXPANSION FOR CHAT UI
+   LEGACY ORIGINAL CHAT UI WITH HIGH-ZOOM SPOTLIGHT EXPANSION
    ========================================================================== */
 
 .fullchat-panel {
-  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.48s cubic-bezier(0.16, 1, 0.3, 1);
   transform-origin: top right;
   will-change: transform, opacity, box-shadow;
 }
 
-/* Full screen chat panel with atmospheric spotlight gradient */
+/* Original pure legacy background & glassmorphism */
 .fullchat-panel.fullscreen {
-  background: radial-gradient(circle at 95% 4%, rgba(6, 182, 212, 0.16) 0%, rgba(15, 23, 42, 0.96) 45%, rgba(2, 6, 23, 0.98) 100%) !important;
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(2, 6, 23, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
   z-index: 9999;
   position: fixed;
   top: 0;
@@ -1495,97 +1495,82 @@ body::-webkit-scrollbar-vertical {
   bottom: 0;
 }
 
-/* Spotlight expansion animation */
+/* Spotlight high-zoom expansion animation */
 .fullchat-panel.opening {
-  animation: chatSpotlightExpand 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: chatSpotlightExpand 0.48s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .fullchat-panel.closing {
-  animation: chatSpotlightCollapse 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: chatSpotlightCollapse 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Spotlight expansion animation with HIGH-IMPACT SMOOTH ZOOM */
+/* Dramatic smooth zoom originating right from the tiny button */
 @keyframes chatSpotlightExpand {
   0% {
     opacity: 0;
-    transform: scale(0.35) translate3d(120px, -120px, 0);
-    box-shadow: 0 0 100px rgba(6, 182, 212, 0.9), inset 0 0 60px rgba(6, 182, 212, 0.6);
-    filter: brightness(2.5);
+    transform: scale(0.06);
+    box-shadow: 0 0 60px 20px rgba(34, 211, 238, 0.65);
   }
 
-  50% {
+  45% {
     opacity: 0.95;
-    transform: scale(1.035) translate3d(-3px, 3px, 0);
-    box-shadow: 0 0 50px rgba(6, 182, 212, 0.45), inset 0 0 25px rgba(6, 182, 212, 0.2);
-    filter: brightness(1.15);
+    transform: scale(1.018);
+    box-shadow: 0 0 35px 8px rgba(34, 211, 238, 0.3);
   }
 
   100% {
     opacity: 1;
-    transform: scale(1) translate3d(0, 0, 0);
+    transform: scale(1);
     box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85);
-    filter: brightness(1);
   }
 }
 
 @keyframes chatSpotlightCollapse {
   0% {
     opacity: 1;
-    transform: scale(1) translate3d(0, 0, 0);
-    filter: brightness(1);
+    transform: scale(1);
   }
 
   35% {
     opacity: 0.9;
-    transform: scale(0.9) translate3d(20px, -20px, 0);
-    filter: brightness(1.35);
+    transform: scale(0.96);
+    box-shadow: 0 0 30px 6px rgba(34, 211, 238, 0.35);
   }
 
   100% {
     opacity: 0;
-    transform: scale(0.35) translate3d(120px, -120px, 0);
-    box-shadow: 0 0 80px rgba(6, 182, 212, 0.85);
-    filter: brightness(2);
+    transform: scale(0.06);
+    box-shadow: 0 0 60px 20px rgba(34, 211, 238, 0.65);
   }
 }
 
-/* Smooth button animation for full chat toggle */
+/* Original small legacy button styling - strictly compact, no enlargement */
 .fullchat-toggle {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
+  transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: none !important;
 }
 
 .fullchat-toggle:hover {
-  transform: scale(1.12);
-  box-shadow: 0 0 16px rgba(34, 211, 238, 0.6), 0 0 28px rgba(6, 182, 212, 0.3);
-  border-color: rgba(34, 211, 238, 0.85);
-  color: #fff;
+  border-color: rgba(34, 211, 238, 0.7) !important;
+  color: #38bdf8 !important;
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.35);
+  transform: none !important;
 }
 
 .fullchat-toggle:active {
-  transform: scale(0.94);
+  opacity: 0.75;
+  transform: none !important;
 }
 
-/* Purana Small X Icon with Brilliant Spotlight Glow */
+/* Original small X icon spotlight glow - completely keeps original tiny dimensions */
 .fullchat-x-spotlight {
-  border-color: rgba(34, 211, 238, 0.95) !important;
-  color: #a5f3fc !important;
-  font-weight: bold;
-  animation: x-spotlight-pulse 2s ease-in-out infinite;
-}
-
-@keyframes x-spotlight-pulse {
-  0%, 100% {
-    box-shadow: 0 0 8px rgba(6, 182, 212, 0.5), inset 0 0 6px rgba(6, 182, 212, 0.25);
-    border-color: rgba(34, 211, 238, 0.75);
-    transform: scale(1);
-  }
-
-  50% {
-    box-shadow: 0 0 22px rgba(6, 182, 212, 0.95), 0 0 36px rgba(56, 189, 248, 0.6), inset 0 0 10px rgba(6, 182, 212, 0.5);
-    border-color: rgba(56, 189, 248, 1);
-    transform: scale(1.15);
-  }
+  border-color: rgba(34, 211, 238, 0.75) !important;
+  color: #cbd5e1 !important;
+  font-weight: normal !important;
+  transform: none !important;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.45);
 }
 
 /* Desktop protection - ensure desktop is completely unaffected */
