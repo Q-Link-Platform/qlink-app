@@ -116,6 +116,7 @@ export default function QuantumOnboardingTour({
   const [cardPlacement, setCardPlacement] = useState<"bottom" | "top">("bottom");
   const [cardTop, setCardTop] = useState<number>(100);
   const [cardLeft, setCardLeft] = useState<number>(16);
+  const [pointerOffset, setPointerOffset] = useState<number>(40);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -130,7 +131,7 @@ export default function QuantumOnboardingTour({
     return () => setMounted(false);
   }, []);
 
-  // Lock horizontal scroll completely while guide is active to avoid any weird scrollbars or horizontal shifts
+  // Lock horizontal scroll completely while guide is active to prevent any horizontal shifts
   useEffect(() => {
     if (!isOpen) return;
     if (typeof document !== "undefined") {
@@ -182,12 +183,11 @@ export default function QuantumOnboardingTour({
     if (!el) return;
 
     const rect = el.getBoundingClientRect();
-    const margin = 80;
+    const margin = 90;
     const isOutOfVerticalView =
       rect.top < margin || rect.bottom > window.innerHeight - margin;
 
     if (isOutOfVerticalView) {
-      // ONLY scroll vertical axis with inline: "nearest" so horizontal offset stays 0
       el.scrollIntoView({
         behavior: "smooth",
         block: "center",
@@ -195,7 +195,7 @@ export default function QuantumOnboardingTour({
       });
     }
 
-    // Force zero horizontal scroll on window & document
+    // Lock horizontal scroll
     if (typeof window !== "undefined") {
       window.scrollTo({ left: 0 });
       document.documentElement.scrollLeft = 0;
@@ -235,7 +235,7 @@ export default function QuantumOnboardingTour({
     };
   }, [isOpen, measureTarget]);
 
-  // Bulletproof Card Positioning: Safe Clamping on Desktop and Mobile
+  // Calculate Card & Pointer Positions
   useLayoutEffect(() => {
     if (!isOpen) return;
 
@@ -248,20 +248,19 @@ export default function QuantumOnboardingTour({
     const cardW = isMobile ? Math.min(vw - 32, 340) : (card?.offsetWidth || 340);
     const cardH = card?.offsetHeight || 190;
     const padding = 16;
-    const offset = 16;
+    const offset = 20;
 
     if (!targetRect) {
-      // Fallback: viewport center
       setCardTop(Math.max(padding, (vh - cardH) / 2));
       setCardLeft(Math.max(padding, (vw - cardW) / 2));
       setCardPlacement("bottom");
+      setPointerOffset(cardW / 2);
       return;
     }
 
     const { top, bottom, left, width } = targetRect;
     const targetCenterX = left + width / 2;
 
-    // Check space below vs space above
     const spaceBelow = vh - (bottom + offset);
     const spaceAbove = top - offset;
 
@@ -275,7 +274,6 @@ export default function QuantumOnboardingTour({
       placement = "top";
       calculatedTop = top - offset - cardH;
     } else {
-      // Choose whichever side has more room
       if (spaceBelow >= spaceAbove) {
         placement = "bottom";
         calculatedTop = Math.min(vh - cardH - padding, bottom + offset);
@@ -285,14 +283,18 @@ export default function QuantumOnboardingTour({
       }
     }
 
-    // Horizontal clamping: MUST stay within [16px, vw - cardW - 16px]
+    // Horizontal placement clamped safely
     let calculatedLeft = targetCenterX - cardW / 2;
     calculatedLeft = Math.max(padding, Math.min(vw - cardW - padding, calculatedLeft));
     calculatedTop = Math.max(padding, Math.min(vh - cardH - padding, calculatedTop));
 
+    // Pointer slides horizontally across the card to align directly with the target
+    const calculatedPointerOffset = Math.max(24, Math.min(cardW - 32, targetCenterX - calculatedLeft));
+
     setCardPlacement(placement);
     setCardTop(calculatedTop);
     setCardLeft(calculatedLeft);
+    setPointerOffset(calculatedPointerOffset);
   }, [isOpen, targetRect, step]);
 
   // Keyboard navigation
@@ -324,7 +326,7 @@ export default function QuantumOnboardingTour({
 
   if (!mounted || !isOpen) return null;
 
-  // Spotlight dimensions with comfortable margins
+  // Spotlight cutout coordinates with clean margins
   const paddingX = 8;
   const paddingY = 6;
   const cutoutX = targetRect ? Math.max(4, targetRect.left - paddingX) : -9999;
@@ -340,17 +342,22 @@ export default function QuantumOnboardingTour({
       className="fixed inset-0 z-[99990] overflow-hidden select-none pointer-events-none"
       style={{ overflow: "hidden" }}
     >
-      {/* SVG Mask with True Backdrop Blur */}
-      <svg
-        className="fixed inset-0 h-full w-full pointer-events-none transition-all duration-300 ease-out"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{ overflow: "hidden" }}
-      >
+      {/* Real Fullscreen Backdrop HTML Div with mask: Covers 100% of the screen evenly */}
+      <div
+        className="fixed inset-0 z-[99991] bg-slate-950/85 backdrop-blur-md pointer-events-none transition-all duration-300 ease-out"
+        style={{
+          mask: "url(#qlink-spotlight-mask)",
+          WebkitMask: "url(#qlink-spotlight-mask)",
+        }}
+      />
+
+      {/* SVG Mask Definition (Hidden, purely defines mask aperture) */}
+      <svg className="fixed w-0 h-0 overflow-hidden pointer-events-none">
         <defs>
-          <mask id="qlink-onboarding-mask">
-            {/* White covers entire screen */}
-            <rect x="0" y="0" width="100%" height="100%" fill="#ffffff" />
-            {/* Black cuts out the spotlight area */}
+          <mask id="qlink-spotlight-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
+            {/* White covers everything */}
+            <rect x="0" y="0" width="100vw" height="100vh" fill="#ffffff" />
+            {/* Black cuts out the spotlight aperture */}
             {targetRect && (
               <rect
                 x={cutoutX}
@@ -360,28 +367,13 @@ export default function QuantumOnboardingTour({
                 rx={cutoutRx}
                 ry={cutoutRx}
                 fill="#000000"
-                className="transition-all duration-300 ease-out"
               />
             )}
           </mask>
         </defs>
-
-        {/* Backdrop overlay cut through by mask */}
-        <rect
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-          fill="rgba(2, 6, 23, 0.78)"
-          mask="url(#qlink-onboarding-mask)"
-          style={{
-            backdropFilter: "blur(7px)",
-            WebkitBackdropFilter: "blur(7px)",
-          }}
-        />
       </svg>
 
-      {/* High-Tech Glowing Rim Around Target Element */}
+      {/* Clean Apple Optical Glowing Rim (NO CORNER BRACKETS!) */}
       {targetRect && (
         <div
           className="fixed pointer-events-none z-[99992] transition-all duration-300 ease-out rounded-2xl"
@@ -393,40 +385,10 @@ export default function QuantumOnboardingTour({
             borderRadius: cutoutRx,
           }}
         >
-          {/* Neon border with breathing pulse */}
-          <div className="absolute inset-0 rounded-2xl border-2 border-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.8),inset_0_0_10px_rgba(34,211,238,0.3)] animate-pulse" />
-
-          {/* Expanding Radar Ping */}
-          <div className="absolute -inset-2 rounded-2xl border border-cyan-300/35 animate-ping opacity-60 pointer-events-none" />
-
-          {/* Corner optical brackets */}
-          <span className="absolute -top-1.5 -left-1.5 h-3 w-3 border-t-2 border-l-2 border-cyan-300 rounded-tl shadow-[0_0_6px_#22d3ee]" />
-          <span className="absolute -top-1.5 -right-1.5 h-3 w-3 border-t-2 border-r-2 border-cyan-300 rounded-tr shadow-[0_0_6px_#22d3ee]" />
-          <span className="absolute -bottom-1.5 -left-1.5 h-3 w-3 border-b-2 border-l-2 border-cyan-300 rounded-bl shadow-[0_0_6px_#22d3ee]" />
-          <span className="absolute -bottom-1.5 -right-1.5 h-3 w-3 border-b-2 border-r-2 border-cyan-300 rounded-br shadow-[0_0_6px_#22d3ee]" />
-
-          {/* Animated Hand Arrow Sign Attached Directly to the Target Element */}
-          <div
-            className={`absolute left-1/2 -translate-x-1/2 flex items-center justify-center transition-all duration-300 ${
-              cardPlacement === "bottom"
-                ? "-bottom-8 animate-bounce-subtle-y"
-                : "-top-8 animate-bounce-subtle-y-reverse"
-            }`}
-          >
-            <div className="flex items-center gap-1.5 rounded-full border border-cyan-400/90 bg-slate-950/95 px-2.5 py-0.5 shadow-[0_0_16px_rgba(34,211,238,0.8)] backdrop-blur-md">
-              {cardPlacement === "bottom" ? (
-                <>
-                  <span className="text-xs">👇</span>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-300">Look Here</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-xs">👆</span>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-cyan-300">Look Here</span>
-                </>
-              )}
-            </div>
-          </div>
+          {/* Continuous neon pulse ring */}
+          <div className="absolute inset-0 rounded-2xl border-2 border-cyan-400 shadow-[0_0_24px_rgba(34,211,238,0.85),inset_0_0_12px_rgba(34,211,238,0.35)] animate-pulse" />
+          {/* Subtle radar ripple */}
+          <div className="absolute -inset-1.5 rounded-2xl border border-cyan-300/40 animate-ping opacity-60 pointer-events-none" />
         </div>
       )}
 
@@ -444,9 +406,38 @@ export default function QuantumOnboardingTour({
           maxWidth: "calc(100vw - 32px)",
         }}
       >
-        {/* Card Body - Obsidian Glassmorphism */}
-        <div className="relative overflow-hidden rounded-2xl border border-cyan-500/35 bg-slate-950/95 p-4 sm:p-5 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.85),0_0_25px_rgba(34,211,238,0.25)] backdrop-blur-2xl">
-          {/* Subtle top accent gradient line */}
+        {/* Prominent Floating Focus Hand/Arrow Indicator: Aligns directly with target element */}
+        {targetRect && (
+          <div
+            className={`absolute z-20 pointer-events-none flex items-center transition-all duration-300 ${
+              cardPlacement === "bottom"
+                ? "-top-8.5 animate-bounce-subtle-y"
+                : "-bottom-8.5 animate-bounce-subtle-y-reverse"
+            }`}
+            style={{
+              left: isMobileScreen ? "50%" : pointerOffset,
+              transform: isMobileScreen ? "translateX(-50%)" : "translateX(-50%)",
+            }}
+          >
+            <div className="flex items-center gap-1.5 rounded-full bg-cyan-400 text-slate-950 font-extrabold px-3 py-1 text-[11px] tracking-wider uppercase shadow-[0_0_18px_rgba(34,211,238,0.9)]">
+              {cardPlacement === "bottom" ? (
+                <>
+                  <span className="text-sm leading-none">👆</span>
+                  <span>LOOK HERE</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-sm leading-none">👇</span>
+                  <span>LOOK HERE</span>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Card Body - Deep Obsidian Glassmorphism */}
+        <div className="relative overflow-hidden rounded-2xl border border-cyan-400/50 bg-slate-950/98 p-4 sm:p-5 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95),0_0_30px_rgba(34,211,238,0.25)] backdrop-blur-2xl">
+          {/* Top accent line */}
           <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
 
           {/* Progress Bar */}
@@ -457,10 +448,10 @@ export default function QuantumOnboardingTour({
             />
           </div>
 
-          {/* Card Header: Category & Step Pill & Close Button */}
+          {/* Header: Category & Step Pill & Close Button */}
           <div className="flex items-center justify-between gap-2 pt-0.5 pb-2">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-cyan-300">
+              <span className="inline-flex items-center gap-1 rounded-full border border-cyan-500/40 bg-cyan-500/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-cyan-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
                 {currentStep.category}
               </span>
@@ -482,12 +473,12 @@ export default function QuantumOnboardingTour({
             </button>
           </div>
 
-          {/* Title & Description */}
+          {/* Title & Simple Explanation */}
           <div className="mt-1 space-y-1.5">
-            <h4 className="text-sm sm:text-[15px] font-semibold text-slate-100 tracking-tight flex items-center gap-1.5">
+            <h4 className="text-sm sm:text-[15px] font-bold text-slate-100 tracking-tight flex items-center gap-1.5">
               {currentStep.title}
             </h4>
-            <p className="text-xs text-slate-300/90 leading-relaxed">
+            <p className="text-xs text-slate-300 leading-relaxed">
               {currentStep.description}
             </p>
           </div>
@@ -507,7 +498,7 @@ export default function QuantumOnboardingTour({
                 <button
                   type="button"
                   onClick={() => onStepChange(step - 1)}
-                  className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-slate-600 hover:bg-slate-800 transition-all"
+                  className="rounded-full border border-slate-700 bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-slate-600 hover:bg-slate-800 transition-all cursor-pointer"
                 >
                   Back
                 </button>
