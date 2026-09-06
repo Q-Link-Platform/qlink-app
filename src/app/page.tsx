@@ -40,6 +40,7 @@ import { FeedVideoManagerProvider } from "@/context/FeedVideoManager";
 import { PerformanceProvider, usePerformance } from "@/app/providers/PerformanceProvider";
 import { ChatInputConsole } from "@/components/ChatInputConsole";
 import { YouTubeInlinePreview } from "@/components/YouTubeInlinePreview";
+import QuantumOnboardingTour from "@/components/QuantumOnboardingTour";
 
 const StoreModal = dynamic(() => import("@/components/StoreModal"), {
   ssr: false,
@@ -5571,8 +5572,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       localStorage.removeItem("qlink_cached_incoming");
       localStorage.removeItem("qlink_cached_directory");
     } catch {}
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceTour = urlParams.get("tour") === "1" || urlParams.get("guide") === "1";
     const seen = window.localStorage.getItem("qc_seen_guide_v1");
-    if (!seen) {
+    if (!seen || forceTour) {
       setShowGuide(true);
       setGuideStep(0);
     }
@@ -8809,138 +8812,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           }
         `}</style>
           {showGuide && (
-            <div
-              className={
-                "pointer-events-none absolute inset-0 z-30 flex px-4 sm:px-0 " +
-                (guideStep === 4 || guideStep === 5
-                  ? "items-end justify-center pb-6"
-                  : "items-center justify-center")
-              }
-            >
-              <div
-                className={
-                  "pointer-events-auto max-w-xs rounded-2xl border border-cyan-400/60 bg-slate-950/95 px-4 py-3 text-xs text-slate-100 shadow-xl guide-glow " +
-                  (guideStep === 0
-                    ? "sm:absolute sm:left-6 sm:top-40"
-                    : guideStep === 1
-                      ? "sm:absolute sm:right-10 sm:top-96"
-                      : guideStep === 2
-                        ? "sm:absolute sm:left-6 sm:bottom-6"
-                        : guideStep === 3
-                          ? "sm:absolute sm:left-6 sm:bottom-6"
-                          : guideStep === 4
-                            ? "sm:absolute sm:right-6 sm:bottom-6"
-                            : guideStep === 5
-                              ? "sm:absolute sm:right-6 sm:bottom-16"
-                              : guideStep === 6
-                                ? "sm:absolute sm:left-6 sm:top-28"
-                                : "sm:absolute sm:right-6 sm:top-10") +
-                  (guideStep === 1 ? " mt-24 sm:mt-0" : "")
+            <QuantumOnboardingTour
+              isOpen={showGuide}
+              step={guideStep}
+              onStepChange={setGuideStep}
+              onClose={() => {
+                setShowGuide(false);
+                if (typeof window !== "undefined") {
+                  try {
+                    window.localStorage.setItem("qc_seen_guide_v1", "1");
+                  } catch {
+                    // ignore
+                  }
                 }
-              >
-                {guideStep === 0 && (
-                  <>
-                    <p className="text-[11px] font-semibold text-cyan-200">
-                      This is your Quantum ID
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-200/85">
-                      Share this handle with people you trust. They can use it to
-                      find you and open a secure channel.
-                    </p>
-                  </>
-                )}
-                {guideStep === 1 && (
-                  <>
-                    <p className="text-[11px] font-semibold text-cyan-200">
-                      Refine your Quantum ID
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-200/85">
-                      Use the Edit button to change your Quantum ID. Keep it
-                      unique and memorable while following the rules below the
-                      card so people can reliably find you.
-                    </p>
-                  </>
-                )}
-                {guideStep === 2 && (
-                  <>
-                    <p className="text-[11px] font-semibold text-cyan-200">
-                      Connect to a friend
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-200/85">
-                      Use the Connect button to search a friend&apos;s Quantum ID,
-                      choose how you know them, and send a short note.
-                    </p>
-                  </>
-                )}
-                {guideStep === 3 && (
-                  <>
-                    <p className="text-[11px] font-semibold text-cyan-200">
-                      Incoming & outgoing requests
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-200/85">
-                      Here you can track who you&apos;ve requested, who requested
-                      you, and quickly Accept, Reject, or open Chat.
-                    </p>
-                  </>
-                )}
-                {guideStep === 4 && (
-                  <>
-                    <p className="text-[11px] font-semibold text-cyan-200">
-                      Your secure chat panel
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-200/85">
-                      Once a request is accepted, this panel becomes your live
-                      DM tunnel. Type your message and press Enter or tap the
-                      arrow to send.
-                    </p>
-                  </>
-                )}
-                {guideStep === 5 && (
-                  <>
-                    <p className="text-[11px] font-semibold text-cyan-200">
-                      Go full-screen when you need focus
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-200/85">
-                      Use the Full chat button to expand this panel edge-to-edge
-                      and hide the left console, perfect for longer
-                      conversations.
-                    </p>
-                  </>
-                )}
-                {guideStep === 6 && (
-                  <>
-                    <p className="text-[11px] font-semibold text-cyan-200">
-                      Quantum Link Console
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-200/85">
-                      Quantum Link Console is like your profile and feed in apps
-                      like Instagram or X. See how your Quantum ID looks, post
-                      updates, and share media with your network.
-                    </p>
-                  </>
-                )}
-                {guideStep === 7 && (
-                  <>
-                    <p className="text-[11px] font-semibold text-cyan-200">
-                      Settings for your identity
-                    </p>
-                    <p className="mt-1 text-[11px] text-slate-200/85">
-                      Settings lets you tune your Quantum ID, profile, and what
-                      others can see. Control visibility for your email, age,
-                      gender, bio, and interests from here.
-                    </p>
-                  </>
-                )}
-
-                <button
-                  type="button"
-                  onClick={advanceGuide}
-                  className="mt-2 inline-flex items-center rounded-full bg-cyan-500/90 px-3 py-1 text-[11px] font-medium text-slate-950 hover:bg-cyan-400"
-                >
-                  Got it
-                </button>
-              </div>
-            </div>
+              }}
+            />
           )}
           <div
             className={
@@ -8975,6 +8861,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <button
                       id="quantum-link-console-btn"
+                      data-tour="console-btn"
                       type="button"
                       onClick={openDirectory}
                       className={
@@ -9001,6 +8888,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                     <button
                       id="settings-btn"
+                      data-tour="settings-btn"
                       type="button"
                       onClick={() => {
                         // Prevent rapid double-clicks causing flicker
@@ -9168,6 +9056,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                 <div
                   ref={quantumIdRef}
+                  data-tour="quantum-id"
                   className={
                     (isFocusMode
                       ? "mt-0 space-y-4 rounded-none border-none bg-slate-900 p-2 sm:p-4 md:p-6 pt-16 w-full flex-1 flex flex-col text-base text-slate-200 transition-shadow "
@@ -9279,6 +9168,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         {/* Hide Edit for the reserved founder VIP handle for everyone except the owner */}
                         {!(isVipHandle(quantumId) && meEmail !== "rohiterrors@gmail.com") && (
                           <button
+                            data-tour="edit-id"
                             type="button"
                             onClick={startEditingHandle}
                             className={
@@ -9554,6 +9444,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         {/* SINGLE UNIFIED SCROLL CONTAINER */}
                         <div
                           ref={requestsRef}
+                          data-tour="requests"
                           className={
                             "space-y-1.5 overflow-y-auto scrollbar-hide smooth-gpu-scroll pr-1 " +
                             (isFocusMode ? "max-h-[50vh] " : "max-h-[52vh] ") +

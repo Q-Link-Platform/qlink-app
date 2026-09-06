@@ -3272,3 +3272,59 @@ textarea,
   user-select: text !important;
   -webkit-touch-callout: default !important;
 }
+
+/* ==========================================================================
+   QUANTUM ONBOARDING TOUR - OPTICAL POINTER KEYFRAMES
+   ========================================================================== */
+@keyframes bounce-subtle-y {
+  0%, 100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, -8px);
+  }
+}
+
+@keyframes bounce-subtle-y-reverse {
+  0%, 100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, 8px);
+  }
+}
+
+@keyframes bounce-subtle-x {
+  0%, 100% {
+    transform: translate(0, -50%);
+  }
+  50% {
+    transform: translate(-8px, -50%);
+  }
+}
+
+@keyframes bounce-subtle-x-reverse {
+  0%, 100% {
+    transform: translate(0, -50%);
+  }
+  50% {
+    transform: translate(8px, -50%);
+  }
+}
+
+.animate-bounce-subtle-y {
+  animation: bounce-subtle-y 1.4s ease-in-out infinite;
+}
+
+.animate-bounce-subtle-y-reverse {
+  animation: bounce-subtle-y-reverse 1.4s ease-in-out infinite;
+}
+
+.animate-bounce-subtle-x {
+  animation: bounce-subtle-x 1.4s ease-in-out infinite;
+}
+
+.animate-bounce-subtle-x-reverse {
+  animation: bounce-subtle-x-reverse 1.4s ease-in-out infinite;
+}
+

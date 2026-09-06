@@ -477,6 +477,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
   return (
             <section
               ref={chatPanelRef}
+              data-tour="chat-panel"
               onDragEnter={handleDragEnter}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -588,6 +589,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
                     {/* Friend search form */}
                     <form
+                      data-tour="connect"
                       onSubmit={handleSearch}
                       className={
                         "space-y-4 rounded-2xl " +
@@ -1103,6 +1105,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                       <div className="flex items-center gap-2">
                         <button
                           id="chat-toggle-full-btn"
+                          data-tour="full-chat"
                           type="button"
                           onClick={toggleChatFull}
                           className={
