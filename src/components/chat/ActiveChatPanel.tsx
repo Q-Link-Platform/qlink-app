@@ -482,12 +482,12 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               className={
-                "relative overflow-hidden " +
+                "relative overflow-hidden scrollbar-hide " +
                 (isChatExpanded
                   ? "fixed inset-0 z-[9999] flex h-[100dvh] w-screen"
                   : isFocusMode
                     ? "hidden"
-                    : "flex h-full min-h-0 flex-1 flex-col px-2 sm:px-4 lg:px-6 py-2 sm:py-4")
+                    : "flex h-auto min-h-full flex-1 flex-col px-4 lg:px-6 py-4")
               }
             >
               {isDraggingFile && (
@@ -542,7 +542,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                   (chatAnimMode !== 'idle' ? chatAnimMode + " " : "") +
                   (isChatExpanded
                     ? "flex-1 flex h-[100dvh] min-h-0 w-full flex-col space-y-3 p-0 sm:p-3"
-                    : "flex h-full min-h-0 flex-1 flex-col space-y-3 p-3 sm:p-5") +
+                    : "flex h-auto min-h-0 flex-col space-y-5 p-5") +
                   " border-slate-500/60"
                 }
               >
@@ -1033,19 +1033,18 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                 {!foundUser && (
                   <div
                     className={
-                      "glass-panel flex flex-col gap-3 text-xs text-slate-300 relative overflow-hidden transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[360px] " : "") +
+                      "glass-panel flex flex-col gap-3 text-xs text-slate-300 relative overflow-y-hidden scrollbar-hide transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[360px] " : "") +
                       (isChatExpanded
                         ? "flex-1 min-h-0 mt-0 sm:mt-2 rounded-none sm:rounded-2xl border-none sm:border bg-slate-900/80 p-2 sm:p-4 " +
                         (highlightChatPanel ? "glow-pulse border-cyan-400/80" : "border-slate-600/70")
-                        : "flex-1 min-h-0 mt-2 -mx-3 -mb-3 sm:-mx-5 sm:-mb-5 p-3 sm:p-4 rounded-t-2xl border-t bg-slate-900/80 " +
+                        : "flex-1 min-h-0 mt-4 -mx-5 -mb-5 p-4 rounded-t-2xl border-t bg-slate-900/80 " +
                         (highlightChatPanel
                           ? "glow-pulse border-cyan-400/80 border-x-0 border-b-0"
                           : "border-slate-600/70 border-x-0 border-b-0"))
                     }
                     style={{
-                      height: '100%',
-                      minHeight: 0,
-                      maxHeight: '100%'
+                      minHeight: isChatExpanded ? '100%' : '400px',
+                      maxHeight: isChatExpanded ? '100%' : '85vh'
                     }}
                   >
                     {/* Fixed header at top of chat card */}
@@ -1130,8 +1129,10 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                     <div
                       ref={chatScrollRef}
                       onScroll={handleChatContainerScroll}
-                      className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 custom-chat-scroll"
+                      className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container"
                       style={{
+                        overflowAnchor: 'none',
+                        scrollBehavior: 'auto',
                         overscrollBehavior: 'contain',
                         WebkitOverflowScrolling: 'touch',
                       }}

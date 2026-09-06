@@ -6921,13 +6921,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         flexDirection: 'column',
         width: '100%',
         height: '100dvh',
-        overflow: 'hidden',
+        overflowX: 'hidden',
+        overflowY: isChatExpanded ? 'hidden' : 'auto',
         WebkitOverflowScrolling: 'touch',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none',
+        overflowAnchor: 'none',
       }}
     >
-      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+      <div style={{ width: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: isChatExpanded ? '100%' : 'auto', flex: isChatExpanded ? '1' : 'unset', overflowAnchor: 'none' }}>
         {showInstallPrompt && (
           <div className="pointer-events-auto fixed inset-0 z-45 flex items-center justify-center bg-slate-950/80 px-4">
             <div className="max-w-md w-full rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-5 text-xs text-slate-100 shadow-[0_0_50px_rgba(6,182,212,0.25)] backdrop-blur-md">
@@ -8583,8 +8585,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         <div
           className={
             isFocusMode
-              ? "flex w-full flex-1 relative px-0 py-0 h-full min-h-0 overflow-hidden"
-              : `flex w-full flex-1 glass-panel-responsive neon-border-responsive relative px-0 py-0 sm:px-6 md:px-8 lg:px-10 sm:py-6 md:py-8 h-full min-h-0 overflow-hidden ${isGlowActive ? "glow-active" : ""}`
+              ? "flex w-full flex-1 relative px-0 py-0 h-auto min-h-screen overflow-y-visible"
+              : `flex w-full flex-1 glass-panel-responsive neon-border-responsive relative px-0 py-0 sm:px-6 md:px-8 lg:px-10 sm:py-6 md:py-8 ${isChatFull ? "h-full min-h-0 overflow-hidden" : "h-auto min-h-screen overflow-y-visible"} ${isGlowActive ? "glow-active" : ""}`
           }
           onTouchStart={() => setIsGlowActive(true)}
           onTouchEnd={() => setIsGlowActive(false)}
@@ -8593,6 +8595,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             scrollBehavior: 'auto',
             overscrollBehaviorY: 'contain',
             WebkitOverflowScrolling: 'touch',
+            overflowAnchor: 'none',
           }}>
           <style jsx>{`
           @keyframes glow-pulse {
@@ -8863,8 +8866,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               isChatExpanded
                 ? "relative grid h-full min-h-0 gap-8 overflow-hidden"
                 : isFocusMode
-                  ? "relative flex justify-center w-full h-full min-h-0 overflow-hidden"
-                  : "relative grid w-full h-full min-h-0 gap-4 overflow-hidden lg:grid-cols-2 lg:items-stretch"
+                  ? "relative flex justify-center w-full h-auto min-h-full overflow-y-visible"
+                  : "relative grid w-full h-auto min-h-full gap-0 overflow-y-visible lg:grid-cols-2 lg:items-start"
             }
           >
             {isFocusMode && <div className="ambient-breathing-bg" />}
@@ -8876,7 +8879,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   ? "hidden"
                   : isFocusMode
                     ? "fixed inset-0 z-[9999] bg-slate-950/95 overflow-y-auto px-0 py-0 flex flex-col"
-                    : "h-full min-h-0 overflow-y-auto space-y-4 sm:space-y-6 px-4 lg:px-6 py-4 custom-directory-scroll"
+                    : "space-y-4 sm:space-y-6 px-4 lg:px-6 py-4"
               }
             >
               <div className={isFocusMode ? "w-full min-h-screen relative flex flex-col" : "contents"}>
@@ -9277,6 +9280,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     const hasDataLoaded = acceptedFriends.length > 0 || totalPending > 0;
                     const isInitialLoading = !hasDataLoaded && (isLoadingOutgoing || isLoadingIncoming) && (!outgoingFetchedRef.current || !incomingFetchedRef.current);
 
+                    const handleSpotlightMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = e.clientX - rect.left;
+                      const y = e.clientY - rect.top;
+                      e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+                      e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
+                      e.currentTarget.style.setProperty("--spotlight-opacity", "1");
+                    };
+
+                    const handleSpotlightMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+                      e.currentTarget.style.setProperty("--spotlight-opacity", "0");
+                    };
+
                     return (
                       <div className="mt-3 space-y-2.5">
                         {/* Segmented Control Bar */}
@@ -9486,11 +9502,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               acceptedFriends.map((f) => (
                                 <div
                                   key={f.id}
+                                  onMouseMove={handleSpotlightMouseMove}
+                                  onMouseLeave={handleSpotlightMouseLeave}
                                   onClick={() => {
                                     openChatWithPeer(f.peerHandle);
                                     setIsChatFull(true);
                                   }}
-                                  className="group flex items-center justify-between gap-2 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2 transition-all duration-200 hover:bg-slate-900/60 hover:border-cyan-500/35 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] cursor-pointer"
+                                  className="x-magnetic-card group flex items-center justify-between gap-2 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2 transition-all duration-200 hover:bg-slate-900/60 hover:border-cyan-500/35 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] cursor-pointer"
                                 >
                                   <div className="min-w-0 flex-1">
                                     <p className="truncate text-xs font-semibold text-slate-100 flex items-center gap-1.5 group-hover:text-cyan-200 transition-colors">
@@ -9540,7 +9558,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 {pendingIncoming.map((req) => (
                                   <div
                                     key={req.id}
-                                    className="flex flex-col gap-1.5 rounded-xl border border-amber-500/30 bg-slate-950/60 px-3 py-2 shadow-[0_0_15px_rgba(245,158,11,0.05)]"
+                                    onMouseMove={handleSpotlightMouseMove}
+                                    onMouseLeave={handleSpotlightMouseLeave}
+                                    className="x-magnetic-card flex flex-col gap-1.5 rounded-xl border border-amber-500/30 bg-slate-950/60 px-3 py-2 shadow-[0_0_15px_rgba(245,158,11,0.05)] transition-all duration-200"
                                   >
                                     <div className="flex items-center justify-between gap-2">
                                       <div className="min-w-0">
@@ -9583,7 +9603,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 {pendingOutgoing.map((req) => (
                                   <div
                                     key={req.id}
-                                    className="flex items-center justify-between gap-2 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2"
+                                    onMouseMove={handleSpotlightMouseMove}
+                                    onMouseLeave={handleSpotlightMouseLeave}
+                                    className="x-magnetic-card flex items-center justify-between gap-2 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2 transition-all duration-200"
                                   >
                                     <div className="min-w-0">
                                       <p className="truncate text-xs font-semibold text-slate-200">
