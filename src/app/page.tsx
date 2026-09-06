@@ -7530,6 +7530,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                   {!directoryLoading && !directoryError && directoryItems && directoryItems.length > 0 && (
                     (() => {
+                      const handleSpotlightMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+                        e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
+                        e.currentTarget.style.setProperty("--spotlight-opacity", "1");
+                      };
+
+                      const handleSpotlightMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+                        e.currentTarget.style.setProperty("--spotlight-opacity", "0");
+                      };
+
                       const allFeedPosts = (() => {
                         const rawPosts = directoryGlobalPosts.length > 0
                           ? directoryGlobalPosts
@@ -7937,7 +7950,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               {!showDirectoryMediaOnly && directoryItems.map((item) => (
                                 <div
                                   key={item.id}
-                                  className="rounded-2xl border border-slate-700/70 bg-slate-900/80 px-3 py-2 text-[11px] text-slate-200 hover:border-cyan-400/70 hover:bg-slate-900/95 transition-[border-color,background-color] duration-300 smooth-gpu-card"
+                                  onMouseMove={handleSpotlightMouseMove}
+                                  onMouseLeave={handleSpotlightMouseLeave}
+                                  onClick={() => handleDirectorySelect(item.handle)}
+                                  className="x-magnetic-card rounded-2xl border border-slate-700/70 bg-slate-900/80 px-3 py-2 text-[11px] text-slate-200 hover:border-cyan-400/70 hover:bg-slate-900/95 transition-all duration-300 smooth-gpu-card cursor-pointer"
                                 >
                                   <div className="flex items-center justify-between gap-3">
                                     <div className="flex items-center gap-3 min-w-0">
@@ -7976,7 +7992,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                         </span>
                                         <button
                                           type="button"
-                                          onClick={() => {
+                                          onClick={(e) => {
+                                            e.stopPropagation();
                                             console.log('Aura help button clicked');
                                             setShowAuraHelp(true);
                                           }}
@@ -7988,7 +8005,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       </div>
                                       <button
                                         type="button"
-                                        onClick={() => handleDirectorySelect(item.handle)}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDirectorySelect(item.handle);
+                                        }}
                                         className="inline-flex items-center rounded-full border border-cyan-400/70 bg-cyan-500/10 px-2.5 py-0.5 text-[10px] font-medium text-cyan-200 hover:bg-cyan-500/20"
                                       >
                                         Send request
@@ -8009,7 +8029,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                               key={post.id}
                                               style={{ overflowAnchor: "none" }}
                                               className="rounded-2xl border border-slate-700/60 bg-slate-950/60 p-2.5 cursor-pointer hover:border-slate-600/80 transition-all"
-                                              onClick={() => trackPostView(post.id)}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                trackPostView(post.id);
+                                              }}
                                             >
                                               <div className="flex items-start justify-between gap-2">
                                                 <div className="min-w-0 flex items-center gap-2">
