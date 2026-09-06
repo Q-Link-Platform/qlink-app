@@ -130,7 +130,7 @@ export async function GET(request: Request) {
 
           const att = attachmentById.get(p.attachmentId as string);
           if (!att || !att.bucket || !att.objectKey) {
-            return { ...p, media: null };
+            return { ...p, media: null, attachmentId: null, attachmentKind: null };
           }
 
           const normalizedKind =
@@ -139,6 +139,7 @@ export async function GET(request: Request) {
           const signedUrl = await getSignedMediaUrl({
             bucket: att.bucket as string,
             objectKey: att.objectKey as string,
+            id: att.id as string,
           });
 
           if (!signedUrl && normalizedKind !== "video") {
@@ -279,7 +280,7 @@ export async function GET(request: Request) {
         if (!p.attachmentId) return p;
         const att = attachmentById.get(p.attachmentId as string);
         if (!att || !att.bucket || !att.objectKey) {
-          return { ...p, media: null };
+          return { ...p, media: null, attachmentId: null, attachmentKind: null };
         }
 
         const normalizedKind =

@@ -3186,6 +3186,68 @@ html.perf-low .settings-backdrop-exit {
   box-shadow: 0 0 30px rgba(244, 63, 94, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.25) !important;
 }
 
+/* Circular Magnetic Close Button with Dynamic Spotlight */
+.x-magnetic-close {
+  position: absolute !important;
+  overflow: hidden !important;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  --spotlight-opacity: 0;
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  will-change: transform;
+}
+
+.x-magnetic-close > * {
+  position: relative;
+  z-index: 3;
+}
+
+.x-magnetic-close::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--spotlight-opacity, 0);
+  background: radial-gradient(
+    60px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(244, 63, 94, 0.42),
+    rgba(225, 29, 72, 0.18) 50%,
+    transparent 80%
+  );
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+
+.x-magnetic-close::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--spotlight-opacity, 0);
+  background: radial-gradient(
+    52px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(251, 113, 133, 0.95),
+    rgba(244, 63, 94, 0.5) 45%,
+    transparent 80%
+  );
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  padding: 1.5px;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+}
+
+.x-magnetic-close:hover {
+  box-shadow: 0 0 22px rgba(244, 63, 94, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2) !important;
+}
+
+
 /* ==========================================================================
    NATIVE APP TEXT SELECTION SHIELD (PREVENTS ACCIDENTAL BLUE UI HIGHLIGHTING)
    ========================================================================== */

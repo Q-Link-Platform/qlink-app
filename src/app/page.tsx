@@ -138,12 +138,60 @@ function StableImage(props: {
   className?: string;
 }) {
   const [loaded, setLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+
+  // Safety timeout: if image neither loads nor errors in 8s, treat as unavailable
+  useEffect(() => {
+    if (loaded || hasError || !props.src) return;
+    const timer = setTimeout(() => {
+      if (!loaded) {
+        setHasError(true);
+      }
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [loaded, hasError, props.src, retryKey]);
+
+  if (!props.src || hasError) {
+    return (
+      <div className="relative w-full min-h-[160px] sm:min-h-[220px] overflow-hidden rounded-2xl bg-slate-950/70 border border-slate-800/80 flex flex-col items-center justify-center p-4 text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 border border-slate-800 text-slate-400 mb-2 shadow-inner">
+          <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <p className="text-xs font-semibold text-slate-300">Media unavailable</p>
+        <p className="text-[10px] text-slate-400 mt-0.5 max-w-[240px]">This ephemeral attachment has expired or cannot be retrieved.</p>
+        {props.src && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setHasError(false);
+              setLoaded(false);
+              setRetryKey((k) => k + 1);
+            }}
+            className="mt-2.5 inline-flex items-center gap-1 rounded-full border border-slate-700/80 bg-slate-900/80 px-3 py-1 text-[10px] font-medium text-slate-300 hover:border-cyan-500/50 hover:text-cyan-200 transition-all cursor-pointer"
+          >
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Retry
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  const computedSrc = retryKey > 0
+    ? `${props.src}${props.src.includes("?") ? "&" : "?"}_r=${retryKey}`
+    : props.src;
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl bg-black/40 flex items-center justify-center">
+    <div className="relative w-full min-h-[160px] sm:min-h-[220px] overflow-hidden rounded-2xl bg-black/40 flex items-center justify-center">
       {/* Skeleton Loading State */}
       {!loaded && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 transition-opacity duration-200">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 transition-opacity duration-200">
           <div className="relative w-full h-full overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 via-slate-800/40 to-slate-900/60 animate-pulse" />
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/10 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
@@ -159,7 +207,8 @@ function StableImage(props: {
         </div>
       )}
       <img
-        src={props.src}
+        key={computedSrc}
+        src={computedSrc}
         alt={props.alt}
         className={
           "block w-full h-auto max-h-[520px] object-cover sm:object-contain rounded-2xl mx-auto transition-all duration-300 " +
@@ -169,6 +218,10 @@ function StableImage(props: {
         loading="lazy"
         decoding="async"
         onLoad={() => setLoaded(true)}
+        onError={() => {
+          setHasError(true);
+          setLoaded(false);
+        }}
       />
     </div>
   );
@@ -7483,12 +7536,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     setMediaFilterTab('all');
                   }, 600);
                 }}
-                className={`absolute top-2 right-3 z-50 flex h-8 w-8 items-center justify-center rounded-full border border-slate-600/60 bg-slate-900/90 text-slate-300 shadow-lg backdrop-blur-sm hover:border-red-400/70 hover:bg-red-500/10 hover:text-red-200 hover:shadow-red-500/25 active:scale-90 sm:top-2 sm:right-4 sm:h-9 sm:w-9 ${showDirectory ? (isConsoleAnimating ? 'close-button-enter' : '') : 'close-button-exit'
+                onMouseMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = e.clientX - rect.left;
+                  const y = e.clientY - rect.top;
+                  e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
+                  e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
+                  e.currentTarget.style.setProperty("--spotlight-opacity", "1");
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.setProperty("--spotlight-opacity", "0");
+                }}
+                className={`x-magnetic-close group absolute top-2 right-3 z-50 flex h-8 w-8 items-center justify-center rounded-full border border-slate-600/60 bg-slate-900/90 text-slate-300 shadow-lg backdrop-blur-sm hover:border-red-400/80 hover:bg-red-500/10 hover:text-red-200 active:scale-95 sm:top-2 sm:right-4 sm:h-9 sm:w-9 cursor-pointer ${showDirectory ? (isConsoleAnimating ? 'close-button-enter' : '') : 'close-button-exit'
                   }`}
+                aria-label="Close Global Quantum Directory"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] transform-gpu group-hover:scale-125 group-hover:text-red-100 group-hover:drop-shadow-[0_0_8px_rgba(244,63,94,0.9)]"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >

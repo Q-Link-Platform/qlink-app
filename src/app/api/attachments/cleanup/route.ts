@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { prismaAttachments } from "@/lib/prismaAttachments";
 import { supabaseFiles } from "@/lib/supabaseFiles";
 import { supabaseVideos } from "@/lib/supabaseVideos";
@@ -59,6 +60,16 @@ export async function POST(request: Request) {
       try {
         await prismaAttachments.attachment.delete({ where: { id: a.id } });
         deletedCount += 1;
+
+        // Clear references on any associated posts to prevent orphaned broken media
+        try {
+          await (prisma as any).post.updateMany({
+            where: { attachmentId: a.id },
+            data: { attachmentId: null, attachmentKind: null },
+          });
+        } catch {
+          // non-critical post sync
+        }
 
         await prismaAttachments.attachmentLog.create({
           data: {
