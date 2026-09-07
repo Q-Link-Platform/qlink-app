@@ -670,6 +670,31 @@ function GlobalDirectoryMediaSkeleton() {
   );
 }
 
+
+function QuantumFollowersSkeleton() {
+  return (
+    <div className="space-y-1.5 animate-in fade-in duration-200 max-h-40 overflow-hidden">
+      {[1, 2, 3].map((idx) => (
+        <div
+          key={idx}
+          className="quantum-skeleton-card flex items-center gap-2.5 rounded-lg border border-slate-700/50 bg-slate-900/40 p-2 relative overflow-hidden"
+        >
+          <div className="quantum-skeleton-shimmer" />
+          <div className="h-6 w-6 rounded-full bg-slate-800 border border-slate-700/60 flex-shrink-0" />
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="h-2.5 w-20 rounded-full bg-slate-800" />
+            <div className="h-2 w-28 rounded-full bg-slate-800/60" />
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="h-4 w-14 rounded-full bg-cyan-950/60 border border-cyan-500/30" />
+            <div className="h-4 w-10 rounded-full bg-slate-800/60" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function PostCommentsSkeleton() {
   return (
     <div className="space-y-2 animate-in fade-in duration-200">
@@ -9743,8 +9768,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               {Array.from({ length: connectionsTab === "friends" ? Math.max(1, predictedFriendsCount) : Math.max(1, predictedRequestsCount) }).map((_, i) => (
                                 <div
                                   key={i}
-                                  className="flex items-center justify-between gap-2 rounded-xl border border-slate-800/60 bg-slate-950/45 px-3 py-2.5"
+                                  className="quantum-skeleton-card flex items-center justify-between gap-2 rounded-xl border border-slate-800/60 bg-slate-950/60 px-3 py-2.5 relative overflow-hidden"
                                 >
+                                  <div className="quantum-skeleton-shimmer" />
                                   <div className="min-w-0 space-y-1.5 flex-1">
                                     <div className="h-3 w-28 rounded-full bg-slate-800" />
                                     <div className="h-2 w-16 rounded-full bg-slate-800/60" />
@@ -10750,9 +10776,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           </div>
 
                           {followersLoading && (
-                            <p className="text-[10px] text-slate-500">
-                              Loading followers...
-                            </p>
+                            <QuantumFollowersSkeleton />
                           )}
 
                           {followersError && (
@@ -10819,7 +10843,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       )}
 
                       {showConsoleLoadingDelayed ? (
-                        <p className="mt-2 text-[11px] text-slate-400">Loading…</p>
+                        <GlobalDirectoryMediaSkeleton />
                       ) : idConsolePostsError ? (
                         <p className="mt-2 text-[11px] text-rose-300">{idConsolePostsError}</p>
                       ) : idConsolePosts && idConsolePosts.length ? (
@@ -11017,7 +11041,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       {/* Comments List */}
                                       <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-hide">
                                         {consoleCommentsLoading[p.id] ? (
-                                          <p className="text-[10px] text-slate-400 text-center py-2">Loading comments...</p>
+                                          <PostCommentsSkeleton />
                                         ) : consolePostComments[p.id]?.length > 0 ? (
                                           consolePostComments[p.id].map((comment) => (
                                             <div key={comment.id} className="rounded-lg border border-slate-700/50 bg-slate-900/40 p-2">

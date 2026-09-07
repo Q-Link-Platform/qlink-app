@@ -201,7 +201,7 @@ export default function AdminCommandCenterPage() {
                 </svg>
               </div>
             </div>
-            <p className="text-3xl font-extrabold text-white mt-3">{metrics ? metrics.totalUsers : "--"}</p>
+            {loading ? <div className="h-9 w-24 rounded-lg bg-slate-800/80 animate-pulse mt-3" /> : <p className="text-3xl font-extrabold text-white mt-3">{metrics ? metrics.totalUsers : "--"}</p>}
             <p className="text-[11px] text-slate-500 mt-1">Active cryptographic nodes</p>
           </div>
 
@@ -214,7 +214,7 @@ export default function AdminCommandCenterPage() {
                 </svg>
               </div>
             </div>
-            <p className="text-3xl font-extrabold text-white mt-3">{metrics ? metrics.verifiedUsers : "--"}</p>
+            {loading ? <div className="h-9 w-24 rounded-lg bg-slate-800/80 animate-pulse mt-3" /> : <p className="text-3xl font-extrabold text-white mt-3">{metrics ? metrics.verifiedUsers : "--"}</p>}
             <p className="text-[11px] text-slate-500 mt-1">Diamond / Gold badge accounts</p>
           </div>
 
@@ -227,7 +227,7 @@ export default function AdminCommandCenterPage() {
                 </svg>
               </div>
             </div>
-            <p className="text-3xl font-extrabold text-white mt-3">{metrics ? metrics.totalPosts : "--"}</p>
+            {loading ? <div className="h-9 w-24 rounded-lg bg-slate-800/80 animate-pulse mt-3" /> : <p className="text-3xl font-extrabold text-white mt-3">{metrics ? metrics.totalPosts : "--"}</p>}
             <p className="text-[11px] text-slate-500 mt-1">Community feed posts & shorts</p>
           </div>
 
@@ -240,7 +240,7 @@ export default function AdminCommandCenterPage() {
                 </svg>
               </div>
             </div>
-            <p className="text-3xl font-extrabold text-white mt-3">{metrics ? metrics.totalConnections : "--"}</p>
+            {loading ? <div className="h-9 w-24 rounded-lg bg-slate-800/80 animate-pulse mt-3" /> : <p className="text-3xl font-extrabold text-white mt-3">{metrics ? metrics.totalConnections : "--"}</p>}
             <p className="text-[11px] text-slate-500 mt-1">E2EE Tunnel Requests</p>
           </div>
         </section>
@@ -325,7 +325,28 @@ export default function AdminCommandCenterPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
-                    {filteredUsers.map((u) => (
+                    {loading && filteredUsers.length === 0 ? (
+                      [1, 2, 3, 4, 5].map((idx) => (
+                        <tr key={idx} className="animate-pulse">
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-2.5">
+                              <div className="h-7 w-7 rounded-full bg-slate-800 border border-slate-700/60" />
+                              <div className="space-y-1">
+                                <div className="h-3 w-20 rounded-full bg-slate-800" />
+                                <div className="h-2 w-16 rounded-full bg-slate-800/60" />
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3.5"><div className="h-3 w-32 rounded-full bg-slate-800/60" /></td>
+                          <td className="px-4 py-3.5"><div className="h-5 w-16 rounded-full bg-slate-800/70" /></td>
+                          <td className="px-4 py-3.5 text-right"><div className="h-3 w-12 rounded-full bg-slate-800/80 ml-auto" /></td>
+                          <td className="px-4 py-3.5 text-right"><div className="h-3 w-8 rounded-full bg-slate-800/60 ml-auto" /></td>
+                          <td className="px-4 py-3.5"><div className="h-3 w-16 rounded-full bg-slate-800/50" /></td>
+                          <td className="px-5 py-3.5 text-right"><div className="h-6 w-14 rounded-full bg-slate-800/80 ml-auto" /></td>
+                        </tr>
+                      ))
+                    ) : (
+                      filteredUsers.map((u) => (
                       <tr key={u.id} className="hover:bg-slate-800/30 transition-colors">
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2.5">
@@ -367,7 +388,8 @@ export default function AdminCommandCenterPage() {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    ))
+                    )}
                   </tbody>
                 </table>
               </div>

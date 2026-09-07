@@ -84,11 +84,36 @@ export default function PointsDashboard() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-slate-700/60 bg-slate-900/80 p-4">
-        <div className="animate-pulse">
-          <div className="h-4 bg-slate-700 rounded w-1/3 mb-4"></div>
-          <div className="h-8 bg-slate-700 rounded w-1/2 mb-2"></div>
-          <div className="h-4 bg-slate-700 rounded w-full"></div>
+      <div className="quantum-skeleton-card rounded-2xl border border-slate-700/60 bg-slate-900/80 p-4 space-y-4 relative overflow-hidden animate-in fade-in duration-200">
+        <div className="quantum-skeleton-shimmer" />
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <div className="h-5 w-5 rounded-full bg-cyan-500/30 border border-cyan-400/40 flex items-center justify-center text-[10px] text-cyan-300">⚡</div>
+            <div className="h-4 w-32 rounded-full bg-slate-800" />
+          </div>
+          <div className="h-2.5 w-48 rounded-full bg-slate-800/60" />
+        </div>
+
+        {/* 2 Metric Cards Skeleton */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-slate-800/50 rounded-xl p-3 space-y-1.5 border border-slate-700/40">
+            <div className="h-7 w-16 rounded-full bg-cyan-900/50 border border-cyan-500/30" />
+            <div className="h-2.5 w-18 rounded-full bg-slate-800/70" />
+          </div>
+          <div className="bg-slate-800/50 rounded-xl p-3 space-y-1.5 border border-slate-700/40">
+            <div className="h-7 w-20 rounded-full bg-slate-800" />
+            <div className="h-2.5 w-16 rounded-full bg-slate-800/70" />
+          </div>
+        </div>
+
+        {/* Breakdown rows */}
+        <div className="space-y-2 pt-1">
+          <div className="h-3 w-28 rounded-full bg-slate-800/80" />
+          <div className="grid grid-cols-2 gap-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-10 rounded-xl bg-slate-800/40 border border-slate-700/30 p-2" />
+            ))}
+          </div>
         </div>
       </div>
     );
