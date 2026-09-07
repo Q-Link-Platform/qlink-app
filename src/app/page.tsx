@@ -9057,12 +9057,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 <div
                   ref={quantumIdRef}
                   className={
-                    (isFocusMode
-                      ? "mt-0 space-y-4 rounded-none border-none bg-slate-900 p-2 sm:p-4 md:p-6 pt-16 w-full flex-1 flex flex-col text-base text-slate-200 transition-shadow "
-                      : "mt-4 space-y-4 rounded-2xl border border-slate-600/60 bg-slate-900/70 p-4 text-sm text-slate-300 transition-shadow ") +
-                    (highlightQuantumId
-                      ? "glow-pulse border-cyan-400/80"
-                      : "")
+                    isFocusMode
+                      ? "mt-0 space-y-4 rounded-none border-none bg-slate-900 p-2 sm:p-4 md:p-6 pt-16 w-full flex-1 flex flex-col text-base text-slate-200 transition-shadow"
+                      : "mt-4 space-y-4 rounded-2xl border border-slate-600/60 bg-slate-900/70 p-4 text-sm text-slate-300 transition-shadow"
                   }
                 >
                   <div

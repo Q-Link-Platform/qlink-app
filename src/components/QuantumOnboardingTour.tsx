@@ -221,27 +221,26 @@ export default function QuantumOnboardingTour({
     }, 280);
   }, [isOpen, findTargetElement, measureTarget]);
 
-  // Isolate active element: Lift active target element dynamically into a clean z-index stacking context (Requirement 3)
+  // Isolate active element: Lift small button targets (like Edit Profile button) above blur overlay
   useEffect(() => {
     if (!isOpen) return;
+    // Only lift for step 1 (Edit Profile button)
+    if (currentStep.id !== 1) return;
 
     const el = findTargetElement();
     if (!el) return;
 
     const originalPosition = el.style.position;
     const originalZIndex = el.style.zIndex;
-    const originalIsolation = el.style.isolation;
 
     el.style.position = originalPosition && originalPosition !== "static" ? originalPosition : "relative";
     el.style.zIndex = "99994";
-    el.style.isolation = "isolate";
 
     return () => {
       el.style.position = originalPosition;
       el.style.zIndex = originalZIndex;
-      el.style.isolation = originalIsolation;
     };
-  }, [isOpen, findTargetElement, step]);
+  }, [isOpen, findTargetElement, currentStep.id]);
 
   // When step changes, initiate auto-scroll and remeasure
   useEffect(() => {
@@ -375,9 +374,9 @@ export default function QuantumOnboardingTour({
       className="fixed inset-0 z-[99990] overflow-hidden select-none pointer-events-none"
       style={{ overflow: "hidden" }}
     >
-      {/* Fullscreen SVG Definition: userSpaceOnUse mask matching exact viewport coordinates */}
+      {/* Fullscreen SVG Definition: userSpaceOnUse mask with boundless screen coverage */}
       <svg
-        className="fixed inset-0 w-full h-full pointer-events-none z-[99989]"
+        className="fixed inset-0 w-screen h-screen pointer-events-none z-[99989]"
         width="100%"
         height="100%"
         xmlns="http://www.w3.org/2000/svg"
@@ -385,8 +384,8 @@ export default function QuantumOnboardingTour({
       >
         <defs>
           <mask id="qlink-spotlight-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
-            {/* White covers 100% of viewport, letting translucent blur through */}
-            <rect x="0" y="0" width="100%" height="100%" fill="#ffffff" />
+            {/* White covers 100% of entire viewport and scroll extent, letting blur through uniformly */}
+            <rect x="-10000" y="-10000" width="30000" height="30000" fill="#ffffff" />
             {/* Black punches the aperture hole over the targeted element */}
             {targetRect && (
               <rect
