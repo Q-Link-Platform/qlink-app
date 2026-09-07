@@ -428,6 +428,284 @@ function CustomAudioPlayer(props: { src: string }) {
   );
 }
 
+
+/* ==========================================================================
+   QUANTUM SKELETON LOADING SUITE (GLOBAL DIRECTORY, MEDIA & COMMENTS)
+   Production-ready, GPU-accelerated, zero-CLS skeleton system beating
+   traditional tech giant gray block animations.
+   ========================================================================== */
+
+function GlobalDirectoryIdsSkeleton() {
+  return (
+    <div className="space-y-4 animate-in fade-in duration-300">
+      {/* Elite Founder VIP ID Skeleton */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full bg-red-400/80 animate-pulse" />
+          <div className="h-2.5 w-28 rounded-full bg-red-950/60 border border-red-500/30" />
+        </div>
+        <div className="quantum-skeleton-card quantum-skeleton-founder rounded-2xl border border-red-500/50 bg-slate-950/90 p-2.5 overflow-hidden shadow-[0_0_25px_rgba(239,68,68,0.15)] relative">
+          <div className="quantum-skeleton-shimmer quantum-skeleton-shimmer-founder" />
+          <div className="rounded-2xl bg-gradient-to-br from-slate-950/90 via-slate-900/80 to-slate-950/90 px-3 py-2 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded-full bg-slate-800/90 border border-red-500/40 flex items-center justify-center">
+                  <span className="text-[9px] text-red-400 font-bold">✓</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="h-3 w-28 rounded-full bg-slate-800" />
+                  <div className="h-2 w-36 rounded-full bg-slate-800/60" />
+                </div>
+              </div>
+              <div className="h-5 w-20 rounded-full border border-red-400/50 bg-red-500/20" />
+            </div>
+            <div className="h-2 w-3/4 rounded-full bg-slate-800/50" />
+          </div>
+        </div>
+      </div>
+
+      {/* Diamond VIP ID Skeleton */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] animate-pulse">💎</span>
+          <div className="h-2.5 w-24 rounded-full bg-pink-950/60 border border-pink-500/30" />
+        </div>
+        <div className="quantum-skeleton-card quantum-skeleton-diamond rounded-2xl border border-pink-500/50 bg-slate-950/90 p-2.5 overflow-hidden shadow-[0_0_25px_rgba(236,72,153,0.15)] relative">
+          <div className="quantum-skeleton-shimmer quantum-skeleton-shimmer-diamond" />
+          <div className="rounded-2xl bg-gradient-to-br from-slate-950/80 via-slate-900/70 to-slate-950/80 px-3 py-2 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded-full bg-pink-950/60 border border-pink-500/40 flex items-center justify-center text-[10px]">
+                  💎
+                </div>
+                <div className="space-y-1">
+                  <div className="h-3 w-24 rounded-full bg-slate-800" />
+                  <div className="h-2 w-28 rounded-full bg-slate-800/60" />
+                </div>
+              </div>
+              <div className="h-5 w-22 rounded-full border border-pink-400/50 bg-pink-500/20" />
+            </div>
+            <div className="h-2 w-4/5 rounded-full bg-slate-800/50" />
+          </div>
+        </div>
+      </div>
+
+      {/* Blue Tick Verified ID Skeleton */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-1.5">
+          <span className="inline-block h-2 w-2 rounded-full bg-sky-400/80 animate-pulse" />
+          <div className="h-2.5 w-32 rounded-full bg-sky-950/60 border border-sky-500/30" />
+        </div>
+        <div className="quantum-skeleton-card quantum-skeleton-verified rounded-2xl border border-sky-500/50 bg-slate-950/90 p-2.5 overflow-hidden shadow-[0_0_25px_rgba(56,189,248,0.15)] relative">
+          <div className="quantum-skeleton-shimmer quantum-skeleton-shimmer-verified" />
+          <div className="rounded-2xl bg-gradient-to-br from-slate-950/80 via-slate-900/70 to-slate-950/80 px-3 py-2 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <div className="h-6 w-6 rounded-full bg-sky-950/60 border border-sky-400/40 flex items-center justify-center">
+                  <span className="text-[9px] text-sky-300 font-bold">✓</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="h-3 w-28 rounded-full bg-slate-800" />
+                  <div className="h-2 w-24 rounded-full bg-slate-800/60" />
+                </div>
+              </div>
+              <div className="h-5 w-18 rounded-full border border-sky-400/50 bg-sky-500/20" />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-20 rounded-full bg-sky-500/30" />
+              <div className="h-2 w-14 rounded-full bg-slate-800/60" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Community Quantum IDs Skeleton (4 Stacked Magnetic Cards) */}
+      <div className="space-y-2 pt-1">
+        <div className="flex items-center justify-between">
+          <div className="h-2.5 w-24 rounded-full bg-slate-800/70" />
+          <div className="h-2 w-12 rounded-full bg-slate-800/50" />
+        </div>
+        <div className="space-y-1.5">
+          {[1, 2, 3, 4].map((idx) => (
+            <div
+              key={idx}
+              className="quantum-skeleton-card rounded-2xl border border-slate-700/60 bg-slate-900/75 px-3 py-2.5 relative overflow-hidden"
+            >
+              <div className="quantum-skeleton-shimmer" />
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="h-5 w-7 rounded-full bg-slate-800/90 border border-slate-700/50 flex-shrink-0" />
+                  <div className="min-w-0 space-y-1.5 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-3 w-28 rounded-full bg-slate-800" />
+                      {idx % 2 === 0 && (
+                        <div className="h-3 w-3 rounded-full bg-sky-500/30 border border-sky-400/40" />
+                      )}
+                    </div>
+                    <div className="h-2 w-20 rounded-full bg-slate-800/60" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-12 rounded-full bg-slate-800/70 border border-slate-700/40" />
+                  <div className="h-6 w-14 rounded-full bg-slate-800/80 border border-slate-700/50" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GlobalDirectoryMediaSkeleton() {
+  return (
+    <div className="space-y-3.5 animate-in fade-in duration-300">
+      {/* 1. Shorts / Video Post Skeleton */}
+      <div className="quantum-skeleton-card rounded-3xl border border-amber-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-4 shadow-xl relative overflow-hidden">
+        <div className="quantum-skeleton-shimmer" />
+        <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-800/80 mb-3.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="h-7 w-7 rounded-full bg-slate-800 border border-slate-700 flex-shrink-0" />
+            <div className="space-y-1 min-w-0">
+              <div className="h-3 w-24 rounded-full bg-slate-800" />
+              <div className="h-2 w-32 rounded-full bg-slate-800/60" />
+            </div>
+          </div>
+          <div className="h-5 w-18 rounded-full border border-amber-500/40 bg-amber-500/10" />
+        </div>
+        <div className="space-y-1.5 mb-3">
+          <div className="h-3 w-4/5 rounded-full bg-slate-800/80" />
+          <div className="h-3 w-2/3 rounded-full bg-slate-800/60" />
+        </div>
+        <div className="h-56 sm:h-64 w-full rounded-2xl border border-slate-800/90 bg-slate-950 relative overflow-hidden flex items-center justify-center mb-3">
+          <div className="quantum-scanner-line" />
+          <div className="flex flex-col items-center gap-2 opacity-40">
+            <div className="h-10 w-10 rounded-full border border-amber-400/50 bg-amber-500/10 flex items-center justify-center">
+              <span className="text-amber-300 text-sm ml-0.5">▶</span>
+            </div>
+            <span className="text-[10px] font-bold text-amber-200/80 uppercase tracking-widest">
+              Buffering Quantum Short…
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-2 border-t border-slate-800/80 pt-3">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-16 rounded-full bg-slate-800/70 border border-slate-700/60" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/70 border border-slate-700/60" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/70 border border-slate-700/60" />
+            <div className="h-6 w-14 rounded-full bg-slate-800/70 border border-slate-700/60" />
+          </div>
+          <div className="h-4 w-12 rounded-full bg-slate-800/50" />
+        </div>
+      </div>
+
+      {/* 2. Image Post Skeleton */}
+      <div className="quantum-skeleton-card rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-4 shadow-xl relative overflow-hidden">
+        <div className="quantum-skeleton-shimmer" />
+        <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-800/80 mb-3.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="h-7 w-7 rounded-full bg-slate-800 border border-slate-700 flex-shrink-0" />
+            <div className="space-y-1 min-w-0">
+              <div className="h-3 w-28 rounded-full bg-slate-800" />
+              <div className="h-2 w-28 rounded-full bg-slate-800/60" />
+            </div>
+          </div>
+          <div className="h-5 w-16 rounded-full border border-cyan-500/40 bg-cyan-500/10" />
+        </div>
+        <div className="space-y-1.5 mb-3">
+          <div className="h-3 w-3/4 rounded-full bg-slate-800/80" />
+          <div className="h-3 w-1/2 rounded-full bg-slate-800/60" />
+        </div>
+        <div className="h-48 sm:h-56 w-full rounded-2xl border border-slate-800/90 bg-slate-950 relative overflow-hidden flex items-center justify-center mb-3">
+          <div className="flex flex-col items-center gap-2 opacity-40">
+            <div className="h-10 w-10 rounded-2xl border border-cyan-400/50 bg-cyan-500/10 flex items-center justify-center">
+              <span className="text-cyan-300 text-base">📷</span>
+            </div>
+            <span className="text-[10px] font-bold text-cyan-200/80 uppercase tracking-widest">
+              Rendering Quantum Visual…
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-2 border-t border-slate-800/80 pt-3">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-16 rounded-full bg-slate-800/70 border border-slate-700/60" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/70 border border-slate-700/60" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/70 border border-slate-700/60" />
+            <div className="h-6 w-14 rounded-full bg-slate-800/70 border border-slate-700/60" />
+          </div>
+          <div className="h-4 w-12 rounded-full bg-slate-800/50" />
+        </div>
+      </div>
+
+      {/* 3. Tweet / Text Post Skeleton */}
+      <div className="quantum-skeleton-card rounded-3xl border border-indigo-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-4 shadow-xl relative overflow-hidden">
+        <div className="quantum-skeleton-shimmer" />
+        <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-800/80 mb-3.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="h-7 w-7 rounded-full bg-slate-800 border border-slate-700 flex-shrink-0" />
+            <div className="space-y-1 min-w-0">
+              <div className="h-3 w-22 rounded-full bg-slate-800" />
+              <div className="h-2 w-24 rounded-full bg-slate-800/60" />
+            </div>
+          </div>
+          <div className="h-5 w-16 rounded-full border border-indigo-500/40 bg-indigo-500/10" />
+        </div>
+        <div className="space-y-2 py-2 mb-3">
+          <div className="h-3.5 w-11/12 rounded-full bg-slate-800/80" />
+          <div className="h-3.5 w-4/5 rounded-full bg-slate-800/70" />
+          <div className="h-3.5 w-3/5 rounded-full bg-slate-800/50" />
+        </div>
+        <div className="flex items-center justify-between gap-2 border-t border-slate-800/80 pt-3">
+          <div className="flex items-center gap-2">
+            <div className="h-6 w-16 rounded-full bg-slate-800/70 border border-slate-700/60" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/70 border border-slate-700/60" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/70 border border-slate-700/60" />
+            <div className="h-6 w-14 rounded-full bg-slate-800/70 border border-slate-700/60" />
+          </div>
+          <div className="h-4 w-12 rounded-full bg-slate-800/50" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PostCommentsSkeleton() {
+  return (
+    <div className="space-y-2 animate-in fade-in duration-200">
+      {[1, 2, 3].map((idx) => (
+        <div
+          key={idx}
+          className="quantum-skeleton-card rounded-xl border border-slate-700/50 bg-slate-900/60 p-2.5 relative overflow-hidden"
+        >
+          <div className="quantum-skeleton-shimmer" />
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="h-4.5 w-4.5 rounded-full bg-slate-800 border border-slate-700/60 flex-shrink-0" />
+              <div className="h-2.5 w-20 rounded-full bg-slate-800" />
+            </div>
+            <div className="h-2 w-10 rounded-full bg-slate-800/60" />
+          </div>
+          <div className="mt-2 space-y-1.5">
+            <div
+              className={`h-2 rounded-full bg-slate-800/70 ${
+                idx === 1 ? "w-11/12" : idx === 2 ? "w-4/5" : "w-3/4"
+              }`}
+            />
+            {idx !== 3 && (
+              <div
+                className={`h-2 rounded-full bg-slate-800/50 ${
+                  idx === 1 ? "w-2/3" : "w-1/2"
+                }`}
+              />
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 type ViewMode = "home" | "connect";
 
 type OutgoingRequest = {
@@ -7590,7 +7868,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   className="relative mt-3 flex-1 min-h-0 overflow-y-auto pb-6 pr-1 custom-directory-scroll"
                 >
                   {directoryLoading && (
-                    <p className="text-[11px] text-slate-400">Loading global directory…</p>
+                    showDirectoryMediaOnly ? (
+                      <GlobalDirectoryMediaSkeleton />
+                    ) : (
+                      <GlobalDirectoryIdsSkeleton />
+                    )
                   )}
                   {directoryError && !directoryLoading && (
                     <p className="text-[11px] text-rose-300">{directoryError}</p>
@@ -8317,8 +8599,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                   {/* Comments List */}
                                                   <div className="mt-3 space-y-2 max-h-60 overflow-y-auto scrollbar-hide">
                                                     {commentsLoading[post.id] ? (
-                                                      <p className="text-[10px] text-slate-400 text-center py-2">Loading comments...</p>
-                                                    ) : postComments[post.id]?.length > 0 ? (
+                                                       <PostCommentsSkeleton />
+                                                     ) : postComments[post.id]?.length > 0 ? (
                                                       postComments[post.id].map((comment) => (
                                                         <div key={comment.id} className="rounded-lg border border-slate-700/50 bg-slate-900/40 p-2">
                                                           <div className="flex items-center justify-between gap-2">
@@ -8372,7 +8654,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                               {/* Dedicated Content-First Media Feed (Media Active Mode) */}
                               {showDirectoryMediaOnly && (
-                                filteredFeedPosts.length === 0 ? (
+                                directoryPostsLoading && filteredFeedPosts.length === 0 ? (
+                                  <GlobalDirectoryMediaSkeleton />
+                                ) : filteredFeedPosts.length === 0 ? (
                                   <div className="flex flex-col items-center justify-center py-16 text-center bg-slate-900/30 rounded-3xl border border-slate-800/80 p-8 shadow-inner">
                                     <span className="text-4xl mb-3 animate-pulse">🔍</span>
                                     <p className="text-[12px] font-bold text-cyan-300 uppercase tracking-widest">
@@ -8602,8 +8886,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                             {/* Comments List */}
                                             <div className="mt-3.5 space-y-2 max-h-60 overflow-y-auto scrollbar-hide">
                                               {commentsLoading[post.id] ? (
-                                                <p className="text-[10px] text-slate-400 text-center py-2">Loading comments...</p>
-                                              ) : postComments[post.id]?.length > 0 ? (
+                                                       <PostCommentsSkeleton />
+                                                     ) : postComments[post.id]?.length > 0 ? (
                                                 postComments[post.id].map((comment) => (
                                                   <div key={comment.id} className="rounded-xl border border-slate-700/50 bg-slate-900/40 p-2.5">
                                                     <div className="flex items-center justify-between gap-2">
@@ -8650,8 +8934,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               )}
                             </div>
 
-                            {directoryPostsLoading && (
-                              <p className="text-[11px] text-slate-400">Loading global posts…</p>
+                            {directoryPostsLoading && filteredFeedPosts.length > 0 && (
+                              <div className="pt-3">
+                                <GlobalDirectoryMediaSkeleton />
+                              </div>
                             )}
                             {directoryPostsError && !directoryPostsLoading && (
                               <p className="text-[11px] text-rose-300">{directoryPostsError}</p>
