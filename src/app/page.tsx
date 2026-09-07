@@ -9650,8 +9650,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     </p>
                     <button
                       type="button"
-                      onClick={() => setGuideStep(0)}
-                      className="rounded-full border border-slate-600/60 bg-slate-900/80 px-3 py-1 text-xs font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200"
+                      onClick={() => {
+                        setShowGuide(true);
+                        setGuideStep(0);
+                      }}
+                      className="rounded-full border border-slate-600/60 bg-slate-900/80 px-3 py-1 text-xs font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 transition-colors cursor-pointer active:scale-95 shadow-sm"
                     >
                       How this works
                     </button>
