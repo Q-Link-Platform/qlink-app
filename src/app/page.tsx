@@ -9526,9 +9526,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     className="flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-950/50 border border-slate-700/60 transition-all scrollbar-hide"
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="font-mono text-xs text-slate-400">
-                        Your Quantum ID
-                      </span>
                       {displayName && !editingHandle && (
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-medium text-slate-100">
@@ -9537,7 +9534,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           <button
                             type="button"
                             onClick={() => profilePicInputRef.current?.click()}
-                            className="h-5 w-5 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 hover:border-cyan-400/70 flex items-center justify-center text-[10px] text-cyan-300 hover:text-cyan-200 transition-all duration-300 shadow-[0_0_8px_rgba(34,211,238,0.3)] hover:shadow-[0_0_12px_rgba(34,211,238,0.5)] animate-pulse"
+                            className="h-5 w-5 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 hover:border-cyan-400/70 flex items-center justify-center text-[10px] text-cyan-300 hover:text-cyan-200 transition-all duration-300 shadow-[0_0_8px_rgba(34,211,238,0.3)] hover:shadow-[0_0_12px_rgba(34,211,238,0.5)] animate-pulse cursor-pointer"
                             title="Upload profile picture"
                           >
                             {profilePicUrl ? (
@@ -9568,78 +9565,88 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       )}
                     </div>
                     {editingHandle ? (
-                      <div className="flex items-center gap-2">
-                        <div className="flex flex-col gap-1">
-                          <div className="relative">
-                            <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-[11px] text-slate-500">
-                              @
-                            </span>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="font-mono text-[11px] text-slate-400">
+                          Your Quantum ID
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <div className="flex flex-col gap-1">
+                            <div className="relative">
+                              <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-[11px] text-slate-500">
+                                @
+                              </span>
+                              <input
+                                value={handleDraft}
+                                onChange={(e) => onHandleDraftChange(e.target.value)}
+                                className="w-40 rounded-full border border-slate-600/70 bg-slate-900/80 py-1 pl-5 pr-2 text-[11px] text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)]"
+                                placeholder="new-id"
+                              />
+                            </div>
                             <input
-                              value={handleDraft}
-                              onChange={(e) => onHandleDraftChange(e.target.value)}
-                              className="w-40 rounded-full border border-slate-600/70 bg-slate-900/80 py-1 pl-5 pr-2 text-[11px] text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)]"
-                              placeholder="new-id"
+                              value={nameDraft}
+                              onChange={(e) => setNameDraft(e.target.value)}
+                              className="w-40 rounded-full border border-slate-600/70 bg-slate-900/80 py-1 px-2 text-[11px] text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)]"
+                              placeholder="Your display name"
                             />
                           </div>
-                          <input
-                            value={nameDraft}
-                            onChange={(e) => setNameDraft(e.target.value)}
-                            className="w-40 rounded-full border border-slate-600/70 bg-slate-900/80 py-1 px-2 text-[11px] text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)]"
-                            placeholder="Your display name"
-                          />
+                          <button
+                            type="button"
+                            onClick={saveHandle}
+                            disabled={handleSaving}
+                            className="rounded-full border border-emerald-400/70 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60 cursor-pointer"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEditingHandle}
+                            className="rounded-full border border-slate-600/70 bg-slate-900/60 px-2 py-0.5 text-[10px] font-medium text-slate-300 hover:bg-slate-800/80 cursor-pointer"
+                          >
+                            Cancel
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={saveHandle}
-                          disabled={handleSaving}
-                          className="rounded-full border border-emerald-400/70 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60"
-                        >
-                          Save
-                        </button>
-                        <button
-                          type="button"
-                          onClick={cancelEditingHandle}
-                          className="rounded-full border border-slate-600/70 bg-slate-900/60 px-2 py-0.5 text-[10px] font-medium text-slate-300 hover:bg-slate-800/80"
-                        >
-                          Cancel
-                        </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={
-                            "rounded-full bg-slate-800 px-2 py-0.5 text-[11px] " +
-                            (isVipHandle(quantumId)
-                              ? "font-semibold text-red-400"
-                              : effectiveBlueTickStatus === "SAPPHIRE"
-                                ? "font-semibold text-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.25)]"
-                                : "font-mono text-cyan-300")
-                          }
-                        >
-                          @{quantumId}
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="font-mono text-[11px] text-slate-400">
+                          Your Quantum ID
                         </span>
-                        {effectiveBlueTickStatus === "SAPPHIRE" && (
-                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-sky-500/20 border border-sky-400/80 text-[8px] font-bold text-sky-300 shadow-[0_0_10px_rgba(56,189,248,0.4)]">
-                            ✓
-                          </span>
-                        )}
-                        {/* Edit handle button: unconditionally rendered during onboarding tour */}
-                        {(!(isVipHandle(quantumId) && meEmail !== "rohiterrors@gmail.com") || showGuide) && (
-                          <button
-                            id="tour-edit-profile-btn"
-                            data-tour="edit-id"
-                            type="button"
-                            onClick={startEditingHandle}
+                        <div className="flex items-center gap-2">
+                          <span
                             className={
-                              "rounded-full border bg-slate-900/70 px-2.5 py-0.5 text-[10px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 transition-all cursor-pointer " +
-                              (highlightEditId
-                                ? "glow-pulse border-cyan-400/80"
-                                : "border-slate-500/70")
+                              "rounded-full bg-slate-800 px-2 py-0.5 text-[11px] " +
+                              (isVipHandle(quantumId)
+                                ? "font-semibold text-red-400"
+                                : effectiveBlueTickStatus === "SAPPHIRE"
+                                  ? "font-semibold text-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.25)]"
+                                  : "font-mono text-cyan-300")
                             }
                           >
-                            Edit
-                          </button>
-                        )}
+                            @{quantumId}
+                          </span>
+                          {effectiveBlueTickStatus === "SAPPHIRE" && (
+                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-sky-500/20 border border-sky-400/80 text-[8px] font-bold text-sky-300 shadow-[0_0_10px_rgba(56,189,248,0.4)]">
+                              ✓
+                            </span>
+                          )}
+                          {/* Edit handle button: unconditionally rendered during onboarding tour */}
+                          {(!(isVipHandle(quantumId) && meEmail !== "rohiterrors@gmail.com") || showGuide) && (
+                            <button
+                              id="tour-edit-profile-btn"
+                              data-tour="edit-id"
+                              type="button"
+                              onClick={startEditingHandle}
+                              className={
+                                "rounded-full border bg-slate-900/70 px-2.5 py-0.5 text-[10px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 transition-all cursor-pointer " +
+                                (highlightEditId
+                                  ? "glow-pulse border-cyan-400/80"
+                                  : "border-slate-500/70")
+                              }
+                            >
+                              Edit
+                            </button>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
