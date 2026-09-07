@@ -9056,7 +9056,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                 <div
                   ref={quantumIdRef}
-                  data-tour="quantum-id"
                   className={
                     (isFocusMode
                       ? "mt-0 space-y-4 rounded-none border-none bg-slate-900 p-2 sm:p-4 md:p-6 pt-16 w-full flex-1 flex flex-col text-base text-slate-200 transition-shadow "
@@ -9066,7 +9065,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       : "")
                   }
                 >
-                  <div className="flex items-center justify-between gap-2">
+                  <div
+                    data-tour="quantum-id"
+                    className="flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-950/50 border border-slate-700/60 transition-all"
+                  >
                     <div className="flex flex-col gap-1">
                       <span className="font-mono text-xs text-slate-400">
                         Your Quantum ID
