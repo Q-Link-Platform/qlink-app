@@ -516,33 +516,21 @@ export default function QuantumOnboardingTour({
           willChange: "transform, top, left",
         }}
       >
-        {/* Prominent Floating Focus Hand/Arrow Indicator: Aligns directly with target element */}
+        {/* Sleek Apple-grade popover pointer caret pointing directly to active target element */}
         {targetRect && (
           <div
-            className={`absolute z-20 pointer-events-none flex items-center transition-all duration-300 ${
-              cardPlacement === "bottom"
-                ? "-top-8.5 animate-bounce-subtle-y"
-                : "-bottom-8.5 animate-bounce-subtle-y-reverse"
-            }`}
+            className="absolute z-30 pointer-events-none w-3 h-3 bg-slate-950 border border-cyan-400/60 shadow-[0_0_10px_rgba(34,211,238,0.35)] transition-all duration-300"
             style={{
               left: isMobileScreen ? "50%" : pointerOffset,
-              transform: isMobileScreen ? "translateX(-50%)" : "translateX(-50%)",
+              top: cardPlacement === "bottom" ? -6 : "auto",
+              bottom: cardPlacement === "top" ? -6 : "auto",
+              transform: "translateX(-50%) rotate(45deg)",
+              borderBottom: cardPlacement === "bottom" ? "none" : undefined,
+              borderRight: cardPlacement === "bottom" ? "none" : undefined,
+              borderTop: cardPlacement === "top" ? "none" : undefined,
+              borderLeft: cardPlacement === "top" ? "none" : undefined,
             }}
-          >
-            <div className="flex items-center gap-1.5 rounded-full bg-cyan-400 text-slate-950 font-extrabold px-3 py-1 text-[11px] tracking-wider uppercase shadow-[0_0_18px_rgba(34,211,238,0.9)]">
-              {cardPlacement === "bottom" ? (
-                <>
-                  <span className="text-sm leading-none">👆</span>
-                  <span>LOOK HERE</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-sm leading-none">👇</span>
-                  <span>LOOK HERE</span>
-                </>
-              )}
-            </div>
-          </div>
+          />
         )}
 
         {/* Card Body - Deep Obsidian Glassmorphism */}
