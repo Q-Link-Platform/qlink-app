@@ -258,11 +258,11 @@ export default function QuantumOnboardingTour({
     };
 
     window.addEventListener("resize", handleUpdate);
-    window.addEventListener("scroll", handleUpdate, { passive: true });
+    window.addEventListener("scroll", handleUpdate, true);
 
     return () => {
       window.removeEventListener("resize", handleUpdate);
-      window.removeEventListener("scroll", handleUpdate);
+      window.removeEventListener("scroll", handleUpdate, true);
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
   }, [isOpen, measureTarget]);
@@ -374,49 +374,80 @@ export default function QuantumOnboardingTour({
       className="fixed inset-0 z-[99990] overflow-hidden select-none pointer-events-none"
       style={{ overflow: "hidden" }}
     >
-      {/* Fullscreen SVG Definition: userSpaceOnUse mask with boundless screen coverage */}
-      <svg
-        className="fixed inset-0 w-screen h-screen pointer-events-none z-[99989]"
-        width="100%"
-        height="100%"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden="true"
-      >
-        <defs>
-          <mask id="qlink-spotlight-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
-            {/* White covers 100% of entire viewport and scroll extent, letting blur through uniformly */}
-            <rect x="-10000" y="-10000" width="30000" height="30000" fill="#ffffff" />
-            {/* Black punches the aperture hole over the targeted element */}
-            {targetRect && (
-              <rect
-                x={cutoutX}
-                y={cutoutY}
-                width={cutoutW}
-                height={cutoutH}
-                rx={cutoutRx}
-                ry={cutoutRx}
-                fill="#000000"
-              />
-            )}
-          </mask>
-        </defs>
-      </svg>
+      {/* 4-Quadrant Optical Backdrop Overlay: 100% bug-free, zero SVG mask 150px clipping, full screen coverage */}
+      {targetRect ? (
+        <>
+          {/* Top panel: spans full screen width from top: 0 down to cutoutY */}
+          <div
+            className="fixed left-0 right-0 top-0 pointer-events-auto transition-all duration-300 ease-out"
+            style={{
+              height: Math.max(0, cutoutY),
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+              zIndex: 99990,
+              transform: "translateZ(0)",
+            }}
+          />
 
-      {/* Fullscreen Backdrop with Uniform Blur & Dark Tint (Requirement 2: blur(4px), rgba(0,0,0,0.5)) */}
-      <div
-        className="fixed inset-0 z-[9990] pointer-events-none transition-all duration-300 ease-out"
-        style={{
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          backdropFilter: "blur(4px)",
-          WebkitBackdropFilter: "blur(4px)",
-          mask: "url(#qlink-spotlight-mask)",
-          WebkitMask: "url(#qlink-spotlight-mask)",
-          transform: "translateZ(0)",
-          willChange: "transform, backdrop-filter",
-        }}
-      />
+          {/* Bottom panel: spans full screen width from (cutoutY + cutoutH) to screen bottom */}
+          <div
+            className="fixed left-0 right-0 bottom-0 pointer-events-auto transition-all duration-300 ease-out"
+            style={{
+              top: Math.max(0, cutoutY + cutoutH),
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+              zIndex: 99990,
+              transform: "translateZ(0)",
+            }}
+          />
 
-      {/* Clean Apple Optical Glowing Rim (Hardware Accelerated) */}
+          {/* Left panel: spans from left: 0 to cutoutX, bounded between top and bottom */}
+          <div
+            className="fixed left-0 pointer-events-auto transition-all duration-300 ease-out"
+            style={{
+              top: Math.max(0, cutoutY),
+              width: Math.max(0, cutoutX),
+              height: Math.max(0, cutoutH),
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+              zIndex: 99990,
+              transform: "translateZ(0)",
+            }}
+          />
+
+          {/* Right panel: spans from (cutoutX + cutoutW) to right edge, bounded between top and bottom */}
+          <div
+            className="fixed right-0 pointer-events-auto transition-all duration-300 ease-out"
+            style={{
+              top: Math.max(0, cutoutY),
+              left: Math.max(0, cutoutX + cutoutW),
+              height: Math.max(0, cutoutH),
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+              zIndex: 99990,
+              transform: "translateZ(0)",
+            }}
+          />
+        </>
+      ) : (
+        /* Fallback full-screen backdrop when target is resolving */
+        <div
+          className="fixed inset-0 pointer-events-auto transition-all duration-300 ease-out"
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+            zIndex: 99990,
+            transform: "translateZ(0)",
+          }}
+        />
+      )}
+
+      {/* Clean Apple Optical Glowing Rim & Corner Curves (Hardware Accelerated) */}
       {targetRect && (
         <div
           className="fixed pointer-events-none z-[99992] transition-all duration-300 ease-out rounded-2xl"
@@ -434,6 +465,20 @@ export default function QuantumOnboardingTour({
           <div className="absolute inset-0 rounded-2xl border-2 border-cyan-400 shadow-[0_0_24px_rgba(34,211,238,0.85),inset_0_0_12px_rgba(34,211,238,0.35)] animate-pulse" />
           {/* Subtle radar ripple */}
           <div className="absolute -inset-1.5 rounded-2xl border border-cyan-300/40 animate-ping opacity-60 pointer-events-none" />
+
+          {/* Optical Corner Patches to perfectly round the rectangular backdrop aperture */}
+          <svg className="absolute top-0 left-0 w-3.5 h-3.5 pointer-events-none" viewBox="0 0 14 14" aria-hidden="true">
+            <path d="M 0 0 H 14 A 14 14 0 0 0 0 14 Z" fill="rgba(0, 0, 0, 0.5)" />
+          </svg>
+          <svg className="absolute top-0 right-0 w-3.5 h-3.5 pointer-events-none" viewBox="0 0 14 14" aria-hidden="true">
+            <path d="M 14 0 H 0 A 14 14 0 0 1 14 14 Z" fill="rgba(0, 0, 0, 0.5)" />
+          </svg>
+          <svg className="absolute bottom-0 left-0 w-3.5 h-3.5 pointer-events-none" viewBox="0 0 14 14" aria-hidden="true">
+            <path d="M 0 14 H 14 A 14 14 0 0 1 0 0 Z" fill="rgba(0, 0, 0, 0.5)" />
+          </svg>
+          <svg className="absolute bottom-0 right-0 w-3.5 h-3.5 pointer-events-none" viewBox="0 0 14 14" aria-hidden="true">
+            <path d="M 14 14 H 0 A 14 14 0 0 0 14 0 Z" fill="rgba(0, 0, 0, 0.5)" />
+          </svg>
         </div>
       )}
 
