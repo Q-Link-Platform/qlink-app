@@ -523,9 +523,10 @@ html.black .border-slate-500\/60 {
 }
 
 /* Hide scrollbars completely */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.scrollbar-hide,
+[data-scrollbar-hide] {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
@@ -1742,13 +1743,28 @@ body {
 }
 
 /* Subtle dark scrollbars to match the glass UI - strictly excluding html and body */
-*:not(html):not(body) {
+/* While onboarding tour is active, suppress all scrollbars globally */
+html[data-tour-active],
+html[data-tour-active] body,
+html[data-tour-active] * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+html[data-tour-active]::-webkit-scrollbar,
+html[data-tour-active] body::-webkit-scrollbar,
+html[data-tour-active] *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+*:not(html):not(body):not(.scrollbar-hide):not([data-scrollbar-hide]) {
   scrollbar-width: thin;
   /* Firefox */
   scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
 }
 
-*:not(html):not(body)::-webkit-scrollbar {
+*:not(html):not(body):not(.scrollbar-hide):not([data-scrollbar-hide])::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }

@@ -131,16 +131,18 @@ export default function QuantumOnboardingTour({
     return () => setMounted(false);
   }, []);
 
-  // Lock horizontal scroll completely while guide is active to prevent any horizontal shifts
+  // Lock horizontal scroll and suppress scrollbars while guide is active
   useEffect(() => {
     if (!isOpen) return;
     if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-tour-active", "true");
       document.documentElement.style.overflowX = "hidden";
       document.body.style.overflowX = "hidden";
       window.scrollTo({ left: 0 });
     }
     return () => {
       if (typeof document !== "undefined") {
+        document.documentElement.removeAttribute("data-tour-active");
         document.documentElement.style.overflowX = "";
         document.body.style.overflowX = "";
       }
@@ -374,6 +376,22 @@ export default function QuantumOnboardingTour({
       className="fixed inset-0 z-[99990] overflow-hidden select-none pointer-events-none"
       style={{ overflow: "hidden" }}
     >
+      {/* Global scrollbar killer while tour is active: ensures zero scrollbars bleed through backdrop or around cards */}
+      <style jsx global>{`
+        html[data-tour-active],
+        html[data-tour-active] body,
+        html[data-tour-active] * {
+          scrollbar-width: none !important;
+          -ms-overflow-style: none !important;
+        }
+        html[data-tour-active]::-webkit-scrollbar,
+        html[data-tour-active] body::-webkit-scrollbar,
+        html[data-tour-active] *::-webkit-scrollbar {
+          display: none !important;
+          width: 0px !important;
+          height: 0px !important;
+        }
+      `}</style>
       {/* 4-Quadrant Optical Backdrop Overlay: 100% bug-free, zero SVG mask 150px clipping, full screen coverage */}
       {targetRect ? (
         <>
