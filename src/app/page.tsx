@@ -9165,14 +9165,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             ✓
                           </span>
                         )}
-                        {/* Hide Edit for the reserved founder VIP handle for everyone except the owner */}
-                        {!(isVipHandle(quantumId) && meEmail !== "rohiterrors@gmail.com") && (
+                        {/* Edit handle button: unconditionally rendered during onboarding tour */}
+                        {(!(isVipHandle(quantumId) && meEmail !== "rohiterrors@gmail.com") || showGuide) && (
                           <button
+                            id="tour-edit-profile-btn"
                             data-tour="edit-id"
                             type="button"
                             onClick={startEditingHandle}
                             className={
-                              "rounded-full border bg-slate-900/70 px-2 py-0.5 text-[10px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 " +
+                              "rounded-full border bg-slate-900/70 px-2.5 py-0.5 text-[10px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 transition-all cursor-pointer " +
                               (highlightEditId
                                 ? "glow-pulse border-cyan-400/80"
                                 : "border-slate-500/70")

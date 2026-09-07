@@ -24,7 +24,7 @@ export const TOUR_STEPS: TourStep[] = [
   },
   {
     id: 1,
-    selector: '[data-tour="edit-id"]',
+    selector: '[data-tour="edit-id"], #tour-edit-profile-btn',
     category: "Edit Profile",
     title: "Change your username",
     description:
@@ -147,6 +147,17 @@ export default function QuantumOnboardingTour({
     };
   }, [isOpen]);
 
+  // Helper to find target element with resilient fallbacks
+  const findTargetElement = useCallback((): HTMLElement | null => {
+    let el = document.querySelector<HTMLElement>(currentStep.selector);
+    if (!el && currentStep.id === 1) {
+      el = document.querySelector<HTMLElement>(
+        '#tour-edit-profile-btn, [data-tour="edit-id"], [data-tour="quantum-id"] button'
+      );
+    }
+    return el;
+  }, [currentStep]);
+
   // Measure and update the spotlight target rectangle
   const measureTarget = useCallback(() => {
     if (!isOpen) return;
@@ -156,7 +167,7 @@ export default function QuantumOnboardingTour({
       window.scrollTo({ left: 0 });
     }
 
-    const el = document.querySelector(currentStep.selector);
+    const el = findTargetElement();
     if (!el) {
       setTargetRect(null);
       return;
@@ -173,13 +184,13 @@ export default function QuantumOnboardingTour({
       right: rect.right,
       bottom: rect.bottom,
     });
-  }, [isOpen, currentStep.selector]);
+  }, [isOpen, findTargetElement]);
 
   // Auto-scroll target element vertically ONLY (never horizontal!)
   const scrollTargetIntoView = useCallback(() => {
     if (!isOpen) return;
 
-    const el = document.querySelector(currentStep.selector);
+    const el = findTargetElement();
     if (!el) return;
 
     const rect = el.getBoundingClientRect();
@@ -208,7 +219,29 @@ export default function QuantumOnboardingTour({
       measureTarget();
       if (typeof window !== "undefined") window.scrollTo({ left: 0 });
     }, 280);
-  }, [isOpen, currentStep.selector, measureTarget]);
+  }, [isOpen, findTargetElement, measureTarget]);
+
+  // Isolate active element: Lift active target element dynamically into a clean z-index stacking context (Requirement 3)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const el = findTargetElement();
+    if (!el) return;
+
+    const originalPosition = el.style.position;
+    const originalZIndex = el.style.zIndex;
+    const originalIsolation = el.style.isolation;
+
+    el.style.position = originalPosition && originalPosition !== "static" ? originalPosition : "relative";
+    el.style.zIndex = "99994";
+    el.style.isolation = "isolate";
+
+    return () => {
+      el.style.position = originalPosition;
+      el.style.zIndex = originalZIndex;
+      el.style.isolation = originalIsolation;
+    };
+  }, [isOpen, findTargetElement, step]);
 
   // When step changes, initiate auto-scroll and remeasure
   useEffect(() => {
@@ -235,7 +268,7 @@ export default function QuantumOnboardingTour({
     };
   }, [isOpen, measureTarget]);
 
-  // Calculate Card & Pointer Positions
+  // Calculate Card & Pointer Positions directly adjacent to target element (Requirement 4)
   useLayoutEffect(() => {
     if (!isOpen) return;
 
@@ -248,7 +281,7 @@ export default function QuantumOnboardingTour({
     const cardW = isMobile ? Math.min(vw - 32, 340) : (card?.offsetWidth || 340);
     const cardH = card?.offsetHeight || 190;
     const padding = 16;
-    const offset = 20;
+    const offset = 14;
 
     if (!targetRect) {
       setCardTop(Math.max(padding, (vh - cardH) / 2));
@@ -283,13 +316,13 @@ export default function QuantumOnboardingTour({
       }
     }
 
-    // Horizontal placement clamped safely
+    // Contextual placement: Center card horizontally under target element, constrained within safe viewport
     let calculatedLeft = targetCenterX - cardW / 2;
     calculatedLeft = Math.max(padding, Math.min(vw - cardW - padding, calculatedLeft));
     calculatedTop = Math.max(padding, Math.min(vh - cardH - padding, calculatedTop));
 
-    // Pointer slides horizontally across the card to align directly with the target
-    const calculatedPointerOffset = Math.max(24, Math.min(cardW - 32, targetCenterX - calculatedLeft));
+    // Pointer aligns directly with the target element's center axis
+    const calculatedPointerOffset = Math.max(28, Math.min(cardW - 36, targetCenterX - calculatedLeft));
 
     setCardPlacement(placement);
     setCardTop(calculatedTop);
@@ -370,13 +403,13 @@ export default function QuantumOnboardingTour({
         </defs>
       </svg>
 
-      {/* Real Fullscreen Translucent Blurred Backdrop HTML Div with GPU Hardware Acceleration */}
+      {/* Fullscreen Backdrop with Uniform Blur & Dark Tint (Requirement 2: blur(4px), rgba(0,0,0,0.5)) */}
       <div
-        className="fixed inset-0 z-[99991] pointer-events-none transition-all duration-300 ease-out"
+        className="fixed inset-0 z-[9990] pointer-events-none transition-all duration-300 ease-out"
         style={{
-          backgroundColor: "rgba(8, 14, 26, 0.48)",
-          backdropFilter: "blur(16px) saturate(180%)",
-          WebkitBackdropFilter: "blur(16px) saturate(180%)",
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          backdropFilter: "blur(4px)",
+          WebkitBackdropFilter: "blur(4px)",
           mask: "url(#qlink-spotlight-mask)",
           WebkitMask: "url(#qlink-spotlight-mask)",
           transform: "translateZ(0)",
@@ -405,7 +438,7 @@ export default function QuantumOnboardingTour({
         </div>
       )}
 
-      {/* Interactive Quiet Luxury Popover Card */}
+      {/* Interactive Quiet Luxury Popover Card sitting on top of the blur overlay (Requirement 3: z-index 99995) */}
       <div
         ref={cardRef}
         role="dialog"
