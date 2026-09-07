@@ -342,22 +342,19 @@ export default function QuantumOnboardingTour({
       className="fixed inset-0 z-[99990] overflow-hidden select-none pointer-events-none"
       style={{ overflow: "hidden" }}
     >
-      {/* Real Fullscreen Backdrop HTML Div with mask: Covers 100% of the screen evenly */}
-      <div
-        className="fixed inset-0 z-[99991] bg-slate-950/85 backdrop-blur-md pointer-events-none transition-all duration-300 ease-out"
-        style={{
-          mask: "url(#qlink-spotlight-mask)",
-          WebkitMask: "url(#qlink-spotlight-mask)",
-        }}
-      />
-
-      {/* SVG Mask Definition (Hidden, purely defines mask aperture) */}
-      <svg className="fixed w-0 h-0 overflow-hidden pointer-events-none">
+      {/* Fullscreen SVG Definition: userSpaceOnUse mask matching exact viewport coordinates */}
+      <svg
+        className="fixed inset-0 w-full h-full pointer-events-none z-[99989]"
+        width="100%"
+        height="100%"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
         <defs>
           <mask id="qlink-spotlight-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
-            {/* White covers everything */}
-            <rect x="0" y="0" width="100vw" height="100vh" fill="#ffffff" />
-            {/* Black cuts out the spotlight aperture */}
+            {/* White covers 100% of viewport, letting translucent blur through */}
+            <rect x="0" y="0" width="100%" height="100%" fill="#ffffff" />
+            {/* Black punches the aperture hole over the targeted element */}
             {targetRect && (
               <rect
                 x={cutoutX}
@@ -373,7 +370,21 @@ export default function QuantumOnboardingTour({
         </defs>
       </svg>
 
-      {/* Clean Apple Optical Glowing Rim (NO CORNER BRACKETS!) */}
+      {/* Real Fullscreen Translucent Blurred Backdrop HTML Div with GPU Hardware Acceleration */}
+      <div
+        className="fixed inset-0 z-[99991] pointer-events-none transition-all duration-300 ease-out"
+        style={{
+          backgroundColor: "rgba(8, 14, 26, 0.48)",
+          backdropFilter: "blur(16px) saturate(180%)",
+          WebkitBackdropFilter: "blur(16px) saturate(180%)",
+          mask: "url(#qlink-spotlight-mask)",
+          WebkitMask: "url(#qlink-spotlight-mask)",
+          transform: "translateZ(0)",
+          willChange: "transform, backdrop-filter",
+        }}
+      />
+
+      {/* Clean Apple Optical Glowing Rim (Hardware Accelerated) */}
       {targetRect && (
         <div
           className="fixed pointer-events-none z-[99992] transition-all duration-300 ease-out rounded-2xl"
@@ -383,6 +394,8 @@ export default function QuantumOnboardingTour({
             width: cutoutW,
             height: cutoutH,
             borderRadius: cutoutRx,
+            transform: "translateZ(0)",
+            willChange: "transform, top, left, width, height",
           }}
         >
           {/* Continuous neon pulse ring */}
@@ -404,6 +417,8 @@ export default function QuantumOnboardingTour({
           left: isMobileScreen ? 16 : cardLeft,
           width: isMobileScreen ? "calc(100vw - 32px)" : 340,
           maxWidth: "calc(100vw - 32px)",
+          transform: "translateZ(0)",
+          willChange: "transform, top, left",
         }}
       >
         {/* Prominent Floating Focus Hand/Arrow Indicator: Aligns directly with target element */}
