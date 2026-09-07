@@ -8604,12 +8604,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                         fetchComments(post.id);
                                                       }
                                                     }}
-                                                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-all ${directoryOpenCommentsPostId === post.id
-                                                        ? 'bg-blue-500/20 border-blue-400/60 text-blue-300'
-                                                        : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-blue-400/60'
+                                                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-all duration-200 cursor-pointer ${directoryOpenCommentsPostId === post.id
+                                                        ? 'bg-blue-500/25 border-blue-400/70 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
+                                                        : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-blue-400/60 hover:text-blue-200'
                                                       }`}
                                                   >
-                                                    Comment
+                                                    <svg className="w-3 h-3 text-blue-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                                      <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+                                                    </svg>
+                                                    <span>Comment</span>
+                                                    <span className={`inline-flex items-center justify-center rounded-full px-1.5 py-0.2 text-[9px] font-bold tracking-tight ${directoryOpenCommentsPostId === post.id
+                                                        ? 'bg-blue-400/30 text-blue-200'
+                                                        : 'bg-slate-800 text-slate-300 border border-slate-700/60'
+                                                      }`}>
+                                                      {postComments[post.id]?.length ?? (post?._count?.comments || 0)}
+                                                    </span>
                                                   </button>
                                                 </div>
 
@@ -8621,10 +8630,30 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                               </div>
 
                                               {directoryOpenCommentsPostId === post.id && (
-                                                <div className="mt-2 rounded-xl border border-slate-700/60 bg-slate-950/70 p-2">
-                                                  <p className="text-[10px] font-semibold text-slate-200">
-                                                    Comments
-                                                  </p>
+                                                <div className="mt-2.5 rounded-2xl border border-slate-700/70 bg-slate-950/85 backdrop-blur-md p-3 shadow-2xl transition-all">
+                                                  {/* YouTube-style Container Header */}
+                                                  <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2.5">
+                                                    <div className="flex items-center gap-2">
+                                                      <span className="text-[10.5px] font-bold text-slate-100 flex items-center gap-1.5 tracking-wide uppercase">
+                                                        <svg className="w-3.5 h-3.5 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                                                          <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+                                                        </svg>
+                                                        Comments
+                                                      </span>
+                                                      <span className="rounded-full bg-blue-500/20 border border-blue-400/30 px-2 py-0.2 text-[9px] font-bold text-blue-300">
+                                                        {postComments[post.id]?.length ?? (post?._count?.comments || 0)}
+                                                      </span>
+                                                    </div>
+                                                    <button
+                                                      type="button"
+                                                      onClick={() => setDirectoryOpenCommentsPostId(null)}
+                                                      className="flex items-center gap-1 rounded-full border border-slate-700/60 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-500 px-2 py-0.5 text-[9.5px] text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                                                      title="Close comments"
+                                                    >
+                                                      <span>✕</span>
+                                                      <span>Close</span>
+                                                    </button>
+                                                  </div>
 
                                                   {/* Comment Input */}
                                                   {(session?.user as any)?.id && (
@@ -8653,8 +8682,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                     </div>
                                                   )}
 
-                                                  {/* Comments List */}
-                                                  <div className="mt-3 space-y-2 max-h-60 overflow-y-auto scrollbar-hide">
+                                                  {/* Comments List - YouTube style bounded internal scroll */}
+                                                  <div className="mt-2.5 space-y-2 max-h-56 sm:max-h-64 overflow-y-auto custom-directory-scroll pr-1">
                                                     {commentsLoading[post.id] ? (
                                                        <PostCommentsSkeleton />
                                                      ) : postComments[post.id]?.length > 0 ? (
@@ -8892,12 +8921,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                   fetchComments(post.id);
                                                 }
                                               }}
-                                              className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer ${directoryOpenCommentsPostId === post.id
-                                                  ? 'bg-blue-500/20 border-blue-400/60 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.15)]'
+                                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase transition-all duration-200 cursor-pointer ${directoryOpenCommentsPostId === post.id
+                                                  ? 'bg-blue-500/25 border-blue-400/70 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
                                                   : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-blue-400/60 hover:text-blue-200'
                                                 }`}
                                             >
-                                              Comment
+                                              <svg className="w-3.5 h-3.5 text-blue-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+                                              </svg>
+                                              <span>Comment</span>
+                                              <span className={`inline-flex items-center justify-center rounded-full px-1.5 py-0.2 text-[9px] font-bold tracking-tight ${directoryOpenCommentsPostId === post.id
+                                                  ? 'bg-blue-400/30 text-blue-200'
+                                                  : 'bg-slate-800 text-slate-300 border border-slate-700/60'
+                                                }`}>
+                                                {postComments[post.id]?.length ?? (post?._count?.comments || 0)}
+                                              </span>
                                             </button>
                                           </div>
 
@@ -8910,8 +8948,30 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                                         {/* Comments Section */}
                                         {directoryOpenCommentsPostId === post.id && (
-                                          <div className="mt-3.5 rounded-2xl border border-slate-700/60 bg-slate-950/70 p-3 shadow-inner">
-                                            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mb-2">Comments</p>
+                                          <div className="mt-3.5 rounded-2xl border border-slate-700/70 bg-slate-950/85 backdrop-blur-md p-3.5 shadow-2xl transition-all">
+                                            {/* YouTube-style Container Header */}
+                                            <div className="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-2.5">
+                                              <div className="flex items-center gap-2">
+                                                <span className="text-[10.5px] font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                                                  <svg className="w-3.5 h-3.5 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+                                                  </svg>
+                                                  Comments
+                                                </span>
+                                                <span className="rounded-full bg-blue-500/20 border border-blue-400/30 px-2 py-0.2 text-[9px] font-bold text-blue-300">
+                                                  {postComments[post.id]?.length ?? (post?._count?.comments || 0)}
+                                                </span>
+                                              </div>
+                                              <button
+                                                type="button"
+                                                onClick={() => setDirectoryOpenCommentsPostId(null)}
+                                                className="flex items-center gap-1 rounded-full border border-slate-700/60 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-500 px-2 py-0.5 text-[9.5px] text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                                                title="Close comments"
+                                              >
+                                                <span>✕</span>
+                                                <span>Close</span>
+                                              </button>
+                                            </div>
 
                                             {/* Comment Input */}
                                             {(session?.user as any)?.id && (
@@ -8940,8 +9000,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                               </div>
                                             )}
 
-                                            {/* Comments List */}
-                                            <div className="mt-3.5 space-y-2 max-h-60 overflow-y-auto scrollbar-hide">
+                                            {/* Comments List - YouTube style bounded internal scroll */}
+                                            <div className="mt-3 space-y-2 max-h-60 sm:max-h-68 overflow-y-auto custom-directory-scroll pr-1">
                                               {commentsLoading[post.id] ? (
                                                        <PostCommentsSkeleton />
                                                      ) : postComments[post.id]?.length > 0 ? (
@@ -11023,12 +11083,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                             fetchConsolePostComments(p.id);
                                           }
                                         }}
-                                        className={`rounded-full border px-2 py-0.5 text-[9px] font-medium transition-all ${consoleOpenCommentsPostId === p.id
-                                            ? 'bg-blue-500/20 border-blue-400/60 text-blue-300'
+                                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[9px] font-medium transition-all duration-200 cursor-pointer ${consoleOpenCommentsPostId === p.id
+                                            ? 'bg-blue-500/25 border-blue-400/70 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.25)]'
                                             : 'border-slate-600/60 bg-slate-800/60 text-slate-300 hover:border-blue-400/60'
                                           }`}
                                       >
-                                        💬 {p?._count?.comments || 0}
+                                        <svg className="w-3 h-3 text-blue-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                          <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+                                        </svg>
+                                        <span>Comment</span>
+                                        <span className={`inline-flex items-center justify-center rounded-full px-1.5 py-0.2 text-[8px] font-bold tracking-tight ${consoleOpenCommentsPostId === p.id
+                                            ? 'bg-blue-400/30 text-blue-200'
+                                            : 'bg-slate-700/80 text-slate-300 border border-slate-600/60'
+                                          }`}>
+                                          {consolePostComments[p.id]?.length ?? (p?._count?.comments || 0)}
+                                        </span>
                                       </button>
                                     </div>
                                     <div className="flex items-center gap-1 text-[8px] text-slate-500">
@@ -11038,10 +11107,30 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                                   {/* Comments Section */}
                                   {consoleOpenCommentsPostId === p.id && (
-                                    <div className="mt-3 rounded-xl border border-slate-700/60 bg-slate-950/70 p-2">
-                                      <p className="text-[10px] font-semibold text-slate-200 mb-2">
-                                        Comments
-                                      </p>
+                                    <div className="mt-3 rounded-2xl border border-slate-700/70 bg-slate-950/85 backdrop-blur-md p-2.5 shadow-xl transition-all">
+                                      {/* YouTube-style Container Header */}
+                                      <div className="flex items-center justify-between border-b border-slate-800/80 pb-1.5 mb-2">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="text-[9.5px] font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1">
+                                            <svg className="w-3 h-3 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                                              <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+                                            </svg>
+                                            Comments
+                                          </span>
+                                          <span className="rounded-full bg-blue-500/20 border border-blue-400/30 px-1.5 py-0.2 text-[8px] font-bold text-blue-300">
+                                            {consolePostComments[p.id]?.length ?? (p?._count?.comments || 0)}
+                                          </span>
+                                        </div>
+                                        <button
+                                          type="button"
+                                          onClick={() => setConsoleOpenCommentsPostId(null)}
+                                          className="flex items-center gap-0.5 rounded-full border border-slate-700/60 bg-slate-900/60 hover:bg-slate-800 hover:border-slate-500 px-1.5 py-0.2 text-[8.5px] text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                                          title="Close comments"
+                                        >
+                                          <span>✕</span>
+                                          <span>Close</span>
+                                        </button>
+                                      </div>
 
                                       {/* Comment Input */}
                                       {(session?.user as any)?.id && (
@@ -11070,8 +11159,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                         </div>
                                       )}
 
-                                      {/* Comments List */}
-                                      <div className="space-y-2 max-h-40 overflow-y-auto scrollbar-hide">
+                                      {/* Comments List - YouTube style bounded internal scroll */}
+                                      <div className="space-y-2 max-h-52 sm:max-h-60 overflow-y-auto custom-directory-scroll pr-1">
                                         {consoleCommentsLoading[p.id] ? (
                                           <PostCommentsSkeleton />
                                         ) : consolePostComments[p.id]?.length > 0 ? (
