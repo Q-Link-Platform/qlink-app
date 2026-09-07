@@ -2571,6 +2571,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       // ignore
     }
     setShowInstallPrompt(false);
+    // User selected install on shortcut screen: now start tour guide
+    startTourGuideIfEligible();
   };
 
   // Onboarding state for new users
@@ -2599,6 +2601,23 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     "History", "Politics", "Law", "Education", "Research", "DIY Projects", "Sustainability"
   ];
 
+  // Helper to start the tour guide only when all onboarding & shortcut modals are dismissed
+  const startTourGuideIfEligible = () => {
+    if (typeof window === "undefined") return;
+    try {
+      const hasSeenGuide = window.localStorage.getItem("qc_seen_guide_v1");
+      if (!hasSeenGuide) {
+        // Small delay for smooth exit transition of preceding modal
+        setTimeout(() => {
+          setShowGuide(true);
+          setGuideStep(0);
+        }, 350);
+      }
+    } catch {
+      // ignore
+    }
+  };
+
   // Onboarding handlers
   const handleSkipOnboarding = () => {
     setShowOnboarding(false);
@@ -2606,6 +2625,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     // Mark onboarding as completed so it doesn't auto-open again
     if (typeof window !== "undefined") {
       localStorage.setItem("qc_onboarding_completed", "true");
+      const installedOrSkipped = localStorage.getItem("qc_pwa_install_seen_v1");
+      if (!installedOrSkipped) {
+        // Step 2: Show shortcut prompt (second reference screen)
+        setTimeout(() => {
+          setShowInstallPrompt(true);
+        }, 250);
+      } else {
+        // Shortcut prompt already completed previously, start tour guide
+        startTourGuideIfEligible();
+      }
     }
   };
 
@@ -2649,10 +2678,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       window.localStorage.setItem("qc_onboarding_completed", "true");
     }
 
-    // For first-time users, immediately show the "How this works" guide
-    // so they understand the main panels after finishing onboarding.
-    setShowGuide(true);
-    setGuideStep(0);
+    // Step 2: When onboarding steps complete, show shortcut prompt (second reference screen)
+    if (typeof window !== "undefined") {
+      const installedOrSkipped = window.localStorage.getItem("qc_pwa_install_seen_v1");
+      if (!installedOrSkipped) {
+        setTimeout(() => {
+          setShowInstallPrompt(true);
+        }, 250);
+      } else {
+        // Shortcut already completed in past, launch tour guide
+        startTourGuideIfEligible();
+      }
+    }
 
     // TODO: Save selected interests, bio, age, gender to backend
   };
@@ -2723,13 +2760,25 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         const isExistingUser = await checkExistingUser();
 
         if (!hasCompletedOnboarding && !isExistingUser) {
+          // First time user: show Welcome screen ONLY.
+          // Tour guide & shortcut modal are strictly held back until onboarding is done.
           setShowOnboarding(true);
           setIsFirstAutoOnboarding(true);
-        }
-
-        if (!hasSeenGuide && !isExistingUser) {
-          setShowGuide(true);
-          setGuideStep(0);
+        } else {
+          // Returning user who completed or skipped onboarding previously
+          const hasSeenInstallPrompt = localStorage.getItem("qc_pwa_install_seen_v1");
+          if (!hasSeenInstallPrompt && !isExistingUser) {
+            // Show shortcut prompt if not seen yet
+            setTimeout(() => {
+              setShowInstallPrompt(true);
+            }, 300);
+          } else if (!hasSeenGuide && !isExistingUser) {
+            // Both onboarding and shortcut are done, launch tour guide smoothly
+            setTimeout(() => {
+              setShowGuide(true);
+              setGuideStep(0);
+            }, 500);
+          }
         }
       }
     };
@@ -5546,7 +5595,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       // Only show our own custom UI
       e.preventDefault();
       setInstallPromptEvent(e);
-      if (!installedOrSkipped) {
+      const onboardingCompleted = window.localStorage.getItem("qc_onboarding_completed");
+      if (!installedOrSkipped && onboardingCompleted) {
         setShowInstallPrompt(true);
       }
     };
@@ -5565,10 +5615,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     window.addEventListener("appinstalled", handleAppInstalled as any);
 
     // Fallback: if the browser never fires beforeinstallprompt, still show
-    // the shortcut screen once for new users after a short delay.
+    // the shortcut screen once for new users after a short delay, provided onboarding is completed.
     if (!installedOrSkipped) {
       const id = window.setTimeout(() => {
-        setShowInstallPrompt((current) => (current ? current : true));
+        const onboardingCompleted = window.localStorage.getItem("qc_onboarding_completed");
+        if (onboardingCompleted) {
+          setShowInstallPrompt((current) => (current ? current : true));
+        }
       }, 4000);
       return () => {
         window.clearTimeout(id);
@@ -6549,14 +6602,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   };
 
-  const highlightQuantumId = showGuide && guideStep === 0;
-  const highlightEditId = showGuide && guideStep === 1;
-  const highlightConnect = showGuide && guideStep === 2;
-  const highlightRequests = showGuide && guideStep === 3;
-  const highlightChatPanel = showGuide && guideStep === 4;
-  const highlightFullChat = showGuide && guideStep === 5;
-  const highlightConsole = showGuide && guideStep === 6;
-  const highlightSettingsPill = showGuide && guideStep === 7;
+  const isTourModalBlocked = showOnboarding || showInstallPrompt;
+  const highlightQuantumId = showGuide && !isTourModalBlocked && guideStep === 0;
+  const highlightEditId = showGuide && !isTourModalBlocked && guideStep === 1;
+  const highlightConnect = showGuide && !isTourModalBlocked && guideStep === 2;
+  const highlightRequests = showGuide && !isTourModalBlocked && guideStep === 3;
+  const highlightChatPanel = showGuide && !isTourModalBlocked && guideStep === 4;
+  const highlightFullChat = showGuide && !isTourModalBlocked && guideStep === 5;
+  const highlightConsole = showGuide && !isTourModalBlocked && guideStep === 6;
+  const highlightSettingsPill = showGuide && !isTourModalBlocked && guideStep === 7;
 
   const advanceGuide = () => {
     const next = guideStep + 1;
@@ -7141,6 +7195,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       // ignore
     }
     setShowInstallPrompt(false);
+    // User selected their choice on shortcut screen: now start tour guide
+    startTourGuideIfEligible();
   };
 
   const handleProfilePicUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -7321,7 +7377,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }}
     >
       <div style={{ width: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: isChatExpanded ? '100%' : 'auto', flex: isChatExpanded ? '1' : 'unset', overflowAnchor: 'none' }}>
-        {showInstallPrompt && (
+        {showInstallPrompt && !showOnboarding && (
           <div className="pointer-events-auto fixed inset-0 z-45 flex items-center justify-center bg-slate-950/80 px-4">
             <div className="max-w-md w-full rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-5 text-xs text-slate-100 shadow-[0_0_50px_rgba(6,182,212,0.25)] backdrop-blur-md">
               <p className="text-sm font-bold text-cyan-400 font-mono uppercase tracking-wider">
@@ -9214,9 +9270,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             }
           }
         `}</style>
-          {showGuide && (
+          {showGuide && !showOnboarding && !showInstallPrompt && (
             <QuantumOnboardingTour
-              isOpen={showGuide}
+              isOpen={showGuide && !showOnboarding && !showInstallPrompt}
               step={guideStep}
               onStepChange={setGuideStep}
               onClose={() => {
