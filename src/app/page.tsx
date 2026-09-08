@@ -5394,7 +5394,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     });
   };
 
-  const isFounder = (session?.user as any)?.handle === "Rohit_7779";
+  const isFounder = (session?.user as any)?.handle === "Rohit_7779" || (session?.user as any)?.handle === "MR_ROHIT" || session?.user?.email === "rohiterrors@gmail.com";
 
   const handleOpenFounderGrantModal = (handle: string) => {
     setFounderGrantTarget(handle);
@@ -9525,16 +9525,22 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     data-tour="quantum-id"
                     className="flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-950/50 border border-slate-700/60 transition-all scrollbar-hide"
                   >
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-400">
+                          Quantum Operator
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-1.5 py-0.2 text-[8.5px] font-mono text-emerald-400">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                          <span>NODE ACTIVE</span>
+                        </span>
+                      </div>
                       {displayName && !editingHandle && (
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-slate-100">
-                            {displayName}
-                          </span>
                           <button
                             type="button"
                             onClick={() => profilePicInputRef.current?.click()}
-                            className="h-5 w-5 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 hover:border-cyan-400/70 flex items-center justify-center text-[10px] text-cyan-300 hover:text-cyan-200 transition-all duration-300 shadow-[0_0_8px_rgba(34,211,238,0.3)] hover:shadow-[0_0_12px_rgba(34,211,238,0.5)] animate-pulse cursor-pointer"
+                            className="relative h-6 w-6 rounded-full bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 hover:border-cyan-400/70 flex items-center justify-center text-[10px] text-cyan-300 hover:text-cyan-200 transition-all duration-300 shadow-[0_0_8px_rgba(34,211,238,0.3)] hover:shadow-[0_0_12px_rgba(34,211,238,0.5)] cursor-pointer overflow-hidden flex-shrink-0"
                             title="Upload profile picture"
                           >
                             {profilePicUrl ? (
@@ -9542,12 +9548,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                 src={profilePicUrl}
                                 alt="Profile"
                                 referrerPolicy="no-referrer"
-                                className="h-5 w-5 rounded-full object-cover"
+                                className="h-full w-full rounded-full object-cover"
                               />
                             ) : (
-                              <span className="text-cyan-400 text-[16px] leading-none">+</span>
+                              <span className="text-cyan-400 text-xs font-bold leading-none">+</span>
                             )}
                           </button>
+                          <span className="text-xs sm:text-sm font-semibold text-slate-100 tracking-tight">
+                            {displayName}
+                          </span>
+                          {isVipHandle(quantumId) ? (
+                            <span className="inline-flex items-center rounded-full bg-red-500/15 border border-red-500/40 px-1.5 py-0.2 text-[8px] font-bold text-red-300 shadow-[0_0_8px_rgba(239,68,68,0.3)]">
+                              ⚡ FOUNDER
+                            </span>
+                          ) : effectiveBlueTickStatus === "SAPPHIRE" ? (
+                            <span className="inline-flex items-center rounded-full bg-sky-500/15 border border-sky-500/40 px-1.5 py-0.2 text-[8px] font-bold text-sky-300 shadow-[0_0_8px_rgba(56,189,248,0.3)]">
+                              💎 SAPPHIRE
+                            </span>
+                          ) : null}
                           <input
                             ref={profilePicInputRef}
                             type="file"
@@ -9565,8 +9583,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       )}
                     </div>
                     {editingHandle ? (
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="font-mono text-[11px] text-slate-400">
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-400">
                           Your Quantum ID
                         </span>
                         <div className="flex items-center gap-2">
@@ -9607,8 +9625,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="font-mono text-[11px] text-slate-400">
+                      <div className="flex flex-col items-end gap-1.5">
+                        <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-400">
                           Your Quantum ID
                         </span>
                         <div className="flex items-center gap-2">
@@ -9972,6 +9990,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                   </div>
 
                                   <div className="flex items-center gap-1.5">
+                                    {isFounder && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleOpenFounderGrantModal(f.peerHandle);
+                                        }}
+                                        className="inline-flex items-center justify-center h-6 w-6 rounded-full border border-fuchsia-400/80 bg-fuchsia-500/15 text-xs text-fuchsia-200 hover:bg-fuchsia-500/30 hover:border-fuchsia-300 shadow-[0_0_10px_rgba(240,46,170,0.3)] active:scale-90 transition-all cursor-pointer shrink-0"
+                                        title={`Grant QP to @${f.peerHandle}`}
+                                      >
+                                        💎
+                                      </button>
+                                    )}
                                     <span className="rounded-full border border-emerald-400/40 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
                                       Connected
                                     </span>
