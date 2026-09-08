@@ -524,7 +524,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                   ? "fixed inset-0 z-[9999] flex h-[100dvh] w-screen overflow-hidden"
                   : isFocusMode
                     ? "hidden"
-                    : "flex h-auto min-h-full flex-1 flex-col px-4 lg:px-6 py-4 overflow-visible")
+                    : "flex h-auto min-h-full flex-1 flex-col px-1 sm:px-4 lg:px-6 py-4 overflow-visible")
               }
             >
               {isDraggingFile && (

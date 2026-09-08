@@ -9350,7 +9350,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   ? "hidden"
                   : isFocusMode
                     ? "fixed inset-0 z-[9999] bg-slate-950/95 overflow-y-auto px-0 py-0 flex flex-col"
-                    : "space-y-4 sm:space-y-6 px-4 lg:px-6 py-4"
+                    : "space-y-4 sm:space-y-6 px-1 sm:px-4 lg:px-6 py-4"
               }
             >
               <div className={isFocusMode ? "w-full min-h-screen relative flex flex-col" : "contents"}>
