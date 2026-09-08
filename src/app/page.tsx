@@ -1432,6 +1432,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [chatRoomId, setChatRoomId] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
+  const currentPeerFetchRef = useRef<string | null>(null);
+  const peerMessagesCacheRef = useRef<Map<string, ChatMessage[]>>(new Map());
   const [chatError, setChatError] = useState<string | null>(null);
   const [chatInput, setChatInput] = useState("");
   const [showMobileChatMore, setShowMobileChatMore] = useState(false);
@@ -5850,7 +5852,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           ) {
             return prev;
           }
-          return [...merged, ...brandNew];
+          const updated = [...merged, ...brandNew];
+          if (activePeerHandle) {
+            peerMessagesCacheRef.current.set(cleanHandle(activePeerHandle), updated);
+          }
+          return updated;
         });
 
         const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
@@ -6714,8 +6720,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   };
 
   const openChatWithPeer = async (peerHandle: string) => {
-    setActivePeerHandle(peerHandle);
-    setChatLoading(true);
+    const targetPeer = peerHandle.trim();
+    currentPeerFetchRef.current = targetPeer;
+    setActivePeerHandle(targetPeer);
     setChatError(null);
     setPeerOnline(null);
     setPeerLastSeen(null);
@@ -6723,14 +6730,27 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     lastOnlineRef.current = null;
     initialScrollDoneRef.current = null;
 
+    // Instant SWR Cache Check & strict state isolation:
+    const cacheKey = cleanHandle(targetPeer);
+    const cached = peerMessagesCacheRef.current.get(cacheKey);
+    if (cached && cached.length > 0) {
+      setChatMessages(cached);
+      setChatLoading(false);
+    } else {
+      // Immediately clear messages to prevent any ghost leak from previously viewed friend!
+      setChatMessages([]);
+      setChatLoading(true);
+    }
+
     try {
       const res = await fetch(
-        `/api/chat/history?peerHandle=${encodeURIComponent(peerHandle)}`
+        `/api/chat/history?peerHandle=${encodeURIComponent(targetPeer)}`
       );
+
+      // Discard response if user already navigated to another chat while request was in flight
+      if (currentPeerFetchRef.current !== targetPeer) return;
+
       if (!res.ok) {
-
-
-
         const data = await res.json().catch(() => ({}));
         setChatError(data.error || "Unable to load conversation.");
         setChatMessages([]);
@@ -6739,9 +6759,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
 
       const data = await res.json();
+      if (currentPeerFetchRef.current !== targetPeer) return;
+
       const peerKey = data.peer?.publicKeyString || null;
       const rawMessages = (data.messages as ChatMessage[]) || [];
       const decryptedMessages = await decryptMessageList(rawMessages, peerKey);
+
+      if (currentPeerFetchRef.current !== targetPeer) return;
 
       setChatRoomId((data.roomId as string) || null);
       setActivePeerPublicKey(peerKey);
@@ -6756,21 +6780,27 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         seenIds.add(m.id);
         return true;
       });
+
       setChatMessages(uniqueMessages);
+      peerMessagesCacheRef.current.set(cacheKey, uniqueMessages);
 
       // Update last seen message ID to local storage
       if (uniqueMessages.length > 0) {
         const lastMsg = uniqueMessages[uniqueMessages.length - 1];
-        localStorage.setItem(`qlink_last_msg_id_${cleanHandle(peerHandle)}`, lastMsg.id);
+        localStorage.setItem(`qlink_last_msg_id_${cleanHandle(targetPeer)}`, lastMsg.id);
       }
 
-      setUnreadMessages((prev) => markHandleAsRead(prev, peerHandle));
+      setUnreadMessages((prev) => markHandleAsRead(prev, targetPeer));
     } catch {
-      setChatError("Unable to load conversation.");
-      setChatMessages([]);
-      setChatRoomId(null);
+      if (currentPeerFetchRef.current === targetPeer) {
+        setChatError("Unable to load conversation.");
+        setChatMessages([]);
+        setChatRoomId(null);
+      }
     } finally {
-      setChatLoading(false);
+      if (currentPeerFetchRef.current === targetPeer) {
+        setChatLoading(false);
+      }
     }
   };
 
@@ -7362,6 +7392,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       ref={mainScrollRef}
       id="main-scroll-container"
       className="scrollbar-hide"
+      data-scrollbar-hide="true"
       style={{
         position: 'relative',
         display: 'flex',
@@ -11437,19 +11468,52 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   value={founderGrantAmount}
                   onChange={(e) => setFounderGrantAmount(e.target.value)}
                   placeholder="0"
-                  className="w-full bg-transparent py-2.5 text-base sm:text-lg font-bold font-mono text-slate-100 placeholder-slate-600 outline-none"
+                  className="w-full bg-transparent py-2.5 text-base sm:text-lg font-bold font-mono text-slate-100 placeholder-slate-600 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   min="1"
                   max="1000000"
                 />
-                {founderGrantAmount && (
-                  <button
-                    type="button"
-                    onClick={() => setFounderGrantAmount("")}
-                    className="text-slate-500 hover:text-slate-300 text-xs px-1 transition-colors cursor-pointer"
-                  >
-                    ✕
-                  </button>
-                )}
+                <div className="flex items-center gap-1.5 ml-1 shrink-0">
+                  {founderGrantAmount && (
+                    <button
+                      type="button"
+                      onClick={() => setFounderGrantAmount("")}
+                      className="text-slate-500 hover:text-slate-300 text-xs px-1.5 py-1 transition-colors cursor-pointer rounded-lg hover:bg-slate-800/60"
+                      title="Clear"
+                    >
+                      ✕
+                    </button>
+                  )}
+
+                  {/* Modern Minimalist Glass Micro-Stepper (Replaced clunky native browser grey spinner) */}
+                  <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800/90 bg-slate-900/60 p-0.5 shadow-inner">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = parseInt(founderGrantAmount || "0", 10);
+                        setFounderGrantAmount(Math.max(1, val + 1).toString());
+                      }}
+                      className="flex h-3.5 w-5 items-center justify-center rounded text-[8px] text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/20 active:scale-75 transition-all cursor-pointer"
+                      title="Increment"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = parseInt(founderGrantAmount || "0", 10);
+                        if (val > 1) {
+                          setFounderGrantAmount((val - 1).toString());
+                        } else {
+                          setFounderGrantAmount("");
+                        }
+                      }}
+                      className="flex h-3.5 w-5 items-center justify-center rounded text-[8px] text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/20 active:scale-75 transition-all cursor-pointer"
+                      title="Decrement"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 

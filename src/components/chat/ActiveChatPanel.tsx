@@ -157,66 +157,29 @@ function CustomAudioPlayer(props: { src: string }) {
    Alternating incoming and outgoing realistic message bubbles with
    hardware-accelerated cyan aurora sweeps and zero layout shift.
    ========================================================================== */
-function QuantumChatHistorySkeleton() {
+function QuantumChatHistorySkeleton({ peerHandle }: { peerHandle?: string | null } = {}) {
   return (
-    <div className="space-y-3 py-2 animate-in fade-in duration-200">
-      {/* Date separator skeleton */}
-      <div className="flex items-center gap-3 py-1 select-none">
-        <div className="flex-1 h-px bg-slate-800/60" />
-        <div className="h-4 w-24 rounded-full bg-slate-800/70 border border-slate-700/40" />
-        <div className="flex-1 h-px bg-slate-800/60" />
-      </div>
-
-      {/* 1. Incoming Message Bubble Skeleton (Left) */}
+    <div className="space-y-4 py-3 animate-in fade-in duration-200 select-none">
+      {/* 1. Subtle incoming message placeholder (Clean text outline, zero fake media) */}
       <div className="flex justify-start w-full">
-        <div className="quantum-skeleton-card max-w-[75%] rounded-2xl rounded-bl-sm border border-slate-700/50 bg-slate-900/80 px-3.5 py-2.5 space-y-1.5 shadow-sm relative overflow-hidden">
+        <div className="quantum-skeleton-card max-w-[65%] rounded-2xl rounded-bl-sm border border-slate-700/50 bg-slate-900/80 px-3.5 py-2.5 space-y-1.5 shadow-sm relative overflow-hidden">
           <div className="quantum-skeleton-shimmer" />
-          <div className="h-3 w-44 rounded-full bg-slate-800" />
-          <div className="h-3 w-28 rounded-full bg-slate-800/70" />
+          <div className="h-2.5 w-36 rounded-full bg-slate-800" />
+          <div className="h-2.5 w-24 rounded-full bg-slate-800/70" />
           <div className="flex justify-end pt-0.5">
-            <div className="h-2 w-10 rounded-full bg-slate-800/50" />
+            <div className="h-1.5 w-8 rounded-full bg-slate-800/50" />
           </div>
         </div>
       </div>
 
-      {/* 2. Outgoing Message Bubble Skeleton (Right) */}
+      {/* 2. Subtle outgoing message placeholder (Clean text outline, zero fake media) */}
       <div className="flex justify-end w-full">
-        <div className="quantum-skeleton-card max-w-[70%] rounded-2xl rounded-br-sm border border-cyan-500/40 bg-gradient-to-r from-cyan-950/60 to-sky-950/60 px-3.5 py-2.5 space-y-1.5 shadow-[0_0_15px_rgba(56,189,248,0.2)] relative overflow-hidden">
+        <div className="quantum-skeleton-card max-w-[60%] rounded-2xl rounded-br-sm border border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 to-sky-950/40 px-3.5 py-2.5 space-y-1.5 shadow-[0_0_12px_rgba(56,189,248,0.15)] relative overflow-hidden">
           <div className="quantum-skeleton-shimmer" />
-          <div className="h-3 w-36 rounded-full bg-cyan-800/40 border border-cyan-500/30" />
+          <div className="h-2.5 w-28 rounded-full bg-cyan-800/40 border border-cyan-500/20" />
           <div className="flex justify-end items-center gap-1 pt-0.5">
-            <div className="h-2 w-8 rounded-full bg-cyan-700/40" />
-            <div className="h-2 w-2 rounded-full bg-cyan-400/60" />
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Incoming Message Bubble Skeleton with Media Attachment Placeholder (Left) */}
-      <div className="flex justify-start w-full">
-        <div className="quantum-skeleton-card max-w-[80%] rounded-2xl rounded-bl-sm border border-slate-700/50 bg-slate-900/80 p-3 space-y-2 shadow-sm relative overflow-hidden">
-          <div className="quantum-skeleton-shimmer" />
-          <div className="h-3 w-52 rounded-full bg-slate-800" />
-          <div className="h-28 w-52 rounded-xl bg-slate-950/80 border border-slate-800/80 flex items-center justify-center relative overflow-hidden">
-            <div className="quantum-scanner-line" />
-            <div className="h-6 w-6 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-[10px] text-cyan-300">
-              ⚡
-            </div>
-          </div>
-          <div className="flex justify-end pt-0.5">
-            <div className="h-2 w-10 rounded-full bg-slate-800/50" />
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Outgoing Message Bubble Skeleton (Right) */}
-      <div className="flex justify-end w-full">
-        <div className="quantum-skeleton-card max-w-[65%] rounded-2xl rounded-br-sm border border-cyan-500/40 bg-gradient-to-r from-cyan-950/60 to-sky-950/60 px-3.5 py-2.5 space-y-1.5 shadow-[0_0_15px_rgba(56,189,248,0.2)] relative overflow-hidden">
-          <div className="quantum-skeleton-shimmer" />
-          <div className="h-3 w-48 rounded-full bg-cyan-800/40 border border-cyan-500/30" />
-          <div className="h-3 w-28 rounded-full bg-cyan-800/30" />
-          <div className="flex justify-end items-center gap-1 pt-0.5">
-            <div className="h-2 w-8 rounded-full bg-cyan-700/40" />
-            <div className="h-2 w-2 rounded-full bg-cyan-400/60" />
+            <div className="h-1.5 w-6 rounded-full bg-cyan-700/40" />
+            <div className="h-1.5 w-1.5 rounded-full bg-cyan-400/60" />
           </div>
         </div>
       </div>
@@ -556,12 +519,12 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               className={
-                "relative overflow-hidden scrollbar-hide " +
+                "relative scrollbar-hide " +
                 (isChatExpanded
-                  ? "fixed inset-0 z-[9999] flex h-[100dvh] w-screen"
+                  ? "fixed inset-0 z-[9999] flex h-[100dvh] w-screen overflow-hidden"
                   : isFocusMode
                     ? "hidden"
-                    : "flex h-auto min-h-full flex-1 flex-col px-4 lg:px-6 py-4")
+                    : "flex h-auto min-h-full flex-1 flex-col px-4 lg:px-6 py-4 overflow-visible")
               }
             >
               {isDraggingFile && (
@@ -607,7 +570,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                 </div>
               )}
 
-              <div className="glow-ping pointer-events-none absolute inset-0 rounded-2xl" />
+              {/* glow-ping removed to prevent outer sharp corner artifact */}
 
               <div
                 className={
@@ -1112,7 +1075,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                       (isChatExpanded
                         ? "flex-1 min-h-0 mt-0 sm:mt-2 rounded-none sm:rounded-2xl border-none sm:border bg-slate-900/80 p-2 sm:p-4 " +
                         (highlightChatPanel ? "glow-pulse border-cyan-400/80" : "border-slate-600/70")
-                        : "flex-1 min-h-0 mt-4 -mx-5 -mb-5 p-4 rounded-t-2xl border-t bg-slate-900/80 " +
+                        : "flex-1 min-h-0 mt-4 -mx-5 -mb-5 p-4 rounded-t-2xl rounded-b-2xl border-t bg-slate-900/80 " +
                         (highlightChatPanel
                           ? "glow-pulse border-cyan-400/80 border-x-0 border-b-0"
                           : "border-slate-600/70 border-x-0 border-b-0"))
@@ -1219,7 +1182,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
                       <div className="space-y-2">
                         {chatLoading && (
-                          <QuantumChatHistorySkeleton />
+                          <QuantumChatHistorySkeleton peerHandle={activePeerHandle} />
                         )}
 
                         {!chatLoading && chatMessages.length === 0 && !activePeerHandle && (
@@ -1249,7 +1212,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                           </p>
                         )}
 
-                        {chatMessages.map((m: any, msgIdx: number) => {
+                        {!chatLoading && chatMessages.map((m: any, msgIdx: number) => {
                           const isMe = Boolean(
                             m.id.startsWith("temp-") ||
                             m.senderId === "me" ||

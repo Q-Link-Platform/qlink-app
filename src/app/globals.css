@@ -522,23 +522,34 @@ html.black .border-slate-500\/60 {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Hide scrollbars completely */
+/* Permanently eliminate scrollbars on main container, scrollbar-hide, and all data-scrollbar-hide elements */
+#main-scroll-container,
 .scrollbar-hide,
 [data-scrollbar-hide] {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar-horizontal {
-  display: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar-vertical {
-  display: none;
+#main-scroll-container::-webkit-scrollbar,
+#main-scroll-container::-webkit-scrollbar-track,
+#main-scroll-container::-webkit-scrollbar-thumb,
+#main-scroll-container::-webkit-scrollbar-button,
+#main-scroll-container::-webkit-scrollbar-corner,
+.scrollbar-hide::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar-track,
+.scrollbar-hide::-webkit-scrollbar-thumb,
+.scrollbar-hide::-webkit-scrollbar-button,
+.scrollbar-hide::-webkit-scrollbar-corner,
+[data-scrollbar-hide]::-webkit-scrollbar,
+[data-scrollbar-hide]::-webkit-scrollbar-track,
+[data-scrollbar-hide]::-webkit-scrollbar-thumb,
+[data-scrollbar-hide]::-webkit-scrollbar-button,
+[data-scrollbar-hide]::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* Prevent horizontal overflow on main scroll container */
@@ -546,10 +557,13 @@ html.black .border-slate-500\/60 {
   overflow-x: hidden !important;
   max-width: 100%;
   box-sizing: border-box;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
-/* Hide horizontal scrollbars on all elements */
-*::-webkit-scrollbar-horizontal {
+/* Hide horizontal scrollbars and native arrow buttons on all elements globally */
+*::-webkit-scrollbar-horizontal,
+*::-webkit-scrollbar-button {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
@@ -1758,22 +1772,22 @@ html[data-tour-active] *::-webkit-scrollbar {
   height: 0 !important;
 }
 
-*:not(html):not(body):not(.scrollbar-hide):not([data-scrollbar-hide]) {
+*:not(html):not(body):not(.scrollbar-hide):not([data-scrollbar-hide]):not(#main-scroll-container):not(#main-scroll-container *) {
   scrollbar-width: thin;
   /* Firefox */
   scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
 }
 
-*:not(html):not(body):not(.scrollbar-hide):not([data-scrollbar-hide])::-webkit-scrollbar {
+*:not(html):not(body):not(.scrollbar-hide):not([data-scrollbar-hide]):not(#main-scroll-container):not(#main-scroll-container *)::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-*:not(html):not(body)::-webkit-scrollbar-track {
+*:not(html):not(body):not(.scrollbar-hide):not([data-scrollbar-hide]):not(#main-scroll-container):not(#main-scroll-container *)::-webkit-scrollbar-track {
   background: transparent;
 }
 
-*:not(html):not(body)::-webkit-scrollbar-thumb {
+*:not(html):not(body):not(.scrollbar-hide):not([data-scrollbar-hide]):not(#main-scroll-container):not(#main-scroll-container *)::-webkit-scrollbar-thumb {
   background: linear-gradient(to bottom,
       rgba(148, 163, 184, 0.45),
       rgba(51, 65, 85, 0.7));
@@ -1782,10 +1796,54 @@ html[data-tour-active] *::-webkit-scrollbar {
   background-clip: padding-box;
 }
 
-*:not(html):not(body)::-webkit-scrollbar-thumb:hover {
+*:not(html):not(body):not(.scrollbar-hide):not([data-scrollbar-hide]):not(#main-scroll-container):not(#main-scroll-container *)::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(to bottom,
       rgba(148, 163, 184, 0.75),
       rgba(15, 23, 42, 0.9));
+}
+
+/* Bulletproof 0px kill for #main-scroll-container and all .scrollbar-hide elements */
+#main-scroll-container,
+#main-scroll-container *,
+.scrollbar-hide,
+.scrollbar-hide *,
+[data-scrollbar-hide],
+[data-scrollbar-hide] * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+#main-scroll-container::-webkit-scrollbar,
+#main-scroll-container::-webkit-scrollbar-track,
+#main-scroll-container::-webkit-scrollbar-thumb,
+#main-scroll-container::-webkit-scrollbar-button,
+#main-scroll-container::-webkit-scrollbar-corner,
+.scrollbar-hide::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar-track,
+.scrollbar-hide::-webkit-scrollbar-thumb,
+.scrollbar-hide::-webkit-scrollbar-button,
+.scrollbar-hide::-webkit-scrollbar-corner,
+[data-scrollbar-hide]::-webkit-scrollbar,
+[data-scrollbar-hide]::-webkit-scrollbar-track,
+[data-scrollbar-hide]::-webkit-scrollbar-thumb,
+[data-scrollbar-hide]::-webkit-scrollbar-button,
+[data-scrollbar-hide]::-webkit-scrollbar-corner {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  max-width: 0 !important;
+  max-height: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Globally eliminate all native browser scrollbar arrow buttons */
+*::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Glass and glow utilities for sci-fi feel */
