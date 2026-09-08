@@ -499,34 +499,34 @@ function GlobalDirectoryIdsSkeleton() {
             <div className="h-6 w-20 rounded-full bg-cyan-950/40 border border-cyan-500/30" />
           </div>
         </div>
-        {/* Nested mini post 1 */}
-        <div className="rounded-2xl border border-slate-800/60 bg-slate-950/60 p-2.5 space-y-2">
+        {/* Streamlined post 1 */}
+        <div className="pt-2.5 mt-2.5 border-t border-slate-800/80 space-y-2">
           <div className="flex items-center gap-2">
             <div className="h-5 w-5 rounded-full bg-slate-800" />
             <div className="h-2.5 w-20 rounded-full bg-slate-800" />
             <div className="h-2 w-6 rounded-full bg-slate-800/60" />
           </div>
           <div className="h-2.5 w-28 rounded-full bg-slate-800/70" />
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-800/60">
-            <div className="h-4 w-12 rounded-full bg-slate-800/70" />
-            <div className="h-4 w-6 rounded-full bg-slate-800/50" />
-            <div className="h-4 w-6 rounded-full bg-slate-800/50" />
-            <div className="h-4 w-14 rounded-full bg-slate-800/50" />
+          <div className="flex items-center gap-2 pt-1.5">
+            <div className="h-6 w-16 rounded-full bg-slate-800/70" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/50" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/50" />
+            <div className="h-6 w-20 rounded-full bg-slate-800/50" />
           </div>
         </div>
-        {/* Nested mini post 2 */}
-        <div className="rounded-2xl border border-slate-800/60 bg-slate-950/60 p-2.5 space-y-2">
+        {/* Streamlined post 2 */}
+        <div className="pt-2.5 mt-2.5 border-t border-slate-800/80 space-y-2">
           <div className="flex items-center gap-2">
             <div className="h-5 w-5 rounded-full bg-slate-800" />
             <div className="h-2.5 w-20 rounded-full bg-slate-800" />
             <div className="h-2 w-6 rounded-full bg-slate-800/60" />
           </div>
           <div className="h-2.5 w-36 rounded-full bg-slate-800/70" />
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-800/60">
-            <div className="h-4 w-12 rounded-full bg-slate-800/70" />
-            <div className="h-4 w-6 rounded-full bg-slate-800/50" />
-            <div className="h-4 w-6 rounded-full bg-slate-800/50" />
-            <div className="h-4 w-14 rounded-full bg-slate-800/50" />
+          <div className="flex items-center gap-2 pt-1.5">
+            <div className="h-6 w-16 rounded-full bg-slate-800/70" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/50" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/50" />
+            <div className="h-6 w-20 rounded-full bg-slate-800/50" />
           </div>
         </div>
       </div>
@@ -547,20 +547,20 @@ function GlobalDirectoryIdsSkeleton() {
             <div className="h-6 w-20 rounded-full bg-cyan-950/40 border border-cyan-500/30" />
           </div>
         </div>
-        {/* Nested mini post with photo */}
-        <div className="rounded-2xl border border-slate-800/60 bg-slate-950/60 p-2.5 space-y-2">
+        {/* Streamlined post with photo */}
+        <div className="pt-2.5 mt-2.5 border-t border-slate-800/80 space-y-2">
           <div className="flex items-center gap-2">
             <div className="h-5 w-5 rounded-full bg-slate-800" />
             <div className="h-2.5 w-24 rounded-full bg-slate-800" />
             <div className="h-2 w-6 rounded-full bg-slate-800/60" />
           </div>
           <div className="h-2.5 w-48 rounded-full bg-slate-800/70" />
-          <div className="h-28 sm:h-36 w-full rounded-xl bg-slate-800/40 border border-slate-700/40" />
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-800/60">
-            <div className="h-4 w-12 rounded-full bg-slate-800/70" />
-            <div className="h-4 w-6 rounded-full bg-slate-800/50" />
-            <div className="h-4 w-6 rounded-full bg-slate-800/50" />
-            <div className="h-4 w-14 rounded-full bg-slate-800/50" />
+          <div className="h-36 sm:h-44 w-full rounded-xl bg-slate-800/40 border border-slate-700/40" />
+          <div className="flex items-center gap-2 pt-1.5">
+            <div className="h-6 w-16 rounded-full bg-slate-800/70" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/50" />
+            <div className="h-6 w-8 rounded-full bg-slate-800/50" />
+            <div className="h-6 w-20 rounded-full bg-slate-800/50" />
           </div>
         </div>
       </div>
@@ -7941,7 +7941,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               }, 600);
             }}
           >
-            <div className={`relative w-[98vw] max-w-none h-[98dvh] flex flex-col rounded-3xl border border-cyan-400/40 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-[1px] shadow-[0_0_30px_rgba(34,211,238,0.7)] transition-all duration-600 ${showDirectory ? (isConsoleAnimating ? 'console-modal-enter' : '') : 'console-modal-exit'
+            <div className={`relative w-full h-[100dvh] sm:w-[98vw] sm:h-[98dvh] max-w-none flex flex-col rounded-none sm:rounded-3xl border-0 sm:border border-cyan-400/40 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-0 sm:p-[1px] shadow-none sm:shadow-[0_0_30px_rgba(34,211,238,0.7)] transition-all duration-600 ${showDirectory ? (isConsoleAnimating ? 'console-modal-enter' : '') : 'console-modal-exit'
               }`}
               style={{
                 boxShadow: isConsoleAnimating
@@ -7979,7 +7979,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 onMouseLeave={(e) => {
                   e.currentTarget.style.setProperty("--spotlight-opacity", "0");
                 }}
-                className={`x-magnetic-close group absolute top-2 right-3 z-50 flex h-8 w-8 items-center justify-center rounded-full border border-slate-600/60 bg-slate-900/90 text-slate-300 shadow-lg backdrop-blur-sm hover:border-red-400/80 hover:bg-red-500/10 hover:text-red-200 active:scale-95 sm:top-2 sm:right-4 sm:h-9 sm:w-9 cursor-pointer ${showDirectory ? (isConsoleAnimating ? 'close-button-enter' : '') : 'close-button-exit'
+                className={`x-magnetic-close group absolute top-[max(env(safe-area-inset-top),10px)] right-2.5 z-50 flex h-8 w-8 items-center justify-center rounded-full border border-slate-600/60 bg-slate-900/90 text-slate-300 shadow-lg backdrop-blur-sm hover:border-red-400/80 hover:bg-red-500/10 hover:text-red-200 active:scale-95 sm:top-2 sm:right-4 sm:h-9 sm:w-9 cursor-pointer ${showDirectory ? (isConsoleAnimating ? 'close-button-enter' : '') : 'close-button-exit'
                   }`}
                 aria-label="Close Global Quantum Directory"
               >
@@ -7999,12 +7999,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
               <div
                 style={{ overflowAnchor: "none" }}
-                className="relative flex h-full flex-col rounded-3xl bg-slate-950/95 px-4 py-0 sm:px-6 sm:py-0 overflow-hidden"
+                className="relative flex h-full flex-col rounded-none sm:rounded-3xl bg-slate-950/95 px-2 sm:px-6 py-0 overflow-hidden"
               >
                 <div className="pointer-events-none absolute -left-24 -top-24 h-52 w-52 rounded-full bg-gradient-to-br from-cyan-400/50 via-fuchsia-500/40 to-indigo-400/40 blur-3xl" />
                 <div className="pointer-events-none absolute -right-24 bottom-[-5rem] h-52 w-52 rounded-full bg-gradient-to-tr from-indigo-400/40 via-sky-500/40 to-fuchsia-500/40 blur-3xl" />
 
-                <div className="relative flex items-center justify-between gap-3 pt-4 pb-2 border-b border-slate-700/60">
+                <div className="relative flex items-center justify-between gap-3 pt-[max(env(safe-area-inset-top),14px)] sm:pt-4 pb-2 border-b border-slate-700/60">
                   <div>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-300/90">
                       Global Quantum Directory
@@ -8454,7 +8454,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                   onMouseMove={handleSpotlightMouseMove}
                                   onMouseLeave={handleSpotlightMouseLeave}
                                   onClick={() => handleDirectorySelect(item.handle)}
-                                  className="x-magnetic-card rounded-2xl border border-slate-700/70 bg-slate-900/80 px-3 py-2 text-[11px] text-slate-200 hover:border-cyan-400/70 hover:bg-slate-900/95 transition-all duration-300 smooth-gpu-card cursor-pointer"
+                                  className="x-magnetic-card rounded-2xl border border-slate-700/70 bg-slate-900/85 p-3 sm:p-4 text-[11.5px] sm:text-[11px] text-slate-200 hover:border-cyan-400/70 hover:bg-slate-900/95 transition-all duration-300 smooth-gpu-card cursor-pointer shadow-lg"
                                 >
                                   <div className="flex items-center justify-between gap-3">
                                     <div className="flex items-center gap-3 min-w-0">
@@ -8510,7 +8510,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                           e.stopPropagation();
                                           handleDirectorySelect(item.handle);
                                         }}
-                                        className="inline-flex items-center rounded-full border border-cyan-400/70 bg-cyan-500/10 px-2.5 py-0.5 text-[10px] font-medium text-cyan-200 hover:bg-cyan-500/20"
+                                        className="inline-flex items-center rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold text-cyan-200 hover:bg-cyan-500/20 active:scale-95 transition-all"
                                       >
                                         Send request
                                       </button>
@@ -8529,7 +8529,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                             <div
                                               key={post.id}
                                               style={{ overflowAnchor: "none" }}
-                                              className="rounded-2xl border border-slate-700/60 bg-slate-950/60 p-2.5 cursor-pointer hover:border-slate-600/80 transition-all"
+                                              className="rounded-xl sm:rounded-2xl border-0 sm:border border-slate-700/60 bg-slate-950/50 sm:bg-slate-950/60 p-2 sm:p-2.5 mt-2.5 pt-2.5 border-t border-slate-800/80 sm:border-t-0 cursor-pointer hover:border-slate-600/80 transition-all"
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 trackPostView(post.id);
@@ -8619,7 +8619,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                       handleFollow(postAuthorId);
                                                     }}
                                                     disabled={!(session?.user as any)?.id || engagementLoading[post.authorId]?.follow}
-                                                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-all ${followStatus[post.authorId]
+                                                    className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition-all ${followStatus[post.authorId]
                                                         ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-300'
                                                         : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-cyan-400/60'
                                                       } ${engagementLoading[post.authorId]?.follow ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -8636,7 +8636,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                       handleReaction(post.id, 1);
                                                     }}
                                                     disabled={!(session?.user as any)?.id || engagementLoading[post.id]?.reaction}
-                                                    className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-all ${postReactions[post.id]?.userReaction === 1
+                                                    className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${postReactions[post.id]?.userReaction === 1
                                                         ? 'bg-pink-500/20 border-pink-400/60 text-pink-300'
                                                         : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-pink-400/60'
                                                       } ${engagementLoading[post.id]?.reaction ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -8665,7 +8665,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                       handleReaction(post.id, -1);
                                                     }}
                                                     disabled={!(session?.user as any)?.id || engagementLoading[post.id]?.reaction}
-                                                    className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-all ${postReactions[post.id]?.userReaction === -1
+                                                    className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${postReactions[post.id]?.userReaction === -1
                                                         ? 'bg-orange-500/20 border-orange-400/60 text-orange-300'
                                                         : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-orange-400/60'
                                                       } ${engagementLoading[post.id]?.reaction ? 'opacity-50 cursor-not-allowed' : ''}`}
