@@ -7929,7 +7929,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         )}
 
         {(showDirectory || isConsoleAnimating) && (
-          <div className={`pointer-events-auto fixed inset-0 z-40 flex items-center justify-center bg-slate-950/85 p-0 sm:p-0 ${showDirectory ? (isConsoleAnimating ? 'console-backdrop-enter' : '') : 'console-backdrop-exit'
+          <div className={`pointer-events-auto fixed inset-0 z-40 flex items-stretch sm:items-center justify-center bg-slate-950/95 sm:bg-slate-950/85 p-0 sm:p-0 ${showDirectory ? (isConsoleAnimating ? 'console-backdrop-enter' : '') : 'console-backdrop-exit'
             }`}
             style={{ backdropFilter: 'blur(6px)' }}
             onMouseDown={() => {
@@ -8016,7 +8016,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 </div>
 
                 <div
-                  className="relative mt-3 flex-1 min-h-0 overflow-y-auto pb-6 pr-1 custom-directory-scroll"
+                  className="relative mt-3 flex-1 min-h-0 overflow-y-auto pb-6 pr-0 sm:pr-1 custom-directory-scroll"
                 >
                   {directoryLoading && (
                     showDirectoryMediaOnly ? (
@@ -8098,7 +8098,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     onClick={() => handleDirectorySelect(item.handle)}
                                     className="w-full text-left"
                                   >
-                                    <div className="founder-vip-aurora rounded-2xl border border-red-500/80 bg-slate-950/95 p-2.5 overflow-hidden [clip-path:inset(0_round_1rem)] drop-shadow-[0_0_30px_rgba(248,113,113,0.55)]">
+                                    <div className="founder-vip-aurora rounded-2xl border border-red-500/80 bg-slate-950/95 p-1.5 sm:p-2.5 overflow-hidden [clip-path:inset(0_round_1rem)] drop-shadow-[0_0_30px_rgba(248,113,113,0.55)]">
                                       <div className="founder-vip-aurora-inner founder-vip-shine space-y-1.5 rounded-2xl bg-gradient-to-br from-slate-950/90 via-slate-900/90 to-slate-950/90 px-3 py-2 relative overflow-hidden [clip-path:inset(0_round_1rem)] isolation-isolate">
                                         <div className="founder-vip-line-full absolute inset-x-0 -top-2 -bottom-2 rounded-2xl"></div>
                                         <div className="relative z-10 flex items-center justify-between gap-2">
@@ -8314,19 +8314,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                   setIdConsoleTab("my");
                                   setShowIdConsole(true);
                                 }}
-                                className="group relative flex-1 overflow-hidden rounded-2xl border border-cyan-400/50 bg-gradient-to-r from-cyan-500/10 via-sky-500/10 to-fuchsia-500/10 px-3 py-2 text-left text-[11px] font-semibold text-cyan-100 transition hover:border-cyan-300/80 hover:from-cyan-500/15 hover:via-sky-500/15 hover:to-fuchsia-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                                className="group relative flex-1 overflow-hidden rounded-2xl border border-cyan-400/50 bg-gradient-to-r from-cyan-500/10 via-sky-500/10 to-fuchsia-500/10 px-2.5 sm:px-3 py-2 text-left text-[10.5px] sm:text-[11px] font-semibold text-cyan-100 transition hover:border-cyan-300/80 hover:from-cyan-500/15 hover:via-sky-500/15 hover:to-fuchsia-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                               >
                                 <span className="pointer-events-none absolute -left-16 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-cyan-400/30 blur-2xl transition group-hover:bg-cyan-400/40" />
                                 <span className="pointer-events-none absolute -right-16 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-fuchsia-500/25 blur-2xl transition group-hover:bg-fuchsia-500/35" />
-                                <span className="relative flex items-center justify-between gap-3">
-                                  <span className="flex items-center gap-2">
-                                    <span className="relative flex h-2.5 w-2.5 items-center justify-center">
+                                <span className="relative flex items-center justify-between gap-1.5 sm:gap-3">
+                                  <span className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                                    <span className="relative flex h-2.5 w-2.5 items-center justify-center shrink-0">
                                       <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400/70 opacity-60 animate-ping" />
                                       <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cyan-200" />
                                     </span>
-                                    <span className="tracking-[0.12em] uppercase">See your ID</span>
+                                    <span className="tracking-normal sm:tracking-[0.12em] uppercase whitespace-nowrap">See your ID</span>
                                   </span>
-                                  <span className="text-[10px] font-medium text-slate-200/90">
+                                  <span className="text-[9.5px] sm:text-[10px] font-medium text-slate-200/90 shrink-0">
                                     Live
                                   </span>
                                 </span>
@@ -8350,7 +8350,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       <span className={`absolute inline-flex h-full w-full rounded-full opacity-60 animate-ping ${showDirectoryMediaOnly ? "bg-amber-400" : "bg-fuchsia-400"}`} />
                                       <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${showDirectoryMediaOnly ? "bg-amber-300" : "bg-fuchsia-300"}`} />
                                     </span>
-                                    <span className="tracking-[0.11em]">
+                                    <span className="tracking-normal sm:tracking-[0.11em] whitespace-nowrap truncate">
                                       {showDirectoryMediaOnly ? "← All ID Cards" : "Shorts • Posts • Tweets"}
                                     </span>
                                   </span>
@@ -8456,39 +8456,39 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                   onClick={() => handleDirectorySelect(item.handle)}
                                   className="x-magnetic-card rounded-2xl border border-slate-700/70 bg-slate-900/85 p-3 sm:p-4 text-[11.5px] sm:text-[11px] text-slate-200 hover:border-cyan-400/70 hover:bg-slate-900/95 transition-all duration-300 smooth-gpu-card cursor-pointer shadow-lg"
                                 >
-                                  <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3 min-w-0">
-                                      <span className="inline-flex h-5 min-w-[1.75rem] items-center justify-center rounded-full bg-slate-800/80 text-[10px] font-semibold text-slate-200">
+                                  <div className="flex items-center justify-between gap-2 sm:gap-3">
+                                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                                      <span className="inline-flex h-5 min-w-[1.6rem] items-center justify-center rounded-full bg-slate-800/80 text-[10px] font-semibold text-slate-200 shrink-0">
                                         #{item.rank}
                                       </span>
-                                      <div className="min-w-0">
+                                      <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-1 min-w-0">
-                                          <p className="truncate font-medium text-cyan-200">
+                                          <p className="truncate font-semibold text-xs sm:text-sm text-cyan-200">
                                             @{item.handle}
                                           </p>
                                           {item.blueTickStatus === "SAPPHIRE" && (
-                                            <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-sky-500/20 border border-sky-400/80 text-[7px] font-bold text-sky-300 shadow-[0_0_8px_rgba(56,189,248,0.4)]">
+                                            <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-sky-500/20 border border-sky-400/80 text-[7px] font-bold text-sky-300 shadow-[0_0_8px_rgba(56,189,248,0.4)]">
                                               ✓
                                             </span>
                                           )}
                                           {item.isRedTick && (
-                                            <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500/25 border border-red-400/80 text-[7px] font-bold text-red-300 shadow-[0_0_8px_rgba(248,113,113,0.4)]">
+                                            <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-red-500/25 border border-red-400/80 text-[7px] font-bold text-red-300 shadow-[0_0_8px_rgba(248,113,113,0.4)]">
                                               ✓
                                             </span>
                                           )}
                                         </div>
                                         {item.name && (
-                                          <p className="truncate text-[10px] text-slate-400">
+                                          <p className="truncate text-[10px] sm:text-xs text-slate-400">
                                             {item.name}
                                           </p>
                                         )}
                                       </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                                       {/* Aura Display */}
                                       <div className="flex items-center gap-1">
-                                        <span className={`text-[10px] font-bold ${getAuraColor(item.auraPercentage || 0)}`}>
+                                        <span className={`text-[9.5px] sm:text-[10px] font-bold ${getAuraColor(item.auraPercentage || 0)}`}>
                                           {item.auraPercentage || 0}% Aura
                                         </span>
                                         <button
@@ -8510,7 +8510,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                           e.stopPropagation();
                                           handleDirectorySelect(item.handle);
                                         }}
-                                        className="inline-flex items-center rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold text-cyan-200 hover:bg-cyan-500/20 active:scale-95 transition-all"
+                                        className="inline-flex items-center rounded-full border border-cyan-400/70 bg-cyan-500/10 px-2.5 sm:px-3 py-1 text-[10.5px] sm:text-[11px] font-semibold text-cyan-200 hover:bg-cyan-500/20 active:scale-95 transition-all"
                                       >
                                         Send request
                                       </button>
@@ -8529,7 +8529,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                             <div
                                               key={post.id}
                                               style={{ overflowAnchor: "none" }}
-                                              className="rounded-xl sm:rounded-2xl border-0 sm:border border-slate-700/60 bg-slate-950/50 sm:bg-slate-950/60 p-2 sm:p-2.5 mt-2.5 pt-2.5 border-t border-slate-800/80 sm:border-t-0 cursor-pointer hover:border-slate-600/80 transition-all"
+                                              className="rounded-none sm:rounded-2xl border-0 sm:border border-slate-700/60 bg-transparent sm:bg-slate-950/60 p-0 sm:p-2.5 mt-3 sm:mt-2.5 pt-3 sm:pt-2.5 border-t border-slate-800/80 sm:border-t-0 cursor-pointer hover:border-slate-600/80 transition-all"
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 trackPostView(post.id);
@@ -8619,7 +8619,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                       handleFollow(postAuthorId);
                                                     }}
                                                     disabled={!(session?.user as any)?.id || engagementLoading[post.authorId]?.follow}
-                                                    className={`rounded-full border px-3 py-1 text-[11px] font-semibold transition-all ${followStatus[post.authorId]
+                                                    className={`rounded-full border px-3.5 sm:px-3 py-1 text-xs sm:text-[11px] font-semibold transition-all ${followStatus[post.authorId]
                                                         ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-300'
                                                         : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-cyan-400/60'
                                                       } ${engagementLoading[post.authorId]?.follow ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -8636,7 +8636,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                       handleReaction(post.id, 1);
                                                     }}
                                                     disabled={!(session?.user as any)?.id || engagementLoading[post.id]?.reaction}
-                                                    className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${postReactions[post.id]?.userReaction === 1
+                                                    className={`flex items-center gap-1 rounded-full border px-3 sm:px-2.5 py-1 text-xs sm:text-[11px] font-medium transition-all ${postReactions[post.id]?.userReaction === 1
                                                         ? 'bg-pink-500/20 border-pink-400/60 text-pink-300'
                                                         : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-pink-400/60'
                                                       } ${engagementLoading[post.id]?.reaction ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -8665,7 +8665,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                       handleReaction(post.id, -1);
                                                     }}
                                                     disabled={!(session?.user as any)?.id || engagementLoading[post.id]?.reaction}
-                                                    className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${postReactions[post.id]?.userReaction === -1
+                                                    className={`flex items-center gap-1 rounded-full border px-3 sm:px-2.5 py-1 text-xs sm:text-[11px] font-medium transition-all ${postReactions[post.id]?.userReaction === -1
                                                         ? 'bg-orange-500/20 border-orange-400/60 text-orange-300'
                                                         : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-orange-400/60'
                                                       } ${engagementLoading[post.id]?.reaction ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -8698,7 +8698,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                         fetchComments(post.id);
                                                       }
                                                     }}
-                                                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-all duration-200 cursor-pointer ${directoryOpenCommentsPostId === post.id
+                                                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 sm:px-2.5 py-1 sm:py-0.5 text-xs sm:text-[10px] font-semibold transition-all duration-200 cursor-pointer ${directoryOpenCommentsPostId === post.id
                                                         ? 'bg-blue-500/25 border-blue-400/70 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
                                                         : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-blue-400/60 hover:text-blue-200'
                                                       }`}
