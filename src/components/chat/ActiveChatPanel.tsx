@@ -519,12 +519,12 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               className={
-                "relative scrollbar-hide " +
+                "relative scrollbar-hide w-full max-w-full min-w-0 box-border " +
                 (isChatExpanded
                   ? "fixed inset-0 z-[9999] flex h-[100dvh] w-screen overflow-hidden"
                   : isFocusMode
                     ? "hidden"
-                    : "flex h-auto min-h-full flex-1 flex-col px-4 lg:px-6 py-4 overflow-visible")
+                    : "flex h-auto min-h-full flex-1 flex-col px-3.5 sm:px-4 lg:px-6 py-4 overflow-visible")
               }
             >
               {isDraggingFile && (
