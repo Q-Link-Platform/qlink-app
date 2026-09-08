@@ -7414,7 +7414,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         overflowAnchor: 'none',
       }}
     >
-      <div style={{ width: '100%', maxWidth: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: isChatExpanded ? '100%' : 'auto', flex: isChatExpanded ? '1' : 'unset', overflowAnchor: 'none', overflowX: 'hidden' }}>
+      <div style={{ width: '100%', flexShrink: 0, display: 'flex', flexDirection: 'column', minHeight: isChatExpanded ? '100%' : 'auto', flex: isChatExpanded ? '1' : 'unset', overflowAnchor: 'none' }}>
         {showInstallPrompt && !showOnboarding && (
           <div className="pointer-events-auto fixed inset-0 z-45 flex items-center justify-center bg-slate-950/80 px-4">
             <div className="max-w-md w-full rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-5 text-xs text-slate-100 shadow-[0_0_50px_rgba(6,182,212,0.25)] backdrop-blur-md">
@@ -9173,8 +9173,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         <div
           className={
             isFocusMode
-              ? "flex w-full max-w-full min-w-0 flex-1 relative px-0 py-0 h-auto min-h-screen overflow-y-visible overflow-x-hidden"
-              : `flex w-full max-w-full min-w-0 flex-1 glass-panel-responsive neon-border-responsive relative px-0 py-0 sm:px-6 md:px-8 lg:px-10 sm:py-6 md:py-8 ${isChatFull ? "h-full min-h-0 overflow-hidden" : "h-auto min-h-screen overflow-y-visible overflow-x-hidden"} ${isGlowActive ? "glow-active" : ""}`
+              ? "flex w-full flex-1 relative px-0 py-0 h-auto min-h-screen overflow-y-visible"
+              : `flex w-full flex-1 glass-panel-responsive neon-border-responsive relative px-0 py-0 sm:px-6 md:px-8 lg:px-10 sm:py-6 md:py-8 ${isChatFull ? "h-full min-h-0 overflow-hidden" : "h-auto min-h-screen overflow-y-visible"} ${isGlowActive ? "glow-active" : ""}`
           }
           onTouchStart={() => setIsGlowActive(true)}
           onTouchEnd={() => setIsGlowActive(false)}
@@ -9335,10 +9335,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           <div
             className={
               isChatExpanded
-                ? "relative grid h-full min-h-0 gap-8 overflow-hidden w-full max-w-full min-w-0"
+                ? "relative grid h-full min-h-0 gap-8 overflow-hidden"
                 : isFocusMode
-                  ? "relative flex justify-center w-full max-w-full min-w-0 h-auto min-h-full overflow-y-visible"
-                  : "relative grid w-full max-w-full min-w-0 h-auto min-h-full gap-0 overflow-y-visible overflow-x-hidden lg:grid-cols-2 lg:items-start"
+                  ? "relative flex justify-center w-full h-auto min-h-full overflow-y-visible"
+                  : "relative grid w-full h-auto min-h-full gap-0 overflow-y-visible lg:grid-cols-2 lg:items-start"
             }
           >
             {isFocusMode && <div className="ambient-breathing-bg" />}
@@ -9350,12 +9350,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   ? "hidden"
                   : isFocusMode
                     ? "fixed inset-0 z-[9999] bg-slate-950/95 overflow-y-auto px-0 py-0 flex flex-col"
-                    : "w-full max-w-full min-w-0 box-border space-y-4 sm:space-y-6 px-3.5 sm:px-4 lg:px-6 py-4 overflow-x-hidden"
+                    : "space-y-4 sm:space-y-6 px-4 lg:px-6 py-4"
               }
             >
               <div className={isFocusMode ? "w-full min-h-screen relative flex flex-col" : "contents"}>
                 {!isFocusMode && (
-                  <div className="flex items-center justify-between gap-2 flex-wrap w-full max-w-full min-w-0">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
                     <button
                       id="quantum-link-console-btn"
                       data-tour="console-btn"
@@ -9527,7 +9527,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           with a single ID.
                         </span>
                       </h1>
-                      <p className="w-full max-w-full sm:max-w-lg text-base text-slate-300/90 sm:text-lg leading-relaxed break-words">
+                      <p className="max-w-lg text-base text-slate-300/90 sm:text-lg leading-relaxed break-words">
                         Share your quantum chat ID, send a relationship request, and
                         open a secure, near-instant channel to your co-founders,
                         family, investors and more.
@@ -9556,12 +9556,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   className={
                     isFocusMode
                       ? "mt-0 space-y-4 rounded-none border-none bg-slate-900 p-2 sm:p-4 md:p-6 pt-16 w-full flex-1 flex flex-col text-base text-slate-200 transition-shadow scrollbar-hide"
-                      : "mt-4 space-y-4 rounded-2xl border border-slate-600/60 bg-slate-900/70 p-3.5 sm:p-4 text-sm text-slate-300 transition-shadow scrollbar-hide w-full max-w-full min-w-0 box-border"
+                      : "mt-4 space-y-4 rounded-2xl border border-slate-600/60 bg-slate-900/70 p-4 text-sm text-slate-300 transition-shadow scrollbar-hide"
                   }
                 >
                   <div
                     data-tour="quantum-id"
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-950/50 border border-slate-700/60 transition-all scrollbar-hide w-full max-w-full min-w-0"
+                    className="flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-950/50 border border-slate-700/60 transition-all scrollbar-hide"
                   >
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-2">
@@ -9592,7 +9592,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               <span className="text-cyan-400 text-xs font-bold leading-none">+</span>
                             )}
                           </button>
-                          <span className="text-xs sm:text-sm font-semibold text-slate-100 tracking-tight">
+                          <span className="text-xs sm:text-sm font-semibold text-slate-100 tracking-tight truncate max-w-[110px] xs:max-w-[140px] sm:max-w-none">
                             {displayName}
                           </span>
                           {isVipHandle(quantumId) ? (
@@ -9621,12 +9621,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       )}
                     </div>
                     {editingHandle ? (
-                      <div className="flex flex-col items-start sm:items-end gap-1.5 w-full sm:w-auto pt-2 sm:pt-0 border-t border-slate-800/60 sm:border-t-0">
+                      <div className="flex flex-col items-end gap-1.5">
                         <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-400">
                           Your Quantum ID
                         </span>
-                        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto">
-                          <div className="flex flex-col gap-1 w-full sm:w-auto">
+                        <div className="flex items-center gap-2">
+                          <div className="flex flex-col gap-1">
                             <div className="relative">
                               <span className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-[11px] text-slate-500">
                                 @
@@ -9634,45 +9634,43 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               <input
                                 value={handleDraft}
                                 onChange={(e) => onHandleDraftChange(e.target.value)}
-                                className="w-full sm:w-40 rounded-full border border-slate-600/70 bg-slate-900/80 py-1 pl-5 pr-2 text-[11px] text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)]"
+                                className="w-40 rounded-full border border-slate-600/70 bg-slate-900/80 py-1 pl-5 pr-2 text-[11px] text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)]"
                                 placeholder="new-id"
                               />
                             </div>
                             <input
                               value={nameDraft}
                               onChange={(e) => setNameDraft(e.target.value)}
-                              className="w-full sm:w-40 rounded-full border border-slate-600/70 bg-slate-900/80 py-1 px-2 text-[11px] text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)]"
+                              className="w-40 rounded-full border border-slate-600/70 bg-slate-900/80 py-1 px-2 text-[11px] text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)]"
                               placeholder="Your display name"
                             />
                           </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              type="button"
-                              onClick={saveHandle}
-                              disabled={handleSaving}
-                              className="rounded-full border border-emerald-400/70 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60 cursor-pointer"
-                            >
-                              Save
-                            </button>
-                            <button
-                              type="button"
-                              onClick={cancelEditingHandle}
-                              className="rounded-full border border-slate-600/70 bg-slate-900/60 px-2.5 py-0.5 text-[10px] font-medium text-slate-300 hover:bg-slate-800/80 cursor-pointer"
-                            >
-                              Cancel
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={saveHandle}
+                            disabled={handleSaving}
+                            className="rounded-full border border-emerald-400/70 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-60 cursor-pointer"
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEditingHandle}
+                            className="rounded-full border border-slate-600/70 bg-slate-900/60 px-2 py-0.5 text-[10px] font-medium text-slate-300 hover:bg-slate-800/80 cursor-pointer"
+                          >
+                            Cancel
+                          </button>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-1.5 w-full sm:w-auto pt-2 sm:pt-0 border-t border-slate-800/60 sm:border-t-0">
+                      <div className="flex flex-col items-end gap-1.5">
                         <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-400">
                           Your Quantum ID
                         </span>
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-2">
                           <span
                             className={
-                              "rounded-full bg-slate-800 px-2 py-0.5 text-[11px] truncate max-w-[150px] sm:max-w-none " +
+                              "rounded-full bg-slate-800 px-2 py-0.5 text-[11px] truncate max-w-[125px] xs:max-w-[150px] sm:max-w-none " +
                               (isVipHandle(quantumId)
                                 ? "font-semibold text-red-400"
                                 : effectiveBlueTickStatus === "SAPPHIRE"
@@ -9683,7 +9681,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             @{quantumId}
                           </span>
                           {effectiveBlueTickStatus === "SAPPHIRE" && (
-                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-sky-500/20 border border-sky-400/80 text-[8px] font-bold text-sky-300 shadow-[0_0_10px_rgba(56,189,248,0.4)] shrink-0">
+                            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-sky-500/20 border border-sky-400/80 text-[8px] font-bold text-sky-300 shadow-[0_0_10px_rgba(56,189,248,0.4)]">
                               ✓
                             </span>
                           )}
@@ -9695,7 +9693,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               type="button"
                               onClick={startEditingHandle}
                               className={
-                                "rounded-full border bg-slate-900/70 px-2.5 py-0.5 text-[10px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 transition-all cursor-pointer shrink-0 " +
+                                "rounded-full border bg-slate-900/70 px-2.5 py-0.5 text-[10px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 transition-all cursor-pointer " +
                                 (highlightEditId
                                   ? "glow-pulse border-cyan-400/80"
                                   : "border-slate-500/70")
@@ -9709,7 +9707,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 pt-1 flex-wrap sm:flex-nowrap w-full">
+                  <div className="flex items-center justify-between gap-2 pt-1">
                     <p className="text-[10px] text-slate-500">
                       Share this ID so people can connect to you.
                     </p>
@@ -9801,7 +9799,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     return (
                       <div className="mt-3 space-y-2.5">
                         {/* Segmented Control Bar */}
-                        <div className="flex items-center justify-between gap-2 w-full max-w-full">
+                        <div className="flex items-center justify-between gap-2">
                           <div
                             ref={connectionsTabBarRef}
                             onMouseMove={handleTabBarMouseMove}
