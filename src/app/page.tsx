@@ -4783,20 +4783,23 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     if (!activePeerHandle) return;
 
     // Detect actual target upload kind based on selection
-    let targetKind: "file" | "video" = "file";
+    let targetKind: "file" | "video" | "image" = "file";
     if (kind === "image_video") {
       if (selected.type.startsWith("image/")) {
-        targetKind = "file"; // Treated as "file" to open the cropper
+        targetKind = "image";
       } else if (selected.type.startsWith("video/")) {
-        targetKind = "video"; // Uploads immediately as "video"
+        targetKind = "video";
       }
     } else {
-      targetKind = kind as "file" | "video";
+      targetKind = selected.type.startsWith("image/")
+        ? "image"
+        : selected.type.startsWith("video/")
+        ? "video"
+        : (kind as any);
     }
 
-    // If this is an image and the user chose the generic File & image option or Images & Videos,
-    // show a preview with Send / Edit instead of uploading immediately.
-    if (targetKind === "file" && selected.type.startsWith("image/")) {
+    // If this is an image, show preview with Send / Edit instead of uploading immediately.
+    if (targetKind === "image" || selected.type.startsWith("image/")) {
       if (pendingImagePreviewUrl) {
         try {
           URL.revokeObjectURL(pendingImagePreviewUrl);
@@ -4935,7 +4938,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       const compressedFile = await compressImage(pendingImageFile);
       const formData = new FormData();
       formData.append("file", compressedFile);
-      formData.append("kind", "file");
+      formData.append("kind", "image");
       formData.append("toHandle", activePeerHandle);
 
       const res = await fetch("/api/attachments/upload", {
@@ -5830,6 +5833,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 status: fresh.status || m.status,
                 readAt: fresh.readAt,
                 deliveredAt: fresh.deliveredAt,
+                attachments: ((fresh as any).attachments && (fresh as any).attachments.length > 0)
+                  ? (fresh as any).attachments
+                  : (m as any).attachments,
               };
             }
             return m;
@@ -5847,7 +5853,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 m.status === prev[i].status &&
                 m.isEdited === prev[i].isEdited &&
                 m.readAt === prev[i].readAt &&
-                m.deliveredAt === prev[i].deliveredAt
+                m.deliveredAt === prev[i].deliveredAt &&
+                ((m as any).attachments?.length || 0) === ((prev[i] as any).attachments?.length || 0)
             )
           ) {
             return prev;

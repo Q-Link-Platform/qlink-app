@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { findAttachmentRecord } from "@/lib/attachmentDb";
+import fs from "fs";
+import path from "path";
 import { supabasePostsAdmin, supabasePosts } from "@/lib/supabasePosts";
 
 export const runtime = "nodejs";
@@ -26,6 +28,45 @@ export async function GET(request: Request) {
 
       if (!att || !att.bucket || !att.objectKey) {
         return new NextResponse("Attachment not found", { status: 404 });
+      }
+
+      // High-performance local vault handler (Zero-latency video & image streaming)
+      if (att.bucket === "local" || att.objectKey.startsWith("/uploads/")) {
+        const relativeFilePath = att.objectKey.replace(/^\//, "");
+        const localPath = path.join(process.cwd(), "public", relativeFilePath);
+        if (fs.existsSync(localPath)) {
+          const stats = fs.statSync(localPath);
+          const mime = att.mimeType || (att.objectKey.endsWith(".mp4") ? "video/mp4" : "image/jpeg");
+          const rangeHeader = request.headers.get("range");
+          if (rangeHeader) {
+            const rangeParts = rangeHeader.replace(/bytes=/, "").split("-");
+            const start = parseInt(rangeParts[0], 10);
+            const end = rangeParts[1] ? parseInt(rangeParts[1], 10) : stats.size - 1;
+            const chunk = fs.readFileSync(localPath).subarray(start, end + 1);
+            return new NextResponse(chunk, {
+              status: 206,
+              headers: {
+                "Content-Range": `bytes ${start}-${end}/${stats.size}`,
+                "Accept-Ranges": "bytes",
+                "Content-Length": String(chunk.length),
+                "Content-Type": mime,
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "Access-Control-Allow-Origin": "*",
+              },
+            });
+          }
+          const buffer = fs.readFileSync(localPath);
+          return new NextResponse(buffer, {
+            status: 200,
+            headers: {
+              "Content-Type": mime,
+              "Content-Length": String(buffer.length),
+              "Accept-Ranges": "bytes",
+              "Cache-Control": "public, max-age=31536000, immutable",
+              "Access-Control-Allow-Origin": "*",
+            },
+          });
+        }
       }
 
       // Native Database Vault Handler (Zero-downtime base64 storage)

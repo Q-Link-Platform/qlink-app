@@ -179,6 +179,54 @@ export async function GET(request: Request) {
       }
     }
 
+    // Query attachments for these messages so images and videos render inline seamlessly
+    const messageIds = messages.map((m: any) => m.id);
+    let attachments: any[] = [];
+    if (messageIds.length > 0) {
+      try {
+        attachments = await prisma.attachment.findMany({
+          where: {
+            OR: [
+              { messageId: { in: messageIds } },
+              { roomId },
+            ],
+          },
+          select: {
+            id: true,
+            messageId: true,
+            kind: true,
+            originalName: true,
+            mimeType: true,
+            sizeBytes: true,
+            bucket: true,
+            objectKey: true,
+            createdAt: true,
+          },
+        });
+      } catch (attErr) {
+        console.warn("[chat/history] Failed to fetch attachments from primary prisma:", attErr);
+      }
+    }
+
+    const attachmentsByMessageId = new Map<string, any[]>();
+    for (const att of attachments) {
+      const serialized = {
+        id: att.id,
+        kind: att.kind,
+        originalName: att.originalName,
+        mimeType: att.mimeType,
+        sizeBytes: att.sizeBytes ? att.sizeBytes.toString() : "0",
+        bucket: att.bucket,
+        objectKey: att.objectKey,
+        createdAt: att.createdAt,
+      };
+      if (att.messageId) {
+        const list = attachmentsByMessageId.get(att.messageId) || [];
+        list.push(serialized);
+        attachmentsByMessageId.set(att.messageId, list);
+      }
+    }
+
     return NextResponse.json({
       roomId,
       peer: {
@@ -189,7 +237,10 @@ export async function GET(request: Request) {
         image: peer.image,
         publicKeyString: peer.publicKeyString,
       },
-      messages: messages.map((m) => ({ ...m, attachments: [] })),
+      messages: messages.map((m) => ({
+        ...m,
+        attachments: attachmentsByMessageId.get(m.id) || [],
+      })),
     });
   } catch (err: any) {
     console.error("[chat/history]", err);

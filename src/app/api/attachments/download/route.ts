@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import fs from "fs";
+import path from "path";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { findAttachmentRecord } from "@/lib/attachmentDb";
 import { supabaseFiles } from "@/lib/supabaseFiles";
@@ -34,6 +36,25 @@ export async function GET(request: Request) {
     const parts = roomId.split(":");
     if (!parts.includes(meId)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Local storage vault handler
+    if (attachment.bucket === "local" || attachment.objectKey.startsWith("/uploads/")) {
+      const relativeFilePath = attachment.objectKey.replace(/^\//, "");
+      const localPath = path.join(process.cwd(), "public", relativeFilePath);
+      if (fs.existsSync(localPath)) {
+        const buffer = fs.readFileSync(localPath);
+        const contentType = attachment.mimeType || "application/octet-stream";
+        const filename = attachment.originalName || "download";
+        return new Response(buffer as any, {
+          status: 200,
+          headers: {
+            "Content-Type": contentType,
+            "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
+            "Cache-Control": "public, max-age=31536000, immutable",
+          },
+        });
+      }
     }
 
     // Native Database Vault handler

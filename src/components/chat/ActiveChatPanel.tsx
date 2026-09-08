@@ -1243,9 +1243,21 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                             bucket: string,
                             objectKey: string,
                             kind: string,
+                            id?: string,
                           ) => {
+                            if (bucket === "local" || objectKey?.startsWith("/uploads/")) {
+                              return objectKey;
+                            }
+                            if (bucket === "database" || objectKey?.startsWith("data:")) {
+                              if (kind === "video") {
+                                return id ? `/api/media/stream?id=${encodeURIComponent(id)}` : objectKey;
+                              }
+                              return objectKey;
+                            }
                             const base = kind === "video" ? videosBase : filesBase;
-                            if (!base) return "";
+                            if (!base) {
+                              return id ? `/api/media/stream?id=${encodeURIComponent(id)}` : "";
+                            }
                             return `${base}/storage/v1/object/public/${bucket}/${objectKey}`;
                           };
 
@@ -1355,8 +1367,18 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                     {attachments && attachments.length > 0 && (
                                       <div className="mt-1 space-y-2">
                                         {attachments.map((a) => {
-                                          const kind = a.kind;
-                                          const url = makePublicUrl(a.bucket, a.objectKey, kind);
+                                          const isImg =
+                                            a.kind === "image" ||
+                                            a.mimeType?.startsWith("image/") ||
+                                            /\.(jpe?g|png|webp|gif|svg|bmp)$/i.test(a.originalName);
+
+                                          const isVid =
+                                            a.kind === "video" ||
+                                            a.mimeType?.startsWith("video/") ||
+                                            /\.(mp4|webm|mov|mkv|avi)$/i.test(a.originalName);
+
+                                          const effectiveKind = isVid ? "video" : isImg ? "image" : a.kind;
+                                          const url = makePublicUrl(a.bucket, a.objectKey, effectiveKind, a.id);
 
                                           if (!url) {
                                             return (
@@ -1366,7 +1388,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                             );
                                           }
 
-                                          if (kind === "image" || a.mimeType?.startsWith("image/")) {
+                                          if (isImg) {
                                             return (
                                               <div key={a.id} className="space-y-1">
                                                 <button
@@ -1450,7 +1472,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                             );
                                           }
 
-                                          if (kind === "video") {
+                                          if (isVid) {
                                             return (
                                               <div key={a.id} className="space-y-1">
                                                 <button
@@ -1665,7 +1687,10 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                   but the attachment metadata is now gone (e.g. auto-deleted
                                   after 24h), show an unavailable placeholder instead of
                                   leaving nothing. */}
-                                    {!attachments?.length && /\[(FILE|VIDEO) attachment\]/i.test(m.content) && (
+                                    {!attachments?.length &&
+                                      /\[(FILE|VIDEO) attachment\]/i.test(m.content) &&
+                                      m.createdAt &&
+                                      Date.now() - new Date(m.createdAt).getTime() > 24 * 60 * 60 * 1000 && (
                                       <div className="mt-1 flex items-center justify-center rounded-xl border border-dashed border-slate-600/70 bg-slate-900/80 px-3 py-2 text-center text-[11px] text-slate-400">
                                         <div>
                                           <p className="font-medium text-slate-300">Attachment unavailable</p>
