@@ -3036,7 +3036,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           });
           setTimeout(() => {
             setTransactionNotification(prev => prev ? { ...prev, show: false } : null);
-          }, 3500);
+          }, 8700);
         } else if (data.error && (data.error.includes('already claimed') || data.error.includes('Self-referral'))) {
           // Sync client storage if server confirms the click is invalid/spent
           localStorage.setItem(cacheKey, 'true');
@@ -3511,7 +3511,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       // Auto-hide popup receipt after 3.5 seconds
       setTimeout(() => {
         setTransactionNotification(prev => prev ? { ...prev, show: false } : null);
-      }, 3500);
+      }, 8700);
 
     } catch (err: any) {
       setStoreError(err.message || 'Failed to complete upgrade.');
@@ -3566,7 +3566,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       // Auto-hide popup receipt after 3.5 seconds
       setTimeout(() => {
         setTransactionNotification(prev => prev ? { ...prev, show: false } : null);
-      }, 3500);
+      }, 8700);
 
     } catch (err: any) {
       setStoreError(err.message || 'Failed to complete downgrade.');
@@ -5436,10 +5436,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           txHash: "TX-" + Math.random().toString(36).substring(2, 10).toUpperCase(),
         });
 
-        // Autoclose transaction popup after 3.5s
+        // Autoclose transaction popup after 5.3s (Synced with Kinetic Runner Animation)
         setTimeout(() => {
           setTransactionNotification(prev => prev ? { ...prev, show: false } : null);
-        }, 3500);
+        }, 8700);
 
         // Instantly reload user data / feed
         try {
@@ -11363,124 +11363,154 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         />
       </div>
 
-      {/* Founder Grant Modal */}
+      {/* Founder Grant Modal - Tech Giant & Fintech Standard */}
       {isFounder && isFounderGrantModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md animate-fade-in">
-          <div className="relative w-full max-w-[420px] rounded-3xl border border-cyan-500/40 bg-slate-950/95 p-6 text-left shadow-[0_0_50px_rgba(34,211,238,0.3)] animate-scale-up mx-4">
-            {/* Tech Corner Borders */}
-            <div className="absolute top-0 left-0 w-3.5 h-3.5 border-t-2 border-l-2 border-cyan-400 rounded-tl-3xl" />
-            <div className="absolute top-0 right-0 w-3.5 h-3.5 border-t-2 border-r-2 border-cyan-400 rounded-tr-3xl" />
-            <div className="absolute bottom-0 left-0 w-3.5 h-3.5 border-b-2 border-l-2 border-cyan-400 rounded-bl-3xl" />
-            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 border-b-2 border-r-2 border-cyan-400 rounded-br-3xl" />
-
-            {/* Close Button */}
-            <button
-              type="button"
-              onClick={() => setIsFounderGrantModalOpen(false)}
-              className="absolute right-4 top-4 z-50 flex h-8.5 w-8.5 items-center justify-center rounded-full border border-slate-800 bg-slate-900/90 text-slate-400 hover:text-cyan-400 hover:border-cyan-400/50 hover:bg-slate-800 hover:scale-105 active:scale-95 transition-all shadow-md"
-              aria-label="Close modal"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-xl animate-fade-in px-4">
+          <div className="relative w-full max-w-[420px] rounded-3xl border border-cyan-500/25 bg-gradient-to-b from-slate-900/95 via-slate-950/98 to-slate-950 p-6 text-left shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(6,182,212,0.12)] animate-scale-up overflow-hidden">
+            {/* Ambient Top Glow */}
+            <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-36 w-72 rounded-full bg-cyan-500/15 blur-3xl" />
 
             {/* Header */}
-            <div className="flex items-center gap-3 border-b border-slate-800/80 pb-4 pr-8">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 animate-pulse">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="h-5.5 w-5.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
-                </svg>
+            <div className="relative flex items-center justify-between border-b border-slate-800/80 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500/20 via-blue-500/15 to-fuchsia-500/10 border border-cyan-400/30 shadow-[0_0_15px_rgba(34,211,238,0.2)] shrink-0">
+                  <span className="text-xl select-none">💎</span>
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-slate-100 tracking-tight">
+                      Grant Quantum Points
+                    </h3>
+                    <span className="rounded-full bg-fuchsia-500/15 border border-fuchsia-400/30 px-1.5 py-0.2 text-[8px] font-bold text-fuchsia-300 font-mono">
+                      FOUNDER
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Direct peer-to-peer QP transmission</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-400">
-                  Quantum Grant
-                </h3>
-                <p className="text-[10px] text-slate-400">Founder Privilege: Infinite QP Transmit</p>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setIsFounderGrantModalOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-700/60 bg-slate-800/50 hover:bg-slate-800 hover:border-slate-500 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Recipient Pod */}
+            <div className="relative my-4 flex items-center justify-between rounded-2xl border border-slate-800 bg-slate-900/40 p-3 backdrop-blur-sm">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500/30 to-blue-600/30 border border-cyan-400/30 font-bold text-cyan-200 text-[11px] font-mono uppercase">
+                  {founderGrantTarget?.[0] || 'Q'}
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[9px] font-mono text-slate-500 block uppercase tracking-wider">Recipient</span>
+                  <span className="text-xs font-bold text-cyan-300 font-mono truncate block">@{founderGrantTarget}</span>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-mono text-emerald-400 shrink-0">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                <span>CONNECTED</span>
+              </span>
+            </div>
+
+            {/* Amount Input */}
+            <div className="relative space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 font-mono">
+                  Amount to Grant
+                </label>
+                {founderGrantAmount && (
+                  <span className="text-[10px] font-bold text-cyan-400 font-mono">
+                    +{founderGrantAmount} QP
+                  </span>
+                )}
+              </div>
+
+              <div className="relative flex items-center rounded-2xl border border-slate-700/80 bg-slate-950/70 px-3.5 py-1 focus-within:border-cyan-400/70 focus-within:shadow-[0_0_20px_rgba(6,182,212,0.2)] transition-all">
+                <span className="text-sm font-black text-cyan-400 font-mono mr-2 select-none">QP</span>
+                <input
+                  type="number"
+                  value={founderGrantAmount}
+                  onChange={(e) => setFounderGrantAmount(e.target.value)}
+                  placeholder="0"
+                  className="w-full bg-transparent py-2.5 text-base sm:text-lg font-bold font-mono text-slate-100 placeholder-slate-600 outline-none"
+                  min="1"
+                  max="1000000"
+                />
+                {founderGrantAmount && (
+                  <button
+                    type="button"
+                    onClick={() => setFounderGrantAmount("")}
+                    className="text-slate-500 hover:text-slate-300 text-xs px-1 transition-colors cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Recipient info & Input */}
-            <div className="my-5 space-y-4">
-              <div className="rounded-2xl bg-cyan-950/10 border border-cyan-500/15 p-4 text-[10px] text-slate-300">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-slate-400 font-medium">RECIPIENT CODESET</span>
-                  <span className="font-mono text-cyan-300 font-bold">@{founderGrantTarget}</span>
-                </div>
-                <div className="h-[1px] bg-cyan-500/10 my-2" />
-                <p className="text-[9px] text-slate-400 leading-normal">
-                  As the Elite Founder, you possess raw network authorization keys to transmit un-mined Quantum Currency directly into this peer's account.
-                </p>
-              </div>
-
-              {/* Amount Input */}
-              <div className="space-y-1.5">
-                <label className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  Transmit Amount (QP)
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={founderGrantAmount}
-                    onChange={(e) => setFounderGrantAmount(e.target.value)}
-                    placeholder="Enter QP amount"
-                    className="w-full rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-3 text-xs font-mono text-slate-100 placeholder-slate-600 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
-                  />
-                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[9px] font-black tracking-widest text-cyan-500/80 font-mono">
-                    QP
-                  </div>
-                </div>
-              </div>
-
-              {/* Presets */}
-              <div className="space-y-1.5">
-                <span className="text-[8px] font-bold uppercase tracking-wider text-slate-500">
-                  Quick Presets
-                </span>
-                <div className="grid grid-cols-4 gap-2">
-                  {[10, 50, 100, 500].map((amt) => (
+            {/* Presets */}
+            <div className="relative my-3.5 space-y-1.5">
+              <span className="text-[8.5px] font-bold uppercase tracking-wider text-slate-500 font-mono block">
+                Quick Presets
+              </span>
+              <div className="grid grid-cols-4 gap-2">
+                {[10, 50, 100, 500].map((amt) => {
+                  const isSelected = founderGrantAmount === amt.toString();
+                  return (
                     <button
                       key={amt}
                       type="button"
                       onClick={() => setFounderGrantAmount(amt.toString())}
-                      className="rounded-xl border border-slate-800/80 bg-slate-900/40 py-1.5 text-[10px] font-bold font-mono text-slate-300 hover:border-cyan-500/30 hover:bg-cyan-500/10 hover:text-cyan-200 transition duration-200 active:scale-95"
+                      className={`rounded-xl border py-2 text-xs font-bold font-mono transition-all duration-150 active:scale-95 cursor-pointer ${
+                        isSelected
+                          ? "border-cyan-400 bg-cyan-500/20 text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.35)]"
+                          : "border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-600 hover:bg-slate-800/80 hover:text-slate-200"
+                      }`}
                     >
                       +{amt}
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-
-              {founderGrantError && (
-                <div className="rounded-2xl border border-red-500/20 bg-red-950/15 p-3 text-[10px] text-red-300 font-medium">
-                  {founderGrantError}
-                </div>
-              )}
             </div>
 
-            {/* Action buttons */}
-            <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-4 border-t border-slate-800/80">
+            {founderGrantError && (
+              <div className="rounded-xl border border-red-500/25 bg-red-950/20 p-2.5 text-[10px] text-red-300 font-medium">
+                {founderGrantError}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="relative mt-5 flex items-center justify-end gap-2.5 pt-3.5 border-t border-slate-800/80">
               <button
                 type="button"
                 onClick={() => setIsFounderGrantModalOpen(false)}
-                className="rounded-2xl border border-slate-700/80 bg-slate-900/60 hover:bg-slate-800 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-slate-300 transition active:scale-95 text-center hover:text-slate-100 hover:border-slate-600"
+                className="rounded-xl px-4 py-2 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition-colors cursor-pointer"
               >
-                Abort
+                Cancel
               </button>
 
               <button
                 type="button"
                 onClick={handleFounderGrantSubmit}
-                disabled={isFounderGrantLoading || !founderGrantAmount}
-                className="relative overflow-hidden rounded-2xl border border-cyan-500/60 bg-gradient-to-r from-cyan-950 via-cyan-900 to-blue-950 px-6 py-2.5 text-[10px] font-bold uppercase tracking-wider text-cyan-200 hover:border-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.25)] hover:shadow-[0_0_30px_rgba(34,211,238,0.45)] transition duration-300 active:scale-95 text-center flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isFounderGrantLoading || !founderGrantAmount || parseInt(founderGrantAmount, 10) <= 0}
+                className="relative flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 px-5 py-2 text-xs font-bold text-slate-950 shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_25px_rgba(6,182,212,0.5)] transition duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isFounderGrantLoading ? (
                   <>
-                    <span className="h-3 w-3 animate-spin rounded-full border border-cyan-200 border-t-transparent" />
-                    Transmitting...
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+                    <span>Transmitting...</span>
                   </>
                 ) : (
-                  "Authorize & Transmit"
+                  <>
+                    <span>Send Points</span>
+                    <span className="text-sm">⚡</span>
+                  </>
                 )}
               </button>
             </div>
@@ -11488,136 +11518,174 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         </div>
       )}
 
-      {/* Global transaction notification popup */}
+      {/* Global transaction notification popup - 100% Leakproof GPU-Clipped Kinetic Quantum Runner */}
       {!showStore && transactionNotification?.show && (() => {
         const isDowngradeTx = transactionNotification.amount === 0 && transactionNotification.type === 'debit';
         return (
-          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-[340px] px-4 pointer-events-auto">
+          <div className="fixed top-8 sm:top-12 left-1/2 -translate-x-1/2 z-[9999] w-[94vw] max-w-[560px] pointer-events-auto flex justify-center isolate">
             <style dangerouslySetInnerHTML={{
               __html: `
-              @keyframes expandContainer {
-                0% { max-width: 48px; opacity: 0; }
-                10% { max-width: 48px; opacity: 1; }
-                25% { max-width: 48px; opacity: 1; }
-                40% { max-width: 340px; opacity: 1; }
-                85% { max-width: 340px; opacity: 1; }
-                100% { max-width: 48px; opacity: 0; }
+              @keyframes portalVortexSlow {
+                0% { transform: scale(0.2); opacity: 0; }
+                4% { transform: scale(1.2); opacity: 0.8; }
+                9% { transform: scale(1); opacity: 0.5; }
+                16% { transform: scale(0.8); opacity: 0.1; }
+                76% { transform: scale(0.8); opacity: 0.15; }
+                85% { transform: scale(1.1); opacity: 0.6; }
+                93% { transform: scale(1.2); opacity: 0.8; }
+                100% { transform: scale(0.1); opacity: 0; }
               }
-              @keyframes qLogoAnimation {
-                0% { transform: scale(0) rotate(0deg); opacity: 0; }
-                12% { transform: scale(0) rotate(0deg); opacity: 0; }
-                22% { transform: scale(1) rotate(0deg); opacity: 1; }
-                25% { transform: scale(1) rotate(0deg); opacity: 1; }
-                40% { transform: scale(1) rotate(360deg); opacity: 1; }
-                85% { transform: scale(1) rotate(360deg); opacity: 1; }
-                100% { transform: scale(0) rotate(0deg); opacity: 0; }
+
+              @keyframes containerExpandContract {
+                /* Phase 1: Portal Birth (Only 54px width, logo spins inside) */
+                0% { width: 54px; opacity: 0; }
+                4% { width: 54px; opacity: 1; }
+                9% { width: 54px; opacity: 1; }
+
+                /* Phase 2: Smooth Expand across track - physically pushes logo & reveals text */
+                26% { width: 100%; opacity: 1; }
+
+                /* Phase 3: Dwell 4.6 seconds for calm reading */
+                80% { width: 100%; opacity: 1; }
+
+                /* Phase 4: Smooth Contract - physically pulls logo left & swallows text */
+                94% { width: 54px; opacity: 1; }
+
+                /* Phase 5: Fade out */
+                98% { width: 54px; opacity: 0.5; }
+                100% { width: 54px; opacity: 0; }
               }
-              @keyframes tyreScale {
-                0% { transform: scale(0); opacity: 0; }
-                10% { transform: scale(1); opacity: 1; }
-                85% { transform: scale(1); opacity: 1; }
-                100% { transform: scale(0); opacity: 0; }
+
+              @keyframes logoRollAtEdge {
+                /* Phase 1: Portal spin at place */
+                0% { transform: rotate(0deg) scale(0.2); opacity: 0; }
+                4% { transform: rotate(180deg) scale(1.08); opacity: 1; }
+                9% { transform: rotate(360deg) scale(1); opacity: 1; }
+
+                /* Phase 2: Forward clockwise rolling as container expands */
+                26% { transform: rotate(1440deg) scale(1); opacity: 1; }
+
+                /* Phase 3: Dwell breath at right edge */
+                30% { transform: rotate(1440deg) scale(1.04); opacity: 1; }
+                53% { transform: rotate(1440deg) scale(1); opacity: 1; }
+                76% { transform: rotate(1440deg) scale(1.04); opacity: 1; }
+                80% { transform: rotate(1440deg) scale(1); opacity: 1; }
+
+                /* Phase 4: Reverse counter-clockwise rolling as container contracts */
+                94% { transform: rotate(360deg) scale(1); opacity: 1; }
+
+                /* Phase 5: Spin-down into portal */
+                98% { transform: rotate(180deg) scale(0.5); opacity: 0.5; }
+                100% { transform: rotate(0deg) scale(0.1); opacity: 0; }
               }
-              @keyframes translateWheel {
-                0% { transform: translateX(-20px); }
-                10% { transform: translateX(0); }
-                25% { transform: translateX(0); }
-                40% { transform: translateX(0); }
-                85% { transform: translateX(0); }
-                100% { transform: translateX(-20px); }
+
+              @keyframes dwellProgressSlow {
+                0% { width: 100%; }
+                26% { width: 100%; }
+                80% { width: 0%; }
+                100% { width: 0%; }
               }
-              .animate-expand-container {
-                animation: expandContainer 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+              .animate-portal-slow {
+                animation: portalVortexSlow 8.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
               }
-              .animate-translate-wheel {
-                animation: translateWheel 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              .animate-container-expand {
+                animation: containerExpandContract 8.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
               }
-              .animate-tyre-scale {
-                animation: tyreScale 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              .animate-logo-roll {
+                animation: logoRollAtEdge 8.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
               }
-              .animate-q-logo {
-                animation: qLogoAnimation 3.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              .animate-dwell-progress-slow {
+                animation: dwellProgressSlow 8.5s linear forwards;
               }
-              @keyframes shrinkWidth {
-                from { width: 100%; }
-                to { width: 0%; }
-              }
-              .animate-shrink-width {
-                animation: shrinkWidth 3.5s linear forwards;
-              }
-              @keyframes slideUp {
-                from { transform: translateY(20px); opacity: 0; }
-                to { transform: translateY(0); opacity: 1; }
-              }
-              .animate-slide-up {
-                animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+              /* 100% GPU Leakproof Hardware Masking: Guarantees zero corner blur bleed */
+              .leakproof-card {
+                contain: paint;
+                transform: translateZ(0);
+                -webkit-mask-image: -webkit-radial-gradient(white, black);
+                mask-image: -webkit-radial-gradient(white, black);
+                isolation: isolate;
               }
             `}} />
-            <div className={`relative flex items-center gap-3 rounded-2xl border backdrop-blur-xl p-2.5 shadow-[0_15px_40px_rgba(0,0,0,0.85)] animate-expand-container overflow-hidden max-w-[340px] w-full ${isDowngradeTx
-                ? 'border-fuchsia-500/40 bg-slate-950/85 shadow-[0_0_25px_rgba(240,46,170,0.25)]'
-                : 'border-cyan-500/40 bg-slate-950/85 shadow-[0_0_25px_rgba(34,211,238,0.25)]'
-              }`}>
-              {/* Animated Corner Tech Borders */}
-              <div className={`absolute top-0 left-0 w-2 h-2 border-t-[1.5px] border-l-[1.5px] ${isDowngradeTx ? 'border-fuchsia-400' : 'border-cyan-400'}`} />
-              <div className={`absolute top-0 right-0 w-2 h-2 border-t-[1.5px] border-r-[1.5px] ${isDowngradeTx ? 'border-fuchsia-400' : 'border-cyan-400'}`} />
 
-              {/* Scanline Effect */}
-              <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none opacity-20" />
-
-              {/* Cyber Tyre Wheel (rolling in/out) */}
-              <div className="relative shrink-0 w-8.5 h-8.5 flex items-center justify-center animate-translate-wheel z-20">
-                {/* Tyre Container (handles scaling/opacity timeline) */}
-                <div className="absolute inset-0 animate-tyre-scale">
-                  {/* Outer Spinning Cyber Tyre (already spinning on appear!) */}
-                  <div className={`absolute inset-0 rounded-full border-[2px] border-dashed animate-[spin_2.5s_linear_infinite] ${isDowngradeTx ? 'border-fuchsia-400/80 bg-fuchsia-500/5' : 'border-cyan-400/80 bg-cyan-500/5'
-                    }`} />
-
-                  {/* Inner Tech Ring (spinning infinitely reverse!) */}
-                  <div className={`absolute inset-[3px] rounded-full border border-dotted animate-[spin_4s_linear_infinite_reverse] ${isDowngradeTx ? 'border-fuchsia-300/60' : 'border-cyan-300/60'
-                    }`} />
-                </div>
-
-                {/* Central Q logo (appears chronologically, rotates during roll-forward) */}
-                <div className={`relative z-10 font-black text-sm tracking-wider font-mono select-none animate-q-logo drop-shadow-[0_0_5px_rgba(34,211,238,0.6)] ${isDowngradeTx ? 'text-fuchsia-400 drop-shadow-[0_0_5px_rgba(240,46,170,0.6)]' : 'text-cyan-400'
-                  }`}>
-                  Q
-                </div>
+            {/* Expanding/Contracting Pill Container - 100% Leakproof GPU Mask */}
+            <div className={`relative rounded-3xl border shadow-[0_20px_50px_rgba(0,0,0,0.85)] overflow-hidden animate-container-expand leakproof-card ${
+              isDowngradeTx
+                ? 'border-fuchsia-500/40 bg-slate-950 shadow-[0_0_30px_rgba(240,46,170,0.2)]'
+                : 'border-cyan-500/40 bg-slate-950 shadow-[0_0_30px_rgba(34,211,238,0.2)]'
+            }`}>
+              {/* Portal Vortex Aura at Origin - strictly contained inside */}
+              <div className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 z-20 flex items-center justify-center w-8 h-8 animate-portal-slow">
+                <div className={`w-8 h-8 rounded-full ${
+                  isDowngradeTx ? 'bg-fuchsia-500/25' : 'bg-cyan-500/25'
+                }`} />
               </div>
 
-              {/* Content Mask (revealing text) */}
-              <div className="flex-1 overflow-hidden min-w-0 pr-1">
-                <div className="w-[245px] flex items-center justify-between gap-3 text-left">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <span className={`text-[9px] font-black uppercase tracking-[0.2em] font-mono ${isDowngradeTx ? 'text-fuchsia-400' : 'text-cyan-400'
-                        }`}>
-                        {transactionNotification.title}
-                      </span>
-                      <span className="text-[6px] font-mono text-slate-500 uppercase tracking-widest shrink-0">
-                        {transactionNotification.txHash}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-[8.5px] text-slate-300 leading-tight">
-                      {transactionNotification.message}
-                    </p>
-                  </div>
-
-                  {/* Value */}
-                  <div className={`shrink-0 flex flex-col items-end justify-center px-2 py-0.5 rounded-lg border ${isDowngradeTx
-                      ? 'bg-fuchsia-950/20 border-fuchsia-500/20 text-fuchsia-300 shadow-[0_0_8px_rgba(240,46,170,0.15)]'
-                      : 'bg-cyan-950/20 border-cyan-500/20 text-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.15)]'
+              {/* Inner Full Content (Fixed/Stable Layout - NEVER reflows as container expands) */}
+              <div className="w-[94vw] max-w-[560px] flex items-center justify-between pl-4 sm:pl-5 pr-14 sm:pr-16 py-3.5 sm:py-4 min-h-[68px] sm:min-h-[74px] gap-3">
+                {/* Left Text Details */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider font-mono ${
+                      isDowngradeTx ? 'text-fuchsia-300' : 'text-cyan-300'
                     }`}>
-                    <span className="text-[5px] font-bold uppercase tracking-widest text-slate-400 block leading-none">Quantum</span>
-                    <span className="text-[10px] font-black tracking-wider font-mono mt-0.5 leading-none">
-                      {isDowngradeTx ? 'RESET' : `${transactionNotification.type === 'credit' ? '+' : '-'}${transactionNotification.amount} QP`}
+                      {transactionNotification.title}
+                    </span>
+                    <span className="text-[7.5px] sm:text-[8.5px] font-mono text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                      {transactionNotification.txHash}
                     </span>
                   </div>
+                  <p className="mt-1 text-xs sm:text-[13px] text-slate-100 font-medium leading-snug line-clamp-2">
+                    {transactionNotification.message}
+                  </p>
+                </div>
+
+                {/* Right Amount Badge */}
+                <div className={`shrink-0 flex flex-col items-end justify-center px-3 py-1.5 rounded-xl border ${
+                  isDowngradeTx
+                    ? 'bg-fuchsia-500/15 border-fuchsia-400/30 text-fuchsia-200 shadow-[0_0_12px_rgba(240,46,170,0.2)]'
+                    : 'bg-cyan-500/15 border-cyan-400/30 text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.2)]'
+                }`}>
+                  <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-widest text-slate-400 block leading-none font-mono">
+                    QUANTUM
+                  </span>
+                  <span className="text-xs sm:text-sm font-black tracking-wider font-mono mt-0.5 leading-none">
+                    {isDowngradeTx ? 'RESET' : `${transactionNotification.type === 'credit' ? '+' : '-'}${transactionNotification.amount} QP`}
+                  </span>
                 </div>
               </div>
 
-              {/* Progress */}
-              <div className={`absolute bottom-0 inset-x-0 h-[2.5px] rounded-b-2xl animate-shrink-width ${isDowngradeTx ? 'bg-fuchsia-500 shadow-[0_0_8px_rgba(240,46,170,0.6)]' : 'bg-cyan-500 shadow-[0_0_8px_rgba(34,211,238,0.6)]'
-                }`} />
+              {/* The Kinetic Q-Link Logo - PHYSICALLY PINNED TO RIGHT MOVING EDGE */}
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full overflow-hidden pointer-events-none flex items-center justify-center">
+                <div className="relative w-full h-full rounded-full overflow-hidden p-[2px] animate-logo-roll">
+                  <div className={`w-full h-full rounded-full overflow-hidden p-[2px] ${
+                    isDowngradeTx
+                      ? 'bg-gradient-to-br from-fuchsia-400 via-purple-500 to-pink-400 shadow-[0_0_20px_rgba(240,46,170,0.9)]'
+                      : 'bg-gradient-to-br from-cyan-400 via-blue-500 to-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.9)]'
+                  }`}>
+                    <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 flex items-center justify-center">
+                      <Image
+                        src="/logo-256.png"
+                        alt="Q-Link"
+                        width={36}
+                        height={36}
+                        className="rounded-full object-cover w-full h-full select-none pointer-events-none"
+                        priority
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Bar (Depleting smoothly with rounded ends) */}
+              <div className="absolute bottom-0 inset-x-3 h-[2px] overflow-hidden rounded-full">
+                <div className={`h-full rounded-full ${
+                  isDowngradeTx
+                    ? 'bg-gradient-to-r from-fuchsia-500 to-pink-400 shadow-[0_0_10px_rgba(240,46,170,0.85)]'
+                    : 'bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.85)]'
+                } animate-dwell-progress-slow`} />
+              </div>
             </div>
           </div>
         );
