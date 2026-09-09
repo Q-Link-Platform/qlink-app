@@ -5,8 +5,8 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 export interface DuoThemePreset {
   id: string;
   name: string;
-  category: "Cyber" | "Harmonic" | "Solar" | "Minimal";
-  harmonyType: "Complementary" | "Analogous" | "Split-Comp" | "Triadic";
+  category: "Tech Giants & Minimal" | "Cyber & OLED Glow" | "Harmonic & Solar";
+  harmonyType: "Monochrome" | "High-Contrast" | "Complementary" | "Analogous" | "Split-Comp" | "Triadic";
   primary: string; // Hex
   secondary: string; // Hex
   description: string;
@@ -14,10 +14,83 @@ export interface DuoThemePreset {
 }
 
 export const DUO_THEME_PRESETS: DuoThemePreset[] = [
+  // 1. Tech Giants & Legacy Minimalist Combinations
+  {
+    id: "x-monochrome",
+    name: "X Stark Monochrome",
+    category: "Tech Giants & Minimal",
+    harmonyType: "Monochrome",
+    primary: "#ffffff",
+    secondary: "#09090b",
+    description: "Iconic X (Twitter) stealth minimalist. High-contrast pure white on deep pitch black.",
+    badge: "X Legacy Stealth"
+  },
+  {
+    id: "titanium-slate",
+    name: "Titanium Slate & Pearl",
+    category: "Tech Giants & Minimal",
+    harmonyType: "Monochrome",
+    primary: "#ffffff",
+    secondary: "#94a3b8",
+    description: "Apple Pro & GitHub stealth titanium. Pure pearl white with muted slate-gray elegance.",
+    badge: "Apple Pro Minimal"
+  },
+  {
+    id: "graphite-silver",
+    name: "Graphite & Stark Silver",
+    category: "Tech Giants & Minimal",
+    harmonyType: "Monochrome",
+    primary: "#cbd5e1",
+    secondary: "#475569",
+    description: "Clean industrial grayscale duo. High-clarity metallic silver on deep graphite shadow.",
+    badge: "Industrial Stealth"
+  },
+  {
+    id: "youtube-legacy",
+    name: "YouTube Crimson & Pure Onyx",
+    category: "Tech Giants & Minimal",
+    harmonyType: "High-Contrast",
+    primary: "#ff0000",
+    secondary: "#0f0f0f",
+    description: "YouTube creator dark mode. High-voltage crimson with pure pitch onyx.",
+    badge: "YouTube Legacy"
+  },
+  {
+    id: "meta-azure",
+    name: "Meta Azure & Crisp Ice",
+    category: "Tech Giants & Minimal",
+    harmonyType: "High-Contrast",
+    primary: "#1877f2",
+    secondary: "#f8fafc",
+    description: "Meta & Facebook social legacy. Electric royal blue contrasted with clean ice white.",
+    badge: "Meta Legacy"
+  },
+  {
+    id: "insta-sunset",
+    name: "Instagram Sunset & Violet",
+    category: "Tech Giants & Minimal",
+    harmonyType: "Analogous",
+    primary: "#f43f5e",
+    secondary: "#8b5cf6",
+    description: "Instagram creator glow. Radiant sunset coral bleeding into electric violet.",
+    badge: "Insta Glow"
+  },
+  {
+    id: "spotify-dark",
+    name: "Spotify Green & Obsidian",
+    category: "Tech Giants & Minimal",
+    harmonyType: "High-Contrast",
+    primary: "#1db954",
+    secondary: "#121212",
+    description: "Spotify streaming giant dark mode. High-saturation green on stealth obsidian.",
+    badge: "Spotify Giant"
+  },
+
+  // 2. Cyber & OLED Glow Combinations
   {
     id: "quantum-default",
     name: "Quantum Cyan + Astral Violet",
-    category: "Cyber",
+    category: "Cyber & OLED Glow",
     harmonyType: "Split-Comp",
     primary: "#22d3ee",
     secondary: "#8b5cf6",
@@ -27,7 +100,7 @@ export const DUO_THEME_PRESETS: DuoThemePreset[] = [
   {
     id: "matrix-teal",
     name: "Neon Matrix + Deep Teal",
-    category: "Harmonic",
+    category: "Cyber & OLED Glow",
     harmonyType: "Analogous",
     primary: "#10b981",
     secondary: "#06b6d4",
@@ -35,19 +108,9 @@ export const DUO_THEME_PRESETS: DuoThemePreset[] = [
     badge: "Analogous Flow"
   },
   {
-    id: "supernova-amber",
-    name: "Solar Gold + Crimson Flare",
-    category: "Solar",
-    harmonyType: "Analogous",
-    primary: "#f59e0b",
-    secondary: "#ef4444",
-    description: "Radiant cosmic energy. Intense amber fusion transitioning into burning crimson.",
-    badge: "Warm High-Energy"
-  },
-  {
     id: "synthwave-2077",
     name: "Hyper Magenta + Cobalt Blue",
-    category: "Cyber",
+    category: "Cyber & OLED Glow",
     harmonyType: "Complementary",
     primary: "#ec4899",
     secondary: "#3b82f6",
@@ -57,17 +120,29 @@ export const DUO_THEME_PRESETS: DuoThemePreset[] = [
   {
     id: "hologram-lime",
     name: "Lime Pulse + Arctic Sky",
-    category: "Cyber",
+    category: "Cyber & OLED Glow",
     harmonyType: "Analogous",
     primary: "#84cc16",
     secondary: "#38bdf8",
     description: "Cutting-edge UI aesthetic. Crisp high-luminance lime blending into clear sky blue.",
     badge: "Ultra-Crisp"
   },
+
+  // 3. Harmonic & Solar Combinations
+  {
+    id: "supernova-amber",
+    name: "Solar Gold + Crimson Flare",
+    category: "Harmonic & Solar",
+    harmonyType: "Analogous",
+    primary: "#f59e0b",
+    secondary: "#ef4444",
+    description: "Radiant cosmic energy. Intense amber fusion transitioning into burning crimson.",
+    badge: "Warm High-Energy"
+  },
   {
     id: "imperial-rose",
     name: "Deep Royal + Sunset Rose",
-    category: "Harmonic",
+    category: "Harmonic & Solar",
     harmonyType: "Split-Comp",
     primary: "#9333ea",
     secondary: "#f43f5e",
@@ -77,22 +152,12 @@ export const DUO_THEME_PRESETS: DuoThemePreset[] = [
   {
     id: "ethereal-frost",
     name: "Glacial Mint + Lavender Mist",
-    category: "Minimal",
+    category: "Harmonic & Solar",
     harmonyType: "Triadic",
     primary: "#2dd4bf",
     secondary: "#a78bfa",
     description: "Subtle sub-zero luminescence. Cool mint sheen with soft crystalline lavender.",
     badge: "Soothing Frost"
-  },
-  {
-    id: "solar-flare",
-    name: "Blood Orange + Cyber Gold",
-    category: "Solar",
-    harmonyType: "Analogous",
-    primary: "#ea580c",
-    secondary: "#eab308",
-    description: "Stellar prominence plasma. Fiery molten orange bleeding into golden radiance.",
-    badge: "Molten Radiance"
   }
 ];
 
@@ -147,9 +212,17 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
   root.style.setProperty("--duo-secondary", secondary);
   root.style.setProperty("--duo-secondary-rgb", `${sRgb.r}, ${sRgb.g}, ${sRgb.b}`);
   root.style.setProperty("--duo-gradient", `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`);
+  
+  // Check if primary or secondary are pure white or dark
+  const pBrightness = (pRgb.r * 299 + pRgb.g * 587 + pRgb.b * 114) / 1000;
+  const sBrightness = (sRgb.r * 299 + sRgb.g * 587 + sRgb.b * 114) / 1000;
+
+  const pGlowAlpha = pBrightness > 230 ? 0.4 : 0.45;
+  const sGlowAlpha = sBrightness < 30 ? 0.15 : 0.25;
+
   root.style.setProperty(
     "--duo-glow",
-    `0 0 16px rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.45), 0 0 32px rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.25)`
+    `0 0 16px rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, ${pGlowAlpha}), 0 0 32px rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, ${sGlowAlpha})`
   );
 
   // Harmonize existing core accent tokens so existing badges and buttons adopt the theme
@@ -232,8 +305,26 @@ export function DuoThemeProvider({ children }: { children: React.ReactNode }) {
     applyPreset("quantum-default");
   }, [applyPreset]);
 
-  // Smart Algorithmic Random Duo Generator with Guaranteed Color Harmony
+  // Smart Algorithmic Random Duo Generator with Guaranteed Color Harmony + Tech Giant Modes
   const generateRandomDuo = useCallback(() => {
+    // Mode selector: 25% chance of tech-giant / monochrome minimal, 75% chromatic harmony
+    const isTechGiantMode = Math.random() < 0.25;
+
+    if (isTechGiantMode) {
+      const TECH_GIANT_PAIRS = [
+        { primary: "#ffffff", secondary: "#09090b", label: "X Stark Monochrome" },
+        { primary: "#ffffff", secondary: "#94a3b8", label: "Titanium Slate Minimal" },
+        { primary: "#cbd5e1", secondary: "#475569", label: "Graphite Silver Minimal" },
+        { primary: "#ff0000", secondary: "#0f0f0f", label: "YouTube Crimson Dark" },
+        { primary: "#1877f2", secondary: "#f8fafc", label: "Meta Azure Ice" },
+        { primary: "#1db954", secondary: "#121212", label: "Spotify Obsidian" },
+        { primary: "#f43f5e", secondary: "#8b5cf6", label: "Instagram Sunset Glow" },
+      ];
+      const pick = TECH_GIANT_PAIRS[Math.floor(Math.random() * TECH_GIANT_PAIRS.length)];
+      setDuoColors(pick.primary, pick.secondary);
+      return { primary: pick.primary, secondary: pick.secondary, harmony: pick.label };
+    }
+
     // Curated high-aesthetic color pool (HSL hue degrees)
     const HUES = [
       { name: "Cyan", hue: 187, hex: "#06b6d4" },
@@ -250,7 +341,6 @@ export function DuoThemeProvider({ children }: { children: React.ReactNode }) {
     ];
 
     const pick1 = HUES[Math.floor(Math.random() * HUES.length)];
-    // Choose harmony rule: 0: Complementary (180deg), 1: Analogous (40deg), 2: Triadic (120deg)
     const rule = Math.floor(Math.random() * 3);
     let targetHueOffset = 180;
     let harmonyLabel = "Complementary";

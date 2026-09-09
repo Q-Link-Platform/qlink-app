@@ -469,58 +469,59 @@ export default function SettingsModal(props: SettingsModalProps) {
                               <DuoThemeStudio isQuantum={settingsGlassTheme === "quantum"} />
                             ) : (
                               <>
-                                {/* ZERO-SCROLL HERO: Quantum Duo-Tone Theme Studio */}
+                                {/* STANDARD COMPACT ENTRY: Quantum Duo-Tone Theme Studio */}
                                 <div
                                   onMouseMove={handleSpotlightMouseMove}
                                   onMouseLeave={handleSpotlightMouseLeave}
                                   onClick={() => setSettingsScreen("duo-theme")}
                                   role="button"
                                   tabIndex={0}
-                                  className={`x-magnetic-card group relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-all duration-300 border ${
+                                  className={`x-magnetic-card group relative overflow-hidden rounded-xl px-3 py-2 cursor-pointer transition-all duration-200 border ${
                                     settingsGlassTheme === "quantum"
-                                      ? "border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 via-slate-900/60 to-purple-950/40 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:border-cyan-400/60 hover:shadow-[0_0_25px_rgba(6,182,212,0.2)]"
-                                      : "border-white/20 bg-white/[0.08] hover:border-white/35 hover:bg-white/[0.12] shadow-lg"
+                                      ? "border-cyan-500/25 bg-slate-900/60 shadow-[0_4px_16px_rgba(0,0,0,0.25),inset_0_1px_1px_rgba(255,255,255,0.08)] hover:border-cyan-400/50 hover:bg-slate-900/80"
+                                      : "border-white/15 bg-white/[0.05] hover:border-white/30 hover:bg-white/[0.08]"
                                   } active:scale-[0.99]`}
                                 >
-                                  <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-2.5">
-                                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 bg-black/40 text-base shadow-inner">
+                                  <div className="flex items-center justify-between gap-2.5">
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                      <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/15 bg-black/40 text-sm shrink-0 shadow-inner">
                                         🎨
                                       </div>
-                                      <div>
+                                      <div className="min-w-0">
                                         <div className="flex items-center gap-1.5">
-                                          <span className="text-xs font-bold tracking-wide text-white group-hover:text-cyan-200 transition-colors">
-                                            Quantum Duo-Tone Studio
+                                          <span className="text-xs font-semibold tracking-wide text-white group-hover:text-cyan-200 transition-colors truncate">
+                                            Theme & Duo-Tone Colors
                                           </span>
                                           <span
-                                            className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-white border"
+                                            className="inline-flex items-center rounded-full px-1.5 py-0.2 text-[8.5px] font-bold uppercase tracking-wider text-white border shrink-0"
                                             style={{
                                               background: `linear-gradient(135deg, ${primaryColor}40, ${secondaryColor}40)`,
                                               borderColor: `${primaryColor}60`,
                                             }}
                                           >
-                                            2-Color Theme
+                                            2-Color
                                           </span>
                                         </div>
-                                        <p className="text-[10.5px] text-slate-400 mt-0.5">
-                                          Customize dual combining colors, glowing accents & ambient palettes
+                                        <p className="text-[10px] text-slate-400 truncate">
+                                          X monochrome, white, gray, tech giant & cyber accents
                                         </p>
                                       </div>
                                     </div>
 
                                     <div className="flex items-center gap-2 shrink-0">
-                                      <div className="relative flex items-center h-6 w-8">
+                                      <div className="relative flex items-center h-5 w-7">
                                         <span
-                                          className="absolute left-0 h-5 w-5 rounded-full border border-white/50 shadow-md"
+                                          className="absolute left-0 h-4 w-4 rounded-full border border-white/60 shadow-sm"
                                           style={{ backgroundColor: primaryColor }}
                                         />
                                         <span
-                                          className="absolute left-3 h-5 w-5 rounded-full border border-white/50 shadow-md"
+                                          className="absolute left-2.5 h-4 w-4 rounded-full border border-white/60 shadow-sm"
                                           style={{ backgroundColor: secondaryColor }}
                                         />
                                       </div>
-                                      <span className="inline-flex items-center gap-0.5 rounded-full bg-cyan-500/15 border border-cyan-400/40 px-2.5 py-1 text-[10.5px] font-semibold text-cyan-200 group-hover:bg-cyan-500/25 group-hover:text-white transition-all">
-                                        Open Studio →
+                                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-cyan-300 group-hover:text-cyan-100 transition-colors">
+                                        <span>Studio</span>
+                                        <span className="text-xs">›</span>
                                       </span>
                                     </div>
                                   </div>
