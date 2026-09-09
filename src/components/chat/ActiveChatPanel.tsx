@@ -664,7 +664,11 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                       <button
                         type="submit"
                         disabled={!friendIdInput.trim() || searching}
-                        className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-4 py-2.5 text-sm font-medium text-slate-950 shadow-[0_0_25px_rgba(56,189,248,0.65)] transition hover:shadow-[0_0_40px_rgba(56,189,248,0.85)] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99]"
+                        style={{
+                          background: "var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%))",
+                          boxShadow: "var(--duo-glow, 0 0 25px rgba(56,189,248,0.65))",
+                        }}
                       >
                         <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition group-hover:translate-x-full group-hover:opacity-100" />
                         <span className="relative flex items-center gap-2">
@@ -1196,7 +1200,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                               </div>
                             </div>
                             <div className="flex justify-end">
-                              <div className="rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-3 py-2 text-slate-950 shadow-[0_0_18px_rgba(56,189,248,0.7)]">
+                              <div className="rounded-2xl rounded-br-sm px-3 py-2 text-slate-950 shadow-md transition-all duration-500" style={{ background: "var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%))", boxShadow: "var(--duo-glow, 0 0 18px rgba(56,189,248,0.7))" }}>
                                 <p>
                                   For now, start by sending a connection request
                                   with your chosen categories.

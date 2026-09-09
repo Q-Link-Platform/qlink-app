@@ -9543,7 +9543,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     <div className="space-y-3 sm:space-y-4">
                       <h1 className="text-balance text-4xl font-semibold tracking-tight text-slate-50 sm:text-5xl md:text-6xl">
                         Talk to anyone on Earth
-                        <span className="block bg-gradient-to-r from-cyan-300 via-fuchsia-400 to-indigo-300 bg-clip-text text-transparent">
+                        <span
+                          className="block bg-clip-text text-transparent transition-all duration-500"
+                          style={{
+                            backgroundImage: "var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%))",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
+                          }}
+                        >
                           with a single ID.
                         </span>
                       </h1>

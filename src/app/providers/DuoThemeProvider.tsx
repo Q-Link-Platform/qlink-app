@@ -232,8 +232,32 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
   root.style.setProperty("--shadow-cyan", `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.3)`);
   root.style.setProperty("--shadow-violet", `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.3)`);
   root.style.setProperty("--border-primary", `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.35)`);
-  root.style.setProperty("--orb-cyan", `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.16)`);
-  root.style.setProperty("--orb-violet", `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.16)`);
+  root.style.setProperty("--orb-cyan", `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.2)`);
+  root.style.setProperty("--orb-violet", `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.2)`);
+
+  // OVERRIDE TAILWIND 4 GLOBAL PALETTE: Propagate primary & secondary across all components instantly
+  root.style.setProperty("--color-cyan-200", `color-mix(in srgb, ${primary} 60%, white)`);
+  root.style.setProperty("--color-cyan-300", `color-mix(in srgb, ${primary} 80%, white)`);
+  root.style.setProperty("--color-cyan-400", primary);
+  root.style.setProperty("--color-cyan-500", primary);
+  root.style.setProperty("--color-cyan-600", `color-mix(in srgb, ${primary} 80%, black)`);
+
+  root.style.setProperty("--color-sky-300", `color-mix(in srgb, ${primary} 70%, white)`);
+  root.style.setProperty("--color-sky-400", primary);
+  root.style.setProperty("--color-sky-500", primary);
+
+  root.style.setProperty("--color-violet-400", `color-mix(in srgb, ${secondary} 80%, white)`);
+  root.style.setProperty("--color-violet-500", secondary);
+  root.style.setProperty("--color-violet-600", `color-mix(in srgb, ${secondary} 80%, black)`);
+
+  root.style.setProperty("--color-purple-400", `color-mix(in srgb, ${secondary} 80%, white)`);
+  root.style.setProperty("--color-purple-500", secondary);
+  root.style.setProperty("--color-purple-600", `color-mix(in srgb, ${secondary} 80%, black)`);
+
+  root.style.setProperty("--color-fuchsia-400", `color-mix(in srgb, ${secondary} 70%, ${primary})`);
+  root.style.setProperty("--color-fuchsia-500", secondary);
+  root.style.setProperty("--color-indigo-300", `color-mix(in srgb, ${secondary} 60%, white)`);
+  root.style.setProperty("--color-indigo-400", secondary);
 }
 
 const DuoThemeContext = createContext<DuoThemeContextType | undefined>(undefined);
