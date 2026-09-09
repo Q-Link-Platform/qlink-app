@@ -2225,6 +2225,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         setIsChatFull(false);
         setChatAnimMode('idle');
         setIsChatAnimating(false);
+        if (typeof window !== "undefined") {
+          window.scrollTo({ left: 0 });
+          const main = document.getElementById("main-scroll-container");
+          if (main) main.scrollLeft = 0;
+        }
       }, 450);
     }
   };
@@ -5580,10 +5585,28 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   const openDirectory = async () => {
     setIsConsoleAnimating(true);
-    setShowDirectory(true); // Animation starts - 0.9s enter duration
+    setShowDirectory(true);
+    setTimeout(() => {
+      setIsConsoleAnimating(false);
+    }, 600);
 
     // Start loading immediately - animation provides visual cover
     loadDirectoryData(false);
+  };
+
+  const closeDirectory = () => {
+    setShowDirectory(false);
+    setIsConsoleAnimating(true);
+    setTimeout(() => {
+      setIsConsoleAnimating(false);
+      setShowDirectoryMediaOnly(false);
+      setMediaFilterTab('all');
+      if (typeof window !== "undefined") {
+        window.scrollTo({ left: 0 });
+        const main = document.getElementById("main-scroll-container");
+        if (main) main.scrollLeft = 0;
+      }
+    }, 600);
   };
 
   // PWA install prompt wiring: capture beforeinstallprompt and appinstalled events
@@ -7294,6 +7317,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     if (!handle) return;
     // Close directory and route into existing connect flow
     setShowDirectory(false);
+    setIsConsoleAnimating(false);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ left: 0 });
+      const main = document.getElementById("main-scroll-container");
+      if (main) main.scrollLeft = 0;
+    }
     setMode("connect");
     setFriendIdInput(handle);
     setSearching(true);
@@ -7933,12 +7962,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             }`}
             style={{ backdropFilter: 'blur(6px)' }}
             onMouseDown={() => {
-              setIsConsoleAnimating(true);
-              setTimeout(() => {
-                setShowDirectory(false);
-                setShowDirectoryMediaOnly(false);
-                setMediaFilterTab('all');
-              }, 600);
+              closeDirectory();
             }}
           >
             <div className={`relative w-full h-[100dvh] sm:w-[98vw] sm:h-[98dvh] max-w-none flex flex-col rounded-none sm:rounded-3xl border-0 sm:border border-cyan-400/40 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-0 sm:p-[1px] shadow-none sm:shadow-[0_0_30px_rgba(34,211,238,0.7)] transition-all duration-600 ${showDirectory ? (isConsoleAnimating ? 'console-modal-enter' : '') : 'console-modal-exit'
@@ -7961,12 +7985,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               <button
                 type="button"
                 onClick={() => {
-                  setIsConsoleAnimating(true);
-                  setTimeout(() => {
-                    setShowDirectory(false);
-                    setShowDirectoryMediaOnly(false);
-                    setMediaFilterTab('all');
-                  }, 600);
+                  closeDirectory();
                 }}
                 onMouseMove={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect();
@@ -9267,7 +9286,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           .neon-border-responsive::before {
             content: "";
             position: absolute;
-            inset: -1px;
+            inset: 0;
             border-radius: inherit;
             background: conic-gradient(from 180deg at 50% 50%,
                 rgba(56, 189, 248, 0.25),
@@ -9304,6 +9323,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               backdrop-filter: blur(22px) saturate(160%) !important;
             }
             .neon-border-responsive::before {
+              inset: -1px;
               filter: blur(12px); /* Standard desktop blur */
             }
           }
@@ -9335,10 +9355,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           <div
             className={
               isChatExpanded
-                ? "relative grid h-full min-h-0 gap-8 overflow-hidden"
+                ? "relative grid h-full min-h-0 w-full min-w-0 max-w-full gap-8 overflow-hidden"
                 : isFocusMode
-                  ? "relative flex justify-center w-full h-auto min-h-full overflow-y-visible"
-                  : "relative grid w-full h-auto min-h-full gap-0 overflow-y-visible lg:grid-cols-2 lg:items-start"
+                  ? "relative flex justify-center w-full min-w-0 max-w-full h-auto min-h-full overflow-y-visible"
+                  : "relative grid w-full min-w-0 max-w-full h-auto min-h-full gap-0 overflow-y-visible lg:grid-cols-2 lg:items-start"
             }
           >
             {isFocusMode && <div className="ambient-breathing-bg" />}
@@ -9350,25 +9370,25 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   ? "hidden"
                   : isFocusMode
                     ? "fixed inset-0 z-[9999] bg-slate-950/95 overflow-y-auto px-0 py-0 flex flex-col"
-                    : "space-y-4 sm:space-y-6 px-1 sm:px-4 lg:px-6 py-4"
+                    : "space-y-4 sm:space-y-6 min-w-0 max-w-full px-1 sm:px-4 lg:px-6 py-4"
               }
             >
               <div className={isFocusMode ? "w-full min-h-screen relative flex flex-col" : "contents"}>
                 {!isFocusMode && (
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 flex-wrap max-w-full overflow-x-hidden">
                     <button
                       id="quantum-link-console-btn"
                       data-tour="console-btn"
                       type="button"
                       onClick={openDirectory}
                       className={
-                        "inline-flex items-center gap-1.5 sm:gap-2 rounded-full border bg-cyan-500/5 px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium uppercase tracking-wider sm:tracking-[0.2em] text-cyan-100/80 transition hover:border-cyan-300 hover:bg-cyan-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 animate-[pulse_2.4s_ease-in-out_infinite] " +
+                        "inline-flex items-center gap-1 sm:gap-2 rounded-full border bg-cyan-500/5 px-2 sm:px-3 py-1 text-[10.5px] sm:text-xs font-medium uppercase tracking-wider sm:tracking-[0.2em] text-cyan-100/80 transition hover:border-cyan-300 hover:bg-cyan-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 animate-[pulse_2.4s_ease-in-out_infinite] shrink-0 " +
                         (highlightConsole
                           ? "border-cyan-300 glow-pulse"
                           : "border-cyan-400/40")
                       }
                     >
-                      <span className="relative flex h-2 w-2 items-center justify-center">
+                      <span className="relative flex h-2 w-2 items-center justify-center shrink-0">
                         <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400/70 opacity-60 animate-ping" />
                         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cyan-300" />
                       </span>
@@ -9377,9 +9397,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                     <Link
                       href="/about"
-                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-800 bg-slate-900/40 px-3 py-1 text-[11.5px] font-semibold text-slate-300 hover:border-cyan-400/50 hover:text-cyan-300 transition-all duration-300"
+                      className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-slate-800 bg-slate-900/40 px-2.5 sm:px-3 py-1 text-[11px] sm:text-[11.5px] font-semibold text-slate-300 hover:border-cyan-400/50 hover:text-cyan-300 transition-all duration-300 shrink-0"
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee]" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee] shrink-0" />
                       About
                     </Link>
 
@@ -9399,7 +9419,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         setSettingsScreen("main");
                       }}
                       className={
-                        "inline-flex items-center gap-1 rounded-full border bg-slate-900/70 px-3 py-1 text-[11px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 " +
+                        "inline-flex items-center gap-1 sm:gap-1.5 rounded-full border bg-slate-900/70 px-2.5 sm:px-3 py-1 text-[11px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200 shrink-0 " +
                         (highlightSettingsPill
                           ? "border-cyan-400 glow-pulse"
                           : "border-slate-600/70")

@@ -65,7 +65,7 @@ export default function RootLayout({
       >
         <div className="relative h-[100dvh] w-full overflow-hidden flex flex-col">
           {/* Ambient background orbs - repositioned to avoid UI interference */}
-          <div className="pointer-events-none absolute inset-0 -z-10">
+          <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
             <div className="absolute inset-0" style={{ backgroundColor: 'var(--bg-primary)' }} />
             <div className="orb orb--cyan float-slow -left-32 top-1/2 h-72 w-72" />
             <div className="orb orb--violet pulse-soft right-[-120px] bottom-1/2 h-80 w-80" />
