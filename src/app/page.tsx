@@ -5501,8 +5501,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     };
 
     const loadOutgoingAndIncoming = () => {
-      if (!outgoingFetchedRef.current) setIsLoadingOutgoing(true);
-      if (!incomingFetchedRef.current) setIsLoadingIncoming(true);
+      setIsLoadingOutgoing(true);
+      setIsLoadingIncoming(true);
       setIncomingError(null);
 
       // Independent high-speed parallel fetches for instant millisecond UI hydration
@@ -9375,7 +9375,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             >
               <div className={isFocusMode ? "w-full min-h-screen relative flex flex-col" : "contents"}>
                 {!isFocusMode && (
-                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 flex-wrap max-w-full overflow-x-hidden">
+                  <div className="flex items-center justify-between gap-1.5 sm:gap-2 flex-wrap max-w-full overflow-visible py-1 px-0.5">
                     <button
                       id="quantum-link-console-btn"
                       data-tour="console-btn"
@@ -9433,7 +9433,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       type="button"
                       onClick={() => setIsFocusMode((prev) => !prev)}
                       className={
-                        "inline-flex items-center gap-1 rounded-full border bg-slate-900/70 px-3 py-1 text-[11px] font-medium transition-all focus-glow-btn " +
+                        "inline-flex items-center gap-1 rounded-full border bg-slate-900/70 px-3 py-1 text-[11px] font-medium transition-colors focus-glow-btn " +
                         (isFocusMode
                           ? "border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
                           : "border-cyan-500/50 text-cyan-400 hover:border-cyan-400 hover:text-cyan-200")
@@ -9801,7 +9801,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     }
 
                     const hasDataLoaded = acceptedFriends.length > 0 || totalPending > 0;
-                    const isInitialLoading = !hasDataLoaded && (isLoadingOutgoing || isLoadingIncoming) && (!outgoingFetchedRef.current || !incomingFetchedRef.current);
+                    const isInitialLoading = !hasDataLoaded && (isLoadingOutgoing || isLoadingIncoming);
 
                     const handleSpotlightMouseMove = (e: React.MouseEvent<HTMLElement>) => {
                       const rect = e.currentTarget.getBoundingClientRect();
