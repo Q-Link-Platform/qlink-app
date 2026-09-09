@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { usePerformance } from "@/app/providers/PerformanceProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useDuoTheme } from "@/app/providers/DuoThemeProvider";
+import DuoThemeStudio from "@/components/DuoThemeStudio";
 
 function PerformanceSettingsCard({ isQuantum = true }: { isQuantum?: boolean }) {
   const { perfMode, resolvedPerfMode, setPerfMode } = usePerformance();
@@ -244,6 +246,7 @@ export default function SettingsModal(props: SettingsModalProps) {
     playSciFiSound = () => {},
     setDisplayName = () => {},
   } = props;
+  const { primaryColor, secondaryColor } = useDuoTheme();
 
   const isElectron = typeof window !== "undefined" && Boolean((window as any).electronAPI);
 
@@ -452,7 +455,9 @@ export default function SettingsModal(props: SettingsModalProps) {
                                         ? "Edit gender"
                                         : settingsScreen === "bio"
                                           ? "Edit bio"
-                                          : "Edit interests"}
+                                          : settingsScreen === "duo-theme"
+                                            ? "Quantum Duo-Tone Studio"
+                                            : "Edit interests"}
                                 </span>
                               </div>
                             )}
@@ -460,7 +465,68 @@ export default function SettingsModal(props: SettingsModalProps) {
 
                           {/* Scrollable Content Body */}
                           <div onScroll={handleSettingsScroll} className="flex-1 overflow-y-auto px-2 sm:px-3 py-3 space-y-3.5 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container [touch-action:pan-y] overscroll-contain">
-                            {/* Account Section */}
+                            {settingsScreen === "duo-theme" ? (
+                              <DuoThemeStudio isQuantum={settingsGlassTheme === "quantum"} />
+                            ) : (
+                              <>
+                                {/* ZERO-SCROLL HERO: Quantum Duo-Tone Theme Studio */}
+                                <div
+                                  onMouseMove={handleSpotlightMouseMove}
+                                  onMouseLeave={handleSpotlightMouseLeave}
+                                  onClick={() => setSettingsScreen("duo-theme")}
+                                  role="button"
+                                  tabIndex={0}
+                                  className={`x-magnetic-card group relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-all duration-300 border ${
+                                    settingsGlassTheme === "quantum"
+                                      ? "border-cyan-500/30 bg-gradient-to-r from-cyan-950/40 via-slate-900/60 to-purple-950/40 shadow-[0_8px_32px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.2)] hover:border-cyan-400/60 hover:shadow-[0_0_25px_rgba(6,182,212,0.2)]"
+                                      : "border-white/20 bg-white/[0.08] hover:border-white/35 hover:bg-white/[0.12] shadow-lg"
+                                  } active:scale-[0.99]`}
+                                >
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 bg-black/40 text-base shadow-inner">
+                                        🎨
+                                      </div>
+                                      <div>
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="text-xs font-bold tracking-wide text-white group-hover:text-cyan-200 transition-colors">
+                                            Quantum Duo-Tone Studio
+                                          </span>
+                                          <span
+                                            className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-white border"
+                                            style={{
+                                              background: `linear-gradient(135deg, ${primaryColor}40, ${secondaryColor}40)`,
+                                              borderColor: `${primaryColor}60`,
+                                            }}
+                                          >
+                                            2-Color Theme
+                                          </span>
+                                        </div>
+                                        <p className="text-[10.5px] text-slate-400 mt-0.5">
+                                          Customize dual combining colors, glowing accents & ambient palettes
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <div className="relative flex items-center h-6 w-8">
+                                        <span
+                                          className="absolute left-0 h-5 w-5 rounded-full border border-white/50 shadow-md"
+                                          style={{ backgroundColor: primaryColor }}
+                                        />
+                                        <span
+                                          className="absolute left-3 h-5 w-5 rounded-full border border-white/50 shadow-md"
+                                          style={{ backgroundColor: secondaryColor }}
+                                        />
+                                      </div>
+                                      <span className="inline-flex items-center gap-0.5 rounded-full bg-cyan-500/15 border border-cyan-400/40 px-2.5 py-1 text-[10.5px] font-semibold text-cyan-200 group-hover:bg-cyan-500/25 group-hover:text-white transition-all">
+                                        Open Studio →
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Account Section */}
                             <div onMouseMove={handleSpotlightMouseMove} onMouseLeave={handleSpotlightMouseLeave} className={`x-magnetic-card space-y-3 rounded-2xl p-4 backdrop-blur-2xl transition-all duration-300 ${
                             settingsGlassTheme === "quantum"
                               ? "border border-cyan-500/20 bg-gradient-to-b from-cyan-950/20 via-slate-900/35 to-slate-950/50 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.18),inset_0_0_18px_rgba(6,182,212,0.05)] hover:border-cyan-400/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.15)]"
@@ -525,6 +591,17 @@ export default function SettingsModal(props: SettingsModalProps) {
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-[10px] text-slate-500">Dark / Light mode</span>
                               <ThemeToggle />
+                            </div>
+                            <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/10">
+                              <span className="text-[10px] text-slate-400">Quantum Duo Theme</span>
+                              <button
+                                type="button"
+                                onClick={() => setSettingsScreen("duo-theme")}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/40 bg-cyan-500/10 hover:bg-cyan-500/20 px-2.5 py-1 text-[10px] font-semibold text-cyan-300 transition-all active:scale-95"
+                              >
+                                <span>🎨</span>
+                                <span>Duo-Tone Studio →</span>
+                              </button>
                             </div>
                           </div>
 
@@ -1374,7 +1451,6 @@ export default function SettingsModal(props: SettingsModalProps) {
                                       Log out
                                     </button>
                                   </div>
-                              </div>
 
                           {/* Clean Minimal Safe Exit Hint */}
                           <div className="shrink-0 pt-2 pb-1 text-center">
@@ -1382,6 +1458,8 @@ export default function SettingsModal(props: SettingsModalProps) {
                               Tap backdrop or Close button to exit
                             </p>
                           </div>
+                              </>
+                            )}
                         </div>
 
                         {showLogoutConfirm && (
@@ -1425,6 +1503,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                             </div>
                           </div>
                         )}
+                      </div>
                       </div>
   );
 

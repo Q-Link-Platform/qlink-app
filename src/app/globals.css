@@ -47,6 +47,14 @@
   --orb-cyan: rgba(34, 211, 238, 0.15);
   --orb-violet: rgba(139, 92, 246, 0.15);
   --orb-pink: rgba(236, 72, 153, 0.15);
+
+  /* Dynamic Duo-Tone System Defaults */
+  --duo-primary: #22d3ee;
+  --duo-primary-rgb: 34, 211, 238;
+  --duo-secondary: #8b5cf6;
+  --duo-secondary-rgb: 139, 92, 246;
+  --duo-gradient: linear-gradient(135deg, var(--duo-primary) 0%, var(--duo-secondary) 100%);
+  --duo-glow: 0 0 16px rgba(var(--duo-primary-rgb), 0.45), 0 0 32px rgba(var(--duo-secondary-rgb), 0.25);
 }
 
 /* Black Mode (Pure Black - Toggle ON) */
@@ -92,6 +100,14 @@
   --orb-cyan: rgba(13, 148, 136, 0.08);
   --orb-violet: rgba(109, 40, 217, 0.08);
   --orb-pink: rgba(190, 24, 93, 0.08);
+
+  /* Dynamic Duo-Tone System Defaults (Pure Black) */
+  --duo-primary: #22d3ee;
+  --duo-primary-rgb: 34, 211, 238;
+  --duo-secondary: #8b5cf6;
+  --duo-secondary-rgb: 139, 92, 246;
+  --duo-gradient: linear-gradient(135deg, var(--duo-primary) 0%, var(--duo-secondary) 100%);
+  --duo-glow: 0 0 16px rgba(var(--duo-primary-rgb), 0.45), 0 0 32px rgba(var(--duo-secondary-rgb), 0.25);
 }
 
 /* Root Variables (Dark Default) */
@@ -3595,4 +3611,25 @@ textarea,
   box-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
   animation: quantumScannerBeam 2.4s ease-in-out infinite;
   pointer-events: none;
+}
+
+
+/* Quantum Duo-Tone Utility Helpers */
+.bg-duo-gradient {
+  background-image: var(--duo-gradient) !important;
+}
+
+.text-duo-gradient {
+  background-image: var(--duo-gradient) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+.border-duo {
+  border-color: var(--duo-primary) !important;
+}
+
+.glow-duo {
+  box-shadow: var(--duo-glow) !important;
 }

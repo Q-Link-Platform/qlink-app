@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers/ThemeProvider";
+import { DuoThemeProvider } from "./providers/DuoThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -77,7 +78,9 @@ export default function RootLayout({
           <div className="pointer-events-none absolute inset-0 -z-10 opacity-40 [background-image:linear-gradient(to_right,rgba(15,23,42,0.8)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.8)_1px,transparent_1px)],[background-size:80px_80px]" />
 
           <ThemeProvider>
-            {children}
+            <DuoThemeProvider>
+              {children}
+            </DuoThemeProvider>
           </ThemeProvider>
         </div>
       </body>
