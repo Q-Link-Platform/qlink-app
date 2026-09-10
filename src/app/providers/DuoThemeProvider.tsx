@@ -281,6 +281,15 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
     root.style.setProperty("--duo-secondary-pill-text", "#8b5cf6");
     root.style.setProperty("--duo-secondary-pill-bg", "rgba(139, 92, 246, 0.15)");
     root.style.setProperty("--duo-secondary-pill-border", "rgba(139, 92, 246, 0.45)");
+
+    // Canonical ambient lighting, glow & bubble contrast tokens for original Quantum Cyan
+    root.style.setProperty("--duo-orb-primary", "rgba(34, 211, 238, 0.2)");
+    root.style.setProperty("--duo-orb-secondary", "rgba(139, 92, 246, 0.2)");
+    root.style.setProperty("--duo-border-glow", "rgba(34, 211, 238, 0.4)");
+    root.style.setProperty("--duo-shadow-glow", "rgba(34, 211, 238, 0.7)");
+    root.style.setProperty("--duo-accent-text", "#22d3ee");
+    root.style.setProperty("--duo-bubble-bg", "linear-gradient(135deg, #22d3ee 0%, #0ea5e9 100%)");
+    root.style.setProperty("--duo-bubble-text", "#020617");
     return;
   }
 
@@ -348,6 +357,51 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
   }
   const duoTextGradient = `linear-gradient(135deg, ${primary} 0%, ${textGradSecondary} 100%)`;
 
+  // 5. AMBIENT BACKGROUND GLOW TOKENS (Propagates selected palette globally across canvas)
+  const duoOrbPrimary = isMonochrome
+    ? "rgba(255, 255, 255, 0.08)"
+    : `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.22)`;
+  const duoOrbSecondary = isMonochrome
+    ? "rgba(255, 255, 255, 0.04)"
+    : `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.18)`;
+
+  // 6. MODAL BORDER & SHADOW TOKENS (For Global Quantum Directory and modals)
+  const duoBorderGlow = isMonochrome
+    ? "rgba(255, 255, 255, 0.35)"
+    : `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.45)`;
+  const duoShadowGlow = isMonochrome
+    ? "rgba(255, 255, 255, 0.22)"
+    : `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.6)`;
+  const duoAccentText = isMonochrome
+    ? "#ffffff"
+    : (pLum > 0.85 ? "#38bdf8" : primary);
+
+  // 7. UNIVERSAL CHAT BUBBLE CONTRAST INVARIANT (Permanent fix for dark-on-dark text)
+  let bubbleBg = `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`;
+  let bubbleText = "#ffffff";
+
+  if (isMonochrome) {
+    if (pLum > 0.5) {
+      // Pure crisp white bubble with solid dark black text (21:1 contrast ratio)
+      bubbleBg = "#ffffff";
+      bubbleText = "#09090b";
+    } else {
+      bubbleBg = "#27272a";
+      bubbleText = "#ffffff";
+    }
+  } else if (pLum > 0.65 && sLum > 0.5) {
+    // Both colors are high luminance (e.g. Lime + Arctic Sky)
+    bubbleText = "#020617";
+  } else if (pLum > 0.65 && sLum < 0.3) {
+    // Light primary fading into dark secondary tail:
+    // Prevent dark text on dark tail by using solid primary bubble with deep black text
+    bubbleBg = primary;
+    bubbleText = "#09090b";
+  } else {
+    // Standard chromatic: crisp white text
+    bubbleText = "#ffffff";
+  }
+
   root.style.setProperty("--duo-primary", primary);
   root.style.setProperty("--duo-primary-rgb", `${pRgb.r}, ${pRgb.g}, ${pRgb.b}`);
   root.style.setProperty("--duo-secondary", secondary);
@@ -365,6 +419,14 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
   root.style.setProperty("--duo-secondary-pill-text", sPillText);
   root.style.setProperty("--duo-secondary-pill-bg", sPillBg);
   root.style.setProperty("--duo-secondary-pill-border", sPillBorder);
+
+  root.style.setProperty("--duo-orb-primary", duoOrbPrimary);
+  root.style.setProperty("--duo-orb-secondary", duoOrbSecondary);
+  root.style.setProperty("--duo-border-glow", duoBorderGlow);
+  root.style.setProperty("--duo-shadow-glow", duoShadowGlow);
+  root.style.setProperty("--duo-accent-text", duoAccentText);
+  root.style.setProperty("--duo-bubble-bg", bubbleBg);
+  root.style.setProperty("--duo-bubble-text", bubbleText);
 
   // Harmonize accent tokens for custom themes
   root.style.setProperty("--accent-cyan", primary);

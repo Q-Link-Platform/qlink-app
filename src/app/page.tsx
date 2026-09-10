@@ -6025,8 +6025,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     return (
       <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-slate-950">
         {/* Background glow effects */}
-        <div className="pointer-events-none absolute -left-32 -top-32 h-64 w-64 rounded-full bg-cyan-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -right-32 bottom-32 h-64 w-64 rounded-full bg-fuchsia-500/20 blur-3xl" />
+        <div
+          className={`pointer-events-none absolute -left-32 -top-32 h-64 w-64 rounded-full blur-3xl ${isDefaultTheme ? "bg-cyan-500/20" : ""}`}
+          style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-primary)' : undefined }}
+        />
+        <div
+          className={`pointer-events-none absolute -right-32 bottom-32 h-64 w-64 rounded-full blur-3xl ${isDefaultTheme ? "bg-fuchsia-500/20" : ""}`}
+          style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-secondary)' : undefined }}
+        />
 
         <div className="relative z-10 w-full max-w-[480px] mx-auto px-4" style={{ maxWidth: "480px" }}>
           {/* Logo / Brand */}
@@ -6257,8 +6263,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               }}
             >
               {/* Subtle background glow */}
-              <div className="pointer-events-none absolute -left-20 -top-20 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl animate-pulse" />
-              <div className="pointer-events-none absolute -right-20 -bottom-20 h-40 w-40 rounded-full bg-fuchsia-500/10 blur-3xl animate-pulse" />
+              <div
+                className={`pointer-events-none absolute -left-20 -top-20 h-40 w-40 rounded-full blur-3xl animate-pulse ${isDefaultTheme ? "bg-cyan-500/10" : ""}`}
+                style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-primary)' : undefined }}
+              />
+              <div
+                className={`pointer-events-none absolute -right-20 -bottom-20 h-40 w-40 rounded-full blur-3xl animate-pulse ${isDefaultTheme ? "bg-fuchsia-500/10" : ""}`}
+                style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-secondary)' : undefined }}
+              />
 
               {/* Close Button */}
               <button
@@ -7559,8 +7571,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               <div className="relative w-full max-w-md max-h-[75vh] rounded-3xl border border-cyan-400/35 bg-gradient-to-b from-slate-900/95 via-slate-950/98 to-slate-950 p-[1px] shadow-[0_12px_45px_rgba(6,182,212,0.35),0_0_20px_rgba(0,0,0,0.8)] overflow-hidden">
                 <div className="relative flex max-h-[74vh] flex-col rounded-3xl bg-slate-950/90 px-4 py-4 overflow-hidden">
                   {/* Subtle Aurora Ambient Glow */}
-                  <div className="pointer-events-none absolute -left-20 -top-20 h-44 w-44 rounded-full bg-gradient-to-br from-cyan-500/25 via-blue-600/20 to-purple-600/15 blur-3xl" />
-                  <div className="pointer-events-none absolute -right-20 bottom-[-4rem] h-44 w-44 rounded-full bg-gradient-to-tr from-indigo-500/20 via-sky-500/20 to-cyan-500/20 blur-3xl" />
+                  <div
+                    className={`pointer-events-none absolute -left-20 -top-20 h-44 w-44 rounded-full blur-3xl ${isDefaultTheme ? "bg-gradient-to-br from-cyan-500/25 via-blue-600/20 to-purple-600/15" : ""}`}
+                    style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-primary)' : undefined }}
+                  />
+                  <div
+                    className={`pointer-events-none absolute -right-20 bottom-[-4rem] h-44 w-44 rounded-full blur-3xl ${isDefaultTheme ? "bg-gradient-to-tr from-indigo-500/20 via-sky-500/20 to-cyan-500/20" : ""}`}
+                    style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-secondary)' : undefined }}
+                  />
 
                   {/* Header */}
                   <div className="relative flex items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
@@ -7968,12 +7986,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               closeDirectory();
             }}
           >
-            <div className={`relative w-full h-[100dvh] sm:w-[98vw] sm:h-[98dvh] max-w-none flex flex-col rounded-none sm:rounded-3xl border-0 sm:border border-cyan-400/40 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-0 sm:p-[1px] shadow-none sm:shadow-[0_0_30px_rgba(34,211,238,0.7)] transition-all duration-600 ${showDirectory ? (isConsoleAnimating ? 'console-modal-enter' : '') : 'console-modal-exit'
+            <div className={`relative w-full h-[100dvh] sm:w-[98vw] sm:h-[98dvh] max-w-none flex flex-col rounded-none sm:rounded-3xl border-0 sm:border ${isDefaultTheme ? "border-cyan-400/40" : ""} bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-0 sm:p-[1px] shadow-none ${isDefaultTheme ? "sm:shadow-[0_0_30px_rgba(34,211,238,0.7)]" : ""} transition-all duration-600 ${showDirectory ? (isConsoleAnimating ? 'console-modal-enter' : '') : 'console-modal-exit'
               }`}
               style={{
-                boxShadow: isConsoleAnimating
-                  ? '0 0 100px rgba(34, 211, 238, 0.6), 0 25px 50px -12px rgba(0, 0, 0, 0.5)'
-                  : '0 0 30px rgba(34, 211, 238, 0.7), 0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                borderColor: !isDefaultTheme ? 'var(--duo-border-glow)' : undefined,
+                boxShadow: isDefaultTheme
+                  ? (isConsoleAnimating
+                      ? '0 0 100px rgba(34, 211, 238, 0.6), 0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                      : '0 0 30px rgba(34, 211, 238, 0.7), 0 25px 50px -12px rgba(0, 0, 0, 0.5)')
+                  : (isConsoleAnimating
+                      ? '0 0 80px var(--duo-shadow-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                      : '0 0 30px var(--duo-shadow-glow), 0 25px 50px -12px rgba(0, 0, 0, 0.5)'),
                 overscrollBehavior: 'contain',
                 WebkitOverflowScrolling: 'touch'
               }}
@@ -8023,12 +8046,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 style={{ overflowAnchor: "none" }}
                 className="relative flex h-full flex-col rounded-none sm:rounded-3xl bg-slate-950/95 px-2 sm:px-6 py-0 overflow-hidden"
               >
-                <div className="pointer-events-none absolute -left-24 -top-24 h-52 w-52 rounded-full bg-gradient-to-br from-cyan-400/50 via-fuchsia-500/40 to-indigo-400/40 blur-3xl" />
-                <div className="pointer-events-none absolute -right-24 bottom-[-5rem] h-52 w-52 rounded-full bg-gradient-to-tr from-indigo-400/40 via-sky-500/40 to-fuchsia-500/40 blur-3xl" />
+                <div
+                  className={`pointer-events-none absolute -left-24 -top-24 h-52 w-52 rounded-full blur-3xl ${isDefaultTheme ? "bg-gradient-to-br from-cyan-400/50 via-fuchsia-500/40 to-indigo-400/40" : ""}`}
+                  style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-primary)' : undefined }}
+                />
+                <div
+                  className={`pointer-events-none absolute -right-24 bottom-[-5rem] h-52 w-52 rounded-full blur-3xl ${isDefaultTheme ? "bg-gradient-to-tr from-indigo-400/40 via-sky-500/40 to-fuchsia-500/40" : ""}`}
+                  style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-secondary)' : undefined }}
+                />
 
                 <div className="relative flex items-center justify-between gap-3 pt-[max(env(safe-area-inset-top),14px)] sm:pt-4 pb-2 border-b border-slate-700/60">
                   <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-300/90">
+                    <p
+                      className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${isDefaultTheme ? "text-cyan-300/90" : ""}`}
+                      style={{ color: !isDefaultTheme ? 'var(--duo-accent-text)' : undefined }}
+                    >
                       Global Quantum Directory
                     </p>
                     <p className="mt-1 text-[11px] text-slate-400">
@@ -8336,15 +8368,34 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                   setIdConsoleTab("my");
                                   setShowIdConsole(true);
                                 }}
-                                className="group relative flex-1 overflow-hidden rounded-2xl border border-cyan-400/50 bg-gradient-to-r from-cyan-500/10 via-sky-500/10 to-fuchsia-500/10 px-2.5 sm:px-3 py-2 text-left text-[10.5px] sm:text-[11px] font-semibold text-cyan-100 transition hover:border-cyan-300/80 hover:from-cyan-500/15 hover:via-sky-500/15 hover:to-fuchsia-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                                className={`group relative flex-1 overflow-hidden rounded-2xl border px-2.5 sm:px-3 py-2 text-left text-[10.5px] sm:text-[11px] font-semibold transition focus-visible:outline-none ${
+                                  isDefaultTheme
+                                    ? "border-cyan-400/50 bg-gradient-to-r from-cyan-500/10 via-sky-500/10 to-fuchsia-500/10 text-cyan-100 hover:border-cyan-300/80 hover:from-cyan-500/15 hover:via-sky-500/15 hover:to-fuchsia-500/15 focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                                    : "hover:opacity-90"
+                                }`}
+                                style={
+                                  !isDefaultTheme
+                                    ? {
+                                        borderColor: 'var(--duo-border-glow)',
+                                        backgroundColor: 'var(--duo-primary-pill-bg)',
+                                        color: 'var(--duo-accent-text)',
+                                      }
+                                    : undefined
+                                }
                               >
                                 <span className="pointer-events-none absolute -left-16 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-cyan-400/30 blur-2xl transition group-hover:bg-cyan-400/40" />
                                 <span className="pointer-events-none absolute -right-16 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full bg-fuchsia-500/25 blur-2xl transition group-hover:bg-fuchsia-500/35" />
                                 <span className="relative flex items-center justify-between gap-1.5 sm:gap-3">
                                   <span className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                                     <span className="relative flex h-2.5 w-2.5 items-center justify-center shrink-0">
-                                      <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400/70 opacity-60 animate-ping" />
-                                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cyan-200" />
+                                      <span
+                                        className={`absolute inline-flex h-full w-full rounded-full opacity-60 animate-ping ${isDefaultTheme ? "bg-cyan-400/70" : ""}`}
+                                        style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-accent-text)' : undefined }}
+                                      />
+                                      <span
+                                        className={`relative inline-flex h-1.5 w-1.5 rounded-full ${isDefaultTheme ? "bg-cyan-200" : ""}`}
+                                        style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-accent-text)' : undefined }}
+                                      />
                                     </span>
                                     <span className="tracking-normal sm:tracking-[0.12em] uppercase whitespace-nowrap">See your ID</span>
                                   </span>
@@ -8485,7 +8536,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       </span>
                                       <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-1 min-w-0">
-                                          <p className="truncate font-semibold text-xs sm:text-sm text-cyan-200">
+                                          <p
+                                            className={`truncate font-semibold text-xs sm:text-sm ${isDefaultTheme ? "text-cyan-200" : ""}`}
+                                            style={{ color: !isDefaultTheme ? 'var(--duo-accent-text)' : undefined }}
+                                          >
                                             @{item.handle}
                                           </p>
                                           {item.blueTickStatus === "SAPPHIRE" && (
@@ -8532,7 +8586,22 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                           e.stopPropagation();
                                           handleDirectorySelect(item.handle);
                                         }}
-                                        className="inline-flex items-center rounded-full border border-cyan-400/70 bg-cyan-500/10 px-2.5 sm:px-3 py-1 text-[10.5px] sm:text-[11px] font-semibold text-cyan-200 hover:bg-cyan-500/20 active:scale-95 transition-all"
+                                        className={`inline-flex items-center rounded-full px-2.5 sm:px-3 py-1 text-[10.5px] sm:text-[11px] font-semibold active:scale-95 transition-all ${
+                                          isDefaultTheme
+                                            ? "border border-cyan-400/70 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
+                                            : "hover:opacity-90"
+                                        }`}
+                                        style={
+                                          !isDefaultTheme
+                                            ? {
+                                                borderColor: 'var(--duo-border-glow)',
+                                                backgroundColor: 'var(--duo-primary-pill-bg)',
+                                                color: 'var(--duo-accent-text)',
+                                                borderWidth: '1px',
+                                                borderStyle: 'solid',
+                                              }
+                                            : undefined
+                                        }
                                       >
                                         Send request
                                       </button>
@@ -9350,8 +9419,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           )}
           <div
             className={
-              "pointer-events-none absolute top-0 h-px bg-gradient-to-r from-cyan-400/0 via-cyan-400/70 to-fuchsia-500/0 " +
+              "pointer-events-none absolute top-0 h-px " +
+              (isDefaultTheme ? "bg-gradient-to-r from-cyan-400/0 via-cyan-400/70 to-fuchsia-500/0 " : "") +
               "inset-x-0"
+            }
+            style={
+              !isDefaultTheme
+                ? { background: 'linear-gradient(90deg, transparent 0%, var(--duo-border-glow) 50%, transparent 100%)' }
+                : undefined
             }
           />
 
@@ -9385,15 +9460,31 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       type="button"
                       onClick={openDirectory}
                       className={
-                        "inline-flex items-center gap-1 sm:gap-2 rounded-full border bg-cyan-500/5 px-2 sm:px-3 py-1 text-[10.5px] sm:text-xs font-medium uppercase tracking-wider sm:tracking-[0.2em] text-cyan-100/80 transition hover:border-cyan-300 hover:bg-cyan-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 animate-[pulse_2.4s_ease-in-out_infinite] shrink-0 " +
-                        (highlightConsole
-                          ? "border-cyan-300 glow-pulse"
-                          : "border-cyan-400/40")
+                        "inline-flex items-center gap-1 sm:gap-2 rounded-full border px-2 sm:px-3 py-1 text-[10.5px] sm:text-xs font-medium uppercase tracking-wider sm:tracking-[0.2em] transition focus-visible:outline-none animate-[pulse_2.4s_ease-in-out_infinite] shrink-0 " +
+                        (isDefaultTheme
+                          ? ("bg-cyan-500/5 text-cyan-100/80 hover:border-cyan-300 hover:bg-cyan-500/10 focus-visible:ring-2 focus-visible:ring-cyan-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 " +
+                             (highlightConsole ? "border-cyan-300 glow-pulse" : "border-cyan-400/40"))
+                          : "hover:opacity-90")
+                      }
+                      style={
+                        !isDefaultTheme
+                          ? {
+                              borderColor: 'var(--duo-border-glow)',
+                              backgroundColor: 'var(--duo-primary-pill-bg)',
+                              color: 'var(--duo-accent-text)',
+                            }
+                          : undefined
                       }
                     >
                       <span className="relative flex h-2 w-2 items-center justify-center shrink-0">
-                        <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-400/70 opacity-60 animate-ping" />
-                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-cyan-300" />
+                        <span
+                          className={`absolute inline-flex h-full w-full rounded-full opacity-60 animate-ping ${isDefaultTheme ? "bg-cyan-400/70" : ""}`}
+                          style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-accent-text)' : undefined }}
+                        />
+                        <span
+                          className={`relative inline-flex h-1.5 w-1.5 rounded-full ${isDefaultTheme ? "bg-cyan-300" : ""}`}
+                          style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-accent-text)' : undefined }}
+                        />
                       </span>
                       Quantum Link Console
                     </button>
@@ -10748,8 +10839,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       }`}
                     style={{ willChange: 'transform, opacity', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
                   >
-                    <div className="pointer-events-none absolute -left-20 -top-20 h-48 w-48 rounded-full bg-gradient-to-br from-cyan-400/45 via-fuchsia-500/35 to-indigo-400/30 blur-3xl" />
-                    <div className="pointer-events-none absolute -right-24 bottom-[-4rem] h-56 w-56 rounded-full bg-gradient-to-tr from-indigo-400/35 via-sky-500/35 to-fuchsia-500/30 blur-3xl" />
+                    <div
+                      className={`pointer-events-none absolute -left-20 -top-20 h-48 w-48 rounded-full blur-3xl ${isDefaultTheme ? "bg-gradient-to-br from-cyan-400/45 via-fuchsia-500/35 to-indigo-400/30" : ""}`}
+                      style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-primary)' : undefined }}
+                    />
+                    <div
+                      className={`pointer-events-none absolute -right-24 bottom-[-4rem] h-56 w-56 rounded-full blur-3xl ${isDefaultTheme ? "bg-gradient-to-tr from-indigo-400/35 via-sky-500/35 to-fuchsia-500/30" : ""}`}
+                      style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-secondary)' : undefined }}
+                    />
 
                     <button
                       type="button"
@@ -11440,7 +11537,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-xl animate-fade-in px-4">
           <div className="relative w-full max-w-[420px] rounded-3xl border border-cyan-500/25 bg-gradient-to-b from-slate-900/95 via-slate-950/98 to-slate-950 p-6 text-left shadow-[0_25px_60px_rgba(0,0,0,0.85),0_0_40px_rgba(6,182,212,0.12)] animate-scale-up overflow-hidden">
             {/* Ambient Top Glow */}
-            <div className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-36 w-72 rounded-full bg-cyan-500/15 blur-3xl" />
+            <div
+              className={`pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 h-36 w-72 rounded-full blur-3xl ${isDefaultTheme ? "bg-cyan-500/15" : ""}`}
+              style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-primary)' : undefined }}
+            />
 
             {/* Header */}
             <div className="relative flex items-center justify-between border-b border-slate-800/80 pb-4">

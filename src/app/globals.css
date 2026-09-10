@@ -3633,3 +3633,17 @@ textarea,
 .glow-duo {
   box-shadow: var(--duo-glow) !important;
 }
+
+/* Ambient background lighting propagation for Custom Duo Themes */
+[data-duo-custom="true"] .orb--cyan {
+  background: radial-gradient(circle, var(--duo-orb-primary), transparent 60%) !important;
+}
+
+[data-duo-custom="true"] .orb--violet {
+  background: radial-gradient(circle, var(--duo-orb-secondary), transparent 60%) !important;
+}
+
+[data-duo-custom="true"] .orb--pink {
+  background: radial-gradient(circle, var(--duo-orb-secondary), transparent 60%) !important;
+}
+

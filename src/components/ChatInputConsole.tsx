@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
+import { useDuoTheme } from "@/app/providers/DuoThemeProvider";
 
 interface ChatInputConsoleProps {
   externalValue?: string;
@@ -52,6 +53,7 @@ export const ChatInputConsole = memo(function ChatInputConsole({
   onCancelEdit,
   isCompact = false,
 }: ChatInputConsoleProps) {
+  const { isDefaultTheme } = useDuoTheme();
   const [localInput, setLocalInput] = useState("");
   const [showMobileChatMore, setShowMobileChatMore] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -430,9 +432,26 @@ export const ChatInputConsole = memo(function ChatInputConsole({
           <button
             type="submit"
             disabled={!activePeerHandle || !localInput.trim()}
-            className="select-none inline-flex h-9 w-9 items-center justify-center rounded-full border border-cyan-400/80 bg-gradient-to-tr from-cyan-400 via-sky-400 to-fuchsia-400 text-xs font-medium text-slate-950 drop-shadow-[0_0_8px_rgba(34,211,238,0.7)] [clip-path:circle(50%)] transition hover:brightness-110 sm:h-10 sm:w-10 disabled:opacity-50"
+            className={`select-none inline-flex h-9 w-9 items-center justify-center rounded-full [clip-path:circle(50%)] transition hover:brightness-110 sm:h-10 sm:w-10 disabled:opacity-50 ${
+              isDefaultTheme
+                ? "border border-cyan-400/80 bg-gradient-to-tr from-cyan-400 via-sky-400 to-fuchsia-400 text-slate-950 drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]"
+                : "border shadow-md"
+            }`}
+            style={
+              !isDefaultTheme
+                ? {
+                    borderColor: 'var(--duo-border-glow)',
+                    background: 'var(--duo-gradient)',
+                    color: 'var(--duo-btn-text, #ffffff)',
+                    boxShadow: 'var(--duo-btn-shadow)',
+                  }
+                : undefined
+            }
           >
-            <span className="send-arrow text-base leading-none text-slate-950">
+            <span
+              className={`send-arrow text-base leading-none ${isDefaultTheme ? "text-slate-950" : ""}`}
+              style={{ color: !isDefaultTheme ? 'var(--duo-btn-text, #ffffff)' : undefined }}
+            >
               ↑
             </span>
           </button>

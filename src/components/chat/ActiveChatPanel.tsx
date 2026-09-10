@@ -1065,7 +1065,16 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                               type="button"
                               onClick={handleSendRequest}
                               disabled={sendingRequest}
-                              className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-4 py-2.5 text-sm font-medium text-slate-950 shadow-[0_0_25px_rgba(56,189,248,0.65)] transition hover:shadow-[0_0_40px_rgba(56,189,248,0.85)] disabled:cursor-not-allowed disabled:opacity-60"
+                              className={`group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl px-4 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                isDefaultTheme
+                                  ? "bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 text-slate-950 shadow-[0_0_25px_rgba(56,189,248,0.65)] hover:shadow-[0_0_40px_rgba(56,189,248,0.85)]"
+                                  : "hover:opacity-95"
+                              }`}
+                              style={!isDefaultTheme ? {
+                                background: "var(--duo-gradient)",
+                                color: "var(--duo-btn-text, #ffffff)",
+                                boxShadow: "var(--duo-btn-shadow)",
+                              } : undefined}
                             >
                               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition group-hover:translate-x-full group-hover:opacity-100" />
                               <span className="relative flex items-center gap-2">
@@ -1218,9 +1227,9 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                     : "shadow-md"
                                 }`}
                                 style={!isDefaultTheme ? {
-                                  background: "var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%))",
+                                  background: "var(--duo-bubble-bg, var(--duo-gradient))",
                                   boxShadow: "var(--duo-glow, 0 0 18px rgba(56,189,248,0.7))",
-                                  color: "var(--duo-btn-text, #09090b)",
+                                  color: "var(--duo-bubble-text, #ffffff)",
                                 } : undefined}
                               >
                                 <p>
