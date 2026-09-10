@@ -1,5 +1,7 @@
 "use client";
 
+import { useDuoTheme } from "@/app/providers/DuoThemeProvider";
+
 import React, { memo, useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Cropper from "react-easy-crop";
@@ -385,6 +387,7 @@ export interface ActiveChatPanelProps {
 }
 
 export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPanelProps) {
+  const { isDefaultTheme } = useDuoTheme();
   const {
     chatPanelRef,
     handleDragEnter,
@@ -664,16 +667,23 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                       <button
                         type="submit"
                         disabled={!friendIdInput.trim() || searching}
-                        className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99]"
-                        style={{
+                        className={`group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl px-4 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                          isDefaultTheme
+                            ? "bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 text-slate-950 shadow-[0_0_25px_rgba(56,189,248,0.65)] hover:shadow-[0_0_40px_rgba(56,189,248,0.85)]"
+                            : "hover:brightness-110 active:scale-[0.99]"
+                        }`}
+                        style={!isDefaultTheme ? {
                           background: "var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%))",
                           boxShadow: "var(--duo-btn-shadow, var(--duo-glow, 0 0 25px rgba(56,189,248,0.65)))",
                           color: "var(--duo-btn-text, #ffffff)",
-                        }}
+                        } : undefined}
                       >
                         <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition group-hover:translate-x-full group-hover:opacity-100" />
                         <span className="relative flex items-center gap-2">
-                          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--duo-btn-text, #ffffff)" }} />
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${isDefaultTheme ? "bg-slate-900" : ""}`}
+                            style={!isDefaultTheme ? { backgroundColor: "var(--duo-btn-text, #ffffff)" } : undefined}
+                          />
                           {searching
                             ? "Scanning quantum directory…"
                             : "Connect via quantum ID"}
@@ -796,7 +806,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                   >
                                     <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition group-hover:translate-x-full group-hover:opacity-100" />
                                     <span className="relative flex items-center gap-2">
-                                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--duo-btn-text, #ffffff)" }} />
+                                      <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
                                       {sendingRequest ? "Sending VIP request…" : "Send request"}
                                     </span>
                                   </button>
@@ -915,7 +925,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                   >
                                     <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition group-hover:translate-x-full group-hover:opacity-100" />
                                     <span className="relative flex items-center gap-2">
-                                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--duo-btn-text, #ffffff)" }} />
+                                      <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
                                       {sendingRequest ? "Sending VIP request…" : "Send request"}
                                     </span>
                                   </button>
@@ -1059,7 +1069,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                             >
                               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition group-hover:translate-x-full group-hover:opacity-100" />
                               <span className="relative flex items-center gap-2">
-                                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--duo-btn-text, #ffffff)" }} />
+                                <span className={`h-1.5 w-1.5 rounded-full ${isDefaultTheme ? "bg-slate-900" : ""}`} style={!isDefaultTheme ? { backgroundColor: "var(--duo-btn-text, #ffffff)" } : undefined} />
                                 {sendingRequest
                                   ? "Sending request…"
                                   : "Send quantum request"}
@@ -1201,7 +1211,18 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                               </div>
                             </div>
                             <div className="flex justify-end">
-                              <div className="rounded-2xl rounded-br-sm px-3 py-2 shadow-md transition-all duration-500" style={{ background: "var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%))", boxShadow: "var(--duo-glow, 0 0 18px rgba(56,189,248,0.7))", color: "var(--duo-btn-text, #09090b)" }}>
+                              <div
+                                className={`rounded-2xl rounded-br-sm px-3 py-2 transition-all duration-500 ${
+                                  isDefaultTheme
+                                    ? "bg-gradient-to-r from-cyan-400/90 to-sky-500/90 text-slate-950 shadow-[0_0_18px_rgba(56,189,248,0.7)]"
+                                    : "shadow-md"
+                                }`}
+                                style={!isDefaultTheme ? {
+                                  background: "var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%))",
+                                  boxShadow: "var(--duo-glow, 0 0 18px rgba(56,189,248,0.7))",
+                                  color: "var(--duo-btn-text, #09090b)",
+                                } : undefined}
+                              >
                                 <p>
                                   For now, start by sending a connection request
                                   with your chosen categories.

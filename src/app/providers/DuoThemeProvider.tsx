@@ -171,6 +171,7 @@ interface DuoThemeContextType {
   primaryColor: string;
   secondaryColor: string;
   activePresetId: string | null;
+  isDefaultTheme: boolean;
   presets: DuoThemePreset[];
   setDuoColors: (primary: string, secondary: string) => void;
   applyPreset: (presetId: string) => void;
@@ -182,6 +183,8 @@ interface DuoThemeContextType {
 const STORAGE_KEY = "qlink_duo_theme_config";
 const DEFAULT_PRIMARY = "#22d3ee";
 const DEFAULT_SECONDARY = "#8b5cf6";
+
+const DuoThemeContext = createContext<DuoThemeContextType | null>(null);
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   let clean = hex.replace("#", "");
@@ -219,32 +222,86 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
 
+  const isOriginalQuantum =
+    primary.toLowerCase() === DEFAULT_PRIMARY.toLowerCase() &&
+    secondary.toLowerCase() === DEFAULT_SECONDARY.toLowerCase();
+
   const pRgb = hexToRgb(primary);
   const sRgb = hexToRgb(secondary);
 
+  // CLEAN UP TAILWIND 4 CORE PALETTE MUTATIONS
+  // Never hijack Tailwind's global --color-sky-*, --color-cyan-*, --color-fuchsia-*
+  const twTokens = [
+    "--color-cyan-200", "--color-cyan-300", "--color-cyan-400", "--color-cyan-500", "--color-cyan-600",
+    "--color-sky-300", "--color-sky-400", "--color-sky-500",
+    "--color-violet-400", "--color-violet-500", "--color-violet-600",
+    "--color-purple-400", "--color-purple-500", "--color-purple-600",
+    "--color-fuchsia-400", "--color-fuchsia-500",
+    "--color-indigo-300", "--color-indigo-400"
+  ];
+  twTokens.forEach((t) => root.style.removeProperty(t));
+
+  // IF THE DEFAULT CANONICAL QUANTUM CYAN THEME IS ACTIVE:
+  if (isOriginalQuantum) {
+    // 1. Remove all custom overrides so pure globals.css (.dark) takes 100% control
+    root.removeAttribute("data-duo-custom");
+    root.style.removeProperty("--accent-cyan");
+    root.style.removeProperty("--accent-cyan-light");
+    root.style.removeProperty("--accent-violet");
+    root.style.removeProperty("--shadow-cyan");
+    root.style.removeProperty("--shadow-violet");
+    root.style.removeProperty("--border-primary");
+    root.style.removeProperty("--orb-cyan");
+    root.style.removeProperty("--orb-violet");
+
+    // 2. Set the Duo variables to the authentic canonical values
+    root.style.setProperty("--duo-primary", primary);
+    root.style.setProperty("--duo-primary-rgb", `${pRgb.r}, ${pRgb.g}, ${pRgb.b}`);
+    root.style.setProperty("--duo-secondary", secondary);
+    root.style.setProperty("--duo-secondary-rgb", `${sRgb.r}, ${sRgb.g}, ${sRgb.b}`);
+
+    // Exact authentic legacy button gradient: Cyan-400 via Sky-400 to Fuchsia-400
+    root.style.setProperty("--duo-gradient", "linear-gradient(135deg, #22d3ee 0%, #38bdf8 50%, #e879f9 100%)");
+
+    // Exact authentic legacy headline gradient: Cyan-300 via Fuchsia-400 to Indigo-300
+    root.style.setProperty("--duo-text-gradient", "linear-gradient(135deg, #67e8f9 0%, #e879f9 50%, #a5b4fc 100%)");
+
+    // Exact authentic legacy glow: Sky-blue neon radiance
+    root.style.setProperty("--duo-glow", "0 0 25px rgba(56, 189, 248, 0.65)");
+    root.style.setProperty("--duo-btn-shadow", "0 0 25px rgba(56, 189, 248, 0.65)");
+
+    // Dark slate-950 text on luminous cyan/sky/fuchsia button
+    root.style.setProperty("--duo-btn-text", "#020617");
+
+    // Original vibrant badge colors
+    root.style.setProperty("--duo-primary-pill-text", "#22d3ee");
+    root.style.setProperty("--duo-primary-pill-bg", "rgba(34, 211, 238, 0.15)");
+    root.style.setProperty("--duo-primary-pill-border", "rgba(34, 211, 238, 0.45)");
+
+    root.style.setProperty("--duo-secondary-pill-text", "#8b5cf6");
+    root.style.setProperty("--duo-secondary-pill-bg", "rgba(139, 92, 246, 0.15)");
+    root.style.setProperty("--duo-secondary-pill-border", "rgba(139, 92, 246, 0.45)");
+    return;
+  }
+
+  // A CUSTOM / THIRD-PARTY THEME IS ACTIVE:
+  root.setAttribute("data-duo-custom", "true");
+
   const pLum = getLuminance(pRgb.r, pRgb.g, pRgb.b);
   const sLum = getLuminance(sRgb.r, sRgb.g, sRgb.b);
-
   const pNeutral = isNeutralColor(pRgb.r, pRgb.g, pRgb.b);
   const sNeutral = isNeutralColor(sRgb.r, sRgb.g, sRgb.b);
   const isMonochrome = pNeutral && sNeutral;
 
-  // Check if original Quantum Cyan theme is active
-  const isOriginalQuantum = primary.toLowerCase() === "#22d3ee" && secondary.toLowerCase() === "#8b5cf6";
-
   // 1. ADAPTIVE BUTTON TEXT COLOR
-  // If primary/button background is light (White, Silver, Pale Gray), text MUST be crisp black (#09090b)
-  // For dark or chromatic colors (Cyan, Violet, Red), text is crisp white (#ffffff)
-  const btnTextColor = (!isOriginalQuantum && pLum > 0.58) ? "#09090b" : "#ffffff";
+  const btnTextColor = pLum > 0.58 ? "#09090b" : "#ffffff";
 
   // 2. ADAPTIVE BADGE / PILL TEXT & BACKGROUND
-  // If a neutral color is dark (like pitch black #09090b), its text would be invisible on dark UI.
-  // We adapt dark neutral badge text to crisp silver (#e2e8f0 / #cbd5e1) and surface to translucent white.
   let pPillText = primary;
   let pPillBg = `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.15)`;
   let pPillBorder = `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.45)`;
 
-  if (!isOriginalQuantum && pNeutral) {
+  if (pNeutral) {
     if (pLum < 0.35) {
       pPillText = "#e2e8f0";
       pPillBg = "rgba(255, 255, 255, 0.08)";
@@ -260,9 +317,8 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
   let sPillBg = `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.15)`;
   let sPillBorder = `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.45)`;
 
-  if (!isOriginalQuantum && sNeutral) {
+  if (sNeutral) {
     if (sLum < 0.35) {
-      // Elevate dark secondary (e.g. #09090b) to crisp legible silver
       sPillText = "#cbd5e1";
       sPillBg = "rgba(255, 255, 255, 0.08)";
       sPillBorder = "rgba(255, 255, 255, 0.22)";
@@ -274,29 +330,24 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
   }
 
   // 3. ADAPTIVE DESKTOP-APP SHEEN VS NEON GLOW
-  // For monochrome (X / Apple Pro / Titanium), avoid blinding neon blur; use sharp desktop specular borders & shadow
   let duoGlow = `0 0 16px rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.45), 0 0 32px rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.25)`;
   let duoBtnShadow = `0 0 20px rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.55)`;
 
-  if (!isOriginalQuantum && isMonochrome) {
-    // Desktop minimalist elegance: subtle drop shadow + crisp white specular highlight
+  if (isMonochrome) {
     duoGlow = "0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.25)";
     duoBtnShadow = "0 2px 10px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.35)";
-  } else if (!isOriginalQuantum && pLum > 0.85) {
-    // Light primary with chromatic secondary: soften the white glow so it doesn't wash out
+  } else if (pLum > 0.85) {
     duoGlow = `0 2px 12px rgba(0, 0, 0, 0.35), 0 0 20px rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.35)`;
     duoBtnShadow = `0 2px 10px rgba(0, 0, 0, 0.4), 0 0 16px rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.3)`;
   }
 
   // 4. LEGIBLE GRADIENT TEXT PROTECTION
-  // Clamps dark tails to prevent gradient text from disappearing into true black
   let textGradSecondary = secondary;
-  if (!isOriginalQuantum && sNeutral && sLum < 0.35) {
-    textGradSecondary = "#94a3b8"; // Metallic Slate ensures text tail is always crisp and readable
+  if (sNeutral && sLum < 0.35) {
+    textGradSecondary = "#94a3b8";
   }
   const duoTextGradient = `linear-gradient(135deg, ${primary} 0%, ${textGradSecondary} 100%)`;
 
-  // Set Root CSS Variables
   root.style.setProperty("--duo-primary", primary);
   root.style.setProperty("--duo-primary-rgb", `${pRgb.r}, ${pRgb.g}, ${pRgb.b}`);
   root.style.setProperty("--duo-secondary", secondary);
@@ -315,7 +366,7 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
   root.style.setProperty("--duo-secondary-pill-bg", sPillBg);
   root.style.setProperty("--duo-secondary-pill-border", sPillBorder);
 
-  // Harmonize existing core accent tokens
+  // Harmonize accent tokens for custom themes
   root.style.setProperty("--accent-cyan", primary);
   root.style.setProperty("--accent-cyan-light", primary);
   root.style.setProperty("--accent-violet", secondary);
@@ -324,39 +375,19 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
   root.style.setProperty("--border-primary", isMonochrome ? "rgba(255, 255, 255, 0.25)" : `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.35)`);
   root.style.setProperty("--orb-cyan", isMonochrome ? "rgba(255, 255, 255, 0.05)" : `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.2)`);
   root.style.setProperty("--orb-violet", isMonochrome ? "rgba(255, 255, 255, 0.03)" : `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.2)`);
-
-  // OVERRIDE TAILWIND 4 GLOBAL PALETTE
-  root.style.setProperty("--color-cyan-200", `color-mix(in srgb, ${primary} 60%, white)`);
-  root.style.setProperty("--color-cyan-300", `color-mix(in srgb, ${primary} 80%, white)`);
-  root.style.setProperty("--color-cyan-400", primary);
-  root.style.setProperty("--color-cyan-500", primary);
-  root.style.setProperty("--color-cyan-600", `color-mix(in srgb, ${primary} 80%, black)`);
-
-  root.style.setProperty("--color-sky-300", `color-mix(in srgb, ${primary} 70%, white)`);
-  root.style.setProperty("--color-sky-400", primary);
-  root.style.setProperty("--color-sky-500", primary);
-
-  root.style.setProperty("--color-violet-400", `color-mix(in srgb, ${secondary} 80%, white)`);
-  root.style.setProperty("--color-violet-500", secondary);
-  root.style.setProperty("--color-violet-600", `color-mix(in srgb, ${secondary} 80%, black)`);
-
-  root.style.setProperty("--color-purple-400", `color-mix(in srgb, ${secondary} 80%, white)`);
-  root.style.setProperty("--color-purple-500", secondary);
-  root.style.setProperty("--color-purple-600", `color-mix(in srgb, ${secondary} 80%, black)`);
-
-  root.style.setProperty("--color-fuchsia-400", `color-mix(in srgb, ${secondary} 70%, ${primary})`);
-  root.style.setProperty("--color-fuchsia-500", secondary);
-  root.style.setProperty("--color-indigo-300", `color-mix(in srgb, ${secondary} 60%, white)`);
-  root.style.setProperty("--color-indigo-400", secondary);
 }
-
-const DuoThemeContext = createContext<DuoThemeContextType | undefined>(undefined);
 
 export function DuoThemeProvider({ children }: { children: React.ReactNode }) {
   const [primaryColor, setPrimaryColor] = useState<string>(DEFAULT_PRIMARY);
   const [secondaryColor, setSecondaryColor] = useState<string>(DEFAULT_SECONDARY);
   const [activePresetId, setActivePresetId] = useState<string | null>("quantum-default");
   const [mounted, setMounted] = useState<boolean>(false);
+
+  const isDefaultTheme =
+    activePresetId === "quantum-default" ||
+    (!activePresetId &&
+      primaryColor.toLowerCase() === DEFAULT_PRIMARY.toLowerCase() &&
+      secondaryColor.toLowerCase() === DEFAULT_SECONDARY.toLowerCase());
 
   // Load configuration from localStorage
   useEffect(() => {
@@ -492,6 +523,7 @@ export function DuoThemeProvider({ children }: { children: React.ReactNode }) {
         primaryColor,
         secondaryColor,
         activePresetId,
+        isDefaultTheme,
         presets: DUO_THEME_PRESETS,
         setDuoColors,
         applyPreset,

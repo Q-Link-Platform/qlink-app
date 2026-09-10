@@ -1,5 +1,7 @@
 "use client";
 
+import { useDuoTheme } from "@/app/providers/DuoThemeProvider";
+
 import { ActiveChatPanel } from "@/components/chat/ActiveChatPanel";
 import { MessageStatusTicks } from "@/components/MessageStatusTicks";
 
@@ -1321,6 +1323,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   passiveTouchRef?: React.Ref<HTMLDivElement>;
   androidScrollRef?: React.Ref<HTMLDivElement>;
 }) {
+  const { isDefaultTheme } = useDuoTheme();
   const { data: session, status, update: updateSession } = useSession();
 
   // Production-Grade Offline-Resilient Session Cache
@@ -9544,12 +9547,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       <h1 className="text-balance text-4xl font-semibold tracking-tight text-slate-50 sm:text-5xl md:text-6xl">
                         Talk to anyone on Earth
                         <span
-                          className="block bg-clip-text text-transparent transition-all duration-500"
-                          style={{
+                          className={`block bg-clip-text text-transparent transition-all duration-500 ${
+                            isDefaultTheme
+                              ? "bg-gradient-to-r from-cyan-300 via-fuchsia-400 to-indigo-300"
+                              : ""
+                          }`}
+                          style={!isDefaultTheme ? {
                             backgroundImage: "var(--duo-text-gradient, var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%)))",
                             WebkitBackgroundClip: "text",
                             WebkitTextFillColor: "transparent",
-                          }}
+                          } : undefined}
                         >
                           with a single ID.
                         </span>

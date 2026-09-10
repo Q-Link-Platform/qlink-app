@@ -37,6 +37,7 @@ export default function DuoThemeStudio({ isQuantum = true }: { isQuantum?: boole
     primaryColor,
     secondaryColor,
     activePresetId,
+    isDefaultTheme,
     applyPreset,
     setDuoColors,
     generateRandomDuo,
@@ -143,16 +144,20 @@ export default function DuoThemeStudio({ isQuantum = true }: { isQuantum?: boole
                 type="button"
                 className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-bold shadow-lg transition-all transform hover:scale-105 active:scale-95"
                 style={{
-                  background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
-                  boxShadow: "var(--duo-btn-shadow, 0 0 16px rgba(34, 211, 238, 0.5))",
-                  color: "var(--duo-btn-text, #ffffff)",
+                  background: isDefaultTheme
+                    ? "linear-gradient(135deg, #22d3ee 0%, #38bdf8 50%, #e879f9 100%)"
+                    : `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
+                  boxShadow: isDefaultTheme
+                    ? "0 0 25px rgba(56, 189, 248, 0.65)"
+                    : "var(--duo-btn-shadow, 0 0 16px rgba(34, 211, 238, 0.5))",
+                  color: isDefaultTheme ? "#020617" : "var(--duo-btn-text, #ffffff)",
                 }}
               >
                 <span
                   className="h-2 w-2 rounded-full animate-ping"
-                  style={{ backgroundColor: "var(--duo-btn-text, #ffffff)" }}
+                  style={{ backgroundColor: isDefaultTheme ? "#020617" : "var(--duo-btn-text, #ffffff)" }}
                 />
-                Duo Glow Button
+                {isDefaultTheme ? "Quantum Glow Button" : "Duo Glow Button"}
               </button>
 
               {/* Tag / Badge Preview */}
@@ -193,7 +198,9 @@ export default function DuoThemeStudio({ isQuantum = true }: { isQuantum?: boole
               <span
                 className="text-xs font-black tracking-wider uppercase bg-clip-text text-transparent transition-all"
                 style={{
-                  backgroundImage: "var(--duo-text-gradient, linear-gradient(135deg, #22d3ee, #8b5cf6))",
+                  backgroundImage: isDefaultTheme
+                    ? "linear-gradient(135deg, #67e8f9 0%, #e879f9 50%, #a5b4fc 100%)"
+                    : "var(--duo-text-gradient, linear-gradient(135deg, #22d3ee, #8b5cf6))",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                 }}
