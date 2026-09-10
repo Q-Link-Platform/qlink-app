@@ -9660,15 +9660,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400/90 sm:text-sm">
-                      <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/40 bg-slate-900/50 px-2.5 py-1">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ${isDefaultTheme ? "border border-slate-500/40 bg-slate-900/50" : "border"}`}
+                        style={!isDefaultTheme ? { backgroundColor: 'var(--duo-surface-card-inner)', borderColor: 'var(--duo-surface-card-border-subtle)' } : undefined}
+                      >
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                         Live presence
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/40 bg-slate-900/50 px-2.5 py-1">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ${isDefaultTheme ? "border border-slate-500/40 bg-slate-900/50" : "border"}`}
+                        style={!isDefaultTheme ? { backgroundColor: 'var(--duo-surface-card-inner)', borderColor: 'var(--duo-surface-card-border-subtle)' } : undefined}
+                      >
                         <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
                         Encrypted DMs
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-full border border-slate-500/40 bg-slate-900/50 px-2.5 py-1">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 ${isDefaultTheme ? "border border-slate-500/40 bg-slate-900/50" : "border"}`}
+                        style={!isDefaultTheme ? { backgroundColor: 'var(--duo-surface-card-inner)', borderColor: 'var(--duo-surface-card-border-subtle)' } : undefined}
+                      >
                         <span className="h-1.5 w-1.5 rounded-full bg-fuchsia-400" />
                         Global handles
                       </span>
@@ -9681,12 +9690,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   className={
                     isFocusMode
                       ? "mt-0 space-y-4 rounded-none border-none bg-slate-900 p-2 sm:p-4 md:p-6 pt-16 w-full flex-1 flex flex-col text-base text-slate-200 transition-shadow scrollbar-hide"
-                      : "mt-4 space-y-4 rounded-2xl border border-slate-600/60 bg-slate-900/70 p-4 text-sm text-slate-300 transition-shadow scrollbar-hide"
+                      : ("mt-4 space-y-4 rounded-2xl p-4 text-sm text-slate-300 transition-shadow scrollbar-hide " +
+                         (isDefaultTheme ? "border border-slate-600/60 bg-slate-900/70" : "border"))
                   }
+                  style={!isDefaultTheme ? {
+                    backgroundColor: 'var(--duo-surface-card)',
+                    borderColor: 'var(--duo-surface-card-border)',
+                  } : undefined}
                 >
                   <div
                     data-tour="quantum-id"
-                    className="flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-xl bg-slate-950/50 border border-slate-700/60 transition-all scrollbar-hide"
+                    className={
+                      "flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-xl transition-all scrollbar-hide " +
+                      (isDefaultTheme ? "bg-slate-950/50 border border-slate-700/60" : "border")
+                    }
+                    style={!isDefaultTheme ? {
+                      backgroundColor: 'var(--duo-surface-card-inner)',
+                      borderColor: 'var(--duo-surface-card-border-subtle)',
+                    } : undefined}
                   >
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center gap-2">
@@ -9795,13 +9816,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         <div className="flex items-center gap-2">
                           <span
                             className={
-                              "rounded-full bg-slate-800 px-2 py-0.5 text-[11px] truncate max-w-[125px] xs:max-w-[150px] sm:max-w-none " +
-                              (isVipHandle(quantumId)
-                                ? "font-semibold text-red-400"
-                                : effectiveBlueTickStatus === "SAPPHIRE"
-                                  ? "font-semibold text-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.25)]"
-                                  : "font-mono text-cyan-300")
+                              "rounded-full px-2 py-0.5 text-[11px] truncate max-w-[125px] xs:max-w-[150px] sm:max-w-none " +
+                              (isDefaultTheme
+                                ? (isVipHandle(quantumId)
+                                    ? "bg-slate-800 font-semibold text-red-400"
+                                    : effectiveBlueTickStatus === "SAPPHIRE"
+                                      ? "bg-slate-800 font-semibold text-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.25)]"
+                                      : "bg-slate-800 font-mono text-cyan-300")
+                                : "font-semibold")
                             }
+                            style={!isDefaultTheme ? {
+                              backgroundColor: 'var(--duo-primary-pill-bg)',
+                              color: 'var(--duo-accent-text)',
+                            } : undefined}
                           >
                             @{quantumId}
                           </span>
@@ -9929,19 +9956,32 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             ref={connectionsTabBarRef}
                             onMouseMove={handleTabBarMouseMove}
                             onMouseLeave={handleTabBarMouseLeave}
-                            className="relative grid grid-cols-2 items-center rounded-xl border border-slate-800/80 bg-slate-950/80 p-1 backdrop-blur-md shadow-inner w-[200px] xs:w-[220px] sm:w-[240px] select-none overflow-hidden"
+                            className={
+                              "relative grid grid-cols-2 items-center rounded-xl p-1 backdrop-blur-md shadow-inner w-[200px] xs:w-[220px] sm:w-[240px] select-none overflow-hidden " +
+                              (isDefaultTheme ? "border border-slate-800/80 bg-slate-950/80" : "border")
+                            }
                             style={{
                               "--pill-x": connectionsTab === "friends" ? "0px" : "116px",
                               "--pill-transition": "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                              backgroundColor: !isDefaultTheme ? 'var(--duo-surface-card-inner)' : undefined,
+                              borderColor: !isDefaultTheme ? 'var(--duo-surface-card-border-subtle)' : undefined,
                             } as React.CSSProperties}
                           >
-                            {/* The Live Sticky Moving Blue-Purple-Pink Prismatic Spotlight Layer */}
+                            {/* The Live Sticky Moving Spotlight Layer */}
                             <div
-                              className="pointer-events-none absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-gradient-to-r from-cyan-500/25 via-sky-500/20 to-blue-500/25 border border-cyan-400/50 shadow-[0_0_16px_rgba(6,182,212,0.35),0_0_30px_rgba(168,85,247,0.15)] backdrop-blur-md z-0 will-change-transform"
+                              className={
+                                "pointer-events-none absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg backdrop-blur-md z-0 will-change-transform " +
+                                (isDefaultTheme
+                                  ? "bg-gradient-to-r from-cyan-500/25 via-sky-500/20 to-blue-500/25 border border-cyan-400/50 shadow-[0_0_16px_rgba(6,182,212,0.35),0_0_30px_rgba(168,85,247,0.15)]"
+                                  : "border")
+                              }
                               style={{
                                 left: "4px",
                                 transform: "translateX(var(--pill-x, 0px))",
                                 transition: "var(--pill-transition, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1))",
+                                background: !isDefaultTheme ? 'var(--duo-tab-indicator-bg)' : undefined,
+                                borderColor: !isDefaultTheme ? 'var(--duo-border-glow)' : undefined,
+                                boxShadow: !isDefaultTheme ? '0 0 14px var(--duo-border-glow)' : undefined,
                               }}
                             >
                               {/* Prismatic Cyan-Purple-Pink Ambient Spotlight Glow */}
@@ -10017,7 +10057,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             <button
                               type="button"
                               onClick={() => setMode("connect")}
-                              className="rounded-full border border-cyan-400/70 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20 hover:border-cyan-300 transition-all shadow-[0_0_10px_rgba(6,182,212,0.15)] active:scale-95"
+                              className={
+                                "rounded-full px-3 py-1 text-xs font-semibold transition-all active:scale-95 " +
+                                (isDefaultTheme
+                                  ? "border border-cyan-400/70 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20 hover:border-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.15)]"
+                                  : "hover:brightness-110")
+                              }
+                              style={!isDefaultTheme ? {
+                                backgroundColor: 'var(--duo-primary-pill-bg)',
+                                borderColor: 'var(--duo-border-glow)',
+                                color: 'var(--duo-accent-text)',
+                                borderWidth: '1px',
+                                borderStyle: 'solid',
+                              } : undefined}
                             >
                               + Connect
                             </button>
@@ -10124,7 +10176,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           ) : connectionsTab === "friends" ? (
                             /* TAB 1: ALL ACCEPTED FRIENDS & CHATS */
                             acceptedFriends.length === 0 ? (
-                              <div className="flex flex-col items-center justify-center py-8 text-center bg-slate-950/30 rounded-xl border border-slate-800/50 p-4">
+                              <div
+                                className={
+                                  "flex flex-col items-center justify-center py-8 text-center rounded-xl p-4 " +
+                                  (isDefaultTheme ? "bg-slate-950/30 border border-slate-800/50" : "border")
+                                }
+                                style={!isDefaultTheme ? {
+                                  backgroundColor: 'var(--duo-surface-card-inner)',
+                                  borderColor: 'var(--duo-surface-card-border-subtle)',
+                                } : undefined}
+                              >
                                 <p className="text-xs font-medium text-slate-400">No active connections yet</p>
                                 <p className="text-[10px] text-slate-500 mt-0.5">Use "+ Connect" to link with friends</p>
                               </div>
@@ -10138,7 +10199,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     openChatWithPeer(f.peerHandle);
                                     setIsChatFull(true);
                                   }}
-                                  className="x-magnetic-card group flex items-center justify-between gap-2 rounded-xl border border-slate-800/70 bg-slate-950/45 px-3 py-2 transition-all duration-200 hover:bg-slate-900/60 hover:border-cyan-500/35 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)] cursor-pointer"
+                                  className={
+                                    "x-magnetic-card group flex items-center justify-between gap-2 rounded-xl px-3 py-2 transition-all duration-200 cursor-pointer " +
+                                    (isDefaultTheme
+                                      ? "border border-slate-800/70 bg-slate-950/45 hover:bg-slate-900/60 hover:border-cyan-500/35 hover:shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+                                      : "border hover:brightness-110")
+                                  }
+                                  style={!isDefaultTheme ? {
+                                    backgroundColor: 'var(--duo-surface-card-inner)',
+                                    borderColor: 'var(--duo-surface-card-border-subtle)',
+                                  } : undefined}
                                 >
                                   <div className="min-w-0 flex-1">
                                     <p className="truncate text-xs font-semibold text-slate-100 flex items-center gap-1.5 group-hover:text-cyan-200 transition-colors">
@@ -10179,8 +10249,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-all ${
                                         f.isUnread
                                           ? "border-orange-500 bg-orange-500/20 text-orange-200 shadow-[0_0_12px_rgba(249,115,22,0.4)] animate-pulse"
-                                          : "border-cyan-400/70 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
+                                          : isDefaultTheme
+                                            ? "border-cyan-400/70 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
+                                            : "hover:brightness-110"
                                       }`}
+                                      style={!isDefaultTheme && !f.isUnread ? {
+                                        backgroundColor: 'var(--duo-primary-pill-bg)',
+                                        borderColor: 'var(--duo-border-glow)',
+                                        color: 'var(--duo-accent-text)',
+                                      } : undefined}
                                     >
                                       Chat
                                     </button>

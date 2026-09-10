@@ -290,6 +290,14 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
     root.style.setProperty("--duo-accent-text", "#22d3ee");
     root.style.setProperty("--duo-bubble-bg", "linear-gradient(135deg, #22d3ee 0%, #0ea5e9 100%)");
     root.style.setProperty("--duo-bubble-text", "#020617");
+
+    // Canonical surfaces for default theme (clean removal so pure native Tailwind slate-950/slate-900 rules apply)
+    root.style.removeProperty("--duo-surface-base");
+    root.style.removeProperty("--duo-surface-card");
+    root.style.removeProperty("--duo-surface-card-inner");
+    root.style.removeProperty("--duo-surface-card-border");
+    root.style.removeProperty("--duo-surface-card-border-subtle");
+    root.style.removeProperty("--duo-tab-indicator-bg");
     return;
   }
 
@@ -402,6 +410,43 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
     bubbleText = "#ffffff";
   }
 
+  // 8. TRUE ATMOSPHERE & SURFACE TINTING ENGINE (Option B - Tech Giant Standard)
+  let duoSurfaceBase = "#020817";
+  let duoSurfaceCard = "rgba(15, 23, 42, 0.78)";
+  let duoSurfaceCardInner = "rgba(2, 6, 23, 0.55)";
+  let duoSurfaceCardBorder = "rgba(148, 163, 184, 0.35)";
+  let duoSurfaceCardBorderSubtle = "rgba(148, 163, 184, 0.15)";
+  let duoTabIndicatorBg = `linear-gradient(135deg, rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.35) 0%, rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.25) 100%)`;
+
+  if (isMonochrome) {
+    // Pure OLED stealth: pitch black canvas, graphite surfaces, zero blue hue
+    duoSurfaceBase = "#000000";
+    duoSurfaceCard = "rgba(18, 18, 22, 0.88)";
+    duoSurfaceCardInner = "rgba(10, 10, 14, 0.75)";
+    duoSurfaceCardBorder = "rgba(255, 255, 255, 0.14)";
+    duoSurfaceCardBorderSubtle = "rgba(255, 255, 255, 0.08)";
+    duoTabIndicatorBg = "linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.08) 100%)";
+  } else {
+    // Harmonious dark atmospheric tinting: 6-12% primary/secondary hue blended into obsidian
+    const baseR = Math.min(25, Math.round(pRgb.r * 0.07));
+    const baseG = Math.min(25, Math.round(pRgb.g * 0.07));
+    const baseB = Math.min(25, Math.round(pRgb.b * 0.07));
+    duoSurfaceBase = `rgba(${baseR}, ${baseG}, ${baseB}, 0.98)`;
+
+    const cardR = Math.min(36, Math.round(pRgb.r * 0.12 + sRgb.r * 0.03));
+    const cardG = Math.min(36, Math.round(pRgb.g * 0.12 + sRgb.g * 0.03));
+    const cardB = Math.min(36, Math.round(pRgb.b * 0.12 + sRgb.b * 0.03));
+    duoSurfaceCard = `rgba(${cardR}, ${cardG}, ${cardB}, 0.85)`;
+
+    const innerR = Math.min(20, Math.round(pRgb.r * 0.05));
+    const innerG = Math.min(20, Math.round(pRgb.g * 0.05));
+    const innerB = Math.min(20, Math.round(pRgb.b * 0.05));
+    duoSurfaceCardInner = `rgba(${innerR}, ${innerG}, ${innerB}, 0.65)`;
+
+    duoSurfaceCardBorder = `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.25)`;
+    duoSurfaceCardBorderSubtle = `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.12)`;
+  }
+
   root.style.setProperty("--duo-primary", primary);
   root.style.setProperty("--duo-primary-rgb", `${pRgb.r}, ${pRgb.g}, ${pRgb.b}`);
   root.style.setProperty("--duo-secondary", secondary);
@@ -427,6 +472,13 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
   root.style.setProperty("--duo-accent-text", duoAccentText);
   root.style.setProperty("--duo-bubble-bg", bubbleBg);
   root.style.setProperty("--duo-bubble-text", bubbleText);
+
+  root.style.setProperty("--duo-surface-base", duoSurfaceBase);
+  root.style.setProperty("--duo-surface-card", duoSurfaceCard);
+  root.style.setProperty("--duo-surface-card-inner", duoSurfaceCardInner);
+  root.style.setProperty("--duo-surface-card-border", duoSurfaceCardBorder);
+  root.style.setProperty("--duo-surface-card-border-subtle", duoSurfaceCardBorderSubtle);
+  root.style.setProperty("--duo-tab-indicator-bg", duoTabIndicatorBg);
 
   // Harmonize accent tokens for custom themes
   root.style.setProperty("--accent-cyan", primary);

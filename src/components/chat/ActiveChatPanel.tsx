@@ -609,7 +609,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                           </p>
                           <p className="mt-1 min-w-0 text-xs font-mono text-slate-300 break-all sm:break-normal">
                             q-link://channel
-                            <span className="text-cyan-300">/alpha</span>
+                            <span className={isDefaultTheme ? "text-cyan-300" : ""} style={!isDefaultTheme ? { color: "var(--duo-primary, #22d3ee)" } : undefined}>/alpha</span>
                           </p>
                         </div>
                       </div>
@@ -656,7 +656,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                             value={friendIdInput}
                             onChange={(e) => setFriendIdInput(e.target.value)}
                             placeholder="friend-id"
-                            className="w-full rounded-xl border border-slate-600/70 bg-slate-900/80 py-2.5 pl-7 pr-24 text-sm text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)]"
+                            className="w-full rounded-xl border border-slate-600/70 bg-slate-900/80 py-2.5 pl-7 pr-24 text-sm text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-900 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)]" style={!isDefaultTheme ? { backgroundColor: "var(--duo-surface-card-inner, rgba(2, 6, 23, 0.6))", borderColor: "var(--duo-surface-card-border, rgba(51, 65, 85, 0.7))" } : undefined}
                           />
                           <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[10px] font-mono text-slate-500">
                             x.chat
@@ -946,7 +946,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                             </div>
                           </div>
                         ) : (
-                          <div className="mt-3 space-y-3 rounded-2xl border border-slate-600/70 bg-slate-900/90 p-3 relative">
+                          <div className="mt-3 space-y-3 rounded-2xl border border-slate-600/70 bg-slate-900/90 p-3 relative" style={!isDefaultTheme ? { backgroundColor: "var(--duo-surface-card, rgba(15, 23, 42, 0.9))", borderColor: "var(--duo-surface-card-border, rgba(51, 65, 85, 0.7))" } : undefined}>
                             {/* Close Button for Regular User Card */}
                             <button
                               type="button"
@@ -1106,11 +1106,16 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                     }
                     style={{
                       minHeight: isChatExpanded ? '100%' : '400px',
-                      maxHeight: isChatExpanded ? '100%' : '85vh'
+                      maxHeight: isChatExpanded ? '100%' : '85vh',
+                      ...(!isDefaultTheme ? {
+                        backgroundColor: "var(--duo-surface-card, rgba(15, 23, 42, 0.8))",
+                        borderColor: highlightChatPanel ? undefined : "var(--duo-surface-card-border, rgba(51, 65, 85, 0.7))",
+                      } : {})
                     }}
                   >
                     {/* Fixed header at top of chat card */}
                     <div
+                      style={!isDefaultTheme ? { backgroundColor: "var(--duo-surface-card, rgba(15, 23, 42, 0.95))", borderColor: (peerOnline || peerTyping) ? undefined : "var(--duo-surface-card-border-subtle, rgba(51, 65, 85, 0.6))" } : undefined}
                       className={
                         "flex items-center justify-between gap-2 border-b bg-slate-900/95 pb-1 " +
                         (peerOnline || peerTyping

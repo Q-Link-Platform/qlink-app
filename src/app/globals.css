@@ -3647,3 +3647,15 @@ textarea,
   background: radial-gradient(circle, var(--duo-orb-secondary), transparent 60%) !important;
 }
 
+/* True Atmosphere & Surface Tinting Engine for Custom Duo Themes */
+[data-duo-custom="true"] body,
+[data-duo-custom="true"] #main-scroll-container {
+  background-color: var(--duo-surface-base) !important;
+}
+
+[data-duo-custom="true"] .glass-panel {
+  background: var(--duo-surface-card) !important;
+  border-color: var(--duo-surface-card-border) !important;
+  box-shadow: 0 0 0 1px var(--duo-surface-card-border-subtle), 0 18px 60px rgba(0, 0, 0, 0.85) !important;
+}
+
