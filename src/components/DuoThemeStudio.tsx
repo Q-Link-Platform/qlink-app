@@ -141,49 +141,61 @@ export default function DuoThemeStudio({ isQuantum = true }: { isQuantum?: boole
               {/* Button Preview */}
               <button
                 type="button"
-                className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-semibold text-white shadow-lg transition-all transform hover:scale-105 active:scale-95"
+                className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[11px] font-bold shadow-lg transition-all transform hover:scale-105 active:scale-95"
                 style={{
                   background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
-                  boxShadow: `0 0 16px ${primaryColor}66, 0 0 24px ${secondaryColor}40`,
+                  boxShadow: "var(--duo-btn-shadow, 0 0 16px rgba(34, 211, 238, 0.5))",
+                  color: "var(--duo-btn-text, #ffffff)",
                 }}
               >
-                <span className="h-2 w-2 rounded-full bg-white animate-ping" />
+                <span
+                  className="h-2 w-2 rounded-full animate-ping"
+                  style={{ backgroundColor: "var(--duo-btn-text, #ffffff)" }}
+                />
                 Duo Glow Button
               </button>
 
               {/* Tag / Badge Preview */}
               <div
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold border"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold border transition-all"
                 style={{
-                  backgroundColor: `${primaryColor}15`,
-                  borderColor: `${primaryColor}60`,
-                  color: primaryColor,
-                  boxShadow: `0 0 10px ${primaryColor}20`,
+                  backgroundColor: "var(--duo-primary-pill-bg, rgba(34, 211, 238, 0.15))",
+                  borderColor: "var(--duo-primary-pill-border, rgba(34, 211, 238, 0.5))",
+                  color: "var(--duo-primary-pill-text, #22d3ee)",
+                  boxShadow: "0 0 10px rgba(0, 0, 0, 0.25)",
                 }}
               >
-                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: primaryColor }} />
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: "var(--duo-primary-pill-text, #22d3ee)" }}
+                />
                 Primary Pill
               </div>
 
               {/* Secondary Tag */}
               <div
-                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold border"
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-bold border transition-all"
                 style={{
-                  backgroundColor: `${secondaryColor}15`,
-                  borderColor: `${secondaryColor}60`,
-                  color: secondaryColor,
-                  boxShadow: `0 0 10px ${secondaryColor}20`,
+                  backgroundColor: "var(--duo-secondary-pill-bg, rgba(139, 92, 246, 0.15))",
+                  borderColor: "var(--duo-secondary-pill-border, rgba(139, 92, 246, 0.5))",
+                  color: "var(--duo-secondary-pill-text, #8b5cf6)",
+                  boxShadow: "0 0 10px rgba(0, 0, 0, 0.25)",
                 }}
               >
-                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: secondaryColor }} />
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: "var(--duo-secondary-pill-text, #8b5cf6)" }}
+                />
                 Secondary Pill
               </div>
 
               {/* Gradient Text Preview */}
               <span
-                className="text-xs font-black tracking-wider uppercase bg-clip-text text-transparent"
+                className="text-xs font-black tracking-wider uppercase bg-clip-text text-transparent transition-all"
                 style={{
-                  backgroundImage: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+                  backgroundImage: "var(--duo-text-gradient, linear-gradient(135deg, #22d3ee, #8b5cf6))",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
                 }}
               >
                 Quantum Duo Engine

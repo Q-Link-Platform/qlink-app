@@ -199,6 +199,22 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   };
 }
 
+// W3C Standard Relative Luminance calculation
+function getLuminance(r: number, g: number, b: number): number {
+  const [sR, sG, sB] = [r, g, b].map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * sR + 0.7152 * sG + 0.0722 * sB;
+}
+
+// Determines whether a color is neutral / grayscale (low chroma saturation)
+function isNeutralColor(r: number, g: number, b: number): boolean {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  return max - min < 28;
+}
+
 function applyDuoThemeCssVariables(primary: string, secondary: string) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
@@ -206,36 +222,110 @@ function applyDuoThemeCssVariables(primary: string, secondary: string) {
   const pRgb = hexToRgb(primary);
   const sRgb = hexToRgb(secondary);
 
-  // Dynamic Duo-Tone Custom Properties
+  const pLum = getLuminance(pRgb.r, pRgb.g, pRgb.b);
+  const sLum = getLuminance(sRgb.r, sRgb.g, sRgb.b);
+
+  const pNeutral = isNeutralColor(pRgb.r, pRgb.g, pRgb.b);
+  const sNeutral = isNeutralColor(sRgb.r, sRgb.g, sRgb.b);
+  const isMonochrome = pNeutral && sNeutral;
+
+  // Check if original Quantum Cyan theme is active
+  const isOriginalQuantum = primary.toLowerCase() === "#22d3ee" && secondary.toLowerCase() === "#8b5cf6";
+
+  // 1. ADAPTIVE BUTTON TEXT COLOR
+  // If primary/button background is light (White, Silver, Pale Gray), text MUST be crisp black (#09090b)
+  // For dark or chromatic colors (Cyan, Violet, Red), text is crisp white (#ffffff)
+  const btnTextColor = (!isOriginalQuantum && pLum > 0.58) ? "#09090b" : "#ffffff";
+
+  // 2. ADAPTIVE BADGE / PILL TEXT & BACKGROUND
+  // If a neutral color is dark (like pitch black #09090b), its text would be invisible on dark UI.
+  // We adapt dark neutral badge text to crisp silver (#e2e8f0 / #cbd5e1) and surface to translucent white.
+  let pPillText = primary;
+  let pPillBg = `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.15)`;
+  let pPillBorder = `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.45)`;
+
+  if (!isOriginalQuantum && pNeutral) {
+    if (pLum < 0.35) {
+      pPillText = "#e2e8f0";
+      pPillBg = "rgba(255, 255, 255, 0.08)";
+      pPillBorder = "rgba(255, 255, 255, 0.22)";
+    } else {
+      pPillText = "#ffffff";
+      pPillBg = "rgba(255, 255, 255, 0.12)";
+      pPillBorder = "rgba(255, 255, 255, 0.35)";
+    }
+  }
+
+  let sPillText = secondary;
+  let sPillBg = `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.15)`;
+  let sPillBorder = `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.45)`;
+
+  if (!isOriginalQuantum && sNeutral) {
+    if (sLum < 0.35) {
+      // Elevate dark secondary (e.g. #09090b) to crisp legible silver
+      sPillText = "#cbd5e1";
+      sPillBg = "rgba(255, 255, 255, 0.08)";
+      sPillBorder = "rgba(255, 255, 255, 0.22)";
+    } else {
+      sPillText = "#f8fafc";
+      sPillBg = "rgba(255, 255, 255, 0.12)";
+      sPillBorder = "rgba(255, 255, 255, 0.35)";
+    }
+  }
+
+  // 3. ADAPTIVE DESKTOP-APP SHEEN VS NEON GLOW
+  // For monochrome (X / Apple Pro / Titanium), avoid blinding neon blur; use sharp desktop specular borders & shadow
+  let duoGlow = `0 0 16px rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.45), 0 0 32px rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.25)`;
+  let duoBtnShadow = `0 0 20px rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.55)`;
+
+  if (!isOriginalQuantum && isMonochrome) {
+    // Desktop minimalist elegance: subtle drop shadow + crisp white specular highlight
+    duoGlow = "0 4px 16px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.25)";
+    duoBtnShadow = "0 2px 10px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.35)";
+  } else if (!isOriginalQuantum && pLum > 0.85) {
+    // Light primary with chromatic secondary: soften the white glow so it doesn't wash out
+    duoGlow = `0 2px 12px rgba(0, 0, 0, 0.35), 0 0 20px rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.35)`;
+    duoBtnShadow = `0 2px 10px rgba(0, 0, 0, 0.4), 0 0 16px rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.3)`;
+  }
+
+  // 4. LEGIBLE GRADIENT TEXT PROTECTION
+  // Clamps dark tails to prevent gradient text from disappearing into true black
+  let textGradSecondary = secondary;
+  if (!isOriginalQuantum && sNeutral && sLum < 0.35) {
+    textGradSecondary = "#94a3b8"; // Metallic Slate ensures text tail is always crisp and readable
+  }
+  const duoTextGradient = `linear-gradient(135deg, ${primary} 0%, ${textGradSecondary} 100%)`;
+
+  // Set Root CSS Variables
   root.style.setProperty("--duo-primary", primary);
   root.style.setProperty("--duo-primary-rgb", `${pRgb.r}, ${pRgb.g}, ${pRgb.b}`);
   root.style.setProperty("--duo-secondary", secondary);
   root.style.setProperty("--duo-secondary-rgb", `${sRgb.r}, ${sRgb.g}, ${sRgb.b}`);
   root.style.setProperty("--duo-gradient", `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`);
-  
-  // Check if primary or secondary are pure white or dark
-  const pBrightness = (pRgb.r * 299 + pRgb.g * 587 + pRgb.b * 114) / 1000;
-  const sBrightness = (sRgb.r * 299 + sRgb.g * 587 + sRgb.b * 114) / 1000;
+  root.style.setProperty("--duo-text-gradient", duoTextGradient);
+  root.style.setProperty("--duo-glow", duoGlow);
+  root.style.setProperty("--duo-btn-shadow", duoBtnShadow);
+  root.style.setProperty("--duo-btn-text", btnTextColor);
 
-  const pGlowAlpha = pBrightness > 230 ? 0.4 : 0.45;
-  const sGlowAlpha = sBrightness < 30 ? 0.15 : 0.25;
+  root.style.setProperty("--duo-primary-pill-text", pPillText);
+  root.style.setProperty("--duo-primary-pill-bg", pPillBg);
+  root.style.setProperty("--duo-primary-pill-border", pPillBorder);
 
-  root.style.setProperty(
-    "--duo-glow",
-    `0 0 16px rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, ${pGlowAlpha}), 0 0 32px rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, ${sGlowAlpha})`
-  );
+  root.style.setProperty("--duo-secondary-pill-text", sPillText);
+  root.style.setProperty("--duo-secondary-pill-bg", sPillBg);
+  root.style.setProperty("--duo-secondary-pill-border", sPillBorder);
 
-  // Harmonize existing core accent tokens so existing badges and buttons adopt the theme
+  // Harmonize existing core accent tokens
   root.style.setProperty("--accent-cyan", primary);
   root.style.setProperty("--accent-cyan-light", primary);
   root.style.setProperty("--accent-violet", secondary);
   root.style.setProperty("--shadow-cyan", `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.3)`);
   root.style.setProperty("--shadow-violet", `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.3)`);
-  root.style.setProperty("--border-primary", `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.35)`);
-  root.style.setProperty("--orb-cyan", `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.2)`);
-  root.style.setProperty("--orb-violet", `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.2)`);
+  root.style.setProperty("--border-primary", isMonochrome ? "rgba(255, 255, 255, 0.25)" : `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.35)`);
+  root.style.setProperty("--orb-cyan", isMonochrome ? "rgba(255, 255, 255, 0.05)" : `rgba(${pRgb.r}, ${pRgb.g}, ${pRgb.b}, 0.2)`);
+  root.style.setProperty("--orb-violet", isMonochrome ? "rgba(255, 255, 255, 0.03)" : `rgba(${sRgb.r}, ${sRgb.g}, ${sRgb.b}, 0.2)`);
 
-  // OVERRIDE TAILWIND 4 GLOBAL PALETTE: Propagate primary & secondary across all components instantly
+  // OVERRIDE TAILWIND 4 GLOBAL PALETTE
   root.style.setProperty("--color-cyan-200", `color-mix(in srgb, ${primary} 60%, white)`);
   root.style.setProperty("--color-cyan-300", `color-mix(in srgb, ${primary} 80%, white)`);
   root.style.setProperty("--color-cyan-400", primary);

@@ -667,12 +667,13 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                         className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99]"
                         style={{
                           background: "var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%))",
-                          boxShadow: "var(--duo-glow, 0 0 25px rgba(56,189,248,0.65))",
+                          boxShadow: "var(--duo-btn-shadow, var(--duo-glow, 0 0 25px rgba(56,189,248,0.65)))",
+                          color: "var(--duo-btn-text, #ffffff)",
                         }}
                       >
                         <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition group-hover:translate-x-full group-hover:opacity-100" />
                         <span className="relative flex items-center gap-2">
-                          <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--duo-btn-text, #ffffff)" }} />
                           {searching
                             ? "Scanning quantum directory…"
                             : "Connect via quantum ID"}
@@ -795,7 +796,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                   >
                                     <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition group-hover:translate-x-full group-hover:opacity-100" />
                                     <span className="relative flex items-center gap-2">
-                                      <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+                                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--duo-btn-text, #ffffff)" }} />
                                       {sendingRequest ? "Sending VIP request…" : "Send request"}
                                     </span>
                                   </button>
@@ -914,7 +915,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                   >
                                     <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition group-hover:translate-x-full group-hover:opacity-100" />
                                     <span className="relative flex items-center gap-2">
-                                      <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+                                      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--duo-btn-text, #ffffff)" }} />
                                       {sendingRequest ? "Sending VIP request…" : "Send request"}
                                     </span>
                                   </button>
@@ -1058,7 +1059,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                             >
                               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition group-hover:translate-x-full group-hover:opacity-100" />
                               <span className="relative flex items-center gap-2">
-                                <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+                                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: "var(--duo-btn-text, #ffffff)" }} />
                                 {sendingRequest
                                   ? "Sending request…"
                                   : "Send quantum request"}
@@ -1200,7 +1201,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                               </div>
                             </div>
                             <div className="flex justify-end">
-                              <div className="rounded-2xl rounded-br-sm px-3 py-2 text-slate-950 shadow-md transition-all duration-500" style={{ background: "var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%))", boxShadow: "var(--duo-glow, 0 0 18px rgba(56,189,248,0.7))" }}>
+                              <div className="rounded-2xl rounded-br-sm px-3 py-2 shadow-md transition-all duration-500" style={{ background: "var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%))", boxShadow: "var(--duo-glow, 0 0 18px rgba(56,189,248,0.7))", color: "var(--duo-btn-text, #09090b)" }}>
                                 <p>
                                   For now, start by sending a connection request
                                   with your chosen categories.

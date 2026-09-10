@@ -9546,7 +9546,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         <span
                           className="block bg-clip-text text-transparent transition-all duration-500"
                           style={{
-                            backgroundImage: "var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%))",
+                            backgroundImage: "var(--duo-text-gradient, var(--duo-gradient, linear-gradient(135deg, #22d3ee 0%, #8b5cf6 100%)))",
                             WebkitBackgroundClip: "text",
                             WebkitTextFillColor: "transparent",
                           }}
