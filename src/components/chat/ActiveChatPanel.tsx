@@ -579,7 +579,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
               <div
                 className={
-                  "glass-panel relative z-10 rounded-2xl border bg-slate-900/80 shadow-xl fullchat-panel overflow-hidden " +
+                  "liquid-glass-surface glass-panel relative z-10 rounded-2xl fullchat-panel overflow-hidden transition-all duration-300 " +
                   (isChatExpanded ? "fullscreen rounded-none border-none " : "") +
                   (chatAnimMode !== 'idle' ? chatAnimMode + " " : "") +
                   (isChatExpanded
@@ -711,8 +711,9 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                     </div>
 
                     {/* Messages & request state */}
-                    {searchError && (
-                      <p className="mt-2 text-[11px] text-rose-300">{searchError}</p>
+                    {/* Tech-giant standard: hide raw error text during offline/routine states */}
+                    {searchError && typeof navigator !== "undefined" && navigator.onLine && (
+                      <p className="mt-2 text-[11px] text-rose-300/90 font-mono tracking-wide">{searchError}</p>
                     )}
                     {requestSuccess && (
                       <p className="mt-2 text-[11px] text-emerald-300">
@@ -1099,9 +1100,9 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                     className={
                       "glass-panel flex flex-col gap-3 text-xs text-slate-300 relative overflow-y-hidden scrollbar-hide transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[360px] " : "") +
                       (isChatExpanded
-                        ? "flex-1 min-h-0 mt-0 sm:mt-2 rounded-none sm:rounded-2xl border-none sm:border bg-slate-900/80 p-2 sm:p-4 " +
+                        ? "flex-1 min-h-0 mt-0 sm:mt-2 rounded-none sm:rounded-2xl border-none sm:border liquid-glass-surface p-2 sm:p-4 " +
                         (highlightChatPanel ? "glow-pulse border-cyan-400/80" : "border-slate-600/70")
-                        : "flex-1 min-h-0 mt-4 -mx-5 -mb-5 p-4 rounded-t-2xl rounded-b-2xl border-t bg-slate-900/80 " +
+                        : "flex-1 min-h-0 mt-4 -mx-5 -mb-5 p-4 rounded-t-2xl rounded-b-2xl border-t liquid-glass-surface " +
                         (highlightChatPanel
                           ? "glow-pulse border-cyan-400/80 border-x-0 border-b-0"
                           : "border-slate-600/70 border-x-0 border-b-0"))
@@ -1119,7 +1120,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                     <div
                       style={!isDefaultTheme ? { backgroundColor: "var(--duo-surface-card, rgba(15, 23, 42, 0.95))", borderColor: (peerOnline || peerTyping) ? undefined : "var(--duo-surface-card-border-subtle, rgba(51, 65, 85, 0.6))" } : undefined}
                       className={
-                        "flex items-center justify-between gap-2 border-b bg-slate-900/95 pb-1 " +
+                        "flex items-center justify-between gap-2 border-b liquid-glass-header pb-1 px-1 rounded-t-xl " +
                         (peerOnline || peerTyping
                           ? "border-emerald-400/80 shadow-[0_0_18px_rgba(16,185,129,0.45)]"
                           : "border-slate-700/60")
@@ -1207,9 +1208,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                         WebkitOverflowScrolling: 'touch',
                       }}
                     >
-                      {chatError && (
-                        <p className="mt-1 text-[11px] text-rose-300">{chatError}</p>
-                      )}
+                      {/* Tech-giant standard: no raw red text inside conversation stream */}
 
                       <div className="space-y-2">
                         {chatLoading && (

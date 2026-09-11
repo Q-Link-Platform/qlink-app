@@ -4790,6 +4790,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     }, 10);
 
+    // Corporate tech-giant standard: If offline, keep message as PENDING in Outbox (clock icon 🕒)
+    // As soon as network reconnects, online listener will auto-flush it to server!
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      return;
+    }
+
     // 2. Perform background encryption & server sync asynchronously
     try {
       let payloadText = text;
@@ -4888,9 +4894,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Auto-flush outbox queue whenever network reconnects
   useEffect(() => {
-    const handleOnlineFlush = () => {
-      if (!activePeerHandle) return;
-      outboxQueue.flush(async (item) => {
+    const handleOnlineFlush = async () => {
+      await outboxQueue.flush(async (item) => {
         let payloadText = item.content;
         if (item.isEncrypted && activePeerPublicKey) {
           try {
@@ -4898,26 +4903,48 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             payloadText = await encryptMessage(item.content, activePeerPublicKey);
           } catch {}
         }
-        const res = await fetch("/api/chat/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ toHandle: item.toHandle, content: payloadText }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.message) {
-            setChatMessages((prev) =>
-              prev.map((m) => (m.id === item.tempId ? { ...data.message, content: item.content, status: "SENT" } : m))
-            );
-            return true;
+        try {
+          const res = await fetch("/api/chat/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ toHandle: item.toHandle, content: payloadText }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.message) {
+              if (activePeerHandle && areHandlesEqual(activePeerHandle, item.toHandle)) {
+                setChatMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === item.tempId
+                      ? { ...data.message, content: item.content, status: "SENT" }
+                      : m
+                  )
+                );
+              }
+              return true;
+            }
           }
-        }
+        } catch {}
         return false;
       });
     };
 
-    window.addEventListener("online", handleOnlineFlush);
-    return () => window.removeEventListener("online", handleOnlineFlush);
+    const handleOnlineRecovery = async () => {
+      // 1. Wipe any transient error banners immediately
+      setChatError(null);
+      setSearchError(null);
+
+      // 2. Flush Outbox FIRST so pending messages reach the server DB before history re-fetch
+      await handleOnlineFlush();
+
+      // 3. Re-sync active conversation silently from server history
+      if (activePeerHandle) {
+        await openChatWithPeer(activePeerHandle);
+      }
+    };
+
+    window.addEventListener("online", handleOnlineRecovery);
+    return () => window.removeEventListener("online", handleOnlineRecovery);
   }, [activePeerHandle, activePeerPublicKey]);
 
   const processSelectedFile = async (
@@ -6875,7 +6902,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     if (e.key === "Enter" && !e.shiftKey) {
       if (!activePeerHandle || !chatInput.trim()) return;
       e.preventDefault();
-      await actuallySendChat();
+      const text = chatInput.trim();
+      setChatInput("");
+      await handleSendMessage(text);
     }
   };
 
@@ -6961,14 +6990,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     lastOnlineRef.current = null;
     initialScrollDoneRef.current = null;
 
-    // Instant SWR Cache Check & strict state isolation:
+    // Instant SWR Cache Check & persistent Outbox merge (0ms display, zero message loss):
     const cacheKey = cleanHandle(targetPeer);
-    const cached = peerMessagesCacheRef.current.get(cacheKey);
-    if (cached && cached.length > 0) {
-      setChatMessages(cached);
+    const cached = peerMessagesCacheRef.current.get(cacheKey) || [];
+    const outboxForPeer = outboxQueue.getForHandle(targetPeer);
+    const pendingAsChatMsgs: ChatMessage[] = outboxForPeer.map((o) => ({
+      id: o.tempId,
+      content: o.content,
+      createdAt: o.createdAt,
+      senderId: (session?.user as any)?.id || "me",
+      isEncrypted: o.isEncrypted,
+      status: o.status || "PENDING",
+    }));
+
+    const immediateMessages = [...cached, ...pendingAsChatMsgs];
+    if (immediateMessages.length > 0) {
+      setChatMessages(immediateMessages);
       setChatLoading(false);
     } else {
-      // Immediately clear messages to prevent any ghost leak from previously viewed friend!
       setChatMessages([]);
       setChatLoading(true);
     }
@@ -6982,10 +7021,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       if (currentPeerFetchRef.current !== targetPeer) return;
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setChatError(data.error || "Unable to load conversation.");
-        setChatMessages([]);
-        setChatRoomId(null);
+        // If offline or server error, preserve cached & outbox messages without error banner
+        const outboxForPeer = outboxQueue.getForHandle(targetPeer);
+        if (outboxForPeer.length > 0) {
+          const pendingAsChatMsgs: ChatMessage[] = outboxForPeer.map((o) => ({
+            id: o.tempId,
+            content: o.content,
+            createdAt: o.createdAt,
+            senderId: (session?.user as any)?.id || "me",
+            isEncrypted: o.isEncrypted,
+            status: o.status || "PENDING",
+          }));
+          setChatMessages((prev) => (prev.length > 0 ? prev : pendingAsChatMsgs));
+        }
+        setChatError(null);
         return;
       }
 
@@ -7012,7 +7061,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         return true;
       });
 
-      setChatMessages(uniqueMessages);
+      // Merge persistent Outbox messages so pending offline messages never disappear
+      const outboxForPeer = outboxQueue.getForHandle(targetPeer);
+      const pendingAsChatMsgs: ChatMessage[] = outboxForPeer.map((o) => ({
+        id: o.tempId,
+        content: o.content,
+        createdAt: o.createdAt,
+        senderId: (session?.user as any)?.id || "me",
+        isEncrypted: o.isEncrypted,
+        status: o.status || "PENDING",
+      }));
+
+      const finalMessages = [...uniqueMessages, ...pendingAsChatMsgs];
+      setChatMessages(finalMessages);
       peerMessagesCacheRef.current.set(cacheKey, uniqueMessages);
 
       // Update last seen message ID to local storage
@@ -7024,9 +7085,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       setUnreadMessages((prev) => markHandleAsRead(prev, targetPeer));
     } catch {
       if (currentPeerFetchRef.current === targetPeer) {
-        setChatError("Unable to load conversation.");
-        setChatMessages([]);
-        setChatRoomId(null);
+        // Tech-giant standard: keep existing cached & outbox messages, never wipe or show red error
+        const outboxForPeer = outboxQueue.getForHandle(targetPeer);
+        if (outboxForPeer.length > 0) {
+          const pendingAsChatMsgs: ChatMessage[] = outboxForPeer.map((o) => ({
+            id: o.tempId,
+            content: o.content,
+            createdAt: o.createdAt,
+            senderId: (session?.user as any)?.id || "me",
+            isEncrypted: o.isEncrypted,
+            status: o.status || "PENDING",
+          }));
+          setChatMessages((prev) => (prev.length > 0 ? prev : pendingAsChatMsgs));
+        }
+        setChatError(null);
       }
     } finally {
       if (currentPeerFetchRef.current === targetPeer) {
@@ -7073,134 +7145,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   const actuallySendChat = async () => {
     if (!activePeerHandle || !chatInput.trim()) return;
-
-    // Instantly cancel typing indicator on send
-    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    fetch("/api/presence/typing", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ toHandle: activePeerHandle, typing: false }),
-    }).catch(() => {});
-
     const text = chatInput.trim();
-    setChatInput(""); // Instant 0ms clear input
-    setChatError(null);
-
-    const tempId = "temp-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7);
-    const mySenderId = myId || meId || (effectiveUser as any)?.id || "me";
-
-    const optimisticMsg: ChatMessage = {
-      id: tempId,
-      content: text,
-      createdAt: new Date().toISOString(),
-      senderId: mySenderId,
-      isEncrypted: isE2EEnabled,
-      status: "SENT",
-    };
-
-    // 1. Instant 0ms Optimistic Dispatch to RIGHT SIDE (Zero Lag feel)
-    setChatMessages((prev) => [...prev, optimisticMsg]);
-
-    // Instant smooth auto-scroll to bottom
-    setTimeout(() => {
-      if (chatScrollRef.current) {
-        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
-      }
-    }, 10);
-
-    // 2. Perform background encryption & server sync
-    try {
-      let contentToSend = text;
-      if (activePeerPublicKey && isE2EEnabled) {
-        try {
-          const { encryptMessage } = await import("@/lib/e2e-crypto");
-          contentToSend = await encryptMessage(text, activePeerPublicKey);
-        } catch (e) {
-          console.error("[E2E] Message encryption failed, sending plain text", e);
-        }
-      }
-
-      const res = await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ toHandle: activePeerHandle, content: contentToSend }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setChatError(data.error || "Unable to send message.");
-        // Rollback optimistic message on network error
-        setChatMessages((prev) => prev.filter((m) => m.id !== tempId));
-        setChatInput(text); // Restore text
-        return;
-      }
-
-      const data = await res.json();
-      const rawMessage = data.message as ChatMessage;
-      const decryptedArray = await decryptMessageList([rawMessage], activePeerPublicKey);
-      const message = decryptedArray[0] || rawMessage;
-
-      setChatMessages((prev) => {
-        // Swap temp optimistic message with real confirmed server message smoothly
-        const hasTemp = prev.some((m) => m.id === tempId);
-        if (hasTemp) {
-          return prev.map((m) => (m.id === tempId ? { ...message, status: message.status || "SENT" } : m));
-        }
-        const alreadyExists = prev.some((m) => m.id === message.id);
-        if (alreadyExists) {
-          return prev.map((m) => (m.id === message.id ? { ...m, ...message } : m));
-        }
-        return [...prev, { ...message, status: message.status || "SENT" }];
-      });
-
-      // Real-time Dynamic Ranking: Instantly bump peer to the top of the friends/chats sidebar
-      if (activePeerHandle) {
-        const nowIso = new Date().toISOString();
-        setOutgoing((prev) =>
-          prev.map((req) => {
-            if (req.toUser?.handle && areHandlesEqual(req.toUser.handle, activePeerHandle)) {
-              return {
-                ...req,
-                lastInteractionAt: nowIso,
-                latestMessage: {
-                  id: message.id,
-                  content: text,
-                  createdAt: nowIso,
-                  senderId: (session?.user as any)?.id || "",
-                  status: message.status || "SENT",
-                },
-              };
-            }
-            return req;
-          })
-        );
-
-        setIncoming((prev) =>
-          prev.map((req) => {
-            if (req.fromUser?.handle && areHandlesEqual(req.fromUser.handle, activePeerHandle)) {
-              return {
-                ...req,
-                lastInteractionAt: nowIso,
-                latestMessage: {
-                  id: message.id,
-                  content: text,
-                  createdAt: nowIso,
-                  senderId: (session?.user as any)?.id || "",
-                  status: message.status || "SENT",
-                },
-              };
-            }
-            return req;
-          })
-        );
-      }
-      setChatInput("");
-      if (chatInputRef.current) {
-        chatInputRef.current.style.height = "auto";
-      }
-    } catch {
-      setChatError("Unable to send message.");
-    }
+    setChatInput("");
+    await handleSendMessage(text);
   };
 
   const handleChatSubmit = async (e: FormEvent<HTMLFormElement>) => {
