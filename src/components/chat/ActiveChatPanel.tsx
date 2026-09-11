@@ -431,6 +431,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
     chatScrollRef,
     handleChatContainerScroll,
     chatError,
+    setChatError,
     chatLoading,
     chatMessages = [],
     meId,
@@ -1473,7 +1474,8 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                           if (!res.ok) {
                                                             const err = await res.json().catch(() => ({ error: "Download failed" }));
                                                             console.error("[Download] Failed:", res.status, err);
-                                                            alert(`Download failed: ${err.error || "Unknown error"}`);
+                                                            setChatError(`Download failed · ${err.error ?? "Please try again"}`);
+                                                            setTimeout(() => setChatError(null), 4000);
                                                             return;
                                                           }
                                                           const blob = await res.blob();
@@ -1485,7 +1487,8 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                           URL.revokeObjectURL(objectUrl);
                                                         } catch (err) {
                                                           console.error("[Download] Error:", err);
-                                                          alert(`Download error: ${err instanceof Error ? err.message : "Unknown error"}`);
+                                                          setChatError(`Download error · ${err instanceof Error ? err.message : "Please try again"}`);
+                                                          setTimeout(() => setChatError(null), 4000);
                                                         }
                                                       }}
                                                       className="inline-flex items-center gap-1 rounded-full border border-cyan-400/80 bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-2 py-0.5 text-[10px] text-slate-100 hover:border-cyan-400/80 hover:text-cyan-200"
@@ -1554,7 +1557,8 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                           if (!res.ok) {
                                                             const err = await res.json().catch(() => ({ error: "Download failed" }));
                                                             console.error("[Download] Failed:", res.status, err);
-                                                            alert(`Download failed: ${err.error || "Unknown error"}`);
+                                                            setChatError(`Download failed · ${err.error ?? "Please try again"}`);
+                                                            setTimeout(() => setChatError(null), 4000);
                                                             return;
                                                           }
                                                           const blob = await res.blob();
@@ -1566,7 +1570,8 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                           URL.revokeObjectURL(objectUrl);
                                                         } catch (err) {
                                                           console.error("[Download] Error:", err);
-                                                          alert(`Download error: ${err instanceof Error ? err.message : "Unknown error"}`);
+                                                          setChatError(`Download error · ${err instanceof Error ? err.message : "Please try again"}`);
+                                                          setTimeout(() => setChatError(null), 4000);
                                                         }
                                                       }}
                                                       className="inline-flex items-center gap-1 rounded-full border border-cyan-400/80 bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-2 py-0.5 text-[10px] text-slate-100 hover:border-cyan-400/80 hover:text-cyan-200"
@@ -1625,7 +1630,8 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                           if (!res.ok) {
                                                             const err = await res.json().catch(() => ({ error: "Download failed" }));
                                                             console.error("[Download] Failed:", res.status, err);
-                                                            alert(`Download failed: ${err.error || "Unknown error"}`);
+                                                            setChatError(`Download failed · ${err.error ?? "Please try again"}`);
+                                                            setTimeout(() => setChatError(null), 4000);
                                                             return;
                                                           }
                                                           const blob = await res.blob();
@@ -1637,7 +1643,8 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                           URL.revokeObjectURL(objectUrl);
                                                         } catch (err) {
                                                           console.error("[Download] Error:", err);
-                                                          alert(`Download error: ${err instanceof Error ? err.message : "Unknown error"}`);
+                                                          setChatError(`Download error · ${err instanceof Error ? err.message : "Please try again"}`);
+                                                          setTimeout(() => setChatError(null), 4000);
                                                         }
                                                       }}
                                                       className="flex h-5 w-5 items-center justify-center rounded-full border border-cyan-400/50 bg-[#09111c]/95 text-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.2)] transition hover:-translate-y-0.5 hover:bg-slate-800 hover:text-cyan-200 hover:shadow-[0_0_12px_rgba(34,211,238,0.5)] active:scale-95 shrink-0"
@@ -1684,7 +1691,8 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                     if (!res.ok) {
                                                       const err = await res.json().catch(() => ({ error: "Download failed" }));
                                                       console.error("[Download] Failed:", res.status, err);
-                                                      alert(`Download failed: ${err.error || "Unknown error"}`);
+                                                      setChatError(`Download failed · ${err.error ?? "Please try again"}`);
+                                                            setTimeout(() => setChatError(null), 4000);
                                                       return;
                                                     }
                                                     const blob = await res.blob();
@@ -1696,7 +1704,8 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                     URL.revokeObjectURL(objectUrl);
                                                   } catch (err) {
                                                     console.error("[Download] Error:", err);
-                                                    alert(`Download error: ${err instanceof Error ? err.message : "Unknown error"}`);
+                                                    setChatError(`Download error · ${err instanceof Error ? err.message : "Please try again"}`);
+                                                          setTimeout(() => setChatError(null), 4000);
                                                   }
                                                 }}
                                                 className="inline-flex items-center gap-1 rounded-full border border-slate-500/80 bg-slate-950/90 px-2 py-0.5 text-[10px] text-slate-100 hover:border-cyan-400/80 hover:text-cyan-100"

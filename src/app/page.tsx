@@ -38,6 +38,8 @@ import { quantumAudio } from "@/lib/quantumAudio";
 import { EmergencyBeaconModal } from "@/components/EmergencyBeaconModal";
 import { countries } from "@/utils/countries";
 import dynamic from "next/dynamic";
+import { NetworkStatusBar } from "@/components/NetworkStatusBar";
+import { offlineCache, CACHE_KEYS, CACHE_TTL } from "@/lib/offlineCache";
 import { FeedVideoManagerProvider } from "@/context/FeedVideoManager";
 import { PerformanceProvider, usePerformance } from "@/app/providers/PerformanceProvider";
 import { ChatInputConsole } from "@/components/ChatInputConsole";
@@ -1055,6 +1057,7 @@ export default function Home() {
     >
       <PerformanceProvider>
         <FeedVideoManagerProvider>
+          <NetworkStatusBar />
           <HomeInner
             passiveTouchRef={null}
             androidScrollRef={null}
@@ -3354,23 +3357,27 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   }, [activePeerHandle]);
 
   const fetchIdConsolePosts = async () => {
+    const cachedPosts = offlineCache.getStale<any[]>(CACHE_KEYS.ID_POSTS);
+    if (cachedPosts && cachedPosts.length > 0) {
+      setIdConsolePosts(cachedPosts);
+      if (!navigator.onLine) { setIdConsolePostsLoading(false); return; }
+    }
     try {
       setIdConsolePostsLoading(true);
       setIdConsolePostsError(null);
 
       const res = await fetch("/api/posts");
       if (!res.ok) {
+        if (cachedPosts && cachedPosts.length > 0) { setIdConsolePosts(cachedPosts); setIdConsolePostsError(null); setIdConsolePostsLoading(false); return; }
         const err = await res.json().catch(() => ({} as any));
-        const msg =
-          typeof (err as any)?.error === "string"
-            ? (err as any).error
-            : `HTTP ${res.status}`;
+        const msg = typeof (err as any)?.error === "string" ? (err as any).error : `HTTP ${res.status}`;
         setIdConsolePostsError(`Failed to load posts (${msg})`);
         return;
       }
 
       const data: { posts?: any[] } = await res.json();
       const posts = Array.isArray(data.posts) ? data.posts : [];
+      offlineCache.set(CACHE_KEYS.ID_POSTS, posts, CACHE_TTL.ID_POSTS);
       setIdConsolePosts(posts);
 
       // Prefetch images in background for instant display
@@ -3393,13 +3400,33 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         await Promise.all(reactionPromises);
       }
     } catch {
-      setIdConsolePostsError("Failed to load posts (network error)");
+      const stale = offlineCache.getStale<any[]>(CACHE_KEYS.ID_POSTS);
+      if (stale && stale.length > 0) { setIdConsolePosts(stale); setIdConsolePostsError(null); }
+      else { setIdConsolePostsError("Failed to load posts (network error)"); }
     } finally {
       setIdConsolePostsLoading(false);
     }
   };
 
   const fetchDirectoryLatestPosts = async () => {
+    const cachedPosts = offlineCache.getStale<any[]>(CACHE_KEYS.DIR_POSTS);
+    if (cachedPosts && cachedPosts.length > 0) {
+      setDirectoryGlobalPosts(cachedPosts);
+      const byAuthorId: Record<string, any[]> = {};
+      for (const p of cachedPosts) {
+        if (!p?.authorId) continue;
+        const arr = byAuthorId[p.authorId] || [];
+        if (arr.length >= 5) continue;
+        arr.push(p);
+        byAuthorId[p.authorId] = arr;
+      }
+      setDirectoryLatestPostsByAuthorId(byAuthorId);
+      if (!navigator.onLine) {
+        setDirectoryPostsLoading(false);
+        return;
+      }
+    }
+
     try {
       setDirectoryPostsLoading(true);
       setDirectoryPostsError(null);
@@ -3408,6 +3435,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         { cache: "no-store" },
       );
       if (!postsRes.ok) {
+        if (cachedPosts && cachedPosts.length > 0) {
+          setDirectoryPostsError(null);
+          return;
+        }
         const err = await postsRes.json().catch(() => ({} as any));
         const msg =
           typeof (err as any)?.error === "string"
@@ -3419,6 +3450,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       const postsData: { posts?: any[] } = await postsRes.json();
       const byAuthorId: Record<string, any[]> = {};
       const posts = Array.isArray(postsData.posts) ? postsData.posts : [];
+      offlineCache.set(CACHE_KEYS.DIR_POSTS, posts, CACHE_TTL.DIR_POSTS);
       setDirectoryGlobalPosts(posts);
 
       for (const p of posts) {
@@ -3440,7 +3472,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         }
       });
     } catch {
-      setDirectoryPostsError("Unable to load global posts (network error).");
+      const stale = offlineCache.getStale<any[]>(CACHE_KEYS.DIR_POSTS);
+      if (stale && stale.length > 0) {
+        setDirectoryPostsError(null);
+      } else {
+        setDirectoryPostsError("Unable to load global posts (network error).");
+      }
     } finally {
       setDirectoryPostsLoading(false);
     }
@@ -5542,6 +5579,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   }, [status]);
 
   const loadDirectoryData = async (force: boolean = false) => {
+    // SWR Pattern: Instant load from offline cache if available
+    const cached = offlineCache.getStale<DirectoryItem[]>(CACHE_KEYS.DIRECTORY);
+    if (!force && cached && cached.length > 0 && (!directoryItems || directoryItems.length === 0)) {
+      setDirectoryItems(cached);
+      if (!navigator.onLine) {
+        setDirectoryLoading(false);
+        setDirectoryError(null);
+        return;
+      }
+    }
+
     // Avoid refetching if we already have data and not forcing
     if (!force && directoryItems && directoryItems.length > 0) {
       await fetchDirectoryLatestPosts();
@@ -5553,11 +5601,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     try {
       const res = await fetch("/api/directory");
       if (!res.ok) {
-        setDirectoryError("Unable to load global directory. Please try again.");
+        if (cached && cached.length > 0) {
+          setDirectoryItems(cached);
+          setDirectoryError(null);
+        } else {
+          setDirectoryError("Unable to load global directory. Please try again.");
+        }
         return;
       }
       const data = await res.json();
       const items = (data.items || []) as DirectoryItem[];
+      offlineCache.set(CACHE_KEYS.DIRECTORY, items, CACHE_TTL.DIRECTORY);
       setDirectoryItems(items);
 
       await fetchDirectoryLatestPosts();
@@ -5580,7 +5634,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         }
       });
     } catch {
-      setDirectoryError("Unable to load global directory. Please check your connection.");
+      const stale = offlineCache.getStale<DirectoryItem[]>(CACHE_KEYS.DIRECTORY);
+      if (stale && stale.length > 0) {
+        setDirectoryItems(stale);
+        setDirectoryError(null);
+      } else {
+        setDirectoryError("Unable to load global directory. Please check your connection.");
+      }
     } finally {
       setDirectoryLoading(false);
     }
@@ -10407,6 +10467,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               chatScrollRef={chatScrollRef}
               handleChatContainerScroll={handleChatContainerScroll}
               chatError={chatError}
+              setChatError={setChatError}
               chatLoading={chatLoading}
               chatMessages={chatMessages}
               meId={meId}
