@@ -3875,7 +3875,7 @@ textarea,
 .liquid-glass-surface {
   backdrop-filter: blur(28px) saturate(190%) !important;
   -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
-  background: rgba(9, 15, 26, 0.68) !important;
+  background: rgba(9, 15, 26, 0.97) !important;
   border: 1px solid rgba(255, 255, 255, 0.11) !important;
   box-shadow:
     inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.16),

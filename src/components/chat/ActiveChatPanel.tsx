@@ -1200,7 +1200,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                     <div
                       ref={chatScrollRef}
                       onScroll={handleChatContainerScroll}
-                      className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container"
+                      className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1 scrollbar-hide apple-smooth-scroll tech-giant-scroll-container bg-[#080d19]/95 rounded-xl p-2"
                       style={{
                         overflowAnchor: 'none',
                         scrollBehavior: 'auto',
