@@ -39,6 +39,9 @@ import { EmergencyBeaconModal } from "@/components/EmergencyBeaconModal";
 import { countries } from "@/utils/countries";
 import dynamic from "next/dynamic";
 import { NetworkStatusBar } from "@/components/NetworkStatusBar";
+import { UndoSnackbar } from "@/components/UndoSnackbar";
+import { outboxQueue, OutboxItem } from "@/lib/outboxQueue";
+import { fetchWithRetry, createAdaptivePoller } from "@/lib/backoff";
 import { offlineCache, CACHE_KEYS, CACHE_TTL } from "@/lib/offlineCache";
 import { FeedVideoManagerProvider } from "@/context/FeedVideoManager";
 import { PerformanceProvider, usePerformance } from "@/app/providers/PerformanceProvider";
@@ -1441,6 +1444,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const currentPeerFetchRef = useRef<string | null>(null);
   const peerMessagesCacheRef = useRef<Map<string, ChatMessage[]>>(new Map());
   const [chatError, setChatError] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{
+    messageId: string;
+    message: ChatMessage;
+    timerId: ReturnType<typeof setTimeout>;
+  } | null>(null);
   const [chatInput, setChatInput] = useState("");
   const [showMobileChatMore, setShowMobileChatMore] = useState(false);
   const [isChatFull, setIsChatFull] = useState(false);
@@ -3329,29 +3337,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     };
 
-    const safeFetchPresence = () => {
-      if (typeof document !== "undefined" && document.hidden) return;
-      fetchPresence();
-    };
-
-    safeFetchPresence();
-    const interval = setInterval(safeFetchPresence, 3500);
-
-    const onVisChange = () => {
-      if (typeof document !== "undefined" && !document.hidden) {
-        safeFetchPresence();
-      }
-    };
-    if (typeof document !== "undefined") {
-      document.addEventListener("visibilitychange", onVisChange);
-    }
+    const poller = createAdaptivePoller(
+      async () => {
+        await fetchPresence();
+      },
+      { baseIntervalMs: 3500, maxIntervalMs: 18000 }
+    );
+    poller.start();
 
     return () => {
       cancelled = true;
-      clearInterval(interval);
-      if (typeof document !== "undefined") {
-        document.removeEventListener("visibilitychange", onVisChange);
-      }
+      poller.stop();
       if (offlineTimeout) clearTimeout(offlineTimeout);
     };
   }, [activePeerHandle]);
@@ -4771,8 +4767,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       createdAt: new Date().toISOString(),
       senderId: meId || "me",
       isEncrypted: isE2EEnabled,
-      status: "SENT",
+      status: "PENDING", // Tech-giant standard: queued in outbox as PENDING
     };
+
+    // Queue in persistent Outbox
+    outboxQueue.enqueue({
+      tempId,
+      toHandle: activePeerHandle,
+      content: text,
+      createdAt: optimisticMsg.createdAt,
+      isEncrypted: isE2EEnabled,
+      status: "PENDING",
+    });
 
     // 1. Instant optimistic UI dispatch (0ms latency feel!)
     setChatMessages((prev) => [...prev, optimisticMsg]);
@@ -4796,30 +4802,123 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         }
       }
 
-      const res = await fetch("/api/chat/send", {
+      const res = await fetchWithRetry("/api/chat/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           toHandle: activePeerHandle,
           content: payloadText,
         }),
-      });
+      }, { maxRetries: 2, baseDelayMs: 600 });
 
       if (!res.ok) {
-        console.warn("Message send failed status:", res.status);
+        outboxQueue.markStatus(tempId, "FAILED", `HTTP ${res.status}`);
+        setChatMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? { ...m, status: "FAILED" } : m))
+        );
       } else {
         const data = await res.json();
         if (data?.message) {
-          // Swap temp message with real server message object
+          outboxQueue.dequeue(tempId);
           setChatMessages((prev) =>
-            prev.map((m) => (m.id === tempId ? { ...data.message, content: text } : m))
+            prev.map((m) => (m.id === tempId ? { ...data.message, content: text, status: "SENT" } : m))
           );
         }
       }
-    } catch (err) {
-      console.error("Message send network error:", err);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Network error";
+      outboxQueue.markStatus(tempId, "FAILED", msg);
+      setChatMessages((prev) =>
+        prev.map((m) => (m.id === tempId ? { ...m, status: "FAILED" } : m))
+      );
     }
   }, [activePeerHandle, activePeerPublicKey, session?.user, isE2EEnabled, editingMessage]);
+
+  // Outbox Auto-Flush on network reconnection & manual retry
+  const handleRetryMessage = useCallback(async (tempId: string) => {
+    const msg = chatMessages.find((m) => m.id === tempId);
+    if (!msg || !activePeerHandle) return;
+
+    setChatMessages((prev) =>
+      prev.map((m) => (m.id === tempId ? { ...m, status: "PENDING" } : m))
+    );
+    outboxQueue.markStatus(tempId, "PENDING");
+
+    let payloadText = msg.content;
+    if (isE2EEnabled && activePeerPublicKey) {
+      try {
+        const { encryptMessage } = await import("@/lib/e2e-crypto");
+        payloadText = await encryptMessage(msg.content, activePeerPublicKey);
+      } catch (err) {
+        console.error("[E2E] Encryption failed on retry:", err);
+      }
+    }
+
+    try {
+      const res = await fetchWithRetry("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          toHandle: activePeerHandle,
+          content: payloadText,
+        }),
+      }, { maxRetries: 2, baseDelayMs: 600 });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.message) {
+          outboxQueue.dequeue(tempId);
+          setChatMessages((prev) =>
+            prev.map((m) => (m.id === tempId ? { ...data.message, content: msg.content, status: "SENT" } : m))
+          );
+        }
+      } else {
+        outboxQueue.markStatus(tempId, "FAILED");
+        setChatMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? { ...m, status: "FAILED" } : m))
+        );
+      }
+    } catch {
+      outboxQueue.markStatus(tempId, "FAILED");
+      setChatMessages((prev) =>
+        prev.map((m) => (m.id === tempId ? { ...m, status: "FAILED" } : m))
+      );
+    }
+  }, [chatMessages, activePeerHandle, isE2EEnabled, activePeerPublicKey]);
+
+  // Auto-flush outbox queue whenever network reconnects
+  useEffect(() => {
+    const handleOnlineFlush = () => {
+      if (!activePeerHandle) return;
+      outboxQueue.flush(async (item) => {
+        let payloadText = item.content;
+        if (item.isEncrypted && activePeerPublicKey) {
+          try {
+            const { encryptMessage } = await import("@/lib/e2e-crypto");
+            payloadText = await encryptMessage(item.content, activePeerPublicKey);
+          } catch {}
+        }
+        const res = await fetch("/api/chat/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ toHandle: item.toHandle, content: payloadText }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.message) {
+            setChatMessages((prev) =>
+              prev.map((m) => (m.id === item.tempId ? { ...data.message, content: item.content, status: "SENT" } : m))
+            );
+            return true;
+          }
+        }
+        return false;
+      });
+    };
+
+    window.addEventListener("online", handleOnlineFlush);
+    return () => window.removeEventListener("online", handleOnlineFlush);
+  }, [activePeerHandle, activePeerPublicKey]);
 
   const processSelectedFile = async (
     selected: File,
@@ -5097,32 +5196,72 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   };
 
-  const handleDeleteMessage = async (messageId: string) => {
-    try {
-      const res = await fetch("/api/chat/delete", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ messageId }),
+  const handleUndoDelete = useCallback(() => {
+    setPendingDelete((current) => {
+      if (!current) return null;
+      clearTimeout(current.timerId);
+      // Restore message to active state in correct chronological sort
+      setChatMessages((prev) => {
+        const restored = [...prev, current.message];
+        return restored.sort(
+          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
       });
+      return null;
+    });
+  }, []);
 
-      if (!res.ok) {
-        // If server forbidden (e.g. received message), remove locally from UI view
-        setChatMessages((prev) => prev.filter((m) => m.id !== messageId));
-        setContextMenu(null);
-        return;
+  const handleDismissDelete = useCallback(() => {
+    setPendingDelete((current) => {
+      if (!current) return null;
+      clearTimeout(current.timerId);
+      // Commit permanent server deletion
+      fetch("/api/chat/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messageId: current.messageId }),
+      }).catch((err) => console.error("[Delete Message] Commit error:", err));
+      return null;
+    });
+  }, []);
+
+  const handleDeleteMessage = useCallback((messageId: string) => {
+    setContextMenu(null);
+    const targetMsg = chatMessages.find((m) => m.id === messageId);
+    if (!targetMsg) return;
+
+    // 1. Optimistically hide from UI view (0ms latency feel)
+    setChatMessages((prev) => prev.filter((m) => m.id !== messageId));
+
+    // 2. If there is already a pending delete waiting, commit it immediately
+    setPendingDelete((current) => {
+      if (current) {
+        clearTimeout(current.timerId);
+        fetch("/api/chat/delete", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messageId: current.messageId }),
+        }).catch((err) => console.error("[Delete Message] Commit error:", err));
       }
 
-      setChatMessages((prev) => prev.filter((m) => m.id !== messageId));
-    } catch (err) {
-      console.error("[Delete Message] Error:", err);
-      // Fallback local deletion
-      setChatMessages((prev) => prev.filter((m) => m.id !== messageId));
-    } finally {
-      setContextMenu(null);
-    }
-  };
+      // 3. Stage 5-second undo timer
+      const timerId = setTimeout(async () => {
+        try {
+          await fetch("/api/chat/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ messageId }),
+          });
+        } catch (err) {
+          console.error("[Delete Message] Server delete failed:", err);
+        } finally {
+          setPendingDelete(null);
+        }
+      }, 5000);
+
+      return { messageId, message: targetMsg, timerId };
+    });
+  }, [chatMessages]);
 
   const handleStartEditMessage = useCallback((messageId: string, content: string) => {
     setContextMenu(null);
@@ -5966,30 +6105,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     };
 
-    const safePoll = () => {
-      if (typeof document !== "undefined" && document.hidden) return;
-      poll();
-    };
-
-    // Initial fetch and smart interval (pauses in background)
-    safePoll();
-    const id = setInterval(safePoll, 1800);
-
-    const onVisChangePoll = () => {
-      if (typeof document !== "undefined" && !document.hidden) {
-        safePoll();
-      }
-    };
-    if (typeof document !== "undefined") {
-      document.addEventListener("visibilitychange", onVisChangePoll);
-    }
+    const poller = createAdaptivePoller(
+      async () => {
+        await poll();
+      },
+      { baseIntervalMs: 1800, maxIntervalMs: 15000 }
+    );
+    poller.start();
 
     return () => {
       cancelled = true;
-      clearInterval(id);
-      if (typeof document !== "undefined") {
-        document.removeEventListener("visibilitychange", onVisChangePoll);
-      }
+      poller.stop();
     };
   }, [activePeerHandle, desktopNotificationsEnabled]);
 
@@ -10468,6 +10594,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               handleChatContainerScroll={handleChatContainerScroll}
               chatError={chatError}
               setChatError={setChatError}
+              handleRetryMessage={handleRetryMessage}
               chatLoading={chatLoading}
               chatMessages={chatMessages}
               meId={meId}
@@ -12146,6 +12273,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       })()}
 
       {/* Glowing Cyberpunk Notification Toast */}
+      <UndoSnackbar
+        visible={!!pendingDelete}
+        onUndo={handleUndoDelete}
+        onDismiss={handleDismissDelete}
+      />
+
       {shareToastText && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] animate-fade-in px-4 py-2 rounded-full border border-cyan-500/30 bg-[#09111c]/90 text-cyan-400 text-xs font-mono font-bold tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.4)] backdrop-blur-md flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />

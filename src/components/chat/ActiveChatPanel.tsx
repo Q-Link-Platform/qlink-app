@@ -432,6 +432,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
     handleChatContainerScroll,
     chatError,
     setChatError,
+    handleRetryMessage,
     chatLoading,
     chatMessages = [],
     meId,
@@ -1761,7 +1762,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                           </span>
                                         )}
                                         <span>{formatMsgDateFull(m.createdAt)}</span>
-                                        <MessageStatusTicks status={(m as any).status} isMe={!!isMe} />
+                                        <MessageStatusTicks status={(m as any).status} isMe={!!isMe} onRetry={() => handleRetryMessage && handleRetryMessage(m.id)} />
                                       </p>
                                     )}
                                   </div>

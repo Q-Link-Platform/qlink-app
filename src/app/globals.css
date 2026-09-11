@@ -3750,3 +3750,115 @@ textarea,
 }
 
 /* END NETWORK STATUS BAR */
+
+/* ══════════════════════════════════════════════════════
+   Liquid Frosted Glass Layer & Spring Motion System
+   Next-gen blur, specular highlights, and spring curves
+   ══════════════════════════════════════════════════════ */
+
+:root {
+  --liquid-glass-blur: blur(28px) saturate(190%);
+  --liquid-glass-bg: rgba(10, 15, 26, 0.75);
+  --liquid-glass-border: rgba(255, 255, 255, 0.12);
+  --liquid-glass-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35);
+  --liquid-glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
+  --spring-curve: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-pill {
+  backdrop-filter: var(--liquid-glass-blur);
+  -webkit-backdrop-filter: var(--liquid-glass-blur);
+  background: var(--liquid-glass-bg);
+  border: 1px solid var(--liquid-glass-border);
+  box-shadow: var(--liquid-glass-shadow), var(--liquid-glass-specular);
+  border-radius: 9999px;
+}
+
+@keyframes liquid-spring-up {
+  0% {
+    transform: translate(-50%, 35px) scale(0.92);
+    opacity: 0;
+  }
+  60% {
+    transform: translate(-50%, -2px) scale(1.015);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes liquid-spring-down {
+  0% {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, 25px) scale(0.94);
+    opacity: 0;
+  }
+}
+
+/* 5-Second Undo Soft-Delete Floating Glass Snackbar */
+.undo-snackbar-container {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 8px 16px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f1f5f9;
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  background: rgba(8, 14, 24, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 40px -6px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22);
+  animation: liquid-spring-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.undo-snackbar-container--dismissing {
+  animation: liquid-spring-down 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+.undo-btn-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #22d3ee;
+  background: rgba(34, 211, 238, 0.12);
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.2), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.undo-btn-pill:hover {
+  background: rgba(34, 211, 238, 0.22);
+  border-color: rgba(34, 211, 238, 0.55);
+  transform: scale(1.04);
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.35);
+}
+
+.undo-btn-pill:active {
+  transform: scale(0.96);
+}
+
+.undo-progress-ring {
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
