@@ -2892,6 +2892,10 @@ html.perf-low .diamond-vip-chroma-edge {
 
 .animate-smooth-rotate-120 {
   animation: smooth-rotate-120 3.5s ease-in-out infinite;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Smooth Live Continuous 100-Degree Rotation Animation for Microsoft Logo (slightly less rotation to balance it visually) */
@@ -2909,6 +2913,10 @@ html.perf-low .diamond-vip-chroma-edge {
 
 .animate-smooth-rotate-microsoft {
   animation: smooth-rotate-microsoft 3.5s ease-in-out infinite;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Smooth Subtle Pendulum Wobble for 4-Square Microsoft Logo to maintain upright square shape */
@@ -3879,4 +3887,115 @@ textarea,
   -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
   background: rgba(8, 14, 24, 0.6) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ==========================================================================
+   ADVANCED 120FPS GPU-ACCELERATED SWAP ANIMATION
+   (CONTINUE WITH PHONE <-> [MORE])
+   - 100% Compositor-Only: zero filter, zero paint invalidation, 120Hz smooth
+   - State 1: "Continue with Phone" + 📱 icon (active for 2.0s)
+   - Swap: Silky smooth vertical slide & fade transition (0.5s)
+   - State 2: "[MORE]" without icon (active for 3.0s)
+   - Swap: Silky smooth vertical slide & fade transition (0.5s)
+   - Total Period: 6.0s infinite loop
+   ========================================================================== */
+
+@keyframes phoneBtnIconSwap {
+  /* State 1: Visible for 2s (0% to 33.33%) */
+  0%, 33.33% {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  /* Transition 1 -> 2: Smooth shrink & fade out (33.33% to 41.67%) */
+  41.67% {
+    opacity: 0;
+    transform: scale(0.35) translate3d(0, -6px, 0);
+  }
+  /* State 2: Completely hidden for 3s (41.67% to 91.67%) */
+  91.67% {
+    opacity: 0;
+    transform: scale(0.35) translate3d(0, -6px, 0);
+  }
+  /* Transition 2 -> 1: Smooth spring zoom-in back to visible (91.67% to 100%) */
+  100% {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+.phone-swap-icon {
+  display: inline-block;
+  animation: phoneBtnIconSwap 6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-origin: center center;
+}
+
+@keyframes phoneBtnTextPhoneSwap {
+  /* State 1: Visible for 2s (0% to 33.33%) */
+  0%, 33.33% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  /* Transition: Glide up & fade out (33.33% to 41.67%) */
+  41.67% {
+    opacity: 0;
+    transform: translate3d(0, -14px, 0);
+  }
+  /* State 2: Hidden for 3s (41.67% to 91.67%) */
+  91.67% {
+    opacity: 0;
+    transform: translate3d(0, -14px, 0);
+  }
+  /* Transition: Return smoothly to center (91.67% to 100%) */
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.phone-swap-text-phone {
+  display: block;
+  animation: phoneBtnTextPhoneSwap 6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+@keyframes phoneBtnTextMoreSwap {
+  /* State 1: Hidden while Phone is active (0% to 33.33%) */
+  0%, 33.33% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  /* Transition: Glide in from bottom to center (33.33% to 41.67%) */
+  41.67% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  /* State 2: Visible for 3s (41.67% to 91.67%) */
+  91.67% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  /* Transition: Glide up & fade out (91.67% to 100%) */
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -14px, 0);
+  }
+}
+
+.phone-swap-text-more {
+  display: flex;
+  animation: phoneBtnTextMoreSwap 6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }

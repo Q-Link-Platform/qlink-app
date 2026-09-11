@@ -6334,9 +6334,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               <div />
             </button>
 
-            {/* Unified Phone Login/Signup Button */}
+            {/* Unified Phone Login/Signup Button with Sophisticated Swap Animation */}
             <button
-              className="group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-cyan-500/20 bg-slate-800/40 text-slate-200 px-3.5 text-xs sm:text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-cyan-400/50 hover:bg-slate-800/80 hover:text-white hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.45),0_0_25px_rgba(6,182,212,0.3)] hover:ring-1 hover:ring-cyan-400/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
+              className="phone-swap-btn group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-cyan-500/20 bg-slate-800/40 text-slate-200 px-3.5 text-xs sm:text-sm font-medium transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-cyan-400/50 hover:bg-slate-800/80 hover:text-white hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.45),0_0_25px_rgba(6,182,212,0.3)] hover:ring-1 hover:ring-cyan-400/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
               onClick={() => {
                 setShowNoAccountModal(true);
                 setPhoneSignInStep("menu");
@@ -6344,10 +6344,26 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             >
               {/* Silky Smooth Cyan Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-cyan-400/15 to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
+              
+
+              {/* Left Slot: Mobile icon with fluid exit/enter swap animation */}
               <div className="flex h-6 w-6 items-center justify-center overflow-hidden">
-                <span className="text-base sm:text-lg">📱</span>
+                <span className="phone-swap-icon text-base sm:text-lg select-none will-change-transform">📱</span>
               </div>
-              <span className="text-center whitespace-nowrap tracking-wide truncate">Continue with Phone</span>
+
+              {/* Center Slot: Dual-layer text swap carousel */}
+              <div className="relative h-full flex items-center justify-center overflow-hidden pointer-events-none">
+                {/* State 1: Continue with Phone (stays for 2s) */}
+                <span className="phone-swap-text-phone text-center whitespace-nowrap tracking-wide truncate">
+                  Continue with Phone
+                </span>
+                {/* State 2: [MORE] (stays for 3s) */}
+                <span className="phone-swap-text-more absolute inset-0 flex items-center justify-center whitespace-nowrap font-mono text-xs sm:text-[13px] font-semibold tracking-[0.25em] text-cyan-300 drop-shadow-[0_0_10px_rgba(6,182,212,0.45)] uppercase">
+                  [MORE]
+                </span>
+              </div>
+
+              {/* Right Slot: Symmetrical 40px spacer keeping center text perfectly centered */}
               <div />
             </button>
 
