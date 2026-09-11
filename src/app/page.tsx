@@ -3835,8 +3835,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     if (!(session?.user as any)?.id) return;
     if (!Array.isArray(directoryItems) || directoryItems.length === 0) return;
 
-    const userIds = [...new Set(directoryItems.map(item => item.id).filter(Boolean))];
-    const postIds = directoryItems.flatMap(item => item.posts?.map((post: any) => post.id).filter(Boolean) || []);
+    const userIds = [...new Set(directoryItems.map(item => item.id).filter(id => Boolean(id) && !id.startsWith("synth_") && !id.startsWith("mock_")))];
+    const postIds = directoryItems.flatMap(item => item.posts?.map((post: any) => post.id).filter((id: string) => Boolean(id) && !id.startsWith("synth_") && !id.startsWith("mock_")) || []);
 
     console.log('[initializeEngagementData] Processing:', { userCount: userIds.length, postCount: postIds.length });
 
@@ -8387,13 +8387,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </div>
                           )}
 
-                          {!showDirectoryMediaOnly && directoryItems.some((item) => item.blueTickStatus === 'SAPPHIRE') && (
+                          {!showDirectoryMediaOnly && directoryItems.some((item) => item.blueTickStatus === 'SAPPHIRE' && !item.id.startsWith('synth_')) && (
                             <div className="space-y-2">
                               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-sky-300">
                                 💎 Sapphire VIP IDs
                               </p>
                               {directoryItems
-                                .filter((item) => item.blueTickStatus === 'SAPPHIRE')
+                                .filter((item) => item.blueTickStatus === 'SAPPHIRE' && !item.id.startsWith('synth_'))
                                 .map((item) => (
                                   <button
                                     key={item.id}
@@ -8438,13 +8438,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             </div>
                           )}
 
-                          {!showDirectoryMediaOnly && directoryItems.some((item) => item.blueTickStatus === 'verified') && (
+                          {!showDirectoryMediaOnly && directoryItems.some((item) => item.blueTickStatus === 'verified' && !item.id.startsWith('synth_')) && (
                             <div className="space-y-2">
                               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-200/90">
                                 Blue Tick Verified IDs
                               </p>
                               {directoryItems
-                                .filter((item) => item.blueTickStatus === 'verified')
+                                .filter((item) => item.blueTickStatus === 'verified' && !item.id.startsWith('synth_'))
                                 .map((item) => (
                                   <button
                                     key={item.id}

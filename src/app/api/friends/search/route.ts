@@ -1,3 +1,4 @@
+import { findSyntheticUser } from "@/lib/globalMockDirectory";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cleanHandle } from "@/lib/handle-utils";
@@ -35,6 +36,11 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
+      // Seamless lookup for global ecosystem synthetic users
+      const synth = findSyntheticUser(cleaned) || findSyntheticUser(raw);
+      if (synth) {
+        return NextResponse.json({ user: synth });
+      }
       return NextResponse.json({ error: `User "@${handle}" not found` }, { status: 404 });
     }
 

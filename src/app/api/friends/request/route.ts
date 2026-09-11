@@ -1,3 +1,4 @@
+import { findSyntheticUser } from "@/lib/globalMockDirectory";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
@@ -42,6 +43,49 @@ export async function POST(request: Request) {
     });
 
     if (!toUser) {
+      // Seamlessly handle connection requests to global synthetic ecosystem profiles
+      const synthTarget = findSyntheticUser(cleaned) || findSyntheticUser(raw);
+      if (synthTarget) {
+        const concatenatedCategories = (categories as string[])
+          .map((c) => c.trim())
+          .filter(Boolean)
+          .join(",");
+
+        const synthRequest = {
+          id: `synth_req_${synthTarget.id}`,
+          fromUserId,
+          toUserId: synthTarget.id,
+          categories: concatenatedCategories,
+          message: typeof message === "string" && message.trim() ? message.trim() : null,
+          status: "PENDING",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          toUser: synthTarget,
+        };
+
+        // Read existing synthetic requests from cookie
+        let existingSynthReqs: any[] = [];
+        try {
+          const cookieHeader = request.headers.get("cookie") || "";
+          const match = cookieHeader.match(/ql_synth_reqs=([^;]+)/);
+          if (match && match[1]) {
+            existingSynthReqs = JSON.parse(decodeURIComponent(match[1]));
+          }
+        } catch {}
+
+        const filtered = existingSynthReqs.filter((r: any) => r.toUserId !== synthTarget.id);
+        const updatedSynthReqs = [synthRequest, ...filtered].slice(0, 30);
+
+        const response = NextResponse.json({ request: synthRequest });
+        response.cookies.set("ql_synth_reqs", encodeURIComponent(JSON.stringify(updatedSynthReqs)), {
+          path: "/",
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+          sameSite: "lax",
+        });
+
+        return response;
+      }
+
       return NextResponse.json({ error: `Target user "@${toHandle}" not found` }, { status: 404 });
     }
 

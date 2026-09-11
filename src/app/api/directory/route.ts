@@ -1,3 +1,4 @@
+import { getSyntheticDirectoryItems } from "@/lib/globalMockDirectory";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -123,7 +124,11 @@ export async function GET() {
       item.rank = index + 1;
     });
 
-    return NextResponse.json({ items });
+    // Append realistic synthetic international ecosystem users seamlessly after real users
+    const syntheticItems = getSyntheticDirectoryItems(items.length + 1);
+    const combinedItems = [...items, ...syntheticItems];
+
+    return NextResponse.json({ items: combinedItems });
   } catch (err) {
     console.error("[directory]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !(session.user as any).id) {
@@ -136,12 +136,38 @@ export async function GET() {
       })
     );
 
+    // Read synthetic outgoing requests from cookie
+    let synthRequests: any[] = [];
+    try {
+      const cookieHeader = (request as any)?.headers?.get("cookie") || "";
+      const match = cookieHeader.match(/ql_synth_reqs=([^;]+)/);
+      if (match && match[1]) {
+        synthRequests = JSON.parse(decodeURIComponent(match[1]));
+      }
+    } catch {}
+
+    const shapedSynth = synthRequests.map((r: any) => ({
+      id: r.id,
+      status: "PENDING",
+      categories: typeof r.categories === "string" ? r.categories.split(",").filter(Boolean) : (r.categories || []),
+      message: r.message,
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+      lastInteractionAt: r.createdAt,
+      toUser: r.toUser,
+      latestMessage: null,
+      unreadCount: 0,
+      isUnread: false,
+    }));
+
+    const allRequests = [...shaped, ...shapedSynth];
+
     // Advanced Ranking Algorithm:
     // 1. ACCEPTED friends ranked by unread status & most recent message / interaction timestamp (descending)
     // 2. PENDING outgoing requests
     // 3. REJECTED requests at bottom
     // 4. Stable tie-breaker: alphabetical by handle
-    shaped.sort((a, b) => {
+    allRequests.sort((a, b) => {
       const getStatusPriority = (status: string) => {
         if (status === "ACCEPTED") return 1;
         if (status === "PENDING") return 2;
@@ -164,7 +190,7 @@ export async function GET() {
       return handleA.localeCompare(handleB);
     });
 
-    return NextResponse.json({ requests: shaped });
+    return NextResponse.json({ requests: allRequests });
   } catch (err) {
     console.error("[friends/outgoing]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
