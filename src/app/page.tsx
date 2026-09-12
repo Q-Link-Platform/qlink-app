@@ -4416,6 +4416,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Message Context Menu state & touch long-press tracking
   const [detailModalMessage, setDetailModalMessage] = useState<ChatMessage | null>(null);
+  const [showE2EHelp, setShowE2EHelp] = useState<boolean>(false);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -12321,13 +12322,73 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 </div>
               </div>
 
-              {/* Encryption Security */}
-              <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2">
-                <span className="text-slate-400">Security</span>
-                <span className="text-cyan-300 font-semibold flex items-center gap-1 text-[11px]">
-                  <span>🔒</span> E2E Encrypted
-                </span>
-              </div>
+              {/* Encryption Security (Accurate Status & Help) */}
+              {(() => {
+                const isMsgEncrypted = Boolean(
+                  (detailModalMessage as any).isEncrypted ||
+                  (detailModalMessage.content && detailModalMessage.content.trim().startsWith('{"__e2e"'))
+                );
+
+                if (isMsgEncrypted) {
+                  return (
+                    <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-950/20 px-3 py-2">
+                      <span className="text-slate-400">Security</span>
+                      <span className="text-emerald-300 font-semibold flex items-center gap-1.5 text-[11px]">
+                        <span>🔒</span> E2E Encrypted (Active)
+                      </span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-950/20 p-2.5 transition-all">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-400 text-xs">Security</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-amber-300/90 font-medium text-[11px] flex items-center gap-1">
+                          <span>🔓</span> Off (Standard)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowE2EHelp((prev) => !prev)}
+                          title="How to turn on End-to-End Encryption"
+                          aria-label="How to turn on End-to-End Encryption"
+                          className="h-5 w-5 rounded-full border border-amber-400/60 bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 text-[11px] font-black flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-[0_0_8px_rgba(251,191,36,0.3)]"
+                        >
+                          ?
+                        </button>
+                      </div>
+                    </div>
+
+                    {showE2EHelp && (
+                      <div className="mt-2.5 pt-2.5 border-t border-amber-500/20 text-[11px] text-slate-300 space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <div className="flex items-center gap-1.5 text-amber-200 font-semibold text-[11px]">
+                          <span>💡</span>
+                          <span>How to turn on End-to-End Encryption:</span>
+                        </div>
+                        <ol className="list-decimal list-inside text-slate-300 text-[10.5px] space-y-1 pl-1">
+                          <li>Open <strong className="text-white">Settings</strong> (⚙️)</li>
+                          <li>Find <strong className="text-white">E2E Encryption Shield</strong></li>
+                          <li>Toggle switch to <strong className="text-cyan-300">On</strong></li>
+                        </ol>
+                        <div className="pt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDetailModalMessage(null);
+                              setShowE2EHelp(false);
+                              openSettingsDirect();
+                            }}
+                            className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-cyan-400/40 bg-cyan-500/20 hover:bg-cyan-500/30 py-1.5 text-[11px] font-semibold text-cyan-200 transition active:scale-98 shadow-[0_0_12px_rgba(34,211,238,0.15)]"
+                          >
+                            <span>⚙️</span> Open Settings Now
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Sender Info */}
               <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2">
@@ -12424,6 +12485,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   const targetMsg = chatMessages.find((m) => m.id === contextMenu.messageId);
                   if (targetMsg) {
                     setDetailModalMessage(targetMsg);
+                    setShowE2EHelp(false);
                   }
                   setContextMenu(null);
                 }}
