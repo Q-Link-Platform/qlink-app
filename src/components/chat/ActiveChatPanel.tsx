@@ -8,7 +8,6 @@ import Cropper from "react-easy-crop";
 import { ChatInputConsole } from "@/components/ChatInputConsole";
 import { MessageStatusTicks } from "@/components/MessageStatusTicks";
 import { YouTubeInlinePreview } from "@/components/YouTubeInlinePreview";
-import GhostCursor from "@/components/GhostCursor";
 import QAIAssistantModal from "@/components/QAIAssistantModal";
 import QuantumVideoPlayerComponent from "@/components/QuantumVideoPlayer";
 
@@ -2002,8 +2001,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                       </p>
                     )}
 
-                    <GhostCursor />
-
+                    
       {/* In-Chat Docked Q-AI Sidecar with Context-Aware Friend Agent */}
                     <QAIAssistantModal
                       isOpen={isQAIOpen}

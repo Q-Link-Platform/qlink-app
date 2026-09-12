@@ -2328,8 +2328,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             steps.push({
               targetId: "qai-sidecar-close-btn",
               actionName: "Closing Q-AI Panel",
-              delayBefore: 100,
-              duration: 400,
+              delayBefore: 120,
+              duration: 750,
               onReach: () => setIsQAIOpen(false),
             });
           }
@@ -2338,15 +2338,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               targetId: "chat-toggle-full-btn",
               actionName: "Exiting Chat Screen",
               delayBefore: 200,
-              duration: 450,
-              onReach: () => setIsChatFull(false),
+              duration: 800,
+              onReach: () => {
+                setIsChatFull(false);
+                setChatAnimMode('idle');
+                setIsChatAnimating(false);
+                if (typeof window !== "undefined") {
+                  window.scrollTo({ left: 0 });
+                  const main = document.getElementById("main-scroll-container");
+                  if (main) main.scrollLeft = 0;
+                }
+              },
             });
           }
           steps.push({
             targetId: "quantum-link-console-btn",
             actionName: "Opening Quantum Link Console",
-            delayBefore: 250,
-            duration: 550,
+            delayBefore: isChatFull ? 520 : 260,
+            duration: 950,
             onReach: () => {
               setIsChatFull(false);
               openDirectory();
@@ -2359,8 +2368,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             steps.push({
               targetId: "qai-sidecar-close-btn",
               actionName: "Closing Q-AI Panel",
-              delayBefore: 100,
-              duration: 400,
+              delayBefore: 120,
+              duration: 750,
               onReach: () => setIsQAIOpen(false),
             });
           }
@@ -2369,15 +2378,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               targetId: "chat-toggle-full-btn",
               actionName: "Exiting Chat Screen",
               delayBefore: 200,
-              duration: 450,
-              onReach: () => setIsChatFull(false),
+              duration: 800,
+              onReach: () => {
+                setIsChatFull(false);
+                setChatAnimMode('idle');
+                setIsChatAnimating(false);
+                if (typeof window !== "undefined") {
+                  window.scrollTo({ left: 0 });
+                  const main = document.getElementById("main-scroll-container");
+                  if (main) main.scrollLeft = 0;
+                }
+              },
             });
           }
           steps.push({
             targetId: "settings-btn",
             actionName: "Opening Platform Settings",
-            delayBefore: 250,
-            duration: 550,
+            delayBefore: isChatFull ? 520 : 260,
+            duration: 950,
             onReach: () => {
               openSettingsDirect();
             },
@@ -2463,6 +2481,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     };
 
+    if (typeof window !== "undefined") {
+      (window as any).__qaiActionBus = qaiActionBus;
+    }
     const unsubscribe = qaiActionBus.subscribe((payload: QAIToolAction | QAIToolAction[]) => {
       if (Array.isArray(payload)) {
         payload.forEach((act, idx) => {
@@ -6321,7 +6342,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
           <p className="text-xs text-slate-400">Connecting to quantum network...</p>
         </div>
-      </main>
+    </main>
     );
   }
 
@@ -12357,6 +12378,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           }}
         />
       )}
+          {/* Autonomous Human Biomechanical Ghost Cursor Overlay */}
+      <GhostCursor />
     </main>
   );
 }
