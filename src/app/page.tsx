@@ -10861,12 +10861,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           canUseDom ? (
             createPortal(
               <div
-                className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80"
+                className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-6 overflow-y-auto"
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="w-full max-w-2xl mx-4">
-                  <div className="glass-panel relative rounded-3xl border border-cyan-400/30 bg-slate-900/95 p-8 shadow-xl">
+                <div className="w-full max-w-lg mx-auto my-auto">
+                  <div className="glass-panel relative rounded-2xl sm:rounded-3xl border border-cyan-400/40 bg-slate-900/95 p-5 sm:p-8 shadow-[0_0_50px_rgba(0,0,0,0.8),0_0_30px_rgba(34,211,238,0.15)]">
                     {!isFirstAutoOnboarding && (
                       <button
                         type="button"
@@ -10874,9 +10874,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           setShowOnboarding(false);
                           setIsFirstAutoOnboarding(false);
                         }}
-                        className="absolute right-4 top-4 rounded-full border border-slate-600/70 bg-slate-900/80 px-2 py-0.5 text-[10px] font-medium text-slate-200 hover:border-cyan-400/70 hover:text-cyan-200"
+                        className="absolute right-3.5 top-3.5 sm:right-4 sm:top-4 h-8 w-8 rounded-full border border-slate-700/80 bg-slate-800/80 flex items-center justify-center text-slate-400 hover:text-cyan-300 hover:border-cyan-400/60 hover:bg-slate-800 transition"
+                        aria-label="Close"
                       >
-                        Close
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                       </button>
                     )}
                     {/* Screen 1: ID/Name Setup */}
@@ -10896,26 +10899,26 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                               priority
                             />
                           </div>
-                          <div className="mb-4 h-12 flex items-center justify-center">
-                            <div className={`transition-all duration-300 ease-in-out inline-block ${logoAnimationStep >= 1 && logoAnimationStep <= 5 ? '-translate-x-2 opacity-90' : 'translate-x-0 opacity-100'
+                          <div className="mb-3 sm:mb-4 min-h-[3rem] flex items-center justify-center">
+                            <div className={`transition-all duration-300 ease-in-out text-center ${logoAnimationStep >= 1 && logoAnimationStep <= 5 ? '-translate-x-1 opacity-90' : 'translate-x-0 opacity-100'
                               }`}>
-                              <span className="text-2xl font-bold text-cyan-300">
-                                Welcome to Quantum Chat
-                              </span>
-                              <span className="ml-2 text-2xl font-bold text-cyan-300">
-                                <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 2 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
-                                  }`}>Q</span>
-                                <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 3 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
-                                  }`}>-</span>
-                                <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 4 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
-                                  }`}>L</span>
-                                <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 5 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
-                                  }`}>i</span>
-                                <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 6 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
-                                  }`}>n</span>
-                                <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 7 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
-                                  }`}>k</span>
-                              </span>
+                              <h2 className="text-xl sm:text-2xl font-extrabold text-cyan-300 tracking-tight leading-snug">
+                                <span>Welcome to Quantum Chat </span>
+                                <span className="inline-block whitespace-nowrap">
+                                  <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 2 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
+                                    }`}>Q</span>
+                                  <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 3 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
+                                    }`}>-</span>
+                                  <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 4 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
+                                    }`}>L</span>
+                                  <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 5 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
+                                    }`}>i</span>
+                                  <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 6 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
+                                    }`}>n</span>
+                                  <span className={`inline-block transition-all duration-200 ease-out ${logoAnimationStep >= 7 && logoAnimationStep <= 8 ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-0 scale-50'
+                                    }`}>k</span>
+                                </span>
+                              </h2>
                             </div>
                           </div>
                           <p className="text-slate-300">Set up your quantum identity</p>
@@ -10951,27 +10954,36 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           </div>
                         </div>
 
-                        <div className="flex justify-between">
-                          <div className="flex gap-2">
+                        <div className="space-y-3 pt-2">
+                          {/* Dedicated Auto-Generate Identity Action */}
+                          <button
+                            type="button"
+                            onClick={handleAutoGenerate}
+                            className="w-full flex items-center justify-center gap-2 rounded-xl border border-cyan-400/40 bg-gradient-to-r from-cyan-500/15 via-blue-500/15 to-purple-500/15 py-3 px-4 text-xs sm:text-sm font-semibold text-cyan-300 hover:border-cyan-400 hover:from-cyan-500/25 hover:to-blue-500/25 transition shadow-[0_0_15px_rgba(34,211,238,0.15)] active:scale-[0.99]"
+                          >
+                            <svg className="w-4 h-4 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <span>Auto-Generate ID & Name</span>
+                          </button>
+
+                          {/* Primary Navigation Row */}
+                          <div className="flex items-center justify-between gap-3">
                             <button
+                              type="button"
                               onClick={handleSkipOnboarding}
-                              className="rounded-xl border border-slate-600/50 bg-slate-800/50 px-4 py-3 text-sm font-medium text-slate-300 hover:bg-slate-800 hover:border-slate-500/50 transition"
+                              className="flex-1 rounded-xl border border-slate-700/80 bg-slate-800/60 py-3 px-4 text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white hover:border-slate-600 transition text-center"
                             >
                               Skip
                             </button>
                             <button
-                              onClick={handleAutoGenerate}
-                              className="rounded-xl border border-cyan-400/50 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 px-4 py-3 text-sm font-medium text-cyan-300 hover:from-cyan-500/30 hover:to-blue-500/30 hover:border-cyan-400/70 transition shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:shadow-[0_0_30px_rgba(34,211,238,0.4)]"
+                              type="button"
+                              onClick={handleNextOnboarding}
+                              className="flex-1 rounded-xl border border-cyan-400/60 bg-gradient-to-r from-cyan-500/30 to-blue-500/30 py-3 px-4 text-xs sm:text-sm font-bold text-cyan-200 hover:from-cyan-500/40 hover:to-blue-500/40 hover:border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.25)] transition text-center"
                             >
-                              Auto Generate Your ID and Name
+                              Next →
                             </button>
                           </div>
-                          <button
-                            onClick={handleNextOnboarding}
-                            className="rounded-xl border border-cyan-400/50 bg-cyan-500/20 px-6 py-3 text-sm font-medium text-cyan-300 hover:bg-cyan-500/30 hover:border-cyan-400/70 transition"
-                          >
-                            Next
-                          </button>
                         </div>
                       </div>
                     )}
