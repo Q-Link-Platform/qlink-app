@@ -33,7 +33,7 @@ const mockOutgoing = [
     const page = await browser.newPage({ viewport: { width: vp.width, height: vp.height } });
 
     // Mock network responses
-    await page.route('**/api/auth/session', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: mockUser }) }));
+    await page.route('**/api/auth/session', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ user: mockUser, expires: '2099-01-01' }) }));
     await page.route('**/api/requests**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ incoming: [], outgoing: mockOutgoing }) }));
     await page.route('**/api/posts**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ posts: [] }) }));
     await page.route('**/api/directory**', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items: [], total: 0 }) }));

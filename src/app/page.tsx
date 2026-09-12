@@ -2978,25 +2978,25 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setCanUseDom(true);
   }, []);
 
-  // Secure Message Sharing: Handle shared message links on mount/auth
+  // Pre-Login Intent Capture: preserve ?demo=ai, ?copilot=1, or ?chat= across OAuth redirects
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (status !== "authenticated") return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const isDemoAi = params.get("demo") === "ai" || params.get("demo") === "copilot";
+      const isCopilot = params.get("copilot") === "1" || params.get("copilot") === "true";
+      const chatParam = params.get("chat");
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const chatParam = urlParams.get("chat");
-    const messageIdParam = urlParams.get("messageId");
-
-    if (chatParam) {
-      openChatWithPeer(chatParam);
-      if (messageIdParam) {
-        setHighlightedMessageId(messageIdParam);
-        // Clear query parameters from URL so refreshes don't re-trigger
-        const newUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, newUrl);
+      if (isDemoAi || isCopilot || (chatParam && isCopilot)) {
+        const targetPeer = chatParam || "Rohit_7779";
+        const intent = JSON.stringify({ chat: targetPeer, copilot: true, ts: Date.now() });
+        window.sessionStorage.setItem("ql_auto_demo", intent);
+        document.cookie = `ql_auto_demo=${encodeURIComponent(intent)}; path=/; max-age=3600; SameSite=Lax`;
       }
-    }
-  }, [status]);
+    } catch {}
+  }, []);
+
+
 
   // Secure Message Sharing: Handle scrolling and highlighting for shared message
   useEffect(() => {
@@ -6221,6 +6221,98 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   }, []);
 
+  const autoDemoTriggeredRef = useRef(false);
+
+  // Auto-Launch Coordinator: Opens Chat UI + Docks Q-AI Copilot immediately once user logs in and app is free
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (status !== "authenticated") return;
+    if (autoDemoTriggeredRef.current) return;
+
+    // Check if app is busy with guide / onboarding / install tour prompts
+    const isAppFree = !showGuide && !showOnboarding && !showInstallPrompt;
+    if (!isAppFree) return;
+
+    let targetChat: string | null = null;
+    let wantCopilot = false;
+    let messageId: string | null = null;
+
+    // 1. Check current URL query params
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const isDemoAi = params.get("demo") === "ai" || params.get("demo") === "copilot";
+      const isCopilot = params.get("copilot") === "1" || params.get("copilot") === "true";
+      const chatParam = params.get("chat");
+      messageId = params.get("messageId");
+
+      if (isDemoAi || isCopilot) {
+        targetChat = chatParam || "Rohit_7779";
+        wantCopilot = true;
+      } else if (chatParam) {
+        targetChat = chatParam;
+        wantCopilot = false;
+      }
+    } catch {}
+
+    // 2. Fallback to pre-login saved intent if query parameters were lost during OAuth redirect
+    if (!targetChat) {
+      try {
+        const stored = window.sessionStorage.getItem("ql_auto_demo");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.chat) {
+            targetChat = parsed.chat;
+            wantCopilot = !!parsed.copilot;
+          }
+        }
+      } catch {}
+    }
+
+    if (!targetChat) {
+      try {
+        const match = document.cookie.match(/ql_auto_demo=([^;]+)/);
+        if (match && match[1]) {
+          const parsed = JSON.parse(decodeURIComponent(match[1]));
+          if (parsed && parsed.chat) {
+            targetChat = parsed.chat;
+            wantCopilot = !!parsed.copilot;
+          }
+        }
+      } catch {}
+    }
+
+    if (!targetChat) return;
+
+    autoDemoTriggeredRef.current = true;
+
+    // Clean up persistent demo intent flags
+    try {
+      window.sessionStorage.removeItem("ql_auto_demo");
+      document.cookie = "ql_auto_demo=; path=/; max-age=0; SameSite=Lax";
+      if (window.location.search) {
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    } catch {}
+
+    // Execute instant seamless opening
+    const peerToOpen = targetChat.trim();
+    openChatWithPeer(peerToOpen);
+    setIsChatFull(true);
+    setShowDirectory(false);
+    setMode("home");
+
+    if (messageId) {
+      setHighlightedMessageId(messageId);
+    }
+
+    if (wantCopilot) {
+      // Instantly dock Q-AI Copilot panel beside active chat
+      setIsQAIOpen(true);
+      setShowAIHelpButton(false);
+    }
+  }, [status, showGuide, showOnboarding, showInstallPrompt]);
+
   // While auth is loading, show loading spinner (only on initial launch, preventing flash during updateSession background refreshes)
   if (status === "loading" && !hasInitiallyLoaded) {
     return (
@@ -6280,7 +6372,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             {/* Google Sign-in Button */}
             <button
               className="group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-slate-700/80 bg-white px-3.5 text-xs sm:text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
-              onClick={() => signIn("google")}
+              onClick={() => signIn("google", { callbackUrl: typeof window !== "undefined" ? window.location.href : "/" })}
             >
               {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/[0.08] to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
@@ -6299,7 +6391,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             {/* Microsoft Sign-in Button */}
             <button
               className="group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-slate-700/80 bg-white px-3.5 text-xs sm:text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
-              onClick={() => signIn("azure-ad")}
+              onClick={() => signIn("azure-ad", { callbackUrl: typeof window !== "undefined" ? window.location.href : "/" })}
             >
               {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/[0.08] to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
@@ -6318,7 +6410,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             {/* GitHub Sign-in Button */}
             <button
               className="group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-slate-700/80 bg-white px-3.5 text-xs sm:text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
-              onClick={() => signIn("github")}
+              onClick={() => signIn("github", { callbackUrl: typeof window !== "undefined" ? window.location.href : "/" })}
             >
               {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/[0.08] to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
@@ -6995,7 +7087,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   };
 
-  const openChatWithPeer = async (peerHandle: string) => {
+  async function openChatWithPeer(peerHandle: string) {
     const targetPeer = peerHandle.trim();
     currentPeerFetchRef.current = targetPeer;
     setActivePeerHandle(targetPeer);
