@@ -455,7 +455,7 @@ export default function GhostCursor() {
         return (
           <div
             key={idx}
-            className="absolute rounded-full bg-cyan-400 blur-[1px] transition-transform duration-75"
+            className="absolute rounded-full bg-cyan-400 blur-[1px] transition-transform duration-75 pointer-events-none"
             style={{
               left: pt.x - 4,
               top: pt.y - 4,
@@ -463,7 +463,7 @@ export default function GhostCursor() {
               height: 8,
               opacity,
               transform: `scale(${scale})`,
-              boxShadow: "0 0 10px rgba(6, 182, 212, 0.8)",
+              boxShadow: "0 0 8px rgba(6, 182, 212, 0.7)",
             }}
           />
         );
@@ -485,9 +485,9 @@ export default function GhostCursor() {
         />
       )}
 
-      {/* Cybernetic High-Definition Blue Cursor Arrow */}
+      {/* Cybernetic High-Definition Blue Cursor Arrow (Completely transparent background, zero square artifacts) */}
       <div
-        className="absolute transition-transform ease-out will-change-transform"
+        className="absolute transition-transform ease-out will-change-transform pointer-events-none"
         style={{
           left: cursorState.x,
           top: cursorState.y,
@@ -498,23 +498,18 @@ export default function GhostCursor() {
           transitionDuration: "120ms",
         }}
       >
-        {/* Glowing Luminous Blue Pointer Arrow */}
-        <div className="relative">
-          {/* Ambient Glowing Aura Halo */}
-          <div
-            className="absolute -inset-1 rounded-full blur-[8px] bg-cyan-400/50 pointer-events-none animate-pulse"
-            style={{ width: 36, height: 40 }}
-          />
-
+        <div className="relative pointer-events-none">
           <svg
-            width="36"
-            height="40"
+            width="32"
+            height="36"
             viewBox="0 0 28 32"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            className="overflow-visible pointer-events-none"
             style={{
+              overflow: "visible",
               filter:
-                "drop-shadow(0px 0px 10px rgba(6, 182, 212, 0.95)) drop-shadow(0px 0px 24px rgba(14, 165, 233, 0.7)) drop-shadow(0px 6px 14px rgba(0, 0, 0, 0.95))",
+                "drop-shadow(0px 2px 8px rgba(0, 0, 0, 0.85)) drop-shadow(0px 0px 8px rgba(6, 182, 212, 0.9))",
             }}
           >
             {/* Outer Cybernetic Cyan Border with Gradient */}
@@ -547,8 +542,8 @@ export default function GhostCursor() {
             />
 
             {/* Precision Hotspot Pointer Tip */}
-            <circle cx="2.5" cy="2.5" r="2" fill="#38bdf8" className="animate-ping" />
-            <circle cx="2.5" cy="2.5" r="1.5" fill="#ffffff" />
+            <circle cx="2.5" cy="2.5" r="1.6" fill="#38bdf8" />
+            <circle cx="2.5" cy="2.5" r="0.9" fill="#ffffff" />
           </svg>
         </div>
 
