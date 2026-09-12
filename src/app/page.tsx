@@ -4415,6 +4415,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any | null>(null);
 
   // Message Context Menu state & touch long-press tracking
+  const [detailModalMessage, setDetailModalMessage] = useState<ChatMessage | null>(null);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -12248,6 +12249,134 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           </div>
         );
       })()}
+      {/* ── Message Details Modal (Detailed Date & Timestamp Section) ──────── */}
+      {detailModalMessage && typeof document !== "undefined" && createPortal(
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200"
+          onClick={() => setDetailModalMessage(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-3xl border border-cyan-400/40 bg-slate-950/95 p-5 shadow-[0_0_50px_rgba(0,0,0,0.9),0_0_30px_rgba(34,211,238,0.2)] backdrop-blur-2xl animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-full bg-cyan-500/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.2)]">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-cyan-200">Message Details</h3>
+                  <p className="text-[10px] text-slate-400">Quantum channel transmission log</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailModalMessage(null)}
+                className="h-7 w-7 rounded-full border border-slate-700 bg-slate-800/80 flex items-center justify-center text-slate-400 hover:text-white hover:border-cyan-400/50 transition"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Details List */}
+            <div className="space-y-2.5 py-4 text-xs">
+              {/* Full Date & Timestamp (Requested by user) */}
+              <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/30 to-slate-900/60 p-3 shadow-inner">
+                <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                  <span>📅</span> Date & Exact Timestamp
+                </p>
+                <p className="text-slate-100 font-semibold text-xs">
+                  {detailModalMessage.createdAt
+                    ? new Date(detailModalMessage.createdAt).toLocaleDateString(undefined, {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "Unknown Date"}
+                </p>
+                <p className="text-cyan-300 text-[11px] font-mono mt-0.5">
+                  {detailModalMessage.createdAt
+                    ? new Date(detailModalMessage.createdAt).toLocaleTimeString(undefined, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit",
+                        hour12: true,
+                      })
+                    : ""}
+                </p>
+              </div>
+
+              {/* Delivery Status */}
+              <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2">
+                <span className="text-slate-400">Delivery Status</span>
+                <div className="flex items-center gap-1.5 font-medium text-slate-200">
+                  <span className="text-[11px]">{(detailModalMessage as any).status || "Delivered"}</span>
+                  <MessageStatusTicks status={(detailModalMessage as any).status} isMe={true} />
+                </div>
+              </div>
+
+              {/* Encryption Security */}
+              <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2">
+                <span className="text-slate-400">Security</span>
+                <span className="text-cyan-300 font-semibold flex items-center gap-1 text-[11px]">
+                  <span>🔒</span> E2E Encrypted
+                </span>
+              </div>
+
+              {/* Sender Info */}
+              <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 px-3 py-2">
+                <span className="text-slate-400">Sender</span>
+                <span className="text-slate-200 font-mono text-[11px]">
+                  {detailModalMessage.senderId === meId || detailModalMessage.senderId === "me" || String(detailModalMessage.id).startsWith("temp-")
+                    ? "You (sender)"
+                    : `@${activePeerHandle || "peer"}`}
+                </span>
+              </div>
+
+              {/* Message Content Preview */}
+              {detailModalMessage.content && (
+                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-2.5">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-slate-400">Message Content</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cleanText = detailModalMessage.content.replace(/^[(FILE|VIDEO) attachment]\s*/i, "");
+                        navigator.clipboard.writeText(cleanText);
+                        setChatError("Copied!");
+                        setTimeout(() => setChatError(null), 2000);
+                      }}
+                      className="text-[10px] font-semibold text-cyan-400 hover:underline"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                  <p className="text-slate-200 text-xs break-words max-h-20 overflow-y-auto scrollbar-hide">
+                    {detailModalMessage.content.replace(/^[(FILE|VIDEO) attachment]\s*/i, "")}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Close Action */}
+            <button
+              type="button"
+              onClick={() => setDetailModalMessage(null)}
+              className="w-full rounded-xl border border-cyan-400/50 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 py-2.5 text-xs font-bold text-cyan-200 hover:from-cyan-500/30 hover:to-blue-500/30 transition text-center shadow-[0_0_15px_rgba(34,211,238,0.15)]"
+            >
+              Done
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
 
       {/* Premium Sci-Fi WhatsApp-style Context Menu */}
       {contextMenu && (() => {
@@ -12287,7 +12416,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               Message Ops
             </div>
 
-            <div className="mt-1 space-y-0.5">
+                        <div className="mt-1 space-y-0.5">
+              {/* Message Details (Detailed Date & Timestamp Section) */}
+              <button
+                type="button"
+                onClick={() => {
+                  const targetMsg = chatMessages.find((m) => m.id === contextMenu.messageId);
+                  if (targetMsg) {
+                    setDetailModalMessage(targetMsg);
+                  }
+                  setContextMenu(null);
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs font-semibold text-cyan-300 transition duration-150 hover:bg-cyan-950/60 hover:text-cyan-100 active:scale-95"
+              >
+                <svg className="h-3.5 w-3.5 text-cyan-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Message Details</span>
+              </button>
               {/* Copy Button */}
               {!/\[(FILE|VIDEO) attachment\]/i.test(contextMenu.content) && (
                 <button

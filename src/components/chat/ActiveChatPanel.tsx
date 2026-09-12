@@ -3,6 +3,7 @@
 import { useDuoTheme } from "@/app/providers/DuoThemeProvider";
 
 import React, { memo, useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Cropper from "react-easy-crop";
 import { ChatInputConsole } from "@/components/ChatInputConsole";
@@ -335,6 +336,13 @@ function renderMessageText(text: string, isMe: boolean) {
     }
   };
 
+  const formatMsgTime = (iso: string): string => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", hour12: true }).toLowerCase();
+  };
+
   const formatDateLabel = (iso: string): string => {
     if (!iso) return "";
     const d = new Date(iso);
@@ -345,7 +353,12 @@ function renderMessageText(text: string, isMe: boolean) {
     yesterday.setDate(yesterday.getDate() - 1);
     const msgDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     if (msgDay.getTime() === today.getTime()) return "Today";
-    if (msgDay.getTime() === yesterday.getTime()) return "Yesterday";
+    if (msgDay.getTime() === yesterday.getDate()) return "Yesterday";
+    const diffTime = Math.abs(today.getTime() - msgDay.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays < 7) {
+      return d.toLocaleDateString([], { weekday: "long" });
+    }
     return d.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
   };
 
@@ -513,6 +526,59 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
     setShowVipTerms,
     setManualStopAnimation,
   } = props;
+
+  // WhatsApp-Style Context Menu & Message Details State
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    message: any;
+  } | null>(null);
+
+  const [detailModalMessage, setDetailModalMessage] = useState<any | null>(null);
+  const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handleClose = () => setContextMenu(null);
+    const timer = setTimeout(() => {
+      window.addEventListener("click", handleClose);
+      window.addEventListener("scroll", handleClose, true);
+    }, 50);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("click", handleClose);
+      window.removeEventListener("scroll", handleClose, true);
+    };
+  }, [contextMenu]);
+
+  const handleContextMenu = (e: React.MouseEvent, msg: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const x = Math.min(e.clientX, typeof window !== "undefined" ? window.innerWidth - 220 : 300);
+    const y = Math.min(e.clientY, typeof window !== "undefined" ? window.innerHeight - 260 : 400);
+    setContextMenu({ x, y, message: msg });
+  };
+
+  const handleTouchStart = (msg: any, e: React.TouchEvent) => {
+    if (longPressTimeoutRef.current) clearTimeout(longPressTimeoutRef.current);
+    const touch = e.touches[0];
+    if (!touch) return;
+    const x = Math.min(touch.clientX, typeof window !== "undefined" ? window.innerWidth - 220 : 300);
+    const y = Math.min(touch.clientY, typeof window !== "undefined" ? window.innerHeight - 260 : 400);
+    longPressTimeoutRef.current = setTimeout(() => {
+      if (typeof window !== "undefined" && window.navigator && "vibrate" in window.navigator) {
+        try { window.navigator.vibrate(40); } catch (_) {}
+      }
+      setContextMenu({ x, y, message: msg });
+    }, 450);
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+  };
 
   return (
             <section
@@ -1355,45 +1421,90 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
                                 {/* Bubble Alignments */}
                                 <div className={`flex-1 flex ${isMe ? "justify-end" : "justify-start"}`}>
-                                  <div
-                                    style={{ WebkitTouchCallout: "none" }}
-                                    className={
-                                      isMe
-                                        ? `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[75%]"} rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-3 py-2 text-slate-950 select-none cursor-pointer transition-all duration-500 ${isHighlighted
-                                          ? "shadow-[0_0_30px_#22d3ee,0_0_15px_#38bdf8] ring-2 ring-cyan-200 ring-offset-2 ring-offset-slate-950 scale-[1.03]"
-                                          : isSelected
-                                            ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-[0_0_18px_rgba(56,189,248,0.7)]"
-                                            : "shadow-[0_0_18px_rgba(56,189,248,0.7)]"
-                                        }`
-                                        : `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[75%]"} rounded-2xl rounded-bl-sm bg-slate-800/90 px-3 py-2 text-slate-100 select-none cursor-pointer transition-all duration-500 ${isHighlighted
-                                          ? "bg-slate-700/95 ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 shadow-[0_0_25px_rgba(34,211,238,0.6)] scale-[1.03]"
-                                          : isSelected
-                                            ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-md"
-                                            : "shadow-sm"
-                                        }`
-                                    }
-                                  >
-                                    {/* Text content */}
-                                    {displayContent && (
-                                      <p className="break-words flex items-center flex-wrap gap-1">
-                                        {m.isEncrypted && (
-                                          <span
-                                            title="End-to-End Encrypted"
-                                            className={`inline-flex items-center text-[11px] mr-0.5 select-none ${isMe ? "text-slate-950/60" : "text-cyan-400/80"}`}
-                                          >
-                                            🔒
-                                          </span>
-                                        )}
-                                        {editingMessage?.id === m.id ? (
-                                          <span className="italic text-cyan-300 animate-pulse flex items-center gap-1.5 py-0.5">
-                                            <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-                                            <span className="text-[11px] font-semibold">Editing in composer...</span>
-                                          </span>
+                                  {(() => {
+                                    const hasMedia = Boolean((attachments && attachments.length > 0) || extractYouTubeVideoId(displayContent));
+                                    return (
+                                      <div
+                                        data-message-card
+                                        style={{ WebkitTouchCallout: "none" }}
+                                        title="Right-click for options"
+                                        className={
+                                          isMe
+                                            ? `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[85%] sm:max-w-[75%]"} rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-slate-950 select-none cursor-pointer transition-all duration-300 ${isHighlighted
+                                              ? "shadow-[0_0_30px_#22d3ee,0_0_15px_#38bdf8] ring-2 ring-cyan-200 ring-offset-2 ring-offset-slate-950 scale-[1.03]"
+                                              : isSelected
+                                                ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-[0_0_18px_rgba(56,189,248,0.7)]"
+                                                : "shadow-[0_0_12px_rgba(56,189,248,0.45)]"
+                                            }`
+                                            : `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[85%] sm:max-w-[75%]"} rounded-2xl rounded-bl-sm bg-slate-800/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-slate-100 select-none cursor-pointer transition-all duration-300 ${isHighlighted
+                                              ? "bg-slate-700/95 ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 shadow-[0_0_25px_rgba(34,211,238,0.6)] scale-[1.03]"
+                                              : isSelected
+                                                ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-md"
+                                                : "shadow-sm"
+                                            }`
+                                        }
+                                      >
+                                        {/* Thin WhatsApp-Style Content Layout */}
+                                        {!hasMedia ? (
+                                          <div className="flex flex-wrap items-end justify-between gap-x-2 gap-y-0.5">
+                                            {displayContent && (
+                                              <span className="break-words flex-1 min-w-[20px] text-[13px] sm:text-[14px] leading-snug">
+                                                {m.isEncrypted && (
+                                                  <span
+                                                    title="End-to-End Encrypted"
+                                                    className={`inline-flex items-center text-[10px] mr-1 select-none ${isMe ? "text-slate-950/60" : "text-cyan-400/80"}`}
+                                                  >
+                                                    🔒
+                                                  </span>
+                                                )}
+                                                {editingMessage?.id === m.id ? (
+                                                  <span className="italic text-cyan-300 animate-pulse flex items-center gap-1.5 py-0.5">
+                                                    <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                                                    <span className="text-[11px] font-semibold">Editing in composer...</span>
+                                                  </span>
+                                                ) : (
+                                                  <span>{renderMessageText(displayContent, !!isMe)}</span>
+                                                )}
+                                              </span>
+                                            )}
+
+                                            {/* Slim Inline Timestamp (WhatsApp-Style) */}
+                                            {m.createdAt && (
+                                              <span
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setDetailModalMessage(m);
+                                                }}
+                                                title="Click or right-click for Message Details"
+                                                className={`inline-flex items-center gap-1 text-[9px] font-mono tracking-tight select-none shrink-0 self-end -mb-0.5 ml-auto hover:opacity-100 transition ${
+                                                  isMe ? "text-slate-950/70" : "text-slate-400/80"
+                                                }`}
+                                              >
+                                                {(m as any).isEdited && (
+                                                  <span className="italic text-[8px] opacity-80" title={(m as any).editedAt ? `Edited: ${formatMsgTime((m as any).editedAt)}` : "Edited"}>
+                                                    (edited)
+                                                  </span>
+                                                )}
+                                                <span>{formatMsgTime(m.createdAt)}</span>
+                                                <MessageStatusTicks status={(m as any).status} isMe={!!isMe} onRetry={() => handleRetryMessage && handleRetryMessage(m.id)} />
+                                              </span>
+                                            )}
+                                          </div>
                                         ) : (
-                                          <span>{renderMessageText(displayContent, !!isMe)}</span>
-                                        )}
-                                      </p>
-                                    )}
+                                          <div>
+                                            {displayContent && (
+                                              <p className="break-words flex items-center flex-wrap gap-1 text-[13px] sm:text-[14px] leading-snug mb-1">
+                                                {m.isEncrypted && (
+                                                  <span
+                                                    title="End-to-End Encrypted"
+                                                    className={`inline-flex items-center text-[10px] mr-1 select-none ${isMe ? "text-slate-950/60" : "text-cyan-400/80"}`}
+                                                  >
+                                                    🔒
+                                                  </span>
+                                                )}
+                                                <span>{renderMessageText(displayContent, !!isMe)}</span>
+                                              </p>
+                                            )}
 
                                     {/* YouTube Inline Rich Video Preview */}
                                     {extractYouTubeVideoId(displayContent) && (
@@ -1750,20 +1861,34 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                       </div>
                                     )}
 
-                                    {/* ── Bubble Timestamp ────────────────────────── */}
-                                    {m.createdAt && (
-                                      <p className={`mt-1.5 text-[9px] font-mono tracking-wide select-none text-right flex items-center justify-end gap-1 ${isMe ? "text-slate-950/60" : "text-slate-500/80"
-                                        }`}>
-                                        {(m as any).isEdited && (
-                                          <span className="italic text-[8.5px] opacity-80" title={(m as any).editedAt ? `Edited: ${formatMsgDateFull((m as any).editedAt)}` : "Edited"}>
-                                            (edited)
-                                          </span>
+                                            {/* Timestamp below Media (only shown if message has media) */}
+                                            {hasMedia && m.createdAt && (
+                                              <div className="mt-1 flex items-center justify-end">
+                                                <span
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setDetailModalMessage(m);
+                                                  }}
+                                                  title="Click or right-click for Message Details"
+                                                  className={`inline-flex items-center gap-1 text-[9px] font-mono tracking-tight select-none cursor-pointer hover:opacity-100 transition ${
+                                                    isMe ? "text-slate-950/70" : "text-slate-400/80"
+                                                  }`}
+                                                >
+                                                  {(m as any).isEdited && (
+                                                    <span className="italic text-[8px] opacity-80" title={(m as any).editedAt ? `Edited: ${formatMsgTime((m as any).editedAt)}` : "Edited"}>
+                                                      (edited)
+                                                    </span>
+                                                  )}
+                                                  <span>{formatMsgTime(m.createdAt)}</span>
+                                                  <MessageStatusTicks status={(m as any).status} isMe={!!isMe} onRetry={() => handleRetryMessage && handleRetryMessage(m.id)} />
+                                                </span>
+                                              </div>
+                                            )}
+                                          </div>
                                         )}
-                                        <span>{formatMsgDateFull(m.createdAt)}</span>
-                                        <MessageStatusTicks status={(m as any).status} isMe={!!isMe} onRetry={() => handleRetryMessage && handleRetryMessage(m.id)} />
-                                      </p>
-                                    )}
-                                  </div>
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               </div>
                             </React.Fragment>
@@ -2317,7 +2442,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                   </div>
                 )}
               </div>
-            </section>
+              </section>
   );
 });
 
