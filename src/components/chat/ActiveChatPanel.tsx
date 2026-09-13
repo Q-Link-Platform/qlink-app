@@ -527,6 +527,16 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
     setManualStopAnimation,
   } = props;
 
+  // Auto-scroll to show live WhatsApp-style typing bubble when peer is typing
+  useEffect(() => {
+    if (peerTyping && chatScrollRef?.current) {
+      chatScrollRef.current.scrollTo({
+        top: chatScrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [peerTyping, chatScrollRef]);
+
   // WhatsApp-Style Context Menu & Message Details State
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -1894,6 +1904,27 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                             </React.Fragment>
                           );
                         })}
+
+                        {/* ── WhatsApp-Style Live Typing Indicator Bubble ──────── */}
+                        {peerTyping && activePeerHandle && (
+                          <div
+                            data-peer-typing-bubble
+                            className="flex items-center justify-start w-full transition-all duration-300 ease-out animate-in fade-in slide-in-from-bottom-2 pt-1 pb-1 select-none"
+                          >
+                            <div
+                              className="rounded-2xl rounded-bl-sm bg-slate-800/90 border border-slate-700/60 shadow-[0_2px_12px_rgba(0,0,0,0.4),0_0_15px_rgba(34,211,238,0.12)] backdrop-blur-md px-3.5 py-2.5 flex items-center gap-1.5 transition-all duration-300"
+                              style={!isDefaultTheme ? {
+                                backgroundColor: "var(--duo-surface-card-inner, rgba(30, 41, 59, 0.9))",
+                                borderColor: "var(--duo-surface-card-border-subtle, rgba(51, 65, 85, 0.6))",
+                              } : undefined}
+                              title={`@${activePeerHandle} is typing...`}
+                            >
+                              <span className="h-2 w-2 rounded-full bg-cyan-400/90 shadow-[0_0_6px_rgba(34,211,238,0.6)] animate-whatsapp-dot-1" />
+                              <span className="h-2 w-2 rounded-full bg-cyan-400/90 shadow-[0_0_6px_rgba(34,211,238,0.6)] animate-whatsapp-dot-2" />
+                              <span className="h-2 w-2 rounded-full bg-cyan-400/90 shadow-[0_0_6px_rgba(34,211,238,0.6)] animate-whatsapp-dot-3" />
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Dynamic scroll spacer when pending image preview is shown */}

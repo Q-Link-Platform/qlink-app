@@ -3999,3 +3999,35 @@ textarea,
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
+
+/* ==========================================================================
+   WHATSAPP-STYLE LIVE TYPING INDICATOR BUBBLE & DOTS
+   ========================================================================== */
+@keyframes whatsapp-typing-dot {
+  0%, 60%, 100% {
+    transform: translateY(0) scale(0.9);
+    opacity: 0.35;
+  }
+  30% {
+    transform: translateY(-4.5px) scale(1.1);
+    opacity: 1;
+  }
+}
+
+.animate-whatsapp-dot-1 {
+  animation: whatsapp-typing-dot 1.35s infinite ease-in-out;
+  animation-delay: 0s;
+  will-change: transform, opacity;
+}
+
+.animate-whatsapp-dot-2 {
+  animation: whatsapp-typing-dot 1.35s infinite ease-in-out;
+  animation-delay: 0.2s;
+  will-change: transform, opacity;
+}
+
+.animate-whatsapp-dot-3 {
+  animation: whatsapp-typing-dot 1.35s infinite ease-in-out;
+  animation-delay: 0.4s;
+  will-change: transform, opacity;
+}

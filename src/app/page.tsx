@@ -4466,6 +4466,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     isUserScrolledUpRef.current = distanceFromBottom > 80;
   }, []);
 
+  // Auto-scroll when peer starts typing if user is near bottom (WhatsApp standard)
+  useEffect(() => {
+    if (peerTyping && !isUserScrolledUpRef.current) {
+      scrollToBottom(true);
+    }
+  }, [peerTyping, scrollToBottom]);
+
   useEffect(() => {
     const el = chatScrollRef.current;
     if (!el) return;
