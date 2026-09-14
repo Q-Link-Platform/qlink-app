@@ -192,6 +192,7 @@ export default function AboutPageClient() {
 
   // High-performance header retreat state
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
   const lastScrollY = useRef(0);
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -234,35 +235,35 @@ export default function AboutPageClient() {
   const handleScrollUpdate = (currentY: number, scrollHeight: number, clientHeight: number) => {
     const diff = currentY - lastScrollY.current;
 
-    // Always show near top
+    // Dynamically track scroll threshold for adaptive frosted glass shield
+    setIsScrolled(currentY > 20);
+
+    // Always keep header visible near the top of the page
     if (currentY < 60) {
       setIsHeaderVisible(true);
       lastScrollY.current = currentY;
       return;
     }
 
-    // Always show near page bottom
-    if (currentY + clientHeight >= scrollHeight - 80) {
-      setIsHeaderVisible(true);
-      lastScrollY.current = currentY;
-      return;
-    }
-
-    // Threshold check to avoid jitter
+    // Significant scroll movement threshold
     if (Math.abs(diff) > 8) {
-      if (diff > 0 && currentY > 120) {
-        setIsHeaderVisible(false); // Scrolling DOWN
+      if (diff > 0 && currentY > 100) {
+        // Scrolling DOWN -> smoothly retreat header out of view to avoid overlapping content
+        setIsHeaderVisible(false);
       } else if (diff < 0) {
-        setIsHeaderVisible(true); // Scrolling UP
+        // Scrolling UP -> smoothly reveal header with dark frosted glass protection
+        setIsHeaderVisible(true);
       }
       lastScrollY.current = currentY;
     }
 
-    // Auto-reveal on scroll idle
+    // Auto-reveal on scroll idle only near the upper portion of the page
     if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-    scrollTimeout.current = setTimeout(() => {
-      setIsHeaderVisible(true);
-    }, 1200);
+    if (currentY < 250) {
+      scrollTimeout.current = setTimeout(() => {
+        setIsHeaderVisible(true);
+      }, 1000);
+    }
   };
 
   const handleContainerScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -365,7 +366,13 @@ export default function AboutPageClient() {
             : "-translate-y-36 opacity-0 pointer-events-none"
         }`}
       >
-        <nav className="q-spotlight-card q-glass-nav rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+        <nav
+          className={`q-spotlight-card rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between transition-all duration-300 ${
+            isScrolled
+              ? "bg-[#050811]/92 backdrop-blur-2xl border border-white/20 shadow-[0_25px_60px_rgba(0,0,0,0.85)] ring-1 ring-cyan-500/20"
+              : "bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.4)]"
+          }`}
+        >
           {/* SLEEK SPACIOUS BRAND (Logo removed as requested to eliminate chaos and give breathing room) */}
           <Link href="/" className="flex items-center gap-2 group whitespace-nowrap">
             <span className="text-base font-black tracking-tight text-white group-hover:text-cyan-300 transition-colors">
@@ -991,7 +998,7 @@ export default function AboutPageClient() {
         </section>
 
         {/* SECURITY & PROTOCOL COMPARISON MATRIX */}
-        <section id="comparison" className="mb-20 scroll-mt-28">
+        <section id="comparison" className="mb-32 sm:mb-40 scroll-mt-28">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase font-bold block mb-3">
               Competitive Architecture
@@ -999,7 +1006,7 @@ export default function AboutPageClient() {
             <h2 className="text-3xl font-bold text-white">How Q-Link Compares to Big Tech</h2>
           </div>
 
-          <div className="q-spotlight-card rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+          <div className="q-spotlight-card rounded-3xl overflow-hidden border border-white/15 bg-[#060a14]/85 backdrop-blur-2xl shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
@@ -1043,7 +1050,7 @@ export default function AboutPageClient() {
       </main>
 
       {/* TECH GIANT STANDARD CORPORATE MEGA FOOTER & GOVERNANCE DIRECTORY */}
-      <footer id="corporate-directory" className="relative border-t border-white/10 bg-[#020408]/95 backdrop-blur-3xl pt-16 pb-14 overflow-hidden z-10">
+      <footer id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408]/80 to-[#020408]/98 backdrop-blur-2xl pt-20 pb-14 overflow-hidden z-10 w-full">
         {/* Subtle Ambient Top Border Sheen */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
 

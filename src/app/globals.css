@@ -4185,12 +4185,12 @@ textarea,
 
 /* True Apple-Grade Liquid Frosted Glass Navigation Pill (Full Glass Transparent) */
 .q-glass-nav {
-  background: rgba(255, 255, 255, 0.035) !important;
-  backdrop-filter: blur(32px) saturate(210%) contrast(105%) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(210%) contrast(105%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  background: rgba(6, 10, 20, 0.88) !important;
+  backdrop-filter: blur(28px) saturate(180%) contrast(105%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) contrast(105%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
   box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.5),
+    0 20px 50px rgba(0, 0, 0, 0.6),
     inset 0 1px 1.5px rgba(255, 255, 255, 0.35),
     inset 0 -1px 1px rgba(0, 0, 0, 0.4);
 }
