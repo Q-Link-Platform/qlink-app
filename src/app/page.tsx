@@ -8923,9 +8923,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                             <div
                                               key={post.id}
                                               style={{ overflowAnchor: "none" }}
-                                              className={`rounded-none sm:rounded-2xl border-0 sm:border border-slate-700/60 bg-transparent sm:bg-slate-950/60 p-0 sm:p-2.5 mt-3 sm:mt-2.5 pt-3 sm:pt-2.5 border-t border-slate-800/80 sm:border-t-0 cursor-pointer hover:border-slate-600/80 transition-all relative ${
-                                                activePostMenuId === post.id ? "z-50" : "z-0"
-                                              }`}
+                                              className="rounded-none sm:rounded-2xl border-0 sm:border border-slate-700/60 bg-transparent sm:bg-slate-950/60 p-0 sm:p-2.5 mt-3 sm:mt-2.5 pt-3 sm:pt-2.5 border-t border-slate-800/80 sm:border-t-0 cursor-pointer hover:border-slate-600/80 transition-all"
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 trackPostView(post.id);
@@ -8968,90 +8966,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                   </div>
                                                 </div>
 
-                                                <div className="flex items-center gap-1.5 relative">
+                                                <div className="flex items-center gap-1.5">
                                                   <span className="rounded-full border border-slate-700/60 bg-slate-900/80 px-2 py-0.5 text-[9px] font-medium text-cyan-300">
                                                     Global
                                                   </span>
-
-                                                  {/* Three-Dots Menu (•••) */}
-                                                  <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      setActivePostMenuId(cur => cur === post.id ? null : post.id);
-                                                    }}
-                                                    className="h-6 w-6 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                                                    title="More options"
-                                                  >
-                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                                      <circle cx="5" cy="12" r="2" />
-                                                      <circle cx="12" cy="12" r="2" />
-                                                      <circle cx="19" cy="12" r="2" />
-                                                    </svg>
-                                                  </button>
-
-                                                  {/* Dropdown Menu */}
-                                                  {activePostMenuId === post.id && (
-                                                    <div
-                                                      className="absolute right-0 top-7 z-50 w-48 rounded-2xl border border-slate-700/80 bg-slate-950/98 backdrop-blur-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.95)] text-xs text-slate-200 animate-fadeIn"
-                                                      onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                      <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                          navigator.clipboard.writeText(`${window.location.origin}/#post-${post.id}`);
-                                                          setActivePostMenuId(null);
-                                                          setCopiedPostId(post.id);
-                                                          setTimeout(() => setCopiedPostId(null), 2500);
-                                                        }}
-                                                        className="w-full text-left px-3 py-1.5 rounded-xl hover:bg-slate-900 hover:text-white transition-colors flex items-center gap-2"
-                                                      >
-                                                        <span>🔗</span>
-                                                        <span>Copy link to post</span>
-                                                      </button>
-
-                                                      {((session?.user as any)?.id === post.authorId || areHandlesEqual((session?.user as any)?.handle, post.authorHandle)) ? (
-                                                        <>
-                                                          <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                              setActivePostMenuId(null);
-                                                              handleDeletePost(post.id);
-                                                            }}
-                                                            className="w-full text-left px-3 py-1.5 rounded-xl hover:bg-red-500/20 text-red-400 transition-colors flex items-center gap-2"
-                                                          >
-                                                            <span>🗑️</span>
-                                                            <span>Delete post</span>
-                                                          </button>
-                                                        </>
-                                                      ) : (
-                                                        <>
-                                                          <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                              setActivePostMenuId(null);
-                                                              alert(`@${item.handle} muted from your timeline.`);
-                                                            }}
-                                                            className="w-full text-left px-3 py-1.5 rounded-xl hover:bg-slate-900 hover:text-white transition-colors flex items-center gap-2"
-                                                          >
-                                                            <span>🔕</span>
-                                                            <span>Mute @{item.handle}</span>
-                                                          </button>
-                                                          <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                              setActivePostMenuId(null);
-                                                              alert('Post flagged for Trust & Safety review.');
-                                                            }}
-                                                            className="w-full text-left px-3 py-1.5 rounded-xl hover:bg-amber-500/20 text-amber-400 transition-colors flex items-center gap-2"
-                                                          >
-                                                            <span>🚩</span>
-                                                            <span>Report content</span>
-                                                          </button>
-                                                        </>
-                                                      )}
-                                                    </div>
-                                                  )}
                                                 </div>
                                               </div>
 
