@@ -8923,7 +8923,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                             <div
                                               key={post.id}
                                               style={{ overflowAnchor: "none" }}
-                                              className="rounded-none sm:rounded-2xl border-0 sm:border border-slate-700/60 bg-transparent sm:bg-slate-950/60 p-0 sm:p-2.5 mt-3 sm:mt-2.5 pt-3 sm:pt-2.5 border-t border-slate-800/80 sm:border-t-0 cursor-pointer hover:border-slate-600/80 transition-all"
+                                              className={`rounded-none sm:rounded-2xl border-0 sm:border border-slate-700/60 bg-transparent sm:bg-slate-950/60 p-0 sm:p-2.5 mt-3 sm:mt-2.5 pt-3 sm:pt-2.5 border-t border-slate-800/80 sm:border-t-0 cursor-pointer hover:border-slate-600/80 transition-all relative ${
+                                                activePostMenuId === post.id ? "z-50" : "z-0"
+                                              }`}
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 trackPostView(post.id);
@@ -8991,7 +8993,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                   {/* Dropdown Menu */}
                                                   {activePostMenuId === post.id && (
                                                     <div
-                                                      className="absolute right-0 top-7 z-40 w-44 rounded-2xl border border-slate-700/80 bg-slate-950/95 backdrop-blur-xl p-1.5 shadow-2xl text-xs text-slate-200 animate-fadeIn"
+                                                      className="absolute right-0 top-7 z-50 w-48 rounded-2xl border border-slate-700/80 bg-slate-950/98 backdrop-blur-2xl p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.95)] text-xs text-slate-200 animate-fadeIn"
                                                       onClick={(e) => e.stopPropagation()}
                                                     >
                                                       <button
@@ -9008,7 +9010,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                         <span>Copy link to post</span>
                                                       </button>
 
-                                                      {((session?.user as any)?.id === post.authorId) ? (
+                                                      {((session?.user as any)?.id === post.authorId || areHandlesEqual((session?.user as any)?.handle, post.authorHandle)) ? (
                                                         <>
                                                           <button
                                                             type="button"
