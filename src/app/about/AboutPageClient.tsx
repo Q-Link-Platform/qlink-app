@@ -235,7 +235,7 @@ export default function AboutPageClient() {
             : "-translate-y-36 opacity-0 pointer-events-none"
         }`}
       >
-        <nav className="q-spotlight-card rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between border border-white/[0.12] bg-[#070b14]/85 backdrop-blur-2xl shadow-[0_12px_45px_rgba(0,0,0,0.7)]">
+        <nav className="q-spotlight-card q-glass-nav rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
           {/* SLEEK SPACIOUS BRAND (Logo removed as requested to eliminate chaos and give breathing room) */}
           <Link href="/" className="flex items-center gap-2 group whitespace-nowrap">
             <span className="text-base font-black tracking-tight text-white group-hover:text-cyan-300 transition-colors">
