@@ -179,6 +179,14 @@ export default function RootLayout({
           {/* Ambient background orbs - repositioned to avoid UI interference */}
           <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
             <div className="absolute inset-0" style={{ backgroundColor: 'var(--bg-primary)' }} />
+            {/* Global Ambient Orbital Mesh Texture */}
+            <div
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.08]"
+              style={{
+                backgroundImage: "url('/visuals/qlink-orbital-vision.jpg')",
+                filter: "brightness(0.8) contrast(1.2)",
+              }}
+            />
             <div className="orb orb--cyan float-slow -left-32 top-1/2 h-72 w-72" />
             <div className="orb orb--violet pulse-soft right-[-120px] bottom-1/2 h-80 w-80" />
             <div className="orb orb--pink float-slow bottom-[-120px] left-1/2 h-64 w-64" />

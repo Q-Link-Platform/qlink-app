@@ -317,8 +317,37 @@ export default function AboutPageClient() {
             onScroll={handleContainerScroll}
       className="relative h-[100dvh] w-full overflow-y-auto overflow-x-hidden bg-[#030508] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth"
     >
+      {/* CINEMATIC QUANTUM ORBITAL BACKGROUND ENGINE */}
+      <div className="fixed inset-0 pointer-events-none -z-20 overflow-hidden">
+        {/* Visual Asset: Earth Orbital Quantum Mesh */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: "url('/visuals/qlink-orbital-vision.jpg')",
+            backgroundAttachment: "fixed",
+            filter: "brightness(0.9) contrast(1.15) saturate(1.1)",
+            opacity: 0.45,
+          }}
+        />
+
+        {/* Ambient 3D Cyber Motion Video Overlay */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover mix-blend-screen opacity-15 filter contrast-125"
+        >
+          <source src="/visuals/qlink-product-preview.mp4" type="video/mp4" />
+        </video>
+
+        {/* Cinematic Deep Space Vignette & Gradient Mask (WCAG AAA Contrast Preservation) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#030508]/85 via-[#030508]/70 to-[#030508]/95" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_10%,rgba(3,5,8,0.85)_80%)]" />
+      </div>
+
       {/* ARCHITECTURAL SPINE CAD GRID */}
-      <div className="q-architectural-grid" />
+      <div className="q-architectural-grid opacity-60" />
 
       {/* CHROMATIC AMBIENT LIGHT BEAM (Top-Down Optical Dispersion) */}
       <div
