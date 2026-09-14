@@ -4031,3 +4031,151 @@ textarea,
   animation-delay: 0.4s;
   will-change: transform, opacity;
 }
+
+/* ==========================================================================
+   Q-LINK QUANTUM OBSIDIAN & LIQUID PRISMATIC DESIGN SYSTEM (TOP 0.1% CRAFT)
+   ========================================================================== */
+:root {
+  --q-ease-fluid: cubic-bezier(0.16, 1, 0.3, 1);
+  --q-ease-snappy: cubic-bezier(0.25, 1, 0.5, 1);
+  --q-ease-rebound: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Architectural Spine Grid */
+.q-architectural-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 25% 100%;
+  mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 65%, transparent 100%);
+  z-index: 1;
+}
+
+/* Hardware-grade Chamfered Anodized Controls */
+.q-btn-hardware {
+  position: relative;
+  user-select: none;
+  background: #090d16;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0px 1px 1px rgba(255, 255, 255, 0.32),
+    inset 0px 2px 3px rgba(255, 255, 255, 0.12),
+    inset 0px 4px 6px rgba(255, 255, 255, 0.05),
+    inset 0px -1px 2px rgba(0, 0, 0, 0.7),
+    0px 4px 14px rgba(0, 0, 0, 0.5),
+    0px 0px 0px 1px rgba(0, 0, 0, 0.8);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.q-btn-hardware:hover {
+  border-color: rgba(56, 189, 248, 0.65);
+  background: #0c1220;
+  box-shadow:
+    inset 0px 1px 1px rgba(255, 255, 255, 0.45),
+    inset 0px 2px 4px rgba(56, 189, 248, 0.3),
+    0px 0px 24px rgba(56, 189, 248, 0.3),
+    0px 8px 20px rgba(0, 0, 0, 0.6);
+  transform: translateY(-1px);
+}
+
+.q-btn-hardware:active {
+  transform: translateY(0.5px) scale(0.985);
+  box-shadow:
+    inset 0px 1px 1px rgba(255, 255, 255, 0.2),
+    inset 0px 2px 4px rgba(0, 0, 0, 0.4),
+    0px 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* Raycast-style Dynamic Spotlight Card with Masked Chamfer Border */
+.q-spotlight-card {
+  position: relative;
+  overflow: hidden;
+  background: rgba(8, 12, 22, 0.7);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: border-color 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.q-spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    280px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(56, 189, 248, 0.6) 0%,
+    rgba(168, 85, 247, 0.35) 45%,
+    transparent 75%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.q-spotlight-card:hover::before {
+  opacity: 1;
+}
+
+/* Ambient Radial Specular Glow inside card */
+.q-spotlight-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    320px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+    rgba(56, 189, 248, 0.06) 0%,
+    transparent 80%
+  );
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.q-spotlight-card:hover::after {
+  opacity: 1;
+}
+
+/* Kinetic Dual-Span Text Reel */
+.q-text-reel {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 1.15em;
+  line-height: 1.15em;
+}
+
+.q-text-reel .q-reel-primary {
+  display: block;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(0);
+}
+
+.q-text-reel .q-reel-secondary {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  display: block;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(0);
+}
+
+.group:hover .q-text-reel .q-reel-primary,
+.q-text-reel:hover .q-reel-primary {
+  transform: translateY(-100%);
+}
+
+.group:hover .q-text-reel .q-reel-secondary,
+.q-text-reel:hover .q-reel-secondary {
+  transform: translateY(-100%);
+}
+

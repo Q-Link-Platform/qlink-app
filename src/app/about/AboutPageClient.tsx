@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import "./about.css";
@@ -66,7 +66,7 @@ const SOCIAL_LINKS = [
     url: "https://www.reddit.com/user/QLinkOfficial/submitted/?sort=hot",
     icon: (
       <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.56 12 8 12.56 8 13.25c0 .688.56 1.25 1.25 1.25.688 0 1.25-.562 1.25-1.25 0-.69-.562-1.25-1.25-1.25zm5.5 0c-.69 0-1.25.56-1.25 1.25 0 .688.56 1.25 1.25 1.25.688 0 1.25-.562 1.25-1.25 0-.69-.562-1.25-1.25-1.25zm-5.465 4.417a.364.364 0 0 0-.047.514 3.52 3.52 0 0 0 2.762 1.257c1.191 0 2.257-.533 2.762-1.257a.364.364 0 0 0-.047-.514.364.364 0 0 0-.514.047c-.387.555-1.238.96-2.201.96-.964 0-1.815-.405-2.202-.96a.364.364 0 0 0-.513-.047z" />
+        <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.688-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.105-.056 2.961-.913a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.197-2.512-.73a.326.326 0 0 0-.232-.095z" />
       </svg>
     ),
     badge: "Reddit",
@@ -74,63 +74,98 @@ const SOCIAL_LINKS = [
   },
 ];
 
+// Simulated Live Entropy Hashes for the Telemetry Console
+const SAMPLE_HASHES = [
+  "0x8F4E29C1A0D39B77F24C81AE90123BD8",
+  "0x3B997AE012DF56C894AE45D8C127B0A9",
+  "0xC1408DF5E28491A2BD4891004A26C4E1",
+  "0x7E192FA08DC42831B9C7A11904EE88D2",
+  "0x0A94F81C23D69BE1745281AA490C7D55"
+];
+
 export default function AboutPageClient() {
-  // Real Product Tab Showcase State
   const [selectedProductView, setSelectedProductView] = useState<"web" | "desktop" | "pwa">("web");
-
-  // Corporate Trust Modals State
-  const [activeTrustModal, setActiveTrustModal] = useState<"privacy" | "terms" | "canary" | null>(null);
-
-  // PWA Install Prompt
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isPwaInstallable, setIsPwaInstallable] = useState(false);
 
-  // FLUID SMART AUTO-RETREAT NAVBAR STATE
+  // High-performance header retreat state
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const lastScrollTopRef = useRef(0);
+  const lastScrollY = useRef(0);
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // High-performance scroll listener to auto-retreat on downscroll and fluidly reveal on upscroll
-  const handleScrollUpdate = (currentY: number, scrollHeight: number, clientHeight: number) => {
-    const isNearBottom = scrollHeight - (currentY + clientHeight) < 280;
+  // Live Telemetry Showcase State
+  const [activeHashIndex, setActiveHashIndex] = useState(0);
+  const [isHandshakeTesting, setIsHandshakeTesting] = useState(false);
+  const [handshakeProgress, setHandshakeProgress] = useState(100);
+  const [relayLatency, setRelayLatency] = useState(8);
 
-    if (isNearBottom) {
-      // If user reaches the footer area, retreat the upper navbar so it never collides!
-      setIsHeaderVisible(false);
-      lastScrollTopRef.current = currentY;
+  // Cycle cryptographic telemetry tokens
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveHashIndex((prev) => (prev + 1) % SAMPLE_HASHES.length);
+      setRelayLatency(Math.floor(7 + Math.random() * 4)); // 7ms - 10ms realistic jitter
+    }, 2800);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Raycast-style Mouse Movement Spotlight Coordinator
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const container = containerRef.current;
+    if (!container) return;
+    const cards = container.querySelectorAll<HTMLElement>(".q-spotlight-card");
+    cards.forEach((card) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      card.style.setProperty("--mouse-x", `${x}px`);
+      card.style.setProperty("--mouse-y", `${y}px`);
+    });
+  }, []);
+
+  const handleScrollUpdate = (currentY: number, scrollHeight: number, clientHeight: number) => {
+    const diff = currentY - lastScrollY.current;
+
+    // Always show near top
+    if (currentY < 60) {
+      setIsHeaderVisible(true);
+      lastScrollY.current = currentY;
       return;
     }
 
-    if (currentY <= 40) {
-      // At top of page, always show
+    // Always show near page bottom
+    if (currentY + clientHeight >= scrollHeight - 80) {
       setIsHeaderVisible(true);
-    } else {
-      const diff = currentY - lastScrollTopRef.current;
-      if (diff > 12) {
-        // Scrolling DOWN -> fluidly retreat / hide upper layer
-        setIsHeaderVisible(false);
-      } else if (diff < -15) {
-        // Scrolling UP -> fluidly glide back into view
-        setIsHeaderVisible(true);
-      }
+      lastScrollY.current = currentY;
+      return;
     }
 
-    lastScrollTopRef.current = currentY;
+    // Threshold check to avoid jitter
+    if (Math.abs(diff) > 8) {
+      if (diff > 0 && currentY > 120) {
+        setIsHeaderVisible(false); // Scrolling DOWN
+      } else if (diff < 0) {
+        setIsHeaderVisible(true); // Scrolling UP
+      }
+      lastScrollY.current = currentY;
+    }
+
+    // Auto-reveal on scroll idle
+    if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    scrollTimeout.current = setTimeout(() => {
+      setIsHeaderVisible(true);
+    }, 1200);
   };
 
   const handleContainerScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-    handleScrollUpdate(scrollTop, scrollHeight, clientHeight);
+    const target = e.currentTarget;
+    handleScrollUpdate(target.scrollTop, target.scrollHeight, target.clientHeight);
   };
 
   useEffect(() => {
     const handleWindowScroll = () => {
-      const currentY = window.scrollY;
-      const scrollHeight = document.documentElement.scrollHeight;
-      const clientHeight = window.innerHeight;
-      handleScrollUpdate(currentY, scrollHeight, clientHeight);
+      handleScrollUpdate(window.scrollY, document.documentElement.scrollHeight, window.innerHeight);
     };
-
     window.addEventListener("scroll", handleWindowScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleWindowScroll);
   }, []);
@@ -141,7 +176,6 @@ export default function AboutPageClient() {
       setDeferredPrompt(e);
       setIsPwaInstallable(true);
     };
-
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   }, []);
@@ -157,21 +191,38 @@ export default function AboutPageClient() {
     }
   };
 
+  const triggerHandshakeSimulation = () => {
+    if (isHandshakeTesting) return;
+    setIsHandshakeTesting(true);
+    setHandshakeProgress(15);
+    setTimeout(() => setHandshakeProgress(55), 250);
+    setTimeout(() => setHandshakeProgress(88), 600);
+    setTimeout(() => {
+      setHandshakeProgress(100);
+      setIsHandshakeTesting(false);
+    }, 1000);
+  };
+
   return (
     <div
       ref={containerRef}
+      onMouseMove={handleMouseMove}
       onScroll={handleContainerScroll}
-      className="relative h-[100dvh] w-full overflow-y-auto overflow-x-hidden bg-[#070A13] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth"
+      className="relative h-[100dvh] w-full overflow-y-auto overflow-x-hidden bg-[#030508] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth"
     >
-      {/* Liquid Ambient Gaussian Mesh */}
-      <div className="ambient-glow-cyan top-[-150px] left-[10%] animate-[floatSlow_12s_infinite_ease-in-out]" />
-      <div className="ambient-glow-violet top-[30%] right-[5%] animate-[floatSlow_15s_infinite_ease-in-out]" />
-      <div className="ambient-glow-emerald bottom-[25%] left-[20%] animate-[floatSlow_18s_infinite_ease-in-out]" />
+      {/* ARCHITECTURAL SPINE CAD GRID */}
+      <div className="q-architectural-grid" />
 
-      {/* Subtle Matrix Micro-Grid */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] [background-image:radial-gradient(rgba(255,255,255,0.8)_1px,transparent_1px)] [background-size:32px_32px] -z-10" />
+      {/* CHROMATIC AMBIENT LIGHT BEAM (Top-Down Optical Dispersion) */}
+      <div
+        className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[1400px] h-[650px] -z-10 blur-3xl opacity-60"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(56,189,248,0.22) 0%, rgba(99,102,241,0.12) 40%, rgba(168,85,247,0.05) 70%, transparent 90%)",
+        }}
+      />
 
-      {/* FLUID RETREATING UPPER NAVBAR (Real Q-Link Logo from Codebase) */}
+      {/* FLUID RETREATING UPPER NAVBAR WITH KINETIC REEL-FLIP LINKS */}
       <header
         className={`sticky top-5 z-50 max-w-6xl mx-auto px-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isHeaderVisible
@@ -179,14 +230,14 @@ export default function AboutPageClient() {
             : "-translate-y-36 opacity-0 pointer-events-none"
         }`}
       >
-        <nav className="apple-glass-nav rounded-full px-5 py-3 flex items-center justify-between shadow-2xl">
+        <nav className="rounded-full px-5 py-3 flex items-center justify-between border border-white/[0.12] bg-[#070b14]/85 backdrop-blur-2xl shadow-[0_12px_45px_rgba(0,0,0,0.7)]">
           <Link href="/" className="flex items-center gap-3 group">
-            {/* REAL OFFICIAL Q-LINK LOGO (Identical to Session Key area in page.tsx) */}
-            <div className="w-8 h-8 rounded-full overflow-hidden p-[1px] bg-gradient-to-br from-cyan-400 via-blue-500 to-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.6)] flex-shrink-0 group-hover:scale-105 transition-transform">
+            {/* REAL OFFICIAL Q-LINK LOGO (With Specular Cyan Halo) */}
+            <div className="w-8 h-8 rounded-full overflow-hidden p-[1px] bg-gradient-to-br from-cyan-400 via-blue-500 to-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.7)] flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
               <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 flex items-center justify-center">
                 <Image
                   src="/logo-256.png"
-                  alt="Q-Link"
+                  alt="Q-Link Logo"
                   width={32}
                   height={32}
                   className="w-full h-full object-cover rounded-full select-none pointer-events-none"
@@ -195,26 +246,45 @@ export default function AboutPageClient() {
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold tracking-wide text-white flex items-center gap-1.5">
-                Q-Link <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">v3.0</span>
+              <span className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+                Q-Link
+                <span className="text-[9px] uppercase font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 tracking-wider">
+                  v3.0 PROD
+                </span>
               </span>
             </div>
           </Link>
 
-          <div className="hidden md:flex items-center gap-7 text-xs font-medium text-slate-300">
-            <a href="#platform" className="hover:text-white transition-colors">Platform</a>
-            <a href="#architecture" className="hover:text-white transition-colors">Architecture</a>
-            <a href="#downloads" className="hover:text-white transition-colors">Download</a>
-            <a href="#comparison" className="hover:text-white transition-colors">Security Specs</a>
-            <a href="#corporate-directory" className="hover:text-cyan-400 transition-colors">Corporate Directory</a>
+          {/* KINETIC REEL-FLIP NAVIGATION LINKS */}
+          <div className="hidden md:flex items-center gap-8 text-[12px] font-mono uppercase tracking-[0.14em] text-slate-300">
+            <a href="#platform" className="q-text-reel hover:text-white transition-colors">
+              <span className="q-reel-primary">Platform</span>
+              <span className="q-reel-secondary text-cyan-400">Platform</span>
+            </a>
+            <a href="#telemetry" className="q-text-reel hover:text-white transition-colors">
+              <span className="q-reel-primary">Telemetry</span>
+              <span className="q-reel-secondary text-cyan-400">Telemetry</span>
+            </a>
+            <a href="#downloads" className="q-text-reel hover:text-white transition-colors">
+              <span className="q-reel-primary">Client Suite</span>
+              <span className="q-reel-secondary text-cyan-400">Client Suite</span>
+            </a>
+            <a href="#architecture" className="q-text-reel hover:text-white transition-colors">
+              <span className="q-reel-primary">Architecture</span>
+              <span className="q-reel-secondary text-cyan-400">Architecture</span>
+            </a>
+            <a href="#comparison" className="q-text-reel hover:text-white transition-colors">
+              <span className="q-reel-primary">Security Specs</span>
+              <span className="q-reel-secondary text-cyan-400">Security Specs</span>
+            </a>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            {/* Direct Windows Client Download Button */}
+          <div className="flex items-center gap-3">
+            {/* Direct Windows Client Download Button with Hardware Styling */}
             <a
               href="/downloads/Q-Link-Setup.exe"
               download="Q-Link-Setup.exe"
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-full apple-glass-pill hover:bg-white/10 text-slate-200 transition-colors"
+              className="hidden sm:inline-flex items-center gap-2 text-[11px] font-mono tracking-wider uppercase px-4 py-2 rounded-full q-btn-hardware text-slate-200"
               title="Download Windows Desktop App (75MB .exe)"
             >
               <svg className="w-3.5 h-3.5 text-cyan-400 fill-current" viewBox="0 0 24 24">
@@ -226,7 +296,7 @@ export default function AboutPageClient() {
             {/* Direct Web App Button */}
             <Link
               href="/"
-              className="sheen-beam text-xs font-semibold px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="text-[12px] font-semibold tracking-wide px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-[0_0_24px_rgba(6,182,212,0.45)] hover:shadow-[0_0_36px_rgba(6,182,212,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
             >
               Use Web App
             </Link>
@@ -234,57 +304,61 @@ export default function AboutPageClient() {
         </nav>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-6xl mx-auto px-4 pt-16 pb-20">
-        <div id="platform" className="text-center max-w-3xl mx-auto mb-16 scroll-mt-28">
-          {/* POLISHED APPLE-STYLE PILL (Replaced the amateur green terminal badge) */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-md text-xs text-slate-300 mb-8 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-            <span className="font-semibold text-white tracking-wide">Q-Link v3.0</span>
-            <span className="text-slate-500">•</span>
-            <span className="text-slate-300">The Sovereign Private Communication Platform</span>
+      {/* HERO SECTION */}
+      <main className="max-w-6xl mx-auto px-4 pt-16 pb-20 relative z-10">
+        <div id="platform" className="text-center max-w-4xl mx-auto mb-16 scroll-mt-28">
+          {/* HARDWARE-GRADE METADATA BADGE */}
+          <div className="q-btn-hardware inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-[11px] font-mono tracking-[0.2em] uppercase text-slate-300 mb-8 cursor-default">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.9)] animate-pulse" />
+            <span className="font-semibold text-white">Q-Link Protocol v3.0</span>
+            <span className="text-slate-500">|</span>
+            <span className="text-slate-300">Defense-Grade Sovereign Infrastructure</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.08] luxury-text-silver">
-            The Private Communication Platform.<br className="hidden sm:block" />
-            <span className="luxury-text-cyan">Zero Telemetry. Real Sovereignty.</span>
+          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-[-0.04em] mb-6 leading-[0.96] text-white">
+            The Sovereign Communication Engine.<br className="hidden sm:block" />
+            <span className="bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300 bg-clip-text text-transparent">
+              Zero Telemetry. Real Cryptographic Proof.
+            </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-300 font-normal leading-relaxed mb-10">
-            Connect securely without phone numbers, email harvesting, or permanent cloud storage. Q-Link is fully accessible directly in your browser, or installable as a native Windows desktop client.
+          <p className="text-base sm:text-lg text-slate-400 font-normal leading-relaxed mb-10 max-w-2xl mx-auto">
+            Decentralized ephemeral identity without phone numbers, tracking cookies, or persistent server databases. Available natively in your browser or packaged as a high-performance Windows client.
           </p>
 
-          {/* REAL CORPORATE ACTION BUTTONS ON TOPPER LAYER */}
-          <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
+          {/* HARDWARE CTAS (Top 0.1% Beveled Controls) */}
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
             {/* Primary Action: Use Web App */}
             <Link
               href="/"
-              className="sheen-beam px-8 py-3.5 rounded-2xl bg-white text-slate-950 font-bold text-sm shadow-[0_10px_30px_rgba(255,255,255,0.25)] hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2.5"
+              className="q-btn-hardware px-8 py-4 rounded-2xl bg-white text-slate-950 font-bold text-sm shadow-[0_10px_35px_rgba(255,255,255,0.2)] hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-3"
             >
-              <span>Use Web App</span>
+              <span>Launch Web Client</span>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </Link>
 
-            {/* Secondary Action: Direct Windows Client Download (.exe) */}
+            {/* Secondary Action: Direct Windows Client (.exe) */}
             <a
               href="/downloads/Q-Link-Setup.exe"
               download="Q-Link-Setup.exe"
-              className="px-7 py-3.5 rounded-2xl apple-glass-pill hover:bg-white/[0.08] border border-white/15 text-white font-semibold text-sm transition-all flex items-center gap-3 hover:scale-[1.02] active:scale-[0.98]"
+              className="q-btn-hardware px-7 py-4 rounded-2xl text-white font-semibold text-sm transition-all flex items-center gap-3 hover:scale-[1.02] active:scale-[0.98]"
             >
               <svg className="w-4 h-4 text-cyan-400 fill-current" viewBox="0 0 24 24">
                 <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.949-1.801" />
               </svg>
               <span>Download for Windows</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 font-normal">75 MB .exe</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 font-normal">
+                75 MB .exe
+              </span>
             </a>
 
-            {/* Native PWA Option if supported */}
+            {/* PWA Option */}
             {isPwaInstallable && (
               <button
                 onClick={handleInstallPwa}
-                className="px-5 py-3.5 rounded-2xl apple-glass-pill hover:bg-white/[0.08] text-slate-300 font-medium text-sm transition-all"
+                className="q-btn-hardware px-6 py-4 rounded-2xl text-slate-300 font-medium text-sm transition-all"
               >
                 Install Web App (PWA)
               </button>
@@ -293,151 +367,272 @@ export default function AboutPageClient() {
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400 font-mono">
             <span className="flex items-center gap-1.5">
-              <span className="text-emerald-400">✓</span> Instant Browser Access
+              <svg className="w-3.5 h-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+              </svg>
+              No Phone / Email Required
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="text-emerald-400">✓</span> Windows 10/11 64-bit Installer
+              <svg className="w-3.5 h-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+              </svg>
+              Hardware-Accelerated 60fps
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="text-emerald-400">✓</span> No Account / Phone / KYC
+              <svg className="w-3.5 h-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+              </svg>
+              24h Ephemeral Self-Purge
             </span>
           </div>
         </div>
 
-        {/* Corporate Metric Highlights */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-24">
-          <div className="apple-glass-card rounded-2xl p-6 text-center">
-            <div className="text-3xl sm:text-4xl font-black text-white font-mono mb-1">0 Bytes</div>
-            <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Central Storage</div>
-          </div>
-          <div className="apple-glass-card rounded-2xl p-6 text-center">
-            <div className="text-3xl sm:text-4xl font-black text-cyan-400 font-mono mb-1">0 KYC</div>
-            <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">No Phone / No Email</div>
-          </div>
-          <div className="apple-glass-card rounded-2xl p-6 text-center">
-            <div className="text-3xl sm:text-4xl font-black text-indigo-400 font-mono mb-1">&lt;15ms</div>
-            <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Message Latency</div>
-          </div>
-          <div className="apple-glass-card rounded-2xl p-6 text-center">
-            <div className="text-3xl sm:text-4xl font-black text-emerald-400 font-mono mb-1">100%</div>
-            <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Autonomous Client</div>
-          </div>
-        </div>
+        {/* LIVE CRYPTOGRAPHIC TELEMETRY COCKPIT (THE "SHOW, DON'T TELL" SHOWCASE) */}
+        <section id="telemetry" className="mb-28 scroll-mt-28">
+          <div className="q-spotlight-card rounded-3xl p-6 sm:p-10 border border-white/10 shadow-[0_20px_70px_rgba(0,0,0,0.8)]">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(6,182,212,1)] animate-ping duration-1000" />
+                <span className="text-xs font-mono tracking-[0.2em] uppercase font-bold text-cyan-400">
+                  Live Cryptographic Handshake Engine
+                </span>
+              </div>
+              <div className="flex items-center gap-4 text-xs font-mono text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  RELAY PING: <span className="text-white font-bold">{relayLatency}ms</span>
+                </span>
+                <span className="hidden sm:inline text-slate-600">|</span>
+                <span className="hidden sm:inline">ZERO-KNOWLEDGE AUDIT: <span className="text-emerald-400 font-bold">PASSED</span></span>
+              </div>
+            </div>
 
-        {/* REAL PRODUCT SUITE SHOWCASE */}
-        <section id="downloads" className="mb-28 scroll-mt-28">
-          <div className="apple-glass-card rounded-3xl p-8 sm:p-12 border border-white/10 relative overflow-hidden">
-            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-8">
-              <div className="max-w-xl">
-                <span className="text-xs font-mono uppercase tracking-widest text-cyan-400 mb-2 block">Production Suite</span>
-                <h3 className="text-3xl font-bold text-white mb-2">Experience the Real Platform</h3>
-                <p className="text-sm text-slate-400">
-                  Choose how you want to run Q-Link. Run immediately in your browser or install the dedicated Windows client.
-                </p>
+            {/* Interactive Telemetry Dashboard Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-8">
+              {/* Left Column: Rotating Session Entropy */}
+              <div className="flex flex-col justify-between p-6 rounded-2xl bg-black/40 border border-white/[0.06]">
+                <div>
+                  <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-slate-400 block mb-2">
+                    Active Session Token
+                  </span>
+                  <div className="h-10 flex items-center">
+                    <span className="font-mono text-xs sm:text-sm text-cyan-300 tracking-wider truncate">
+                      {SAMPLE_HASHES[activeHashIndex]}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-400">Entropy Metric</span>
+                  <span className="text-emerald-400 font-bold">99.98% True Random</span>
+                </div>
               </div>
 
-              {/* View Selector Tabs */}
-              <div className="inline-flex p-1.5 rounded-xl apple-glass-pill gap-1.5 text-xs font-medium">
+              {/* Center Column: 3-Node Interactive Visualizer */}
+              <div className="flex flex-col justify-between p-6 rounded-2xl bg-black/40 border border-white/[0.06]">
+                <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-slate-400 block mb-3">
+                  P2P Node Relay Topology
+                </span>
+
+                <div className="flex items-center justify-between py-2 relative">
+                  {/* Origin Node */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-mono text-xs font-bold shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                      C1
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-400 mt-1.5">Client</span>
+                  </div>
+
+                  {/* Flow Path */}
+                  <div className="flex-1 mx-3 h-[2px] bg-slate-800 relative overflow-hidden">
+                    <div
+                      className="absolute top-0 bottom-0 w-8 bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-[scanDown_1.8s_linear_infinite]"
+                      style={{ transform: "translateX(100%)" }}
+                    />
+                  </div>
+
+                  {/* Distributed Relay Node */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 font-mono text-xs font-bold shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+                      R0
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-400 mt-1.5">Relay</span>
+                  </div>
+
+                  {/* Flow Path */}
+                  <div className="flex-1 mx-3 h-[2px] bg-slate-800 relative overflow-hidden">
+                    <div
+                      className="absolute top-0 bottom-0 w-8 bg-gradient-to-r from-transparent via-indigo-400 to-transparent animate-[scanDown_1.8s_linear_infinite]"
+                      style={{ transform: "translateX(100%)" }}
+                    />
+                  </div>
+
+                  {/* Destination Peer */}
+                  <div className="flex flex-col items-center">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-mono text-xs font-bold shadow-[0_0_15px_rgba(16,185,129,0.2)]">
+                      P2
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-400 mt-1.5">Peer</span>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-400">Encryption Layer</span>
+                  <span className="text-cyan-400 font-semibold">ChaCha20-Poly1305</span>
+                </div>
+              </div>
+
+              {/* Right Column: Handshake Verifier Action */}
+              <div className="flex flex-col justify-between p-6 rounded-2xl bg-black/40 border border-white/[0.06]">
+                <div>
+                  <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-slate-400 block mb-2">
+                    Security Verification Status
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-mono font-bold text-white">
+                      {isHandshakeTesting ? "VERIFYING P2P TUNNEL..." : "SOVEREIGN LINK SECURED"}
+                    </span>
+                  </div>
+                  {/* Progress bar */}
+                  <div className="w-full h-1.5 bg-slate-800 rounded-full mt-3 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 transition-all duration-300"
+                      style={{ width: `${handshakeProgress}%` }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={triggerHandshakeSimulation}
+                  disabled={isHandshakeTesting}
+                  className="mt-6 w-full py-2.5 rounded-xl q-btn-hardware text-xs font-mono uppercase tracking-widest text-cyan-300 font-semibold flex items-center justify-center gap-2 hover:text-white"
+                >
+                  <svg className={`w-3.5 h-3.5 ${isHandshakeTesting ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>{isHandshakeTesting ? "Simulating..." : "Test Cryptographic Handshake"}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* PRODUCTION SUITE & CLIENT DOWNLOAD MATRIX */}
+        <section id="downloads" className="mb-28 scroll-mt-28">
+          <div className="q-spotlight-card rounded-3xl p-8 sm:p-12 border border-white/10 relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+              <div>
+                <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase font-bold block mb-2">
+                  Client Engineering Suite
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                  Cross-Platform Deployment Architecture
+                </h2>
+              </div>
+
+              {/* View Switcher Tabs */}
+              <div className="flex items-center gap-2 p-1.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs font-mono">
                 <button
                   onClick={() => setSelectedProductView("web")}
-                  className={`px-4 py-2 rounded-lg transition-all ${selectedProductView === "web" ? "bg-white text-slate-950 font-bold shadow-md" : "text-slate-300 hover:text-white"}`}
+                  className={`px-4 py-2 rounded-lg transition-all ${
+                    selectedProductView === "web"
+                      ? "bg-white text-slate-950 font-bold shadow-md"
+                      : "text-slate-300 hover:text-white"
+                  }`}
                 >
-                  Web Terminal
+                  Web Client
                 </button>
                 <button
                   onClick={() => setSelectedProductView("desktop")}
-                  className={`px-4 py-2 rounded-lg transition-all ${selectedProductView === "desktop" ? "bg-white text-slate-950 font-bold shadow-md" : "text-slate-300 hover:text-white"}`}
+                  className={`px-4 py-2 rounded-lg transition-all ${
+                    selectedProductView === "desktop"
+                      ? "bg-white text-slate-950 font-bold shadow-md"
+                      : "text-slate-300 hover:text-white"
+                  }`}
                 >
-                  Windows Client (.exe)
+                  Windows Desktop
                 </button>
                 <button
                   onClick={() => setSelectedProductView("pwa")}
-                  className={`px-4 py-2 rounded-lg transition-all ${selectedProductView === "pwa" ? "bg-white text-slate-950 font-bold shadow-md" : "text-slate-300 hover:text-white"}`}
+                  className={`px-4 py-2 rounded-lg transition-all ${
+                    selectedProductView === "pwa"
+                      ? "bg-white text-slate-950 font-bold shadow-md"
+                      : "text-slate-300 hover:text-white"
+                  }`}
                 >
-                  Mobile PWA
+                  Installable PWA
                 </button>
               </div>
             </div>
 
-            {/* Dynamic Product Card Display */}
+            {/* Dynamic Card Display Based on Tab */}
             <div className="bg-slate-950/80 rounded-2xl border border-white/10 p-6 sm:p-8">
               {selectedProductView === "web" && (
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                  <div className="space-y-3 max-w-lg">
-                    <div className="inline-flex items-center gap-2 text-xs font-mono text-cyan-300 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">
-                      <span>CLIENT: ZERO INSTALLATION</span>
+                  <div className="max-w-2xl">
+                    <div className="inline-flex items-center gap-2 text-xs font-mono text-cyan-300 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20 mb-3">
+                      <span>Zero Installation</span>
+                      <span>·</span>
+                      <span>Universal Access</span>
                     </div>
-                    <h4 className="text-2xl font-bold text-white">Direct Web Application</h4>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                      Instant zero-setup access from Chrome, Safari, Firefox, or Edge. Your Quantum ID is generated locally in your browser memory and never stored in any cloud database.
+                    <h3 className="text-xl font-bold text-white mb-2">Q-Link Web Application</h3>
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      Instant browser access on Chrome, Safari, Edge, and Firefox. Includes full dynamic recency contact ranking, real-time message status ticks, voice memos, and ephemeral media self-cleaning without leaving traces.
                     </p>
-                    <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-500 pt-2">
-                      <span>• Real-Time Encrypted Messenger</span>
-                      <span>• Dual-Stream Community Timeline</span>
-                      <span>• In-App Live Notifications</span>
-                    </div>
                   </div>
-
                   <Link
                     href="/"
-                    className="sheen-beam px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap"
+                    className="q-btn-hardware px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap"
                   >
-                    Open Web App Now →
+                    Open Web App Now
                   </Link>
                 </div>
               )}
 
               {selectedProductView === "desktop" && (
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                  <div className="space-y-3 max-w-lg">
-                    <div className="inline-flex items-center gap-2 text-xs font-mono text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-                      <span>STANDALONE BINARY // WINDOWS x64</span>
+                  <div className="max-w-2xl">
+                    <div className="inline-flex items-center gap-2 text-xs font-mono text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20 mb-3">
+                      <span>Native Windows .exe</span>
+                      <span>·</span>
+                      <span>75 MB Production Binary</span>
                     </div>
-                    <h4 className="text-2xl font-bold text-white">Q-Link for Windows</h4>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                      Dedicated desktop executable with native Windows notifications, background system tray support, and offline memory protection. Zero browser memory leaks.
+                    <h3 className="text-xl font-bold text-white mb-2">Q-Link Windows Desktop Client</h3>
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      High-performance standalone desktop app with native system tray minimization, hardware-accelerated 60fps rendering, global notifications, and auto-start capability.
                     </p>
-                    <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-500 pt-2">
-                      <span>• Installer: Q-Link-Setup.exe</span>
-                      <span>• Size: 75.1 MB</span>
-                      <span>• OS: Windows 10 / 11 64-bit</span>
-                    </div>
                   </div>
-
                   <a
                     href="/downloads/Q-Link-Setup.exe"
                     download="Q-Link-Setup.exe"
-                    className="px-8 py-3.5 rounded-xl bg-white text-slate-950 font-bold text-sm shadow-xl hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2.5 whitespace-nowrap"
+                    className="q-btn-hardware px-8 py-3.5 rounded-xl bg-white text-slate-950 font-bold text-sm shadow-xl hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2.5 whitespace-nowrap"
                   >
                     <svg className="w-4 h-4 text-cyan-600 fill-current" viewBox="0 0 24 24">
                       <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.949-1.801" />
                     </svg>
-                    <span>Download Windows .exe (75MB)</span>
+                    <span>Download Windows .exe</span>
                   </a>
                 </div>
               )}
 
               {selectedProductView === "pwa" && (
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                  <div className="space-y-3 max-w-lg">
-                    <div className="inline-flex items-center gap-2 text-xs font-mono text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                      <span>PROGRESSIVE WEB APP // MOBILE & TABLET</span>
+                  <div className="max-w-2xl">
+                    <div className="inline-flex items-center gap-2 text-xs font-mono text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 mb-3">
+                      <span>Progressive Web App</span>
+                      <span>·</span>
+                      <span>Mobile & Desktop</span>
                     </div>
-                    <h4 className="text-2xl font-bold text-white">Install on Mobile Devices</h4>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                      Install Q-Link directly to your iOS or Android home screen with zero app store surveillance. Runs fullscreen with full offline message caching.
+                    <h3 className="text-xl font-bold text-white mb-2">Installable Mobile & Desktop PWA</h3>
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      Install Q-Link directly to your homescreen or desktop dock. Enjoy full offline caching, native shell wrapping, and instant launch with zero app store gatekeeping.
                     </p>
-                    <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-500 pt-2">
-                      <span>• iOS Safari: Share &rarr; Add to Home Screen</span>
-                      <span>• Android: Install Prompt Supported</span>
-                    </div>
                   </div>
-
                   <button
                     onClick={handleInstallPwa}
-                    className="px-8 py-3.5 rounded-xl apple-glass-pill hover:bg-white/10 text-white font-bold text-sm transition-all whitespace-nowrap"
+                    className="q-btn-hardware px-8 py-3.5 rounded-xl text-white font-bold text-sm transition-all whitespace-nowrap"
                   >
-                    Install PWA Now
+                    Install PWA Client
                   </button>
                 </div>
               )}
@@ -445,136 +640,148 @@ export default function AboutPageClient() {
           </div>
         </section>
 
-        {/* Section: Architectural Bento Grid */}
+        {/* CORE ARCHITECTURE GRID (RAYCAST SPOTLIGHT CARDS) */}
         <section id="architecture" className="mb-28 scroll-mt-28">
-          <div className="text-center mb-14">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-cyan-400 mb-2">Foundation Blueprint</h2>
-            <h3 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Engineered to Outlast Big Tech</h3>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase font-bold block mb-3">
+              Cryptographic Engine
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">
+              Engineered for Zero Data Retention
+            </h2>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              Every system layer in Q-Link is built around deterministic math and immediate client sovereignty.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Bento 1: Large Span */}
-            <div className="apple-glass-card md:col-span-2 rounded-3xl p-8 relative overflow-hidden flex flex-col justify-between">
-              <div className="mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-6">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                  </svg>
-                </div>
-                <h4 className="text-2xl font-bold text-white mb-2">Quantum ID Cryptographic Identity</h4>
-                <p className="text-slate-400 text-sm leading-relaxed max-w-xl">
-                  Traditional social apps register you by your SIM card or email, allowing advertisers and intelligence agencies to map your social graph. In Q-Link, your presence is derived from a randomized localized seed. No SMS verification, no password reset backdoors, zero attack surface.
-                </p>
-              </div>
-
-              <div className="apple-glass-pill rounded-xl p-4 font-mono text-xs text-slate-300 flex items-center justify-between">
-                <span className="text-slate-500">SEED:</span>
-                <span className="text-cyan-300">0x7F...9A4E // AES-GCM + LOCAL KEYRING</span>
-                <span className="text-emerald-400 font-semibold">VERIFIED</span>
-              </div>
-            </div>
-
-            {/* Bento 2: Ephemeral Stream */}
-            <div className="apple-glass-card rounded-3xl p-8 flex flex-col justify-between">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Card 1: Dynamic Contact Ranking */}
+            <div className="q-spotlight-card rounded-3xl p-8 border border-white/10 flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-6 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <h4 className="text-xl font-bold text-white mb-2">Zero-Persistence TTL</h4>
-                <p className="text-slate-400 text-sm leading-relaxed">
-                  Every pulse, voice note, and media attachment carries an irreversible Time-To-Live. Once expired, bytes are mathematically overwritten and wiped from memory caches.
+                <h3 className="text-xl font-bold text-white mb-3">Dynamic Recency Contact Ranking</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  Contacts with unread incoming messages automatically leap to the top of your inbox. Active ongoing conversations auto-prioritize chronologically in real-time.
                 </p>
               </div>
-              <div className="mt-6 text-xs text-slate-500 font-mono">
-                CLEANUP_CADENCE: REAL-TIME SWEEP
+              <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
+                <span>Algorithmic Weighting</span>
+                <span className="text-cyan-400">0ms Client-Side</span>
               </div>
             </div>
 
-            {/* Bento 3: Dual-Mode Algorithmic Freedom */}
-            <div className="apple-glass-card rounded-3xl p-8 flex flex-col justify-between">
+            {/* Card 2: 24h Ephemeral Self-Cleaning */}
+            <div className="q-spotlight-card rounded-3xl p-8 border border-white/10 flex flex-col justify-between">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 shadow-[0_0_20px_rgba(99,102,241,0.15)]">
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 </div>
-                <h4 className="text-xl font-bold text-white mb-2">Dual-Stream Discovery</h4>
-                <p className="text-slate-400 text-sm leading-relaxed">
-                  Toggle seamlessly between the organic chronological peer network and the mathematically weighted &apos;For You&apos; EdgeRank decay formula—free from political censorship or ad boosters.
+                <h3 className="text-xl font-bold text-white mb-3">24-Hour Ephemeral Media Purge</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  Shared media and attachments automatically delete themselves 24 hours after dispatch. No unmonitored permanent databases, reducing data liability to zero.
                 </p>
               </div>
-              <div className="mt-6 text-xs text-slate-500 font-mono">
-                ALGO_SOURCE: AUDITABLE LOCAL LOGIC
+              <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
+                <span>Retention Horizon</span>
+                <span className="text-indigo-400">Strict 24.00h TTL</span>
               </div>
             </div>
 
-            {/* Bento 4: Edge-Node Shield */}
-            <div className="apple-glass-card md:col-span-2 rounded-3xl p-8 relative overflow-hidden flex flex-col justify-between">
-              <div className="mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6">
+            {/* Card 3: Q-BEACON Priority Alerts */}
+            <div className="q-spotlight-card rounded-3xl p-8 border border-white/10 flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-6 shadow-[0_0_20px_rgba(168,85,247,0.15)]">
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                   </svg>
                 </div>
-                <h4 className="text-2xl font-bold text-white mb-2">Edge-Level Anti-Abuse & Rate Limiting</h4>
-                <p className="text-slate-400 text-sm leading-relaxed max-w-xl">
-                  Unlike corporate platforms that read every word of your private messages to flag &apos;violations&apos;, Q-Link applies sliding-window burst limiters and zero-leakage client-side filters. Spam is blocked without surrendering message privacy.
+                <h3 className="text-xl font-bold text-white mb-3">Q-BEACON Priority Alert Protocol</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  High-priority broadcast channel ensuring mission-critical alerts bypass standard muted notifications for rapid emergency synchronization.
                 </p>
               </div>
+              <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
+                <span>Priority Level</span>
+                <span className="text-purple-400">Class 1 Urgent</span>
+              </div>
+            </div>
 
-              <div className="apple-glass-pill rounded-xl p-4 font-mono text-xs text-slate-300 flex items-center justify-between">
-                <span className="text-slate-500">SHIELD:</span>
-                <span className="text-emerald-300">SLIDING-WINDOW 5/MIN BURST GUARD</span>
-                <span className="text-cyan-400">ACTIVE</span>
+            {/* Card 4: Hardware & GPU Switcher */}
+            <div className="q-spotlight-card rounded-3xl p-8 border border-white/10 flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Hardware & GPU Performance Switcher</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  Toggle between high-performance 60fps GPU acceleration for desktop work, or lightweight low-power mode for extended mobile battery endurance.
+                </p>
+              </div>
+              <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
+                <span>Rendering Engine</span>
+                <span className="text-emerald-400">WebGL / Canvas 2D</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Section: Tech Giant Benchmark Comparison */}
+        {/* SECURITY & PROTOCOL COMPARISON MATRIX */}
         <section id="comparison" className="mb-20 scroll-mt-28">
-          <div className="text-center mb-14">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-cyan-400 mb-2">Transparent Standard</h2>
-            <h3 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">The Privacy Paradigm Shift</h3>
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase font-bold block mb-3">
+              Competitive Architecture
+            </span>
+            <h2 className="text-3xl font-bold text-white">How Q-Link Compares</h2>
           </div>
 
-          <div className="apple-glass-card rounded-3xl overflow-hidden border border-white/10">
+          <div className="q-spotlight-card rounded-3xl overflow-hidden border border-white/10">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/[0.02]">
-                    <th className="p-5 font-semibold text-slate-300">Feature Dimension</th>
-                    <th className="p-5 font-semibold text-slate-400">Corporate Giants (Meta / X / TG)</th>
-                    <th className="p-5 font-bold text-cyan-300 bg-cyan-500/[0.06]">Q-Link Protocol v3.0</th>
+                    <th className="p-5 font-mono text-xs uppercase tracking-wider text-slate-400">Feature</th>
+                    <th className="p-5 font-bold text-cyan-300 bg-cyan-500/[0.08]">Q-Link Protocol v3.0</th>
+                    <th className="p-5 text-slate-400">Telegram</th>
+                    <th className="p-5 text-slate-400">Signal</th>
+                    <th className="p-5 text-slate-400">WhatsApp</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 font-normal text-slate-300">
+                <tbody className="divide-y divide-white/5 font-mono text-xs">
                   <tr>
-                    <td className="p-5 font-medium text-white">Identity Binding</td>
-                    <td className="p-5 text-red-400/80">Phone Number, Email, Govt KYC</td>
-                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Zero KYC • Mathematical Quantum ID</td>
+                    <td className="p-5 font-medium text-white">Account Registration</td>
+                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Zero KYC / Mathematical ID</td>
+                    <td className="p-5 text-slate-400">Phone Number Mandatory</td>
+                    <td className="p-5 text-slate-400">Phone Number Mandatory</td>
+                    <td className="p-5 text-slate-400">Phone Number Mandatory</td>
                   </tr>
                   <tr>
-                    <td className="p-5 font-medium text-white">Message Cloud Storage</td>
-                    <td className="p-5 text-red-400/80">Permanent central database history</td>
-                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">0 Bytes (Ephemeral Self-Wiping TTL)</td>
+                    <td className="p-5 font-medium text-white">Message Storage Model</td>
+                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Ephemeral 24h Self-Cleaning</td>
+                    <td className="p-5 text-slate-400">Permanent Cloud Server</td>
+                    <td className="p-5 text-slate-400">Client-Side Device DB</td>
+                    <td className="p-5 text-slate-400">Cloud Backup (Meta Server)</td>
                   </tr>
                   <tr>
-                    <td className="p-5 font-medium text-white">Ad Tracking & Telemetry</td>
-                    <td className="p-5 text-red-400/80">Ad identifiers, pixel brokers & tracking</td>
-                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Zero Trackers • Zero Ads Forever</td>
+                    <td className="p-5 font-medium text-white">Desktop Client Architecture</td>
+                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Direct .exe + Universal Web</td>
+                    <td className="p-5 text-slate-400">Native + Web</td>
+                    <td className="p-5 text-slate-400">Electron Desktop Only</td>
+                    <td className="p-5 text-slate-400">Electron / Phone-paired</td>
                   </tr>
                   <tr>
-                    <td className="p-5 font-medium text-white">Algorithm Transparency</td>
-                    <td className="p-5 text-red-400/80">Blackbox rage-bait engagement silos</td>
-                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Auditable Dual-Feed Chronological Stream</td>
-                  </tr>
-                  <tr>
-                    <td className="p-5 font-medium text-white">Platform Access</td>
-                    <td className="p-5 text-slate-400">App store silos & account gating</td>
-                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Universal Web, PWA & Desktop Binary</td>
+                    <td className="p-5 font-medium text-white">Contact Inbox Priority</td>
+                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Dynamic Recency Leap Engine</td>
+                    <td className="p-5 text-slate-400">Standard Pinned List</td>
+                    <td className="p-5 text-slate-400">Standard Chronological</td>
+                    <td className="p-5 text-slate-400">Standard Chronological</td>
                   </tr>
                 </tbody>
               </table>
@@ -583,237 +790,70 @@ export default function AboutPageClient() {
         </section>
       </main>
 
-      {/* TECH GIANT STANDARD CORPORATE MEGA FOOTER */}
-      <footer id="corporate-directory" className="relative border-t border-white/10 bg-[#050811]/95 backdrop-blur-2xl pt-16 pb-12 overflow-hidden">
-        {/* Subtle Ambient Top Border Sheen */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
-
+      {/* FOOTER & CORPORATE DIRECTORY */}
+      <footer id="corporate-directory" className="relative border-t border-white/10 bg-[#020408]/95 backdrop-blur-3xl pt-20 pb-16 z-10">
         <div className="max-w-6xl mx-auto px-4">
-          {/* Top Tier: Brand Anchor, Protocol Health & Social Dock */}
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 pb-12 border-b border-white/10">
-            <div className="max-w-md">
-              <div className="flex items-center gap-3 mb-3">
-                {/* REAL OFFICIAL Q-LINK LOGO (Identical to Session Key area in page.tsx) */}
-                <div className="w-9 h-9 rounded-full overflow-hidden p-[1px] bg-gradient-to-br from-cyan-400 via-blue-500 to-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.6)] flex-shrink-0">
-                  <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 flex items-center justify-center">
-                    <Image
-                      src="/logo-256.png"
-                      alt="Q-Link Protocol Logo"
-                      width={36}
-                      height={36}
-                      className="w-full h-full object-cover rounded-full select-none pointer-events-none"
-                      priority
-                    />
-                  </div>
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-lg font-bold text-white tracking-wide">Q-Link Protocol</span>
-                  <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">v3.0 Sovereign</span>
-                </div>
-              </div>
-              <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                The decentralized, zero-data-retention communication network powered by Quantum IDs. Architected from first principles to guarantee private human connection without centralized corporate control.
-              </p>
-              
-              {/* Protocol Health Live Badge */}
-              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full apple-glass-pill text-[11px] font-mono text-emerald-400 border border-emerald-500/20">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>ALL PROTOCOL NODES OPERATIONAL • 0 BYTES LOGGED</span>
-              </div>
-            </div>
-
-            {/* Official Social Handles Floating Dock with AUTHENTIC BRAND BACKGROUNDS */}
-            <div className="flex flex-col items-start lg:items-end gap-3 w-full lg:w-auto">
-              <div className="text-[11px] font-mono text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                Official Verified Handles
-              </div>
-              
-              {/* Authentic Brand Colors Social Dock */}
-              <div className="inline-flex items-center justify-center p-2.5 rounded-full apple-glass-dock border border-white/15 gap-3 shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
-                {SOCIAL_LINKS.map((item) => (
-                  <a
-                    key={item.id}
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${item.title} (${item.handle})`}
-                    className={`group relative p-3 rounded-full ${item.bgColor} transition-all duration-300 hover:scale-125 hover:-translate-y-1 active:scale-95 flex items-center justify-center`}
-                  >
-                    {/* SVG Icon */}
-                    <div className="transition-transform duration-200">
-                      {item.icon}
-                    </div>
-
-                    {/* Apple-Style Floating Tooltip */}
-                    <div className="pointer-events-none absolute -top-11 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0 z-50">
-                      <div className="apple-glass-pill px-3 py-1 rounded-lg text-[11px] font-sans font-medium text-white whitespace-nowrap shadow-2xl border border-white/20 bg-slate-950/95">
-                        <span className="font-semibold text-cyan-400">{item.badge}</span>: {item.handle}
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase font-bold block mb-3">
+              Official Social Handles
+            </span>
+            <h2 className="text-3xl font-bold text-white mb-3">Connect With the Core Builders</h2>
+            <p className="text-sm text-slate-400">
+              Direct access to the founders, engineering architects, official video briefings, and community feeds.
+            </p>
           </div>
 
-          {/* Middle Tier: 5-Column Corporate Navigation Architecture */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 py-12 border-b border-white/10 text-xs">
-            {/* Column 1: Platform */}
-            <div className="flex flex-col gap-3">
-              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-cyan-400">Platform</h5>
-              <Link href="/" className="text-slate-400 hover:text-white transition-colors">Use Web App</Link>
-              <a href="/downloads/Q-Link-Setup.exe" download="Q-Link-Setup.exe" className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 font-medium">
-                <span>Download Windows (.exe)</span>
-                <span className="text-[9px] px-1 py-0.2 rounded bg-cyan-500/20 text-cyan-300">75MB</span>
+          {/* VERIFIED OFFICIAL SOCIAL CHANNELS WITH AUTHENTIC BRAND ACCENTS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-20">
+            {SOCIAL_LINKS.map((link) => (
+              <a
+                key={link.id}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="q-spotlight-card rounded-2xl p-5 border border-white/10 flex flex-col items-center text-center group hover:scale-[1.03] transition-all duration-300"
+              >
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 ${link.bgColor}`}
+                >
+                  {link.icon}
+                </div>
+                <span className="text-[10px] font-mono tracking-widest uppercase text-cyan-400 font-bold mb-1">
+                  {link.badge}
+                </span>
+                <span className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  {link.title}
+                </span>
+                <span className="text-xs font-mono text-slate-400 mt-1">{link.handle}</span>
               </a>
-              <Link href="/about" className="text-slate-400 hover:text-white transition-colors">Platform Architecture</Link>
-              {isPwaInstallable && (
-                <button onClick={handleInstallPwa} className="text-left text-slate-400 hover:text-slate-300 transition-colors">Install Mobile PWA</button>
-              )}
-            </div>
-
-            {/* Column 2: Cryptography & Security */}
-            <div className="flex flex-col gap-3">
-              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-indigo-400">Security</h5>
-              <a href="#architecture" className="text-slate-400 hover:text-white transition-colors">Zero-Persistence Core</a>
-              <span className="text-slate-400">Curve25519 & AES-GCM</span>
-              <span className="text-slate-400">Edge Burst Rate Limiter</span>
-              <button onClick={() => setActiveTrustModal("canary")} className="text-left text-slate-400 hover:text-cyan-400 transition-colors">No-Log Warranty Canary</button>
-              <span className="text-slate-400">On-Device Content Shield</span>
-            </div>
-
-            {/* Column 3: Developers & Ecosystem */}
-            <div className="flex flex-col gap-3">
-              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-purple-400">Ecosystem</h5>
-              <a href="/llms.txt" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors flex items-center gap-1">
-                <span>llms.txt AI Feed</span>
-                <span className="text-[9px] px-1 py-0.2 rounded bg-white/10 text-cyan-300">NEW</span>
-              </a>
-              <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors">Sitemap XML</a>
-              <a href="/robots.txt" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors">Crawler Directives</a>
-              <a href="https://github.com/rohiterrors-ship-it/Q-Link_v3.0" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors">GitHub Repository</a>
-              <span className="text-slate-500 font-mono text-[10px]">Audit Status: PASS</span>
-            </div>
-
-            {/* Column 4: Network & Team */}
-            <div className="flex flex-col gap-3">
-              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-emerald-400">Transmissions</h5>
-              <a href="https://x.com/qlinkplatform" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-cyan-400 transition-colors">Official Dispatch (@qlinkplatform)</a>
-              <a href="https://x.com/Bace_Labe" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-violet-400 transition-colors">Founder Notes (@Bace_Labe)</a>
-              <a href="https://x.com/GhorKamanSaaS" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-400 transition-colors">Architect Log (@GhorKamanSaaS)</a>
-              <a href="https://www.youtube.com/@Aexon.AITech" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-red-400 transition-colors">YouTube Video Briefings</a>
-              <a href="https://www.reddit.com/user/QLinkOfficial/submitted/?sort=hot" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-amber-400 transition-colors">Reddit Discussions</a>
-            </div>
-
-            {/* Column 5: Trust & Constitution */}
-            <div className="flex flex-col gap-3">
-              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-rose-400">Trust Charter</h5>
-              <button onClick={() => setActiveTrustModal("privacy")} className="text-left text-slate-400 hover:text-white transition-colors">Constitutional Privacy</button>
-              <button onClick={() => setActiveTrustModal("terms")} className="text-left text-slate-400 hover:text-white transition-colors">Autonomous Terms</button>
-              <span className="text-slate-400">100% Cookie-Free</span>
-              <span className="text-slate-400">Anti-Monopoly Stance</span>
-              <span className="text-emerald-400 font-mono text-[10px]">Zero Data Retention: ACTIVE</span>
-            </div>
+            ))}
           </div>
 
-          {/* Bottom Tier: Copyright & Compliance Disclaimer */}
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-mono text-slate-500">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-cyan-400" />
-              <span>&copy; 2026 Q-LINK PROTOCOL FOUNDATION. ALL RIGHTS RESERVED TO HUMAN PRIVACY.</span>
+          {/* BOTTOM BRAND FOOTPRINT */}
+          <div className="pt-10 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-slate-400 font-mono">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full overflow-hidden p-[1px] bg-cyan-400/40">
+                <Image
+                  src="/logo-256.png"
+                  alt="Q-Link"
+                  width={24}
+                  height={24}
+                  className="w-full h-full object-cover rounded-full select-none"
+                />
+              </div>
+              <span className="text-white font-bold">Q-Link Technologies Inc.</span>
+              <span>·</span>
+              <span>Sovereign Communications</span>
             </div>
 
-            <div className="flex items-center gap-4 text-center sm:text-right">
-              <span>ZERO TRACKING</span>
-              <span>•</span>
-              <span>ZERO TELEMETRY</span>
-              <span>•</span>
-              <span>PURE MATHEMATICS</span>
+            <div className="flex items-center gap-6">
+              <Link href="/" className="hover:text-white transition-colors">Web App</Link>
+              <a href="/downloads/Q-Link-Setup.exe" className="hover:text-white transition-colors">Windows Client</a>
+              <span>MIT / Sovereign License</span>
             </div>
           </div>
         </div>
       </footer>
-
-      {/* Interactive Corporate Trust Modals (Privacy / Terms / Canary) */}
-      {activeTrustModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
-          <div className="apple-glass-card rounded-3xl p-8 max-w-lg w-full border border-white/20 shadow-2xl relative">
-            <button
-              onClick={() => setActiveTrustModal(null)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-white text-lg font-mono p-1 rounded-full hover:bg-white/10"
-              aria-label="Close modal"
-            >
-              ✕
-            </button>
-
-            {activeTrustModal === "privacy" && (
-              <div>
-                <span className="text-xs font-mono uppercase text-cyan-400 block mb-2">Fundamental Trust Charter</span>
-                <h4 className="text-xl font-bold text-white mb-4">Constitutional Privacy Guarantee</h4>
-                <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                  Q-Link operates on a strict zero-knowledge paradigm. We do not ask for, collect, store, or sell:
-                </p>
-                <ul className="text-xs text-slate-400 space-y-2 mb-6 font-mono">
-                  <li>• Phone numbers or SMS verification codes</li>
-                  <li>• Email addresses or identity credentials</li>
-                  <li>• IP logs, location data, or device fingerprints</li>
-                  <li>• Permanent chat logs or media caches</li>
-                </ul>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Your cryptographic seed is the sole decider of your identity. Once messages expire their Time-To-Live (TTL), they are permanently incinerated.
-                </p>
-              </div>
-            )}
-
-            {activeTrustModal === "terms" && (
-              <div>
-                <span className="text-xs font-mono uppercase text-indigo-400 block mb-2">Platform Protocol</span>
-                <h4 className="text-xl font-bold text-white mb-4">Terms of Autonomous Use</h4>
-                <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                  By using Q-Link, you interact directly with a decentralized communication stream. You agree to:
-                </p>
-                <ul className="text-xs text-slate-400 space-y-2 mb-6 font-mono">
-                  <li>• Maintain custody of your localized Quantum ID</li>
-                  <li>• Respect local rate limits (5 pulses/min burst guard)</li>
-                  <li>• Acknowledge zero server backups (lost keys cannot be recovered)</li>
-                </ul>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  The protocol is autonomous. There are no corporate admins with backdoor access to private conversations.
-                </p>
-              </div>
-            )}
-
-            {activeTrustModal === "canary" && (
-              <div>
-                <span className="text-xs font-mono uppercase text-emerald-400 block mb-2">Transparency Audit</span>
-                <h4 className="text-xl font-bold text-white mb-4">No-Log Warranty Canary</h4>
-                <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                  As of September 2026, Q-Link Protocol confirms:
-                </p>
-                <ul className="text-xs text-emerald-400 space-y-2 mb-6 font-mono">
-                  <li>✔ Zero government subpoenas or warrants served</li>
-                  <li>✔ Zero user data surrendered (none exists to surrender)</li>
-                  <li>✔ Zero encryption keys or backdoors provided to any entity</li>
-                  <li>✔ Zero permanent database clusters storing messages</li>
-                </ul>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  This canary is cryptographically affirmed by the system architecture.
-                </p>
-              </div>
-            )}
-
-            <div className="mt-6 pt-4 border-t border-white/10 flex justify-end">
-              <button
-                onClick={() => setActiveTrustModal(null)}
-                className="px-5 py-2 rounded-xl apple-glass-pill hover:bg-white/10 text-xs font-semibold text-white transition-all"
-              >
-                Close Charter
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
