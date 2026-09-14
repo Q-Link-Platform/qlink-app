@@ -258,32 +258,14 @@ export default function AboutPageClient() {
             </div>
           </Link>
 
-          {/* KINETIC REEL-FLIP NAVIGATION LINKS */}
-          <div className="hidden md:flex items-center gap-8 text-[12px] font-mono uppercase tracking-[0.14em] text-slate-300">
-            <a href="#platform" className="q-text-reel hover:text-white transition-colors">
-              <span className="q-reel-primary">Platform</span>
-              <span className="q-reel-secondary text-cyan-400">Platform</span>
-            </a>
-            <a href="#telemetry" className="q-text-reel hover:text-white transition-colors">
-              <span className="q-reel-primary">Telemetry</span>
-              <span className="q-reel-secondary text-cyan-400">Telemetry</span>
-            </a>
-            <a href="#downloads" className="q-text-reel hover:text-white transition-colors">
-              <span className="q-reel-primary">Client Suite</span>
-              <span className="q-reel-secondary text-cyan-400">Client Suite</span>
-            </a>
-            <a href="#architecture" className="q-text-reel hover:text-white transition-colors">
-              <span className="q-reel-primary">Architecture</span>
-              <span className="q-reel-secondary text-cyan-400">Architecture</span>
-            </a>
-            <a href="#comparison" className="q-text-reel hover:text-white transition-colors">
-              <span className="q-reel-primary">Security Specs</span>
-              <span className="q-reel-secondary text-cyan-400">Security Specs</span>
-            </a>
-            <a href="#corporate-directory" className="q-text-reel hover:text-white transition-colors">
-              <span className="q-reel-primary">Governance</span>
-              <span className="q-reel-secondary text-cyan-400">Governance</span>
-            </a>
+          {/* SLEEK UNCLIPPED CORPORATE NAVIGATION */}
+          <div className="hidden md:flex items-center gap-7 text-xs font-mono tracking-wider uppercase text-slate-400">
+            <a href="#platform" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Platform</a>
+            <a href="#telemetry" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Telemetry</a>
+            <a href="#downloads" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Client Suite</a>
+            <a href="#architecture" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Architecture</a>
+            <a href="#comparison" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Security Specs</a>
+            <a href="#corporate-directory" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Governance</a>
           </div>
 
           <div className="flex items-center gap-3">
@@ -322,7 +304,7 @@ export default function AboutPageClient() {
             <span className="text-slate-300">Defense-Grade Sovereign Infrastructure</span>
           </div>
 
-          <h1 className="text-5xl sm:text-7xl md:text-8xl font-black tracking-[-0.04em] mb-6 leading-[0.96] text-white">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-[62px] font-bold tracking-tight mb-6 leading-[1.12] text-white max-w-4xl mx-auto">
             The Sovereign Communication Engine.<br className="hidden sm:block" />
             <span className="bg-gradient-to-r from-cyan-300 via-sky-200 to-indigo-300 bg-clip-text text-transparent">
               Zero Telemetry. Real Cryptographic Proof.
@@ -333,12 +315,12 @@ export default function AboutPageClient() {
             Decentralized ephemeral identity without phone numbers, tracking cookies, or persistent server databases. Available natively in your browser or packaged as a high-performance Windows client.
           </p>
 
-          {/* HARDWARE CTAS (Top 0.1% Beveled Controls) */}
+          {/* HIGH-CONTRAST EXECUTIVE CTAS */}
           <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
             {/* Primary Action: Use Web App */}
             <Link
               href="/"
-              className="q-btn-hardware px-8 py-4 rounded-2xl bg-white text-slate-950 font-bold text-sm shadow-[0_10px_35px_rgba(255,255,255,0.2)] hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-3"
+              className="px-8 py-3.5 rounded-2xl bg-white text-slate-950 font-bold text-sm shadow-[0_10px_35px_rgba(255,255,255,0.25)] hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2.5"
             >
               <span>Launch Web Client</span>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -350,7 +332,7 @@ export default function AboutPageClient() {
             <a
               href="/downloads/Q-Link-Setup.exe"
               download="Q-Link-Setup.exe"
-              className="q-btn-hardware px-7 py-4 rounded-2xl text-white font-semibold text-sm transition-all flex items-center gap-3 hover:scale-[1.02] active:scale-[0.98]"
+              className="q-btn-hardware px-7 py-3.5 rounded-2xl text-white font-semibold text-sm transition-all flex items-center gap-3 hover:scale-[1.02] active:scale-[0.98]"
             >
               <svg className="w-4 h-4 text-cyan-400 fill-current" viewBox="0 0 24 24">
                 <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.949-1.801" />
@@ -365,7 +347,7 @@ export default function AboutPageClient() {
             {isPwaInstallable && (
               <button
                 onClick={handleInstallPwa}
-                className="q-btn-hardware px-6 py-4 rounded-2xl text-slate-300 font-medium text-sm transition-all"
+                className="q-btn-hardware px-6 py-3.5 rounded-2xl text-slate-300 font-medium text-sm transition-all"
               >
                 Install Web App (PWA)
               </button>
