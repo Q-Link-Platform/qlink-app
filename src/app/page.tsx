@@ -36,6 +36,7 @@ import { usePassiveTouchEvents, useAndroidScrollOptimization } from "@/hooks/use
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { quantumAudio } from "@/lib/quantumAudio";
 import { EmergencyBeaconModal } from "@/components/EmergencyBeaconModal";
+import NotificationCenterModal from "@/components/NotificationCenterModal";
 import { countries } from "@/utils/countries";
 import dynamic from "next/dynamic";
 import { NetworkStatusBar } from "@/components/NetworkStatusBar";
@@ -2146,6 +2147,37 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Focus Mode (Zen Mode) state
   const [isFocusMode, setIsFocusMode] = useState<boolean>(false);
+
+  // Meta/X Strategic Systems State:
+  const [isNotifCenterOpen, setIsNotifCenterOpen] = useState<boolean>(false);
+  const [activeFeedTab, setActiveFeedTab] = useState<'foryou' | 'latest' | 'network'>('foryou');
+  const [copiedPostId, setCopiedPostId] = useState<string | null>(null);
+  const [activePostMenuId, setActivePostMenuId] = useState<string | null>(null);
+  const [bookmarkedPosts, setBookmarkedPosts] = useState<Record<string, boolean>>({});
+
+  // Meta/X Grade Post Deletion
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm("Are you sure you want to delete this post?")) return;
+    try {
+      setDirectoryGlobalPosts((prev) => prev.filter((p) => p.id !== postId));
+      setDirectoryLatestPostsByAuthorId((prev) => {
+        const next = { ...prev };
+        for (const k of Object.keys(next)) {
+          next[k] = next[k].filter((p) => p.id !== postId);
+        }
+        return next;
+      });
+
+      const res = await fetch(`/api/posts?id=${postId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete post");
+      }
+    } catch (err) {
+      console.error("Delete post error", err);
+    }
+  };
+
 
   // Settings animation state & Glass Theme switcher
   const [isSettingsAnimating, setIsSettingsAnimating] = useState(false);
@@ -8897,11 +8929,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                 trackPostView(post.id);
                                               }}
                                             >
-                                              <div className="flex items-start justify-between gap-2">
-                                                <div className="min-w-0 flex items-center gap-2">
-                                                  <div className="relative h-5 w-5 rounded-full overflow-hidden flex-shrink-0 bg-slate-800">
-                                                    {/* Initials Fallback */}
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30 flex items-center justify-center text-[8px] font-bold text-white uppercase">
+                                              {/* Meta/X Author Header with Three-Dots Menu */}
+                                              <div className="flex items-center justify-between gap-2 pb-1.5 relative">
+                                                <div className="min-w-0 flex items-center gap-2.5">
+                                                  <div className="relative h-7 w-7 rounded-full overflow-hidden flex-shrink-0 bg-slate-800 border border-slate-700/60">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30 flex items-center justify-center text-[10px] font-bold text-white uppercase">
                                                       {(item?.handle?.[0] || item?.name?.[0] || '?').toUpperCase()}
                                                     </div>
                                                     {isValidImageUrl(item?.image) && (
@@ -8916,20 +8948,109 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                       />
                                                     )}
                                                   </div>
-                                                  <div>
-                                                    <p className="truncate text-[10px] font-semibold text-slate-100">
+                                                  <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
+                                                    <span className="font-bold text-xs text-white truncate hover:underline">
+                                                      {item.name || item.handle}
+                                                    </span>
+                                                    <span className="text-[11px] text-slate-400 truncate">
                                                       @{item.handle}
-                                                    </p>
+                                                    </span>
                                                     {timeAgo && (
-                                                      <p className="text-[10px] text-slate-400">
-                                                        {timeAgo}
-                                                      </p>
+                                                      <>
+                                                        <span className="text-slate-600 text-[10px]">&middot;</span>
+                                                        <span className="text-[11px] text-slate-400 whitespace-nowrap">
+                                                          {timeAgo}
+                                                        </span>
+                                                      </>
                                                     )}
                                                   </div>
                                                 </div>
-                                                <span className="rounded-full border border-slate-700/60 bg-slate-900/60 px-2 py-0.5 text-[9px] font-medium text-slate-300">
-                                                  Global
-                                                </span>
+
+                                                <div className="flex items-center gap-1.5 relative">
+                                                  <span className="rounded-full border border-slate-700/60 bg-slate-900/80 px-2 py-0.5 text-[9px] font-medium text-cyan-300">
+                                                    Global
+                                                  </span>
+
+                                                  {/* Three-Dots Menu (•••) */}
+                                                  <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      setActivePostMenuId(cur => cur === post.id ? null : post.id);
+                                                    }}
+                                                    className="h-6 w-6 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                                                    title="More options"
+                                                  >
+                                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                      <circle cx="5" cy="12" r="2" />
+                                                      <circle cx="12" cy="12" r="2" />
+                                                      <circle cx="19" cy="12" r="2" />
+                                                    </svg>
+                                                  </button>
+
+                                                  {/* Dropdown Menu */}
+                                                  {activePostMenuId === post.id && (
+                                                    <div
+                                                      className="absolute right-0 top-7 z-40 w-44 rounded-2xl border border-slate-700/80 bg-slate-950/95 backdrop-blur-xl p-1.5 shadow-2xl text-xs text-slate-200 animate-fadeIn"
+                                                      onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                          navigator.clipboard.writeText(`${window.location.origin}/#post-${post.id}`);
+                                                          setActivePostMenuId(null);
+                                                          setCopiedPostId(post.id);
+                                                          setTimeout(() => setCopiedPostId(null), 2500);
+                                                        }}
+                                                        className="w-full text-left px-3 py-1.5 rounded-xl hover:bg-slate-900 hover:text-white transition-colors flex items-center gap-2"
+                                                      >
+                                                        <span>🔗</span>
+                                                        <span>Copy link to post</span>
+                                                      </button>
+
+                                                      {((session?.user as any)?.id === post.authorId) ? (
+                                                        <>
+                                                          <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                              setActivePostMenuId(null);
+                                                              handleDeletePost(post.id);
+                                                            }}
+                                                            className="w-full text-left px-3 py-1.5 rounded-xl hover:bg-red-500/20 text-red-400 transition-colors flex items-center gap-2"
+                                                          >
+                                                            <span>🗑️</span>
+                                                            <span>Delete post</span>
+                                                          </button>
+                                                        </>
+                                                      ) : (
+                                                        <>
+                                                          <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                              setActivePostMenuId(null);
+                                                              alert(`@${item.handle} muted from your timeline.`);
+                                                            }}
+                                                            className="w-full text-left px-3 py-1.5 rounded-xl hover:bg-slate-900 hover:text-white transition-colors flex items-center gap-2"
+                                                          >
+                                                            <span>🔕</span>
+                                                            <span>Mute @{item.handle}</span>
+                                                          </button>
+                                                          <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                              setActivePostMenuId(null);
+                                                              alert('Post flagged for Trust & Safety review.');
+                                                            }}
+                                                            className="w-full text-left px-3 py-1.5 rounded-xl hover:bg-amber-500/20 text-amber-400 transition-colors flex items-center gap-2"
+                                                          >
+                                                            <span>🚩</span>
+                                                            <span>Report content</span>
+                                                          </button>
+                                                        </>
+                                                      )}
+                                                    </div>
+                                                  )}
+                                                </div>
                                               </div>
 
                                                {post?.text && (
@@ -8955,42 +9076,54 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                 </div>
                                               )}
 
-                                              <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                                                <div className="flex flex-wrap items-center gap-2">
+                                              {/* Meta / X Level Unified Action Bar */}
+                                              <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
+                                                {/* Left Actions: Comment, Repost/Share, Like, Views */}
+                                                <div className="flex items-center gap-1 sm:gap-3">
+                                                  {/* 1. Comment Action */}
                                                   <button
                                                     type="button"
                                                     onClick={(e) => {
                                                       e.stopPropagation();
-
-                                                      // Additional validation
-                                                      const currentUserId = (session?.user as any)?.id;
-                                                      const postAuthorId = post.authorId;
-
-                                                      console.log('Follow button clicked:', {
-                                                        postAuthorId,
-                                                        currentUserId,
-                                                        areSame: postAuthorId === currentUserId,
-                                                        postData: post
-                                                      });
-
-                                                      if (postAuthorId === currentUserId) {
-                                                        alert('You cannot follow your own post');
-                                                        return;
+                                                      setDirectoryOpenCommentsPostId((cur) => cur === post.id ? null : post.id);
+                                                      if (!directoryOpenCommentsPostId || directoryOpenCommentsPostId !== post.id) {
+                                                        fetchComments(post.id);
                                                       }
-
-                                                      handleFollow(postAuthorId);
                                                     }}
-                                                    disabled={!(session?.user as any)?.id || engagementLoading[post.authorId]?.follow}
-                                                    className={`rounded-full border px-3.5 sm:px-3 py-1 text-xs sm:text-[11px] font-semibold transition-all ${followStatus[post.authorId]
-                                                        ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-300'
-                                                        : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-cyan-400/60'
-                                                      } ${engagementLoading[post.authorId]?.follow ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-200 ${
+                                                      directoryOpenCommentsPostId === post.id
+                                                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 shadow-[0_0_10px_rgba(6,182,212,0.3)]'
+                                                        : 'text-slate-400 hover:text-cyan-300 hover:bg-cyan-500/10'
+                                                    }`}
+                                                    title="Comment"
                                                   >
-                                                    {engagementLoading[post.authorId]?.follow ?
-                                                      (followStatus[post.authorId] ? 'Unfollowing...' : 'Following...') :
-                                                      (followStatus[post.authorId] ? 'Following' : 'Follow')
-                                                    }
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                    </svg>
+                                                    <span>{postComments[post.id]?.length ?? (post?._count?.comments || 0)}</span>
                                                   </button>
+
+                                                  {/* 2. Repost / Share Link */}
+                                                  <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      if (typeof window !== "undefined") {
+                                                        navigator.clipboard.writeText(`${window.location.origin}/#post-${post.id}`);
+                                                        setCopiedPostId(post.id);
+                                                        setTimeout(() => setCopiedPostId(null), 2500);
+                                                      }
+                                                    }}
+                                                    className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-200"
+                                                    title="Share Post Link"
+                                                  >
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                    </svg>
+                                                    <span>{copiedPostId === post.id ? 'Copied!' : 'Share'}</span>
+                                                  </button>
+
+                                                  {/* 3. Like (Heart) */}
                                                   <button
                                                     type="button"
                                                     onClick={(e) => {
@@ -8998,90 +9131,46 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                       handleReaction(post.id, 1);
                                                     }}
                                                     disabled={!(session?.user as any)?.id || engagementLoading[post.id]?.reaction}
-                                                    className={`flex items-center gap-1 rounded-full border px-3 sm:px-2.5 py-1 text-xs sm:text-[11px] font-medium transition-all ${postReactions[post.id]?.userReaction === 1
-                                                        ? 'bg-pink-500/20 border-pink-400/60 text-pink-300'
-                                                        : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-pink-400/60'
-                                                      } ${engagementLoading[post.id]?.reaction ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-200 ${
+                                                      postReactions[post.id]?.userReaction === 1
+                                                        ? 'bg-pink-500/20 text-pink-400 border border-pink-500/40 shadow-[0_0_10px_rgba(244,63,94,0.3)]'
+                                                        : 'text-slate-400 hover:text-pink-400 hover:bg-pink-500/10'
+                                                    }`}
+                                                    title="Like"
                                                   >
-                                                    {engagementLoading[post.id]?.reaction ? (
-                                                      '...'
-                                                    ) : (
-                                                      <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        strokeWidth="2"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        className="w-3.5 h-3.5"
-                                                      >
-                                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-                                                      </svg>
-                                                    )}
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleReaction(post.id, -1);
-                                                    }}
-                                                    disabled={!(session?.user as any)?.id || engagementLoading[post.id]?.reaction}
-                                                    className={`flex items-center gap-1 rounded-full border px-3 sm:px-2.5 py-1 text-xs sm:text-[11px] font-medium transition-all ${postReactions[post.id]?.userReaction === -1
-                                                        ? 'bg-orange-500/20 border-orange-400/60 text-orange-300'
-                                                        : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-orange-400/60'
-                                                      } ${engagementLoading[post.id]?.reaction ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                  >
-                                                    {engagementLoading[post.id]?.reaction ? (
-                                                      '...'
-                                                    ) : (
-                                                      <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        viewBox="0 0 24 24"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        strokeWidth="2"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                        className="w-3.5 h-3.5"
-                                                      >
-                                                        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.28a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3" />
-                                                      </svg>
-                                                    )}
-                                                  </button>
-                                                  <button
-                                                    type="button"
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      setDirectoryOpenCommentsPostId((cur) =>
-                                                        cur === post.id ? null : post.id,
-                                                      );
-                                                      if (!directoryOpenCommentsPostId || directoryOpenCommentsPostId !== post.id) {
-                                                        fetchComments(post.id);
-                                                      }
-                                                    }}
-                                                    className={`inline-flex items-center gap-1.5 rounded-full border px-3 sm:px-2.5 py-1 sm:py-0.5 text-xs sm:text-[10px] font-semibold transition-all duration-200 cursor-pointer ${directoryOpenCommentsPostId === post.id
-                                                        ? 'bg-blue-500/25 border-blue-400/70 text-blue-300 shadow-[0_0_12px_rgba(59,130,246,0.25)]'
-                                                        : 'border-slate-700/60 bg-slate-900/60 text-slate-200 hover:border-blue-400/60 hover:text-blue-200'
-                                                      }`}
-                                                  >
-                                                    <svg className="w-3 h-3 text-blue-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                                                      <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" />
+                                                    <svg className="w-3.5 h-3.5 transition-transform active:scale-125" fill={postReactions[post.id]?.userReaction === 1 ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                                     </svg>
-                                                    <span>Comment</span>
-                                                    <span className={`inline-flex items-center justify-center rounded-full px-1.5 py-0.2 text-[9px] font-bold tracking-tight ${directoryOpenCommentsPostId === post.id
-                                                        ? 'bg-blue-400/30 text-blue-200'
-                                                        : 'bg-slate-800 text-slate-300 border border-slate-700/60'
-                                                      }`}>
-                                                      {postComments[post.id]?.length ?? (post?._count?.comments || 0)}
-                                                    </span>
+                                                    <span>{postReactions[post.id]?.likes || post?._count?.reactions || 0}</span>
                                                   </button>
+
+                                                  {/* 4. Impressions / Views */}
+                                                  <div className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-slate-500" title="Views">
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    <span>{post?._count?.views || 1}</span>
+                                                  </div>
                                                 </div>
 
-                                                <div className="flex items-center gap-2 text-[10px] text-slate-400">
-                                                  <span>{postReactions[post.id]?.likes || post?._count?.reactions || 0} likes</span>
-                                                  <span>{postReactions[post.id]?.dislikes || 0} dislikes</span>
-                                                  <span>{post?._count?.comments || 0} comments</span>
+                                                {/* Right Actions: Bookmark & Options */}
+                                                <div className="flex items-center gap-1.5">
+                                                  <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      setBookmarkedPosts(prev => ({ ...prev, [post.id]: !prev[post.id] }));
+                                                    }}
+                                                    className={`p-1.5 rounded-full transition-all ${
+                                                      bookmarkedPosts[post.id] ? 'text-amber-400 bg-amber-400/10' : 'text-slate-500 hover:text-amber-400'
+                                                    }`}
+                                                    title="Bookmark"
+                                                  >
+                                                    <svg className="w-3.5 h-3.5" fill={bookmarkedPosts[post.id] ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                    </svg>
+                                                  </button>
                                                 </div>
                                               </div>
 

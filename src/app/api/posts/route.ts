@@ -7,6 +7,9 @@ import { supabasePosts, supabasePostsAdmin } from "@/lib/supabasePosts";
 import { createPostSchema, validateRequest } from "@/lib/validation";
 import { touchUserPresence } from "@/lib/presence";
 import { ensureAttachmentSchema } from "@/lib/ensureAttachmentSchema";
+import { postRateLimiter } from '@/lib/rateLimiter';
+import { inspectContentSafety, calculateFeedRankScore } from '@/lib/moderation';
+
 
 export const runtime = "nodejs";
 
@@ -60,6 +63,7 @@ export async function GET(request: Request) {
 
     const url = new URL(request.url);
     const mode = url.searchParams.get("mode");
+    const feed = url.searchParams.get("feed") || "foryou"; // "foryou" | "latest" | "network" 
 
     const now = new Date();
 
@@ -167,8 +171,29 @@ export async function GET(request: Request) {
         }),
       );
 
+      let sortedDirectoryPosts = postsWithMedia;
+      if (feed === "foryou") {
+        sortedDirectoryPosts = [...postsWithMedia].sort((a: any, b: any) => {
+          const scoreA = calculateFeedRankScore({
+            authorAura: a.author?.aura_percentage || 50,
+            reactionsCount: a._count?.reactions || 0,
+            commentsCount: a._count?.comments || 0,
+            viewsCount: a._count?.views || 0,
+            createdAt: a.createdAt,
+          });
+          const scoreB = calculateFeedRankScore({
+            authorAura: b.author?.aura_percentage || 50,
+            reactionsCount: b._count?.reactions || 0,
+            commentsCount: b._count?.comments || 0,
+            viewsCount: b._count?.views || 0,
+            createdAt: b.createdAt,
+          });
+          return scoreB - scoreA;
+        });
+      }
+
       return NextResponse.json(
-        { posts: postsWithMedia, perAuthor },
+        { posts: sortedDirectoryPosts, perAuthor, feedMode: feed },
         { headers: { "Cache-Control": "no-store" } },
       );
     }
@@ -309,8 +334,32 @@ export async function GET(request: Request) {
       }),
     );
 
+    let finalPosts = postsWithMedia;
+
+    if (feed === "network" && meId) {
+      finalPosts = finalPosts.filter((p: any) => p.authorId === meId || followingSet.has(p.authorId) || friendSet.has(p.authorId));
+    } else if (feed === "foryou") {
+      finalPosts = [...finalPosts].sort((a: any, b: any) => {
+        const scoreA = calculateFeedRankScore({
+          authorAura: a.author?.aura_percentage || 50,
+          reactionsCount: a._count?.reactions || 0,
+          commentsCount: a._count?.comments || 0,
+          viewsCount: a._count?.views || 0,
+          createdAt: a.createdAt,
+        });
+        const scoreB = calculateFeedRankScore({
+          authorAura: b.author?.aura_percentage || 50,
+          reactionsCount: b._count?.reactions || 0,
+          commentsCount: b._count?.comments || 0,
+          viewsCount: b._count?.views || 0,
+          createdAt: b.createdAt,
+        });
+        return scoreB - scoreA;
+      });
+    }
+
     return NextResponse.json(
-      { posts: postsWithMedia },
+      { posts: finalPosts, feedMode: feed },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (err: any) {
@@ -347,6 +396,27 @@ export async function POST(request: Request) {
     
     // Validate request body using Zod schema
     const { text, audience, attachmentId, attachmentKind } = validateRequest(createPostSchema, body);
+
+    // Rate Limiting Check (Meta/X Grade: Token-Bucket Sliding Window)
+    const rateCheck = postRateLimiter.check(meId, 5, 60_000);
+    if (!rateCheck.allowed) {
+      const waitSec = Math.max(1, Math.ceil(rateCheck.resetMs / 1000));
+      return NextResponse.json(
+        { error: `Posting velocity limit reached. Please wait ${waitSec}s before posting again.` },
+        { status: 429, headers: { "Retry-After": String(waitSec) } }
+      );
+    }
+
+    // Safety & Anti-Spam Inspection
+    if (text) {
+      const safety = inspectContentSafety(text);
+      if (!safety.isSafe) {
+        return NextResponse.json(
+          { error: safety.reason || "Content violated safety policy." },
+          { status: 400 }
+        );
+      }
+    }
 
     const expiresAt = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000);
 
@@ -405,5 +475,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Database unavailable. Please try again." }, { status: 503 });
     }
     return NextResponse.json({ error: err?.message || "Failed to create post. Please try again." }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !(session.user as any).id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const meId = (session.user as any).id as string;
+    const url = new URL(request.url);
+    const postId = url.searchParams.get("id");
+    if (!postId) {
+      return NextResponse.json({ error: "Missing post id" }, { status: 400 });
+    }
+
+    const post = await (prisma as any).post.findUnique({
+      where: { id: postId },
+      select: { id: true, authorId: true },
+    });
+
+    if (!post) {
+      return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    }
+
+    if (post.authorId !== meId) {
+      return NextResponse.json({ error: "Forbidden: Cannot delete other users' posts" }, { status: 403 });
+    }
+
+    await (prisma as any).post.delete({
+      where: { id: postId },
+    });
+
+    return NextResponse.json({ success: true, deletedId: postId });
+  } catch (err: any) {
+    console.error("[posts] DELETE error", err);
+    return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });
   }
 }
