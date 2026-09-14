@@ -112,18 +112,21 @@ export default function AboutPageClient() {
     return () => clearInterval(interval);
   }, []);
 
-  // Raycast-style Mouse Movement Spotlight Coordinator
-  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const container = containerRef.current;
-    if (!container) return;
-    const cards = container.querySelectorAll<HTMLElement>(".q-spotlight-card");
-    cards.forEach((card) => {
-      const rect = card.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      card.style.setProperty("--mouse-x", `${x}px`);
-      card.style.setProperty("--mouse-y", `${y}px`);
-    });
+  // Raycast-style Global Window Mouse Movement Spotlight Coordinator
+  useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      const cards = document.querySelectorAll<HTMLElement>(".q-spotlight-card");
+      cards.forEach((card) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty("--mouse-x", `${x}px`);
+        card.style.setProperty("--mouse-y", `${y}px`);
+      });
+    };
+
+    window.addEventListener("mousemove", handleGlobalMouseMove, { passive: true });
+    return () => window.removeEventListener("mousemove", handleGlobalMouseMove);
   }, []);
 
   const handleScrollUpdate = (currentY: number, scrollHeight: number, clientHeight: number) => {
@@ -209,8 +212,7 @@ export default function AboutPageClient() {
   return (
     <div
       ref={containerRef}
-      onMouseMove={handleMouseMove}
-      onScroll={handleContainerScroll}
+            onScroll={handleContainerScroll}
       className="relative h-[100dvh] w-full overflow-y-auto overflow-x-hidden bg-[#030508] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth"
     >
       {/* ARCHITECTURAL SPINE CAD GRID */}
@@ -233,7 +235,7 @@ export default function AboutPageClient() {
             : "-translate-y-36 opacity-0 pointer-events-none"
         }`}
       >
-        <nav className="rounded-full px-5 py-3 flex items-center justify-between border border-white/[0.12] bg-[#070b14]/85 backdrop-blur-2xl shadow-[0_12px_45px_rgba(0,0,0,0.7)]">
+        <nav className="q-spotlight-card rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between border border-white/[0.12] bg-[#070b14]/85 backdrop-blur-2xl shadow-[0_12px_45px_rgba(0,0,0,0.7)]">
           {/* SLEEK SPACIOUS BRAND (Logo removed as requested to eliminate chaos and give breathing room) */}
           <Link href="/" className="flex items-center gap-2 group whitespace-nowrap">
             <span className="text-base font-black tracking-tight text-white group-hover:text-cyan-300 transition-colors">
@@ -244,14 +246,14 @@ export default function AboutPageClient() {
             </span>
           </Link>
 
-          {/* FULL SPELLING UNCLIPPED CORPORATE NAVIGATION */}
-          <div className="hidden lg:flex items-center gap-8 text-xs font-mono tracking-wider uppercase text-slate-400 whitespace-nowrap">
-            <a href="#platform" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Platform</a>
-            <a href="#telemetry" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Telemetry</a>
-            <a href="#downloads" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Client Suite</a>
-            <a href="#architecture" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Architecture</a>
-            <a href="#comparison" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Security Specs</a>
-            <a href="#corporate-directory" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Governance</a>
+          {/* FULL SPELLING RESPONSIVE CORPORATE NAVIGATION (Visible 768px and above) */}
+          <div className="hidden md:flex items-center gap-3 lg:gap-6 text-[11px] lg:text-xs font-mono tracking-wider uppercase text-slate-400 whitespace-nowrap">
+            <a href="#platform" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Platform</a>
+            <a href="#telemetry" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Telemetry</a>
+            <a href="#downloads" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Client Suite</a>
+            <a href="#architecture" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Architecture</a>
+            <a href="#comparison" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Security Specs</a>
+            <a href="#corporate-directory" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Governance</a>
           </div>
 
           {/* RIGHT SIDE: ONLY CLEAN FOCUSED WEB APP CTA (Windows .exe moved to Hero & Suite to eliminate chaos) */}
