@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import "./about.css";
 
-// Official Verified Social Links with AUTHENTIC OFFICIAL BRAND COLORS
+// Official Verified Social Links with AUTHENTIC OFFICIAL BRAND COLORS & ICONS
 const SOCIAL_LINKS = [
   {
     id: "x-official",
@@ -18,7 +18,7 @@ const SOCIAL_LINKS = [
       </svg>
     ),
     badge: "Official X",
-    bgColor: "bg-black border border-white/25 hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)]",
+    bgColor: "bg-black border border-white/25 hover:border-white/70 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]",
   },
   {
     id: "x-founder",
@@ -31,7 +31,7 @@ const SOCIAL_LINKS = [
       </svg>
     ),
     badge: "Founder X",
-    bgColor: "bg-black border border-white/25 hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)]",
+    bgColor: "bg-black border border-white/25 hover:border-white/70 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]",
   },
   {
     id: "x-engineer",
@@ -44,7 +44,7 @@ const SOCIAL_LINKS = [
       </svg>
     ),
     badge: "Lead Engineer X",
-    bgColor: "bg-black border border-white/25 hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)]",
+    bgColor: "bg-black border border-white/25 hover:border-white/70 hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]",
   },
   {
     id: "youtube",
@@ -57,7 +57,7 @@ const SOCIAL_LINKS = [
       </svg>
     ),
     badge: "YouTube",
-    bgColor: "bg-[#FF0000] border border-red-400/40 hover:bg-[#E60000] hover:shadow-[0_0_25px_rgba(255,0,0,0.6)]",
+    bgColor: "bg-[#FF0000] border border-red-400/40 hover:bg-[#E60000] hover:shadow-[0_0_30px_rgba(255,0,0,0.65)]",
   },
   {
     id: "reddit",
@@ -70,7 +70,7 @@ const SOCIAL_LINKS = [
       </svg>
     ),
     badge: "Reddit",
-    bgColor: "bg-[#FF4500] border border-orange-400/40 hover:bg-[#E03D00] hover:shadow-[0_0_25px_rgba(255,69,0,0.6)]",
+    bgColor: "bg-[#FF4500] border border-orange-400/40 hover:bg-[#E03D00] hover:shadow-[0_0_30px_rgba(255,69,0,0.65)]",
   },
 ];
 
@@ -80,7 +80,7 @@ const SAMPLE_HASHES = [
   "0x3B997AE012DF56C894AE45D8C127B0A9",
   "0xC1408DF5E28491A2BD4891004A26C4E1",
   "0x7E192FA08DC42831B9C7A11904EE88D2",
-  "0x0A94F81C23D69BE1745281AA490C7D55"
+  "0x0A94F81C23D69BE1745281AA490C7D55",
 ];
 
 export default function AboutPageClient() {
@@ -93,6 +93,9 @@ export default function AboutPageClient() {
   const lastScrollY = useRef(0);
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Corporate Trust Modal State (Constitutional Privacy, Autonomous Terms, Warranty Canary)
+  const [activeTrustModal, setActiveTrustModal] = useState<"privacy" | "terms" | "canary" | null>(null);
 
   // Live Telemetry Showcase State
   const [activeHashIndex, setActiveHashIndex] = useState(0);
@@ -276,6 +279,10 @@ export default function AboutPageClient() {
             <a href="#comparison" className="q-text-reel hover:text-white transition-colors">
               <span className="q-reel-primary">Security Specs</span>
               <span className="q-reel-secondary text-cyan-400">Security Specs</span>
+            </a>
+            <a href="#corporate-directory" className="q-text-reel hover:text-white transition-colors">
+              <span className="q-reel-primary">Governance</span>
+              <span className="q-reel-secondary text-cyan-400">Governance</span>
             </a>
           </div>
 
@@ -739,49 +746,44 @@ export default function AboutPageClient() {
             <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase font-bold block mb-3">
               Competitive Architecture
             </span>
-            <h2 className="text-3xl font-bold text-white">How Q-Link Compares</h2>
+            <h2 className="text-3xl font-bold text-white">How Q-Link Compares to Big Tech</h2>
           </div>
 
-          <div className="q-spotlight-card rounded-3xl overflow-hidden border border-white/10">
+          <div className="q-spotlight-card rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-white/10 bg-white/[0.02]">
-                    <th className="p-5 font-mono text-xs uppercase tracking-wider text-slate-400">Feature</th>
+                    <th className="p-5 font-semibold text-slate-300">Feature Dimension</th>
+                    <th className="p-5 font-semibold text-slate-400">Corporate Giants (Meta / X / TG)</th>
                     <th className="p-5 font-bold text-cyan-300 bg-cyan-500/[0.08]">Q-Link Protocol v3.0</th>
-                    <th className="p-5 text-slate-400">Telegram</th>
-                    <th className="p-5 text-slate-400">Signal</th>
-                    <th className="p-5 text-slate-400">WhatsApp</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 font-mono text-xs">
+                <tbody className="divide-y divide-white/5 font-normal text-slate-300 text-xs sm:text-sm">
                   <tr>
-                    <td className="p-5 font-medium text-white">Account Registration</td>
-                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Zero KYC / Mathematical ID</td>
-                    <td className="p-5 text-slate-400">Phone Number Mandatory</td>
-                    <td className="p-5 text-slate-400">Phone Number Mandatory</td>
-                    <td className="p-5 text-slate-400">Phone Number Mandatory</td>
+                    <td className="p-5 font-medium text-white">Identity Binding</td>
+                    <td className="p-5 text-red-400/80">Phone Number, Email, Govt KYC</td>
+                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Zero KYC · Mathematical Quantum ID</td>
                   </tr>
                   <tr>
-                    <td className="p-5 font-medium text-white">Message Storage Model</td>
-                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Ephemeral 24h Self-Cleaning</td>
-                    <td className="p-5 text-slate-400">Permanent Cloud Server</td>
-                    <td className="p-5 text-slate-400">Client-Side Device DB</td>
-                    <td className="p-5 text-slate-400">Cloud Backup (Meta Server)</td>
+                    <td className="p-5 font-medium text-white">Message Cloud Storage</td>
+                    <td className="p-5 text-red-400/80">Permanent central database history</td>
+                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">0 Bytes (Ephemeral Self-Wiping TTL)</td>
                   </tr>
                   <tr>
-                    <td className="p-5 font-medium text-white">Desktop Client Architecture</td>
-                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Direct .exe + Universal Web</td>
-                    <td className="p-5 text-slate-400">Native + Web</td>
-                    <td className="p-5 text-slate-400">Electron Desktop Only</td>
-                    <td className="p-5 text-slate-400">Electron / Phone-paired</td>
+                    <td className="p-5 font-medium text-white">Ad Tracking & Telemetry</td>
+                    <td className="p-5 text-red-400/80">Ad identifiers, pixel brokers & tracking</td>
+                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Zero Trackers · Zero Ads Forever</td>
                   </tr>
                   <tr>
-                    <td className="p-5 font-medium text-white">Contact Inbox Priority</td>
-                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Dynamic Recency Leap Engine</td>
-                    <td className="p-5 text-slate-400">Standard Pinned List</td>
-                    <td className="p-5 text-slate-400">Standard Chronological</td>
-                    <td className="p-5 text-slate-400">Standard Chronological</td>
+                    <td className="p-5 font-medium text-white">Algorithm Transparency</td>
+                    <td className="p-5 text-red-400/80">Blackbox rage-bait engagement silos</td>
+                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Auditable Dual-Feed Chronological Stream</td>
+                  </tr>
+                  <tr>
+                    <td className="p-5 font-medium text-white">Platform Access</td>
+                    <td className="p-5 text-slate-400">App store silos & account gating</td>
+                    <td className="p-5 font-semibold text-emerald-400 bg-cyan-500/[0.04]">Universal Web, PWA & Desktop Binary (.exe)</td>
                   </tr>
                 </tbody>
               </table>
@@ -790,70 +792,341 @@ export default function AboutPageClient() {
         </section>
       </main>
 
-      {/* FOOTER & CORPORATE DIRECTORY */}
-      <footer id="corporate-directory" className="relative border-t border-white/10 bg-[#020408]/95 backdrop-blur-3xl pt-20 pb-16 z-10">
+      {/* TECH GIANT STANDARD CORPORATE MEGA FOOTER & GOVERNANCE DIRECTORY */}
+      <footer id="corporate-directory" className="relative border-t border-white/10 bg-[#020408]/95 backdrop-blur-3xl pt-16 pb-14 overflow-hidden z-10">
+        {/* Subtle Ambient Top Border Sheen */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
+
         <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase font-bold block mb-3">
-              Official Social Handles
-            </span>
-            <h2 className="text-3xl font-bold text-white mb-3">Connect With the Core Builders</h2>
-            <p className="text-sm text-slate-400">
-              Direct access to the founders, engineering architects, official video briefings, and community feeds.
-            </p>
-          </div>
-
-          {/* VERIFIED OFFICIAL SOCIAL CHANNELS WITH AUTHENTIC BRAND ACCENTS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-20">
-            {SOCIAL_LINKS.map((link) => (
-              <a
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="q-spotlight-card rounded-2xl p-5 border border-white/10 flex flex-col items-center text-center group hover:scale-[1.03] transition-all duration-300"
-              >
-                <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 ${link.bgColor}`}
-                >
-                  {link.icon}
+          {/* Top Tier: Brand Anchor, Protocol Health & Social Dock */}
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 pb-12 border-b border-white/10">
+            <div className="max-w-md">
+              <div className="flex items-center gap-3 mb-3">
+                {/* REAL OFFICIAL Q-LINK LOGO */}
+                <div className="w-10 h-10 rounded-full overflow-hidden p-[1px] bg-gradient-to-br from-cyan-400 via-blue-500 to-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.7)] flex-shrink-0">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 flex items-center justify-center">
+                    <Image
+                      src="/logo-256.png"
+                      alt="Q-Link Protocol Logo"
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover rounded-full select-none pointer-events-none"
+                      priority
+                    />
+                  </div>
                 </div>
-                <span className="text-[10px] font-mono tracking-widest uppercase text-cyan-400 font-bold mb-1">
-                  {link.badge}
-                </span>
-                <span className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
-                  {link.title}
-                </span>
-                <span className="text-xs font-mono text-slate-400 mt-1">{link.handle}</span>
-              </a>
-            ))}
-          </div>
-
-          {/* BOTTOM BRAND FOOTPRINT */}
-          <div className="pt-10 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-slate-400 font-mono">
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded-full overflow-hidden p-[1px] bg-cyan-400/40">
-                <Image
-                  src="/logo-256.png"
-                  alt="Q-Link"
-                  width={24}
-                  height={24}
-                  className="w-full h-full object-cover rounded-full select-none"
-                />
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-bold text-white tracking-wide">Q-Link Protocol</span>
+                  <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    v3.0 Sovereign
+                  </span>
+                </div>
               </div>
-              <span className="text-white font-bold">Q-Link Technologies Inc.</span>
-              <span>·</span>
-              <span>Sovereign Communications</span>
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                The decentralized, zero-data-retention communication network powered by Quantum IDs. Architected from first principles to guarantee private human connection without centralized corporate control.
+              </p>
+
+              {/* Protocol Health Live Badge */}
+              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full q-btn-hardware text-[11px] font-mono text-emerald-400 border border-emerald-500/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>ALL PROTOCOL NODES OPERATIONAL · 0 BYTES LOGGED</span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-6">
-              <Link href="/" className="hover:text-white transition-colors">Web App</Link>
-              <a href="/downloads/Q-Link-Setup.exe" className="hover:text-white transition-colors">Windows Client</a>
-              <span>MIT / Sovereign License</span>
+            {/* Official Social Handles Floating Dock with AUTHENTIC BRAND BACKGROUNDS */}
+            <div className="flex flex-col items-start lg:items-end gap-3 w-full lg:w-auto">
+              <div className="text-[11px] font-mono text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                Official Verified Handles
+              </div>
+
+              {/* Authentic Brand Colors Social Dock */}
+              <div className="inline-flex items-center justify-center p-2.5 rounded-full q-btn-hardware border border-white/15 gap-3 shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
+                {SOCIAL_LINKS.map((item) => (
+                  <a
+                    key={item.id}
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${item.title} (${item.handle})`}
+                    className={`group relative p-3 rounded-full ${item.bgColor} transition-all duration-300 hover:scale-125 hover:-translate-y-1 active:scale-95 flex items-center justify-center`}
+                  >
+                    {/* SVG Icon */}
+                    <div className="transition-transform duration-200">
+                      {item.icon}
+                    </div>
+
+                    {/* Apple-Style Floating Tooltip */}
+                    <div className="pointer-events-none absolute -top-11 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0 z-50">
+                      <div className="px-3 py-1 rounded-lg text-[11px] font-sans font-medium text-white whitespace-nowrap shadow-2xl border border-white/20 bg-slate-950/95 backdrop-blur-md">
+                        <span className="font-semibold text-cyan-400">{item.badge}</span>: {item.handle}
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Middle Tier: 5-Column Corporate Navigation Architecture */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 py-12 border-b border-white/10 text-xs">
+            {/* Column 1: Platform */}
+            <div className="flex flex-col gap-3">
+              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-cyan-400">
+                Platform
+              </h5>
+              <Link href="/" className="text-slate-400 hover:text-white transition-colors">
+                Use Web App
+              </Link>
+              <a
+                href="/downloads/Q-Link-Setup.exe"
+                download="Q-Link-Setup.exe"
+                className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 font-medium"
+              >
+                <span>Download Windows (.exe)</span>
+                <span className="text-[9px] px-1 py-0.2 rounded bg-cyan-500/20 text-cyan-300">75MB</span>
+              </a>
+              <Link href="/about" className="text-slate-400 hover:text-white transition-colors">
+                Platform Architecture
+              </Link>
+              {isPwaInstallable && (
+                <button
+                  onClick={handleInstallPwa}
+                  className="text-left text-slate-400 hover:text-slate-300 transition-colors"
+                >
+                  Install Mobile PWA
+                </button>
+              )}
+            </div>
+
+            {/* Column 2: Cryptography & Security */}
+            <div className="flex flex-col gap-3">
+              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-indigo-400">
+                Security
+              </h5>
+              <a href="#architecture" className="text-slate-400 hover:text-white transition-colors">
+                Zero-Persistence Core
+              </a>
+              <span className="text-slate-400">ChaCha20-Poly1305 & AES-GCM</span>
+              <span className="text-slate-400">Edge Burst Rate Limiter</span>
+              <button
+                onClick={() => setActiveTrustModal("canary")}
+                className="text-left text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1.5"
+              >
+                <span>No-Log Warranty Canary</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              </button>
+              <span className="text-slate-400">On-Device Content Shield</span>
+            </div>
+
+            {/* Column 3: Developers & Ecosystem */}
+            <div className="flex flex-col gap-3">
+              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-purple-400">
+                Ecosystem
+              </h5>
+              <a
+                href="/llms.txt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-white transition-colors flex items-center gap-1"
+              >
+                <span>llms.txt AI Feed</span>
+                <span className="text-[9px] px-1 py-0.2 rounded bg-white/10 text-cyan-300">NEW</span>
+              </a>
+              <a
+                href="/sitemap.xml"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                Sitemap XML
+              </a>
+              <a
+                href="/robots.txt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                Crawler Directives
+              </a>
+              <a
+                href="https://github.com/rohiterrors-ship-it/Q-Link_v3.0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                GitHub Repository
+              </a>
+              <span className="text-slate-500 font-mono text-[10px]">Audit Status: PASS</span>
+            </div>
+
+            {/* Column 4: Network & Team */}
+            <div className="flex flex-col gap-3">
+              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-emerald-400">
+                Transmissions
+              </h5>
+              <a
+                href="https://x.com/qlinkplatform"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-cyan-400 transition-colors"
+              >
+                Official Dispatch (@qlinkplatform)
+              </a>
+              <a
+                href="https://x.com/Bace_Labe"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-violet-400 transition-colors"
+              >
+                Founder Notes (@Bace_Labe)
+              </a>
+              <a
+                href="https://x.com/GhorKamanSaaS"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-blue-400 transition-colors"
+              >
+                Architect Log (@GhorKamanSaaS)
+              </a>
+              <a
+                href="https://www.youtube.com/@Aexon.AITech"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-red-400 transition-colors"
+              >
+                YouTube Video Briefings
+              </a>
+              <a
+                href="https://www.reddit.com/user/QLinkOfficial/submitted/?sort=hot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-amber-400 transition-colors"
+              >
+                Reddit Discussions
+              </a>
+            </div>
+
+            {/* Column 5: Trust & Constitution */}
+            <div className="flex flex-col gap-3">
+              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-rose-400">
+                Trust Charter
+              </h5>
+              <button
+                onClick={() => setActiveTrustModal("privacy")}
+                className="text-left text-slate-400 hover:text-white transition-colors"
+              >
+                Constitutional Privacy
+              </button>
+              <button
+                onClick={() => setActiveTrustModal("terms")}
+                className="text-left text-slate-400 hover:text-white transition-colors"
+              >
+                Autonomous Terms
+              </button>
+              <span className="text-slate-400">100% Cookie-Free</span>
+              <span className="text-slate-400">Anti-Monopoly Stance</span>
+              <span className="text-emerald-400 font-mono text-[10px]">Zero Data Retention: ACTIVE</span>
+            </div>
+          </div>
+
+          {/* Bottom Tier: Copyright & Compliance Disclaimer */}
+          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-mono text-slate-500">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              <span>&copy; 2026 Q-LINK PROTOCOL FOUNDATION. ALL RIGHTS RESERVED TO HUMAN PRIVACY.</span>
+            </div>
+
+            <div className="flex items-center gap-4 text-center sm:text-right">
+              <span>ZERO TRACKING</span>
+              <span>•</span>
+              <span>ZERO TELEMETRY</span>
+              <span>•</span>
+              <span>PURE MATHEMATICS</span>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Interactive Corporate Trust Modals (Privacy / Terms / Canary) */}
+      {activeTrustModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+          <div className="q-spotlight-card rounded-3xl p-8 max-w-lg w-full border border-white/20 shadow-2xl relative">
+            <button
+              onClick={() => setActiveTrustModal(null)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-white text-lg font-mono p-1 rounded-full hover:bg-white/10 transition-colors"
+              aria-label="Close modal"
+            >
+              ✕
+            </button>
+
+            {activeTrustModal === "privacy" && (
+              <div>
+                <span className="text-xs font-mono uppercase text-cyan-400 block mb-2">Fundamental Trust Charter</span>
+                <h4 className="text-xl font-bold text-white mb-4">Constitutional Privacy Guarantee</h4>
+                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                  Q-Link operates on a strict zero-knowledge paradigm. We do not ask for, collect, store, or sell:
+                </p>
+                <ul className="text-xs text-slate-400 space-y-2 mb-6 font-mono">
+                  <li>• Phone numbers or SMS verification codes</li>
+                  <li>• Email addresses or identity credentials</li>
+                  <li>• IP logs, location data, or device fingerprints</li>
+                  <li>• Permanent chat logs or media caches</li>
+                </ul>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Your cryptographic seed is the sole decider of your identity. Once messages expire their Time-To-Live (TTL), they are permanently incinerated.
+                </p>
+              </div>
+            )}
+
+            {activeTrustModal === "terms" && (
+              <div>
+                <span className="text-xs font-mono uppercase text-indigo-400 block mb-2">Platform Protocol</span>
+                <h4 className="text-xl font-bold text-white mb-4">Terms of Autonomous Use</h4>
+                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                  By using Q-Link, you interact directly with a decentralized communication stream. You agree to:
+                </p>
+                <ul className="text-xs text-slate-400 space-y-2 mb-6 font-mono">
+                  <li>• Maintain custody of your localized Quantum ID</li>
+                  <li>• Respect local rate limits (5 pulses/min burst guard)</li>
+                  <li>• Acknowledge zero server backups (lost keys cannot be recovered)</li>
+                </ul>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  The protocol is autonomous. There are no corporate admins with backdoor access to private conversations.
+                </p>
+              </div>
+            )}
+
+            {activeTrustModal === "canary" && (
+              <div>
+                <span className="text-xs font-mono uppercase text-emerald-400 block mb-2">Transparency Audit</span>
+                <h4 className="text-xl font-bold text-white mb-4">No-Log Warranty Canary</h4>
+                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                  As of September 2026, Q-Link Protocol confirms:
+                </p>
+                <ul className="text-xs text-emerald-400 space-y-2 mb-6 font-mono">
+                  <li>✔ Zero government subpoenas or warrants served</li>
+                  <li>✔ Zero user data surrendered (none exists to surrender)</li>
+                  <li>✔ Zero encryption keys or backdoors provided to any entity</li>
+                  <li>✔ Zero permanent database clusters storing messages</li>
+                </ul>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  This canary is cryptographically affirmed by the system architecture.
+                </p>
+              </div>
+            )}
+
+            <div className="mt-6 pt-4 border-t border-white/10 flex justify-end">
+              <button
+                onClick={() => setActiveTrustModal(null)}
+                className="px-5 py-2 rounded-xl q-btn-hardware text-xs font-semibold text-white transition-all"
+              >
+                Close Charter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
