@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import "./about.css";
 
-// Official Verified Social Links (Logo Icons Only)
+// Official Verified Social Links with AUTHENTIC OFFICIAL BRAND COLORS
 const SOCIAL_LINKS = [
   {
     id: "x-official",
@@ -12,12 +13,12 @@ const SOCIAL_LINKS = [
     handle: "@qlinkplatform",
     url: "https://x.com/qlinkplatform",
     icon: (
-      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+      <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
       </svg>
     ),
     badge: "Official X",
-    accent: "hover:text-cyan-400 hover:border-cyan-500/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.3)]",
+    bgColor: "bg-black border border-white/25 hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)]",
   },
   {
     id: "x-founder",
@@ -25,12 +26,12 @@ const SOCIAL_LINKS = [
     handle: "@Bace_Labe",
     url: "https://x.com/Bace_Labe",
     icon: (
-      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+      <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
       </svg>
     ),
     badge: "Founder X",
-    accent: "hover:text-violet-400 hover:border-violet-500/40 hover:shadow-[0_0_25px_rgba(139,92,246,0.3)]",
+    bgColor: "bg-black border border-white/25 hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)]",
   },
   {
     id: "x-engineer",
@@ -38,43 +39,43 @@ const SOCIAL_LINKS = [
     handle: "@GhorKamanSaaS",
     url: "https://x.com/GhorKamanSaaS",
     icon: (
-      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+      <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
       </svg>
     ),
     badge: "Lead Engineer X",
-    accent: "hover:text-blue-400 hover:border-blue-500/40 hover:shadow-[0_0_25px_rgba(59,130,246,0.3)]",
+    bgColor: "bg-black border border-white/25 hover:border-white/60 hover:shadow-[0_0_25px_rgba(255,255,255,0.35)]",
   },
   {
     id: "youtube",
-    title: "Tech Briefings",
+    title: "YouTube Channel",
     handle: "@Aexon.AITech",
     url: "https://www.youtube.com/@Aexon.AITech",
     icon: (
-      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+      <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
       </svg>
     ),
     badge: "YouTube",
-    accent: "hover:text-red-400 hover:border-red-500/40 hover:shadow-[0_0_25px_rgba(239,68,68,0.3)]",
+    bgColor: "bg-[#FF0000] border border-red-400/40 hover:bg-[#E60000] hover:shadow-[0_0_25px_rgba(255,0,0,0.6)]",
   },
   {
     id: "reddit",
-    title: "Community Submissions",
+    title: "Reddit Community",
     handle: "u/QLinkOfficial",
     url: "https://www.reddit.com/user/QLinkOfficial/submitted/?sort=hot",
     icon: (
-      <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+      <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.56 12 8 12.56 8 13.25c0 .688.56 1.25 1.25 1.25.688 0 1.25-.562 1.25-1.25 0-.69-.562-1.25-1.25-1.25zm5.5 0c-.69 0-1.25.56-1.25 1.25 0 .688.56 1.25 1.25 1.25.688 0 1.25-.562 1.25-1.25 0-.69-.562-1.25-1.25-1.25zm-5.465 4.417a.364.364 0 0 0-.047.514 3.52 3.52 0 0 0 2.762 1.257c1.191 0 2.257-.533 2.762-1.257a.364.364 0 0 0-.047-.514.364.364 0 0 0-.514.047c-.387.555-1.238.96-2.201.96-.964 0-1.815-.405-2.202-.96a.364.364 0 0 0-.513-.047z" />
       </svg>
     ),
     badge: "Reddit",
-    accent: "hover:text-amber-400 hover:border-amber-500/40 hover:shadow-[0_0_25px_rgba(245,158,11,0.3)]",
+    bgColor: "bg-[#FF4500] border border-orange-400/40 hover:bg-[#E03D00] hover:shadow-[0_0_25px_rgba(255,69,0,0.6)]",
   },
 ];
 
 export default function AboutPageClient() {
-  // Real Product Tab Showcase State (Replacing toy simulator)
+  // Real Product Tab Showcase State
   const [selectedProductView, setSelectedProductView] = useState<"web" | "desktop" | "pwa">("web");
 
   // Corporate Trust Modals State
@@ -84,40 +85,55 @@ export default function AboutPageClient() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isPwaInstallable, setIsPwaInstallable] = useState(false);
 
-  // Smart Header Scroll Management (Auto-hide on downscroll, reveal on upscroll)
+  // FLUID SMART AUTO-RETREAT NAVBAR STATE
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollTopRef = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // High-performance scroll listener to auto-retreat on downscroll and fluidly reveal on upscroll
+  const handleScrollUpdate = (currentY: number, scrollHeight: number, clientHeight: number) => {
+    const isNearBottom = scrollHeight - (currentY + clientHeight) < 280;
+
+    if (isNearBottom) {
+      // If user reaches the footer area, retreat the upper navbar so it never collides!
+      setIsHeaderVisible(false);
+      lastScrollTopRef.current = currentY;
+      return;
+    }
+
+    if (currentY <= 40) {
+      // At top of page, always show
+      setIsHeaderVisible(true);
+    } else {
+      const diff = currentY - lastScrollTopRef.current;
+      if (diff > 12) {
+        // Scrolling DOWN -> fluidly retreat / hide upper layer
+        setIsHeaderVisible(false);
+      } else if (diff < -15) {
+        // Scrolling UP -> fluidly glide back into view
+        setIsHeaderVisible(true);
+      }
+    }
+
+    lastScrollTopRef.current = currentY;
+  };
+
+  const handleContainerScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    handleScrollUpdate(scrollTop, scrollHeight, clientHeight);
+  };
 
   useEffect(() => {
     const handleWindowScroll = () => {
       const currentY = window.scrollY;
-      if (currentY < 40) {
-        setIsHeaderVisible(true);
-      } else if (currentY > lastScrollY && currentY - lastScrollY > 8) {
-        // Scrolling DOWN -> smoothly slide the upper layer back / out of view
-        setIsHeaderVisible(false);
-      } else if (currentY < lastScrollY && lastScrollY - currentY > 8) {
-        // Scrolling UP -> reveal the upper layer smoothly
-        setIsHeaderVisible(true);
-      }
-      setLastScrollY(currentY);
+      const scrollHeight = document.documentElement.scrollHeight;
+      const clientHeight = window.innerHeight;
+      handleScrollUpdate(currentY, scrollHeight, clientHeight);
     };
 
     window.addEventListener("scroll", handleWindowScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleWindowScroll);
-  }, [lastScrollY]);
-
-  const handleContainerScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const currentY = e.currentTarget.scrollTop;
-    if (currentY < 40) {
-      setIsHeaderVisible(true);
-    } else if (currentY > lastScrollY && currentY - lastScrollY > 8) {
-      setIsHeaderVisible(false);
-    } else if (currentY < lastScrollY && lastScrollY - currentY > 8) {
-      setIsHeaderVisible(true);
-    }
-    setLastScrollY(currentY);
-  };
+  }, []);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -142,7 +158,11 @@ export default function AboutPageClient() {
   };
 
   return (
-    <div onScroll={handleContainerScroll} className="relative min-h-screen bg-[#070A13] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden font-sans">
+    <div
+      ref={containerRef}
+      onScroll={handleContainerScroll}
+      className="relative h-[100dvh] w-full overflow-y-auto overflow-x-hidden bg-[#070A13] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth"
+    >
       {/* Liquid Ambient Gaussian Mesh */}
       <div className="ambient-glow-cyan top-[-150px] left-[10%] animate-[floatSlow_12s_infinite_ease-in-out]" />
       <div className="ambient-glow-violet top-[30%] right-[5%] animate-[floatSlow_15s_infinite_ease-in-out]" />
@@ -151,13 +171,27 @@ export default function AboutPageClient() {
       {/* Subtle Matrix Micro-Grid */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] [background-image:radial-gradient(rgba(255,255,255,0.8)_1px,transparent_1px)] [background-size:32px_32px] -z-10" />
 
-      {/* Corporate Apple-Style Frosted Navbar */}
-      <header className={`sticky top-6 z-50 max-w-6xl mx-auto px-4 transition-all duration-300 ease-out ${isHeaderVisible ? "translate-y-0 opacity-100 pointer-events-auto" : "-translate-y-28 opacity-0 pointer-events-none"}`}
-        <nav className="apple-glass-nav rounded-full px-5 py-3 flex items-center justify-between">
+      {/* FLUID RETREATING UPPER NAVBAR (Real Q-Link Logo from Codebase) */}
+      <header
+        className={`sticky top-5 z-50 max-w-6xl mx-auto px-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isHeaderVisible
+            ? "translate-y-0 opacity-100 pointer-events-auto"
+            : "-translate-y-36 opacity-0 pointer-events-none"
+        }`}
+      >
+        <nav className="apple-glass-nav rounded-full px-5 py-3 flex items-center justify-between shadow-2xl">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 p-[1px] shadow-[0_0_15px_rgba(6,182,212,0.4)]">
-              <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-xs font-black tracking-tighter text-cyan-400 group-hover:scale-105 transition-transform">
-                Q
+            {/* REAL OFFICIAL Q-LINK LOGO (Identical to Session Key area in page.tsx) */}
+            <div className="w-8 h-8 rounded-full overflow-hidden p-[1px] bg-gradient-to-br from-cyan-400 via-blue-500 to-cyan-300 shadow-[0_0_15px_rgba(34,211,238,0.6)] flex-shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 flex items-center justify-center">
+                <Image
+                  src="/logo-256.png"
+                  alt="Q-Link"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-cover rounded-full select-none pointer-events-none"
+                  priority
+                />
               </div>
             </div>
             <div className="flex flex-col">
@@ -200,13 +234,15 @@ export default function AboutPageClient() {
         </nav>
       </header>
 
-      {/* Hero Section: Real Corporate Value & Direct Action Buttons */}
+      {/* Hero Section */}
       <main className="max-w-6xl mx-auto px-4 pt-16 pb-20">
         <div id="platform" className="text-center max-w-3xl mx-auto mb-16 scroll-mt-28">
-          {/* Corporate Release Pill */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full apple-glass-pill text-xs font-mono text-cyan-300 mb-8">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>Q-LINK PRODUCTION RELEASE v3.0 // ACTIVE DEPLOYMENT</span>
+          {/* POLISHED APPLE-STYLE PILL (Replaced the amateur green terminal badge) */}
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-md text-xs text-slate-300 mb-8 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+            <span className="font-semibold text-white tracking-wide">Q-Link v3.0</span>
+            <span className="text-slate-500">•</span>
+            <span className="text-slate-300">The Sovereign Private Communication Platform</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.08] luxury-text-silver">
@@ -288,7 +324,7 @@ export default function AboutPageClient() {
           </div>
         </div>
 
-        {/* REAL PRODUCT SUITE SHOWCASE (Replaced the toy simulator) */}
+        {/* REAL PRODUCT SUITE SHOWCASE */}
         <section id="downloads" className="mb-28 scroll-mt-28">
           <div className="apple-glass-card rounded-3xl p-8 sm:p-12 border border-white/10 relative overflow-hidden">
             <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-8">
@@ -548,7 +584,7 @@ export default function AboutPageClient() {
       </main>
 
       {/* TECH GIANT STANDARD CORPORATE MEGA FOOTER */}
-      <footer id="corporate-directory" className="relative border-t border-white/10 bg-[#050811]/90 backdrop-blur-2xl pt-16 pb-12 overflow-hidden">
+      <footer id="corporate-directory" className="relative border-t border-white/10 bg-[#050811]/95 backdrop-blur-2xl pt-16 pb-12 overflow-hidden">
         {/* Subtle Ambient Top Border Sheen */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
 
@@ -557,9 +593,17 @@ export default function AboutPageClient() {
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 pb-12 border-b border-white/10">
             <div className="max-w-md">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 p-[1px] shadow-[0_0_20px_rgba(6,182,212,0.4)]">
-                  <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-sm font-black text-cyan-400">
-                    Q
+                {/* REAL OFFICIAL Q-LINK LOGO (Identical to Session Key area in page.tsx) */}
+                <div className="w-9 h-9 rounded-full overflow-hidden p-[1px] bg-gradient-to-br from-cyan-400 via-blue-500 to-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.6)] flex-shrink-0">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 flex items-center justify-center">
+                    <Image
+                      src="/logo-256.png"
+                      alt="Q-Link Protocol Logo"
+                      width={36}
+                      height={36}
+                      className="w-full h-full object-cover rounded-full select-none pointer-events-none"
+                      priority
+                    />
                   </div>
                 </div>
                 <div className="flex items-baseline gap-2">
@@ -578,14 +622,14 @@ export default function AboutPageClient() {
               </div>
             </div>
 
-            {/* Official Social Handles Floating Dock (Logo Icons Only) */}
+            {/* Official Social Handles Floating Dock with AUTHENTIC BRAND BACKGROUNDS */}
             <div className="flex flex-col items-start lg:items-end gap-3 w-full lg:w-auto">
               <div className="text-[11px] font-mono text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
                 Official Verified Handles
               </div>
               
-              {/* Apple-Style Glass Dock (Logo Icons Only) */}
+              {/* Authentic Brand Colors Social Dock */}
               <div className="inline-flex items-center justify-center p-2.5 rounded-full apple-glass-dock border border-white/15 gap-3 shadow-[0_15px_40px_rgba(0,0,0,0.6)]">
                 {SOCIAL_LINKS.map((item) => (
                   <a
@@ -594,7 +638,7 @@ export default function AboutPageClient() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`${item.title} (${item.handle})`}
-                    className={`group relative p-3 rounded-full bg-white/[0.04] border border-white/10 text-slate-300 ${item.accent} transition-all duration-300 hover:scale-125 hover:-translate-y-1 active:scale-95`}
+                    className={`group relative p-3 rounded-full ${item.bgColor} transition-all duration-300 hover:scale-125 hover:-translate-y-1 active:scale-95 flex items-center justify-center`}
                   >
                     {/* SVG Icon */}
                     <div className="transition-transform duration-200">
@@ -603,8 +647,8 @@ export default function AboutPageClient() {
 
                     {/* Apple-Style Floating Tooltip */}
                     <div className="pointer-events-none absolute -top-11 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0 z-50">
-                      <div className="apple-glass-pill px-3 py-1 rounded-lg text-[11px] font-sans font-medium text-white whitespace-nowrap shadow-2xl border border-white/20 bg-slate-950/90">
-                        <span className="text-cyan-400 font-semibold">{item.badge}</span>: {item.handle}
+                      <div className="apple-glass-pill px-3 py-1 rounded-lg text-[11px] font-sans font-medium text-white whitespace-nowrap shadow-2xl border border-white/20 bg-slate-950/95">
+                        <span className="font-semibold text-cyan-400">{item.badge}</span>: {item.handle}
                       </div>
                     </div>
                   </a>
@@ -619,7 +663,7 @@ export default function AboutPageClient() {
             <div className="flex flex-col gap-3">
               <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-cyan-400">Platform</h5>
               <Link href="/" className="text-slate-400 hover:text-white transition-colors">Use Web App</Link>
-              <a href="/downloads/Q-Link-Setup.exe" download="Q-Link-Setup.exe" className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1">
+              <a href="/downloads/Q-Link-Setup.exe" download="Q-Link-Setup.exe" className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 font-medium">
                 <span>Download Windows (.exe)</span>
                 <span className="text-[9px] px-1 py-0.2 rounded bg-cyan-500/20 text-cyan-300">75MB</span>
               </a>
@@ -693,7 +737,7 @@ export default function AboutPageClient() {
 
       {/* Interactive Corporate Trust Modals (Privacy / Terms / Canary) */}
       {activeTrustModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
           <div className="apple-glass-card rounded-3xl p-8 max-w-lg w-full border border-white/20 shadow-2xl relative">
             <button
               onClick={() => setActiveTrustModal(null)}
