@@ -84,6 +84,41 @@ export default function AboutPageClient() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isPwaInstallable, setIsPwaInstallable] = useState(false);
 
+  // Smart Header Scroll Management (Auto-hide on downscroll, reveal on upscroll)
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleWindowScroll = () => {
+      const currentY = window.scrollY;
+      if (currentY < 40) {
+        setIsHeaderVisible(true);
+      } else if (currentY > lastScrollY && currentY - lastScrollY > 8) {
+        // Scrolling DOWN -> smoothly slide the upper layer back / out of view
+        setIsHeaderVisible(false);
+      } else if (currentY < lastScrollY && lastScrollY - currentY > 8) {
+        // Scrolling UP -> reveal the upper layer smoothly
+        setIsHeaderVisible(true);
+      }
+      setLastScrollY(currentY);
+    };
+
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleWindowScroll);
+  }, [lastScrollY]);
+
+  const handleContainerScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const currentY = e.currentTarget.scrollTop;
+    if (currentY < 40) {
+      setIsHeaderVisible(true);
+    } else if (currentY > lastScrollY && currentY - lastScrollY > 8) {
+      setIsHeaderVisible(false);
+    } else if (currentY < lastScrollY && lastScrollY - currentY > 8) {
+      setIsHeaderVisible(true);
+    }
+    setLastScrollY(currentY);
+  };
+
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -107,7 +142,7 @@ export default function AboutPageClient() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#070A13] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden font-sans">
+    <div onScroll={handleContainerScroll} className="relative min-h-screen bg-[#070A13] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden font-sans">
       {/* Liquid Ambient Gaussian Mesh */}
       <div className="ambient-glow-cyan top-[-150px] left-[10%] animate-[floatSlow_12s_infinite_ease-in-out]" />
       <div className="ambient-glow-violet top-[30%] right-[5%] animate-[floatSlow_15s_infinite_ease-in-out]" />
@@ -117,7 +152,7 @@ export default function AboutPageClient() {
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] [background-image:radial-gradient(rgba(255,255,255,0.8)_1px,transparent_1px)] [background-size:32px_32px] -z-10" />
 
       {/* Corporate Apple-Style Frosted Navbar */}
-      <header className="sticky top-6 z-50 max-w-6xl mx-auto px-4">
+      <header className={`sticky top-6 z-50 max-w-6xl mx-auto px-4 transition-all duration-300 ease-out ${isHeaderVisible ? "translate-y-0 opacity-100 pointer-events-auto" : "-translate-y-28 opacity-0 pointer-events-none"}`}
         <nav className="apple-glass-nav rounded-full px-5 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 p-[1px] shadow-[0_0_15px_rgba(6,182,212,0.4)]">
