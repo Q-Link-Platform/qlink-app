@@ -315,19 +315,18 @@ export default function AboutPageClient() {
     <div
       ref={containerRef}
             onScroll={handleContainerScroll}
-      className="relative h-[100dvh] w-full overflow-y-auto overflow-x-hidden bg-[#030508] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth"
+      className="relative h-[100dvh] w-full overflow-y-auto overflow-x-hidden text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth"
     >
-      {/* CINEMATIC QUANTUM ORBITAL BACKGROUND ENGINE */}
-      <div className="fixed inset-0 pointer-events-none -z-20 overflow-hidden">
-        {/* Visual Asset: Earth Orbital Quantum Mesh */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: "url('/visuals/qlink-orbital-vision.jpg')",
-            backgroundAttachment: "fixed",
-            filter: "brightness(0.9) contrast(1.15) saturate(1.1)",
-            opacity: 0.45,
-          }}
+      {/* CINEMATIC QUANTUM ORBITAL BACKGROUND ENGINE (z-0 in front of container base, behind z-10/z-50 content) */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#020408]">
+        {/* Visual Asset: Earth Orbital Quantum Mesh from C:\Users\bhave\OneDrive\Work\Q-link visual */}
+        <Image
+          src="/visuals/qlink-orbital-vision.jpg"
+          alt="Quantum Orbital Earth Mesh Background"
+          fill
+          priority
+          quality={100}
+          className="object-cover object-center scale-100 filter brightness-95 contrast-110"
         />
 
         {/* Ambient 3D Cyber Motion Video Overlay */}
@@ -336,25 +335,25 @@ export default function AboutPageClient() {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover mix-blend-screen opacity-15 filter contrast-125"
+          className="absolute inset-0 w-full h-full object-cover mix-blend-screen opacity-20 filter contrast-125"
         >
           <source src="/visuals/qlink-product-preview.mp4" type="video/mp4" />
         </video>
 
-        {/* Cinematic Deep Space Vignette & Gradient Mask (WCAG AAA Contrast Preservation) */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#030508]/85 via-[#030508]/70 to-[#030508]/95" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_10%,rgba(3,5,8,0.85)_80%)]" />
+        {/* Subtle Ambient Contrast Overlay: keeps Earth, network arcs and stars 100% visible while ensuring perfect text legibility */}
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#020408]/60 via-transparent to-[#020408]/85" />
       </div>
 
       {/* ARCHITECTURAL SPINE CAD GRID */}
-      <div className="q-architectural-grid opacity-60" />
+      <div className="q-architectural-grid opacity-35 z-0" />
 
       {/* CHROMATIC AMBIENT LIGHT BEAM (Top-Down Optical Dispersion) */}
       <div
-        className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[1400px] h-[650px] -z-10 blur-3xl opacity-60"
+        className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[1400px] h-[650px] z-0 blur-3xl opacity-50"
         style={{
           background:
-            "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(56,189,248,0.22) 0%, rgba(99,102,241,0.12) 40%, rgba(168,85,247,0.05) 70%, transparent 90%)",
+            "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(56,189,248,0.25) 0%, rgba(99,102,241,0.15) 40%, rgba(168,85,247,0.08) 70%, transparent 90%)",
         }}
       />
 
