@@ -83,8 +83,110 @@ const SAMPLE_HASHES = [
   "0x0A94F81C23D69BE1745281AA490C7D55",
 ];
 
+// Flagship High-Definition Product Showcase Modules
+const SHOWCASE_MODULES = [
+  {
+    id: "chat",
+    name: "Live Chat Tunnel",
+    badge: "E2E Sovereign",
+    type: "image" as const,
+    src: "/visuals/qlink-chat-tunnel.png",
+    alt: "Q-Link Live Chat Tunnel Interface",
+    title: "Zero-Trace Ephemeral Chat Tunnel",
+    tagline: "End-to-end encrypted messaging with 24-hour self-purging media attachments.",
+    description: "Experience military-grade private communication powered by ChaCha20-Poly1305. No central servers store your messages, conversations stay strictly peer-to-peer or ephemeral memory, and attachments dissolve automatically after 24 hours.",
+    metrics: [
+      { label: "Encryption", value: "ChaCha20-Poly1305" },
+      { label: "Cloud Storage", value: "0 Bytes Logged" },
+      { label: "Media Retention", value: "Strict 24h Purge" },
+    ],
+  },
+  {
+    id: "video",
+    name: "Motion Demo",
+    badge: "60fps Video",
+    type: "video" as const,
+    src: "/visuals/qlink-product-preview.mp4",
+    alt: "Q-Link Live Product Motion Video",
+    title: "High-Performance Fluid Architecture",
+    tagline: "Ultra-responsive client interface crafted for desktop and modern browsers.",
+    description: "Watch the live product workflow in action. From real-time cryptographic handshakes to instant socket routing and dynamic theme rendering, every frame is hardware-accelerated for zero stutter.",
+    metrics: [
+      { label: "Frame Rate", value: "60 FPS Fluid" },
+      { label: "Client Engine", value: "Hardware GPU" },
+      { label: "Handshake Speed", value: "<12ms Average" },
+    ],
+  },
+  {
+    id: "directory",
+    name: "Global Directory",
+    badge: "Verified Network",
+    type: "image" as const,
+    src: "/visuals/qlink-global-directory.png",
+    alt: "Q-Link Global Quantum Directory Interface",
+    title: "Global Quantum Directory & Founder IDs",
+    tagline: "Discover, connect, and collaborate with verified founders and VIPs worldwide.",
+    description: "Search the global directory by unique Quantum ID without exposing personal emails or phone numbers. Connect directly with elite founders and build high-trust relationships protected by cryptographic authenticity.",
+    metrics: [
+      { label: "Identity Binding", value: "Zero-KYC Math ID" },
+      { label: "Search Index", value: "Global P2P Hash" },
+      { label: "Connect Flow", value: "1-Click Direct Request" },
+    ],
+  },
+  {
+    id: "feed",
+    name: "Social Feed",
+    badge: "Aura Ranked",
+    type: "image" as const,
+    src: "/visuals/qlink-social-feed.png",
+    alt: "Q-Link Quantum ID Console Social Feed Interface",
+    title: "Quantum ID Console & Media Broadcast",
+    tagline: "Share thoughts and media globally with customizable visibility and Aura metrics.",
+    description: "Broadcast updates to the planet or selectively to followers and friends. Engage with real community posts devoid of corporate algorithmic rage-bait, boosted only by organic connection Aura.",
+    metrics: [
+      { label: "Distribution", value: "Global / Followers / Friends" },
+      { label: "Algorithmic Bias", value: "0% Ad Manipulation" },
+      { label: "Rich Media", value: "Images & Video Streams" },
+    ],
+  },
+  {
+    id: "vip",
+    name: "Sapphire VIP",
+    badge: "3D Hologram",
+    type: "image" as const,
+    src: "/visuals/qlink-vip-upgrade.png",
+    alt: "Q-Link Sapphire VIP Card Interface",
+    title: "Sapphire VIP Upgrade & Hologram Reflex",
+    tagline: "Permanent cobalt badge, pinned directory header, and 1.5x Aura score booster.",
+    description: "Elevate your identity across all directory searches and chat rooms. Features an interactive 3D holographic card reflex, custom cobalt aurora glow, and permanent prominence in the community.",
+    metrics: [
+      { label: "Aura Multiplier", value: "1.5x Dynamic Booster" },
+      { label: "Directory Rank", value: "#VIP Permanent Pin" },
+      { label: "Visual FX", value: "Reactive 3D Hologram" },
+    ],
+  },
+  {
+    id: "privacy",
+    name: "Privacy Hub",
+    badge: "Zero-Knowledge",
+    type: "image" as const,
+    src: "/visuals/qlink-privacy-settings.png",
+    alt: "Q-Link Sovereign Privacy Settings Hub Interface",
+    title: "Granular Privacy Controls & Sovereign Settings",
+    tagline: "Total control over visibility, lock-screen notifications, and encryption shields.",
+    description: "Fine-tune your identity privacy with granular field switches (Private/Public) for age, gender, and bio. Activate the E2E encryption shield, manage web push alerts, and purge sessions instantly on command.",
+    metrics: [
+      { label: "Field Privacy", value: "Per-Attribute Masking" },
+      { label: "Push Notification", value: "Lock-Screen Alerts" },
+      { label: "Session Control", value: "1-Tap Instant Wipe" },
+    ],
+  },
+];
+
 export default function AboutPageClient() {
   const [selectedProductView, setSelectedProductView] = useState<"web" | "desktop" | "pwa">("web");
+  const [activeShowcaseTab, setActiveShowcaseTab] = useState<string>("chat");
+  const currentModule = SHOWCASE_MODULES.find((m) => m.id === activeShowcaseTab) || SHOWCASE_MODULES[0];
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isPwaInstallable, setIsPwaInstallable] = useState(false);
 
@@ -354,6 +456,124 @@ export default function AboutPageClient() {
           </div>
         </div>
 
+        {/* FLAGSHIP REAL PRODUCT SHOWCASE WINDOW (THE VALUE PROPOSITION CANVAS) */}
+        <section id="product-showcase" className="w-full max-w-5xl mx-auto mb-28 scroll-mt-24">
+          <div className="q-spotlight-card rounded-3xl p-3 sm:p-6 border border-white/15 bg-[#070b14]/90 shadow-[0_25px_80px_rgba(0,0,0,0.85)] relative">
+            {/* Window Chrome Bar */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-4 px-2 border-b border-white/[0.08]">
+              {/* Window Controls */}
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-red-500/80 border border-red-400/40" />
+                <span className="w-3 h-3 rounded-full bg-yellow-500/80 border border-yellow-400/40" />
+                <span className="w-3 h-3 rounded-full bg-emerald-500/80 border border-emerald-400/40" />
+                <span className="text-[11px] font-mono text-slate-400 ml-2 hidden sm:inline">Q-Link v3.0 Production App</span>
+              </div>
+
+              {/* Tab Switchers (All 6 Flagship Modules with sleek pill buttons) */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-white/10 text-xs font-mono overflow-x-auto max-w-full no-scrollbar">
+                {SHOWCASE_MODULES.map((m) => {
+                  const isActive = activeShowcaseTab === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      onClick={() => setActiveShowcaseTab(m.id)}
+                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                        isActive
+                          ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-md"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <span>{m.name}</span>
+                      {isActive && (
+                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/20 text-white uppercase tracking-wider">
+                          {m.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Real-time indicator */}
+              <div className="hidden xl:flex items-center gap-2 text-[11px] font-mono text-emerald-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>ACTIVE P2P NODE</span>
+              </div>
+            </div>
+
+            {/* Visual Viewport with Real High-Res Asset */}
+            <div className="mt-4 rounded-2xl overflow-hidden border border-white/10 relative bg-black/80 shadow-2xl">
+              {currentModule.type === "video" ? (
+                <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[640px] flex items-center justify-center bg-black">
+                  <video
+                    src={currentModule.src}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    controls
+                    className="w-full h-full object-contain rounded-2xl"
+                  />
+                </div>
+              ) : (
+                <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[640px] flex items-center justify-center bg-black">
+                  <Image
+                    src={currentModule.src}
+                    alt={currentModule.alt}
+                    width={1536}
+                    height={1024}
+                    className="w-full h-full object-contain rounded-2xl select-none"
+                    priority
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Feature Descriptor & Metrics Bar */}
+            <div className="mt-5 p-4 rounded-2xl bg-black/40 border border-white/[0.06] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="max-w-2xl">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                  <span className="text-xs font-mono uppercase tracking-widest text-cyan-400 font-bold">
+                    {currentModule.badge}
+                  </span>
+                  <span className="text-slate-600">|</span>
+                  <span className="text-xs font-bold text-white tracking-wide">
+                    {currentModule.title}
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
+                  {currentModule.description}
+                </p>
+              </div>
+
+              {/* Quick Launch CTA */}
+              <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                <Link
+                  href="/"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-lg hover:shadow-cyan-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap flex items-center gap-1.5"
+                >
+                  <span>Launch Web App</span>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+
+            {/* Bottom 3 Real Technical Metrics */}
+            <div className="mt-3 pt-3 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-slate-400 px-2 border-t border-white/[0.06]">
+              {currentModule.metrics.map((metric, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                  <span className="text-slate-500">{metric.label}:</span>
+                  <span className="text-slate-200 font-semibold">{metric.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* LIVE CRYPTOGRAPHIC TELEMETRY COCKPIT (THE "SHOW, DON'T TELL" SHOWCASE) */}
         <section id="telemetry" className="mb-28 scroll-mt-28">
           <div className="q-spotlight-card rounded-3xl p-6 sm:p-10 border border-white/10 shadow-[0_20px_70px_rgba(0,0,0,0.8)]">
@@ -607,94 +827,136 @@ export default function AboutPageClient() {
           </div>
         </section>
 
-        {/* CORE ARCHITECTURE GRID (RAYCAST SPOTLIGHT CARDS) */}
+        {/* PRODUCT ARCHITECTURE & VISUAL FEATURE SUITE */}
         <section id="architecture" className="mb-28 scroll-mt-28">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs font-mono tracking-widest text-cyan-400 uppercase font-bold block mb-3">
-              Cryptographic Engine
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">
-              Engineered for Zero Data Retention
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-mono text-xs uppercase tracking-widest mb-3">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              Sovereign Product Architecture
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-4">
+              Engineered for Zero Data Retention & Maximum Control
             </h2>
-            <p className="text-sm text-slate-400 leading-relaxed">
-              Every system layer in Q-Link is built around deterministic math and immediate client sovereignty.
+            <p className="text-sm sm:text-base text-slate-400 leading-relaxed max-w-2xl mx-auto">
+              Every system module in Q-Link is built around deterministic math, immediate client sovereignty, and high-performance visual elegance.
             </p>
           </div>
 
+          {/* 4 Flagship Visual Feature Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Card 1: Dynamic Contact Ranking */}
-            <div className="q-spotlight-card rounded-3xl p-8 border border-white/10 flex flex-col justify-between">
+            {/* Card 1: Chat Tunnel */}
+            <div className="q-spotlight-card rounded-3xl p-6 sm:p-8 border border-white/10 flex flex-col justify-between group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-6 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
+                <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-6 border border-white/10 bg-black/60 shadow-lg">
+                  <Image
+                    src="/visuals/qlink-chat-tunnel.png"
+                    alt="ChaCha20 Ephemeral Chat Tunnel"
+                    width={800}
+                    height={500}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-cyan-300 font-bold uppercase tracking-wider">
+                    ChaCha20-Poly1305
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">Dynamic Recency Contact Ranking</h3>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  Contacts with unread incoming messages automatically leap to the top of your inbox. Active ongoing conversations auto-prioritize chronologically in real-time.
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 flex items-center justify-between">
+                  <span>Zero-Trace Ephemeral Chat</span>
+                  <span className="text-xs font-mono text-cyan-400 font-normal">24h Purge</span>
+                </h3>
+                <p className="text-sm text-slate-300 leading-relaxed mb-4">
+                  Direct peer-to-peer tunnels with cryptographic authenticity. Media attachments automatically self-destruct after 24 hours, reducing personal data liability to zero.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
-                <span>Algorithmic Weighting</span>
-                <span className="text-cyan-400">0ms Client-Side</span>
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
+                <span>Memory Storage</span>
+                <span className="text-emerald-400 font-semibold">0 Bytes Cloud Logs</span>
               </div>
             </div>
 
-            {/* Card 2: 24h Ephemeral Self-Cleaning */}
-            <div className="q-spotlight-card rounded-3xl p-8 border border-white/10 flex flex-col justify-between">
+            {/* Card 2: Global Directory */}
+            <div className="q-spotlight-card rounded-3xl p-6 sm:p-8 border border-white/10 flex flex-col justify-between group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 shadow-[0_0_20px_rgba(99,102,241,0.15)]">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-6 border border-white/10 bg-black/60 shadow-lg">
+                  <Image
+                    src="/visuals/qlink-global-directory.png"
+                    alt="Global Quantum Directory"
+                    width={800}
+                    height={500}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-cyan-300 font-bold uppercase tracking-wider">
+                    Verified Founders
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">24-Hour Ephemeral Media Purge</h3>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  Shared media and attachments automatically delete themselves 24 hours after dispatch. No unmonitored permanent databases, reducing data liability to zero.
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 flex items-center justify-between">
+                  <span>Global Sovereign Directory</span>
+                  <span className="text-xs font-mono text-cyan-400 font-normal">Zero KYC</span>
+                </h3>
+                <p className="text-sm text-slate-300 leading-relaxed mb-4">
+                  Discover elite founders and sapphire VIPs across the network using purely mathematical Quantum IDs. Zero phone number or email exposure required.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
-                <span>Retention Horizon</span>
-                <span className="text-indigo-400">Strict 24.00h TTL</span>
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
+                <span>Identity Model</span>
+                <span className="text-cyan-400 font-semibold">Cryptographic ID</span>
               </div>
             </div>
 
-            {/* Card 3: Q-BEACON Priority Alerts */}
-            <div className="q-spotlight-card rounded-3xl p-8 border border-white/10 flex flex-col justify-between">
+            {/* Card 3: Social Feed */}
+            <div className="q-spotlight-card rounded-3xl p-6 sm:p-8 border border-white/10 flex flex-col justify-between group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mb-6 shadow-[0_0_20px_rgba(168,85,247,0.15)]">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
+                <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-6 border border-white/10 bg-black/60 shadow-lg">
+                  <Image
+                    src="/visuals/qlink-social-feed.png"
+                    alt="Quantum ID Console Social Feed"
+                    width={800}
+                    height={500}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-cyan-300 font-bold uppercase tracking-wider">
+                    Aura Algorithm
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">Q-BEACON Priority Alert Protocol</h3>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  High-priority broadcast channel ensuring mission-critical alerts bypass standard muted notifications for rapid emergency synchronization.
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 flex items-center justify-between">
+                  <span>Decentralized Media Feed</span>
+                  <span className="text-xs font-mono text-indigo-400 font-normal">Organic Reach</span>
+                </h3>
+                <p className="text-sm text-slate-300 leading-relaxed mb-4">
+                  Share posts and rich media with customizable scope (Global, Followers, or Friends). Ranked by natural peer connection Aura rather than commercial ad-tracking.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
-                <span>Priority Level</span>
-                <span className="text-purple-400">Class 1 Urgent</span>
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
+                <span>Algorithmic Bias</span>
+                <span className="text-indigo-400 font-semibold">0% Ad Distortion</span>
               </div>
             </div>
 
-            {/* Card 4: Hardware & GPU Switcher */}
-            <div className="q-spotlight-card rounded-3xl p-8 border border-white/10 flex flex-col justify-between">
+            {/* Card 4: Sapphire VIP */}
+            <div className="q-spotlight-card rounded-3xl p-6 sm:p-8 border border-white/10 flex flex-col justify-between group">
               <div>
-                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                  </svg>
+                <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden mb-6 border border-white/10 bg-black/60 shadow-lg">
+                  <Image
+                    src="/visuals/qlink-vip-upgrade.png"
+                    alt="Sapphire VIP Hologram Card"
+                    width={800}
+                    height={500}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-cyan-300 font-bold uppercase tracking-wider">
+                    3D Hologram Reflex
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">Hardware & GPU Performance Switcher</h3>
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  Toggle between high-performance 60fps GPU acceleration for desktop work, or lightweight low-power mode for extended mobile battery endurance.
+                <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 flex items-center justify-between">
+                  <span>Sapphire VIP Identity</span>
+                  <span className="text-xs font-mono text-blue-400 font-normal">1.5x Booster</span>
+                </h3>
+                <p className="text-sm text-slate-300 leading-relaxed mb-4">
+                  Permanent cobalt verification badge, pinned directory positioning, and a reactive 3D holographic card preview that shines on all directory screens.
                 </p>
               </div>
-              <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
-                <span>Rendering Engine</span>
-                <span className="text-emerald-400">WebGL / Canvas 2D</span>
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
+                <span>Directory Priority</span>
+                <span className="text-blue-400 font-semibold">Permanent Pin</span>
               </div>
             </div>
           </div>
