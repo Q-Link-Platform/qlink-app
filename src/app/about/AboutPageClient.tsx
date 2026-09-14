@@ -234,32 +234,18 @@ export default function AboutPageClient() {
         }`}
       >
         <nav className="rounded-full px-5 py-3 flex items-center justify-between border border-white/[0.12] bg-[#070b14]/85 backdrop-blur-2xl shadow-[0_12px_45px_rgba(0,0,0,0.7)]">
-          <Link href="/" className="flex items-center gap-3 group">
-            {/* REAL OFFICIAL Q-LINK LOGO (With Specular Cyan Halo) */}
-            <div className="w-8 h-8 rounded-full overflow-hidden p-[1px] bg-gradient-to-br from-cyan-400 via-blue-500 to-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.7)] flex-shrink-0 group-hover:scale-105 transition-transform duration-300">
-              <div className="w-full h-full rounded-full overflow-hidden bg-slate-950 flex items-center justify-center">
-                <Image
-                  src="/logo-256.png"
-                  alt="Q-Link Logo"
-                  width={32}
-                  height={32}
-                  className="w-full h-full object-cover rounded-full select-none pointer-events-none"
-                  priority
-                />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
-                Q-Link
-                <span className="text-[9px] uppercase font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 tracking-wider">
-                  v3.0 PROD
-                </span>
-              </span>
-            </div>
+          {/* SLEEK SPACIOUS BRAND (Logo removed as requested to eliminate chaos and give breathing room) */}
+          <Link href="/" className="flex items-center gap-2 group whitespace-nowrap">
+            <span className="text-base font-black tracking-tight text-white group-hover:text-cyan-300 transition-colors">
+              Q-Link
+            </span>
+            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold tracking-wider">
+              v3.0
+            </span>
           </Link>
 
-          {/* SLEEK UNCLIPPED CORPORATE NAVIGATION */}
-          <div className="hidden md:flex items-center gap-7 text-xs font-mono tracking-wider uppercase text-slate-400">
+          {/* FULL SPELLING UNCLIPPED CORPORATE NAVIGATION */}
+          <div className="hidden lg:flex items-center gap-8 text-xs font-mono tracking-wider uppercase text-slate-400 whitespace-nowrap">
             <a href="#platform" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Platform</a>
             <a href="#telemetry" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Telemetry</a>
             <a href="#downloads" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Client Suite</a>
@@ -268,26 +254,16 @@ export default function AboutPageClient() {
             <a href="#corporate-directory" className="hover:text-white hover:text-cyan-400 transition-colors py-1">Governance</a>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Direct Windows Client Download Button with Hardware Styling */}
-            <a
-              href="/downloads/Q-Link-Setup.exe"
-              download="Q-Link-Setup.exe"
-              className="hidden sm:inline-flex items-center gap-2 text-[11px] font-mono tracking-wider uppercase px-4 py-2 rounded-full q-btn-hardware text-slate-200"
-              title="Download Windows Desktop App (75MB .exe)"
-            >
-              <svg className="w-3.5 h-3.5 text-cyan-400 fill-current" viewBox="0 0 24 24">
-                <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.949-1.801" />
-              </svg>
-              <span>Download .exe</span>
-            </a>
-
-            {/* Direct Web App Button */}
+          {/* RIGHT SIDE: ONLY CLEAN FOCUSED WEB APP CTA (Windows .exe moved to Hero & Suite to eliminate chaos) */}
+          <div className="flex items-center gap-3 whitespace-nowrap">
             <Link
               href="/"
-              className="text-[12px] font-semibold tracking-wide px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-[0_0_24px_rgba(6,182,212,0.45)] hover:shadow-[0_0_36px_rgba(6,182,212,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+              className="text-xs font-bold tracking-wide px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center gap-1.5"
             >
-              Use Web App
+              <span>Use Web App</span>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
             </Link>
           </div>
         </nav>
