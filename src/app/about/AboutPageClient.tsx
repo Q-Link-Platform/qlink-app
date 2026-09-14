@@ -74,10 +74,8 @@ const SOCIAL_LINKS = [
 ];
 
 export default function AboutPageClient() {
-  // Interactive Simulator State
-  const [quantumSeed, setQuantumSeed] = useState("Q-8F92-A41D-99C1");
-  const [shredState, setShredState] = useState<"idle" | "shredding" | "shredded">("idle");
-  const [copied, setCopied] = useState(false);
+  // Real Product Tab Showcase State (Replacing toy simulator)
+  const [selectedProductView, setSelectedProductView] = useState<"web" | "desktop" | "pwa">("web");
 
   // Corporate Trust Modals State
   const [activeTrustModal, setActiveTrustModal] = useState<"privacy" | "terms" | "canary" | null>(null);
@@ -108,31 +106,6 @@ export default function AboutPageClient() {
     }
   };
 
-  const generateNewQuantumKey = () => {
-    const chars = "0123456789ABCDEF";
-    const segment = () => Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-    const newKey = `Q-${segment()}-${segment()}-${segment()}`;
-    setQuantumSeed(newKey);
-    setShredState("idle");
-    setCopied(false);
-  };
-
-  const handleShred = () => {
-    setShredState("shredding");
-    setTimeout(() => {
-      setQuantumSeed("0000-0000-0000-WIPED");
-      setShredState("shredded");
-    }, 450);
-  };
-
-  const copyKey = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(quantumSeed);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
   return (
     <div className="relative min-h-screen bg-[#070A13] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden font-sans">
       {/* Liquid Ambient Gaussian Mesh */}
@@ -143,9 +116,9 @@ export default function AboutPageClient() {
       {/* Subtle Matrix Micro-Grid */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] [background-image:radial-gradient(rgba(255,255,255,0.8)_1px,transparent_1px)] [background-size:32px_32px] -z-10" />
 
-      {/* Floating Apple-Style Frosted Navbar */}
+      {/* Corporate Apple-Style Frosted Navbar */}
       <header className="sticky top-6 z-50 max-w-6xl mx-auto px-4">
-        <nav className="apple-glass-nav rounded-full px-5 py-3.5 flex items-center justify-between">
+        <nav className="apple-glass-nav rounded-full px-5 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 p-[1px] shadow-[0_0_15px_rgba(6,182,212,0.4)]">
               <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center text-xs font-black tracking-tighter text-cyan-400 group-hover:scale-105 transition-transform">
@@ -160,77 +133,111 @@ export default function AboutPageClient() {
           </Link>
 
           <div className="hidden md:flex items-center gap-7 text-xs font-medium text-slate-300">
-            <a href="#vision" className="hover:text-white transition-colors">Vision</a>
+            <a href="#platform" className="hover:text-white transition-colors">Platform</a>
             <a href="#architecture" className="hover:text-white transition-colors">Architecture</a>
-            <a href="#simulator" className="hover:text-white transition-colors">Key Simulator</a>
-            <a href="#comparison" className="hover:text-white transition-colors">Benchmark</a>
-            <a href="#network-directory" className="hover:text-cyan-400 transition-colors">Corporate Directory</a>
+            <a href="#downloads" className="hover:text-white transition-colors">Download</a>
+            <a href="#comparison" className="hover:text-white transition-colors">Security Specs</a>
+            <a href="#corporate-directory" className="hover:text-cyan-400 transition-colors">Corporate Directory</a>
           </div>
 
-          <div className="flex items-center gap-3">
-            {isPwaInstallable && (
-              <button
-                onClick={handleInstallPwa}
-                className="hidden sm:flex text-xs font-medium px-3.5 py-1.5 rounded-full apple-glass-pill hover:bg-white/10 text-slate-200 transition-colors"
-              >
-                Install Client
-              </button>
-            )}
+          <div className="flex items-center gap-2.5">
+            {/* Direct Windows Client Download Button */}
+            <a
+              href="/downloads/Q-Link-Setup.exe"
+              download="Q-Link-Setup.exe"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-full apple-glass-pill hover:bg-white/10 text-slate-200 transition-colors"
+              title="Download Windows Desktop App (75MB .exe)"
+            >
+              <svg className="w-3.5 h-3.5 text-cyan-400 fill-current" viewBox="0 0 24 24">
+                <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.949-1.801" />
+              </svg>
+              <span>Download .exe</span>
+            </a>
+
+            {/* Direct Web App Button */}
             <Link
               href="/"
               className="sheen-beam text-xs font-semibold px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              Launch App
+              Use Web App
             </Link>
           </div>
         </nav>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-6xl mx-auto px-4 pt-20 pb-20">
-        <div id="vision" className="text-center max-w-3xl mx-auto mb-20 scroll-mt-28">
-          {/* Frosted Status Pill */}
+      {/* Hero Section: Real Corporate Value & Direct Action Buttons */}
+      <main className="max-w-6xl mx-auto px-4 pt-16 pb-20">
+        <div id="platform" className="text-center max-w-3xl mx-auto mb-16 scroll-mt-28">
+          {/* Corporate Release Pill */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full apple-glass-pill text-xs font-mono text-cyan-300 mb-8">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="w-2 h-2 rounded-full bg-emerald-400 -ml-4" />
-            <span>ZERO-KNOWLEDGE ARCHITECTURE // 0 BYTES PERSISTED</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span>Q-LINK PRODUCTION RELEASE v3.0 // ACTIVE DEPLOYMENT</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.08] luxury-text-silver">
-            The Architecture of <br className="hidden sm:block" />
-            <span className="luxury-text-cyan">Pure Human Privacy.</span>
+            The Private Communication Platform.<br className="hidden sm:block" />
+            <span className="luxury-text-cyan">Zero Telemetry. Real Sovereignty.</span>
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-400 font-normal leading-relaxed mb-10">
-            Surveillance capitalism transformed communication into continuous biometric and behavioural harvesting.
-            <strong className="text-slate-200 font-medium"> Q-Link</strong> re-engineers human connection: no phone numbers, no emails, no profiling algorithms, and zero server message persistence.
+          <p className="text-base sm:text-lg text-slate-300 font-normal leading-relaxed mb-10">
+            Connect securely without phone numbers, email harvesting, or permanent cloud storage. Q-Link is fully accessible directly in your browser, or installable as a native Windows desktop client.
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          {/* REAL CORPORATE ACTION BUTTONS ON TOPPER LAYER */}
+          <div className="flex flex-wrap items-center justify-center gap-4 mb-6">
+            {/* Primary Action: Use Web App */}
             <Link
               href="/"
-              className="sheen-beam px-7 py-3.5 rounded-full bg-white text-slate-950 font-semibold text-sm shadow-[0_10px_30px_rgba(255,255,255,0.25)] hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+              className="sheen-beam px-8 py-3.5 rounded-2xl bg-white text-slate-950 font-bold text-sm shadow-[0_10px_30px_rgba(255,255,255,0.25)] hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2.5"
             >
-              <span>Enter Autonomous Network</span>
+              <span>Use Web App</span>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </Link>
 
+            {/* Secondary Action: Direct Windows Client Download (.exe) */}
             <a
-              href="#simulator"
-              className="px-6 py-3.5 rounded-full apple-glass-pill hover:bg-white/[0.08] text-slate-200 text-sm font-medium transition-all"
+              href="/downloads/Q-Link-Setup.exe"
+              download="Q-Link-Setup.exe"
+              className="px-7 py-3.5 rounded-2xl apple-glass-pill hover:bg-white/[0.08] border border-white/15 text-white font-semibold text-sm transition-all flex items-center gap-3 hover:scale-[1.02] active:scale-[0.98]"
             >
-              Test Quantum Simulator
+              <svg className="w-4 h-4 text-cyan-400 fill-current" viewBox="0 0 24 24">
+                <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.949-1.801" />
+              </svg>
+              <span>Download for Windows</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 font-normal">75 MB .exe</span>
             </a>
+
+            {/* Native PWA Option if supported */}
+            {isPwaInstallable && (
+              <button
+                onClick={handleInstallPwa}
+                className="px-5 py-3.5 rounded-2xl apple-glass-pill hover:bg-white/[0.08] text-slate-300 font-medium text-sm transition-all"
+              >
+                Install Web App (PWA)
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400 font-mono">
+            <span className="flex items-center gap-1.5">
+              <span className="text-emerald-400">✓</span> Instant Browser Access
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-emerald-400">✓</span> Windows 10/11 64-bit Installer
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="text-emerald-400">✓</span> No Account / Phone / KYC
+            </span>
           </div>
         </div>
 
-        {/* Apple Keynote Metric Highlights */}
+        {/* Corporate Metric Highlights */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-24">
           <div className="apple-glass-card rounded-2xl p-6 text-center">
             <div className="text-3xl sm:text-4xl font-black text-white font-mono mb-1">0 Bytes</div>
-            <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Central Data Storage</div>
+            <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Central Storage</div>
           </div>
           <div className="apple-glass-card rounded-2xl p-6 text-center">
             <div className="text-3xl sm:text-4xl font-black text-cyan-400 font-mono mb-1">0 KYC</div>
@@ -238,13 +245,134 @@ export default function AboutPageClient() {
           </div>
           <div className="apple-glass-card rounded-2xl p-6 text-center">
             <div className="text-3xl sm:text-4xl font-black text-indigo-400 font-mono mb-1">&lt;15ms</div>
-            <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Real-Time Peer Pulse</div>
+            <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Message Latency</div>
           </div>
           <div className="apple-glass-card rounded-2xl p-6 text-center">
             <div className="text-3xl sm:text-4xl font-black text-emerald-400 font-mono mb-1">100%</div>
-            <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Client-Side Autonomy</div>
+            <div className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Autonomous Client</div>
           </div>
         </div>
+
+        {/* REAL PRODUCT SUITE SHOWCASE (Replaced the toy simulator) */}
+        <section id="downloads" className="mb-28 scroll-mt-28">
+          <div className="apple-glass-card rounded-3xl p-8 sm:p-12 border border-white/10 relative overflow-hidden">
+            <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 mb-8">
+              <div className="max-w-xl">
+                <span className="text-xs font-mono uppercase tracking-widest text-cyan-400 mb-2 block">Production Suite</span>
+                <h3 className="text-3xl font-bold text-white mb-2">Experience the Real Platform</h3>
+                <p className="text-sm text-slate-400">
+                  Choose how you want to run Q-Link. Run immediately in your browser or install the dedicated Windows client.
+                </p>
+              </div>
+
+              {/* View Selector Tabs */}
+              <div className="inline-flex p-1.5 rounded-xl apple-glass-pill gap-1.5 text-xs font-medium">
+                <button
+                  onClick={() => setSelectedProductView("web")}
+                  className={`px-4 py-2 rounded-lg transition-all ${selectedProductView === "web" ? "bg-white text-slate-950 font-bold shadow-md" : "text-slate-300 hover:text-white"}`}
+                >
+                  Web Terminal
+                </button>
+                <button
+                  onClick={() => setSelectedProductView("desktop")}
+                  className={`px-4 py-2 rounded-lg transition-all ${selectedProductView === "desktop" ? "bg-white text-slate-950 font-bold shadow-md" : "text-slate-300 hover:text-white"}`}
+                >
+                  Windows Client (.exe)
+                </button>
+                <button
+                  onClick={() => setSelectedProductView("pwa")}
+                  className={`px-4 py-2 rounded-lg transition-all ${selectedProductView === "pwa" ? "bg-white text-slate-950 font-bold shadow-md" : "text-slate-300 hover:text-white"}`}
+                >
+                  Mobile PWA
+                </button>
+              </div>
+            </div>
+
+            {/* Dynamic Product Card Display */}
+            <div className="bg-slate-950/80 rounded-2xl border border-white/10 p-6 sm:p-8">
+              {selectedProductView === "web" && (
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div className="space-y-3 max-w-lg">
+                    <div className="inline-flex items-center gap-2 text-xs font-mono text-cyan-300 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">
+                      <span>CLIENT: ZERO INSTALLATION</span>
+                    </div>
+                    <h4 className="text-2xl font-bold text-white">Direct Web Application</h4>
+                    <p className="text-sm text-slate-400 leading-relaxed">
+                      Instant zero-setup access from Chrome, Safari, Firefox, or Edge. Your Quantum ID is generated locally in your browser memory and never stored in any cloud database.
+                    </p>
+                    <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-500 pt-2">
+                      <span>• Real-Time Encrypted Messenger</span>
+                      <span>• Dual-Stream Community Timeline</span>
+                      <span>• In-App Live Notifications</span>
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/"
+                    className="sheen-beam px-8 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-sm shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all whitespace-nowrap"
+                  >
+                    Open Web App Now →
+                  </Link>
+                </div>
+              )}
+
+              {selectedProductView === "desktop" && (
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div className="space-y-3 max-w-lg">
+                    <div className="inline-flex items-center gap-2 text-xs font-mono text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+                      <span>STANDALONE BINARY // WINDOWS x64</span>
+                    </div>
+                    <h4 className="text-2xl font-bold text-white">Q-Link for Windows</h4>
+                    <p className="text-sm text-slate-400 leading-relaxed">
+                      Dedicated desktop executable with native Windows notifications, background system tray support, and offline memory protection. Zero browser memory leaks.
+                    </p>
+                    <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-500 pt-2">
+                      <span>• Installer: Q-Link-Setup.exe</span>
+                      <span>• Size: 75.1 MB</span>
+                      <span>• OS: Windows 10 / 11 64-bit</span>
+                    </div>
+                  </div>
+
+                  <a
+                    href="/downloads/Q-Link-Setup.exe"
+                    download="Q-Link-Setup.exe"
+                    className="px-8 py-3.5 rounded-xl bg-white text-slate-950 font-bold text-sm shadow-xl hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2.5 whitespace-nowrap"
+                  >
+                    <svg className="w-4 h-4 text-cyan-600 fill-current" viewBox="0 0 24 24">
+                      <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.949-1.801" />
+                    </svg>
+                    <span>Download Windows .exe (75MB)</span>
+                  </a>
+                </div>
+              )}
+
+              {selectedProductView === "pwa" && (
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div className="space-y-3 max-w-lg">
+                    <div className="inline-flex items-center gap-2 text-xs font-mono text-emerald-300 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                      <span>PROGRESSIVE WEB APP // MOBILE & TABLET</span>
+                    </div>
+                    <h4 className="text-2xl font-bold text-white">Install on Mobile Devices</h4>
+                    <p className="text-sm text-slate-400 leading-relaxed">
+                      Install Q-Link directly to your iOS or Android home screen with zero app store surveillance. Runs fullscreen with full offline message caching.
+                    </p>
+                    <div className="flex flex-wrap gap-4 text-xs font-mono text-slate-500 pt-2">
+                      <span>• iOS Safari: Share &rarr; Add to Home Screen</span>
+                      <span>• Android: Install Prompt Supported</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleInstallPwa}
+                    className="px-8 py-3.5 rounded-xl apple-glass-pill hover:bg-white/10 text-white font-bold text-sm transition-all whitespace-nowrap"
+                  >
+                    Install PWA Now
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
 
         {/* Section: Architectural Bento Grid */}
         <section id="architecture" className="mb-28 scroll-mt-28">
@@ -334,67 +462,6 @@ export default function AboutPageClient() {
           </div>
         </section>
 
-        {/* Section: Interactive Quantum Key Simulator */}
-        <section id="simulator" className="mb-28 scroll-mt-28">
-          <div className="apple-glass-card rounded-3xl p-8 sm:p-12 border border-white/10 relative overflow-hidden">
-            <div className="max-w-2xl mb-8">
-              <span className="text-xs font-mono uppercase tracking-widest text-cyan-400 mb-2 block">Live Interactive Test</span>
-              <h3 className="text-3xl font-bold text-white mb-3">Cryptographic Key Simulator</h3>
-              <p className="text-sm text-slate-400">
-                Experience how your device creates, signs, and incinerates ephemeral credentials without sending a single byte to a central database.
-              </p>
-            </div>
-
-            <div className="bg-slate-950/80 rounded-2xl border border-white/10 p-6 font-mono mb-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/5">
-                <div className="text-xs text-slate-500">ACTIVE QUANTUM SEED:</div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    {shredState === "shredded" ? "SHREDDED" : "ENCRYPTED"}
-                  </span>
-                  <span className="text-xs px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                    CLIENT MEMORY ONLY
-                  </span>
-                </div>
-              </div>
-
-              <div className="py-6 flex items-center justify-between gap-4 flex-wrap">
-                <div className={`text-xl sm:text-2xl tracking-wider transition-all duration-300 ${shredState === "shredded" ? "text-red-400 line-through opacity-50" : "text-cyan-300 font-bold"}`}>
-                  {quantumSeed}
-                </div>
-                <button
-                  onClick={copyKey}
-                  disabled={shredState === "shredded"}
-                  className="px-3.5 py-1.5 rounded-lg apple-glass-pill text-xs font-sans text-slate-300 hover:text-white transition-colors"
-                >
-                  {copied ? "Copied!" : "Copy Seed"}
-                </button>
-              </div>
-
-              <div className="text-[11px] text-slate-500 pt-3 border-t border-white/5 flex flex-wrap items-center justify-between gap-2">
-                <span>HASH ALGORITHM: SHA-256 / CURVE25519</span>
-                <span>PERSISTENCE RISK: 0.00%</span>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <button
-                onClick={generateNewQuantumKey}
-                className="px-5 py-2.5 rounded-xl apple-glass-pill hover:bg-white/10 text-xs font-semibold text-white transition-all"
-              >
-                Generate Fresh Seed
-              </button>
-              <button
-                onClick={handleShred}
-                disabled={shredState === "shredded"}
-                className="px-5 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 text-red-300 text-xs font-semibold transition-all disabled:opacity-40"
-              >
-                Instant Cryptographic Shred
-              </button>
-            </div>
-          </div>
-        </section>
-
         {/* Section: Tech Giant Benchmark Comparison */}
         <section id="comparison" className="mb-20 scroll-mt-28">
           <div className="text-center mb-14">
@@ -446,7 +513,7 @@ export default function AboutPageClient() {
       </main>
 
       {/* TECH GIANT STANDARD CORPORATE MEGA FOOTER */}
-      <footer id="network-directory" className="relative border-t border-white/10 bg-[#050811]/90 backdrop-blur-2xl pt-16 pb-12 overflow-hidden">
+      <footer id="corporate-directory" className="relative border-t border-white/10 bg-[#050811]/90 backdrop-blur-2xl pt-16 pb-12 overflow-hidden">
         {/* Subtle Ambient Top Border Sheen */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
 
@@ -513,16 +580,18 @@ export default function AboutPageClient() {
 
           {/* Middle Tier: 5-Column Corporate Navigation Architecture */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 py-12 border-b border-white/10 text-xs">
-            {/* Column 1: Product & Terminal */}
+            {/* Column 1: Platform */}
             <div className="flex flex-col gap-3">
               <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-cyan-400">Platform</h5>
-              <Link href="/" className="text-slate-400 hover:text-white transition-colors">Web Terminal</Link>
-              <a href="#simulator" className="text-slate-400 hover:text-white transition-colors">Quantum ID Engine</a>
+              <Link href="/" className="text-slate-400 hover:text-white transition-colors">Use Web App</Link>
+              <a href="/downloads/Q-Link-Setup.exe" download="Q-Link-Setup.exe" className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1">
+                <span>Download Windows (.exe)</span>
+                <span className="text-[9px] px-1 py-0.2 rounded bg-cyan-500/20 text-cyan-300">75MB</span>
+              </a>
               <Link href="/about" className="text-slate-400 hover:text-white transition-colors">Platform Architecture</Link>
               {isPwaInstallable && (
-                <button onClick={handleInstallPwa} className="text-left text-cyan-400 hover:text-cyan-300 transition-colors">Install Native PWA</button>
+                <button onClick={handleInstallPwa} className="text-left text-slate-400 hover:text-slate-300 transition-colors">Install Mobile PWA</button>
               )}
-              <span className="text-slate-500 font-mono text-[10px]">Windows Binary (.exe)</span>
             </div>
 
             {/* Column 2: Cryptography & Security */}
