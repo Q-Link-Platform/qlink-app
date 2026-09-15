@@ -196,6 +196,24 @@ export default function AboutPageClient() {
   const lastScrollY = useRef(0);
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLElement>(null);
+  const footerSeamRef = useRef<HTMLDivElement>(null);
+
+  const updateFooterSeam = () => {
+    if (footerRef.current && footerSeamRef.current && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const footerRect = footerRef.current.getBoundingClientRect();
+      const visibleHeight = Math.max(0, containerRect.bottom - footerRect.top);
+
+      if (visibleHeight > 0) {
+        footerSeamRef.current.style.height = String(visibleHeight) + 'px';
+        footerSeamRef.current.style.display = 'block';
+      } else {
+        footerSeamRef.current.style.height = '0px';
+        footerSeamRef.current.style.display = 'none';
+      }
+    }
+  };
 
   // Corporate Trust Modal State (Constitutional Privacy, Autonomous Terms, Warranty Canary)
   const [activeTrustModal, setActiveTrustModal] = useState<"privacy" | "terms" | "canary" | null>(null);
@@ -269,6 +287,7 @@ export default function AboutPageClient() {
   const handleContainerScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
     handleScrollUpdate(target.scrollTop, target.scrollHeight, target.clientHeight);
+    updateFooterSeam();
   };
 
   useEffect(() => {
@@ -1304,6 +1323,16 @@ export default function AboutPageClient() {
           </div>
         </div>
       </footer>
+
+      {/* DYNAMIC RIGHT-EDGE SEAM SEAL: Locks height dynamically to footer visibility - 0px at top, 100% sealed at bottom */}
+      <div
+        ref={footerSeamRef}
+        className="fixed right-0 bottom-0 w-[24px] bg-[#020408] z-30 pointer-events-none overflow-hidden"
+        style={{ height: "0px", display: "none" }}
+        aria-hidden="true"
+      >
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-transparent to-[#020408]" />
+      </div>
 
       {/* Interactive Corporate Trust Modals (Privacy / Terms / Canary) */}
       {activeTrustModal && (
