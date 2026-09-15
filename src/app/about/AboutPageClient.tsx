@@ -316,7 +316,7 @@ export default function AboutPageClient() {
     <div
       ref={containerRef}
             onScroll={handleContainerScroll}
-      className="relative h-[100dvh] w-full overflow-y-auto overflow-x-hidden text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth"
+      className="relative h-[100dvh] w-full overflow-y-auto overflow-x-hidden text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth q-page-scroll"
     >
       {/* CINEMATIC QUANTUM ORBITAL BACKGROUND ENGINE (z-0 in front of container base, behind z-10/z-50 content) */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#020408]">
@@ -343,7 +343,9 @@ export default function AboutPageClient() {
 
         {/* Subtle Ambient Contrast Overlay: keeps Earth, network arcs and stars 100% visible while ensuring perfect text legibility */}
         <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#020408]/60 via-transparent to-[#020408]/85" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#020408]/60 via-transparent to-[#020408]/90" />
+        {/* Right-Edge Seam Blocker: completely covers the right-side gap behind browser scrollbars */}
+        <div className="absolute top-0 right-0 bottom-0 w-6 bg-[#020408] z-20 pointer-events-none" />
       </div>
 
       {/* ARCHITECTURAL SPINE CAD GRID */}
@@ -1050,7 +1052,7 @@ export default function AboutPageClient() {
       </main>
 
       {/* TECH GIANT STANDARD CORPORATE MEGA FOOTER & GOVERNANCE DIRECTORY */}
-      <footer id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408]/80 to-[#020408]/98 backdrop-blur-2xl pt-20 pb-14 overflow-hidden z-10 w-full">
+      <footer id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408]/90 to-[#020408] backdrop-blur-2xl pt-20 pb-14 overflow-hidden z-10 w-full">
         {/* Subtle Ambient Top Border Sheen */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
 

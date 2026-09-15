@@ -137,3 +137,27 @@
   animation: beamScan 4s infinite linear;
   pointer-events: none;
 }
+
+/* Luxury Tech-Giant Scrollbar for About Page */
+.q-page-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) #020408;
+}
+
+.q-page-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.q-page-scroll::-webkit-scrollbar-track {
+  background: #020408;
+}
+
+.q-page-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 9999px;
+  border: 2px solid #020408;
+}
+
+.q-page-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 211, 238, 0.45);
+}
