@@ -344,8 +344,6 @@ export default function AboutPageClient() {
         {/* Subtle Ambient Contrast Overlay: keeps Earth, network arcs and stars 100% visible while ensuring perfect text legibility */}
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 bg-gradient-to-b from-[#020408]/60 via-transparent to-[#020408]/90" />
-        {/* Right-Edge Seam Blocker: completely covers the right-side gap behind browser scrollbars */}
-        <div className="absolute top-0 right-0 bottom-0 w-6 bg-[#020408] z-20 pointer-events-none" />
       </div>
 
       {/* ARCHITECTURAL SPINE CAD GRID */}
@@ -1052,7 +1050,7 @@ export default function AboutPageClient() {
       </main>
 
       {/* TECH GIANT STANDARD CORPORATE MEGA FOOTER & GOVERNANCE DIRECTORY */}
-      <footer id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408]/90 to-[#020408] backdrop-blur-2xl pt-20 pb-14 overflow-hidden z-10 w-full">
+      <footer id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408] to-[#020408] backdrop-blur-2xl pt-20 pb-14 overflow-hidden z-10 w-full">
         {/* Subtle Ambient Top Border Sheen */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
 

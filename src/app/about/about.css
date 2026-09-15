@@ -141,21 +141,20 @@
 /* Luxury Tech-Giant Scrollbar for About Page */
 .q-page-scroll {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) #020408;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 
 .q-page-scroll::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
 }
 
 .q-page-scroll::-webkit-scrollbar-track {
-  background: #020408;
+  background: transparent;
 }
 
 .q-page-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 9999px;
-  border: 2px solid #020408;
 }
 
 .q-page-scroll::-webkit-scrollbar-thumb:hover {
