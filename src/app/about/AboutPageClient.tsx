@@ -433,42 +433,49 @@ export default function AboutPageClient() {
           </p>
 
           {/* HIGH-CONTRAST EXECUTIVE CTAS */}
-          <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
-            {/* Primary Action: Use Web App */}
-            <Link
-              href="/"
-              className="px-8 py-3.5 rounded-2xl bg-white text-slate-950 font-bold text-sm shadow-[0_10px_35px_rgba(255,255,255,0.25)] hover:bg-slate-100 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2.5"
-            >
-              <span>Launch Web Client</span>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Link>
-
-            {/* Secondary Action: Direct Windows Client (.exe) */}
-            <a
-              href="/downloads/Q-Link-Setup.exe"
-              download="Q-Link-Setup.exe"
-              className="q-btn-hardware px-7 py-3.5 rounded-2xl text-white font-semibold text-sm transition-all flex items-center gap-3 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <svg className="w-4 h-4 text-cyan-400 fill-current" viewBox="0 0 24 24">
-                <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.949-1.801" />
-              </svg>
-              <span>Download for Windows</span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 font-normal">
-                75 MB .exe
-              </span>
-            </a>
-
-            {/* PWA Option */}
-            {isPwaInstallable && (
-              <button
-                onClick={handleInstallPwa}
-                className="q-btn-hardware px-6 py-3.5 rounded-2xl text-slate-300 font-medium text-sm transition-all"
+          <div className="flex flex-col items-center justify-center mb-10 w-full max-w-2xl mx-auto">
+            {/* Primary Centerpiece: 3D Liquid-Chrome Windows Client CTA (Reference Matched) */}
+            <div className="w-full flex flex-col items-center mb-6">
+              <a
+                href="/downloads/Q-Link-Setup.exe"
+                download="Q-Link-Setup.exe"
+                className="group relative block w-full max-w-[460px] sm:max-w-[540px] md:max-w-[620px] transition-all duration-300 transform hover:scale-[1.025] active:scale-[0.985] filter drop-shadow-[0_12px_35px_rgba(6,182,212,0.35)] hover:drop-shadow-[0_20px_60px_rgba(6,182,212,0.7)] cursor-pointer"
+                title="Download Q-Link for Windows - Production Binary"
               >
-                Install Web App (PWA)
-              </button>
-            )}
+                <div className="relative rounded-full overflow-hidden">
+                  <img
+                    src="/visuals/quantum-download-button.png"
+                    alt="Download for Windows - 75 MB .EXE - Recommended for devs"
+                    className="w-full h-auto select-none pointer-events-none block"
+                    loading="eager"
+                  />
+                  {/* Dynamic specular light shimmer sweep on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none rounded-full" />
+                </div>
+              </a>
+            </div>
+
+            {/* Auxiliary In-Browser Web Client & PWA Actions */}
+            <div className="flex flex-wrap items-center justify-center gap-3.5">
+              <Link
+                href="/"
+                className="px-7 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs sm:text-sm backdrop-blur-md border border-white/20 hover:border-white/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 shadow-lg"
+              >
+                <span>Launch Web Client</span>
+                <svg className="w-4 h-4 text-cyan-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </Link>
+
+              {isPwaInstallable && (
+                <button
+                  onClick={handleInstallPwa}
+                  className="px-6 py-3 rounded-2xl bg-slate-900/60 hover:bg-slate-800/80 text-slate-300 font-medium text-xs sm:text-sm backdrop-blur-md border border-slate-700/50 hover:border-slate-600 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Install Web App (PWA)
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-400 font-mono">
