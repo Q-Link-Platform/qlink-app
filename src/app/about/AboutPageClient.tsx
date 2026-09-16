@@ -439,7 +439,7 @@ export default function AboutPageClient() {
               <a
                 href="/downloads/Q-Link-Setup.exe"
                 download="Q-Link-Setup.exe"
-                className="group relative block w-full max-w-[460px] sm:max-w-[540px] md:max-w-[620px] transition-all duration-300 transform hover:scale-[1.025] active:scale-[0.985] filter drop-shadow-[0_12px_35px_rgba(6,182,212,0.35)] hover:drop-shadow-[0_20px_60px_rgba(6,182,212,0.7)] cursor-pointer"
+                className="group relative block w-full max-w-[300px] sm:max-w-[350px] md:max-w-[390px] transition-all duration-300 transform hover:scale-[1.025] active:scale-[0.985] filter drop-shadow-[0_12px_35px_rgba(6,182,212,0.35)] hover:drop-shadow-[0_20px_60px_rgba(6,182,212,0.7)] cursor-pointer"
                 title="Download Q-Link for Windows - Production Binary"
               >
                 <div className="relative rounded-full overflow-hidden">
