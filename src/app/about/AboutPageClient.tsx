@@ -196,7 +196,6 @@ export default function AboutPageClient() {
   const lastScrollY = useRef(0);
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [footerFade, setFooterFade] = useState(0);
 
   // Corporate Trust Modal State (Constitutional Privacy, Autonomous Terms, Warranty Canary)
   const [activeTrustModal, setActiveTrustModal] = useState<"privacy" | "terms" | "canary" | null>(null);
@@ -239,18 +238,6 @@ export default function AboutPageClient() {
     // Dynamically track scroll threshold for adaptive frosted glass shield
     setIsScrolled(currentY > 20);
 
-    // Compute smooth full-canvas fade to obsidian when entering the footer zone
-    const maxScroll = scrollHeight - clientHeight;
-    if (maxScroll > 0) {
-      const footerZone = 650;
-      const distanceToBottom = maxScroll - currentY;
-      if (distanceToBottom < footerZone) {
-        const fade = Math.min(1, Math.max(0, (footerZone - distanceToBottom) / footerZone));
-        setFooterFade(fade);
-      } else {
-        setFooterFade(0);
-      }
-    }
 
     // Always keep header visible near the top of the page
     if (currentY < 60) {
@@ -357,9 +344,7 @@ export default function AboutPageClient() {
 
         {/* Subtle Ambient Contrast Overlay: keeps Earth, network arcs and stars 100% visible while ensuring perfect text legibility */}
         <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#020408]/60 via-transparent to-[#020408]/90" />
-        {/* Full-Canvas Cinematic Fade to Obsidian: eliminates any background bleed at the footer */}
-        <div className="absolute inset-0 bg-[#020408] transition-opacity duration-200 pointer-events-none" style={{ opacity: footerFade }} />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#020408]/60 via-transparent via-50% to-[#020408] to-95%" />
       </div>
 
       {/* ARCHITECTURAL SPINE CAD GRID */}
@@ -383,11 +368,12 @@ export default function AboutPageClient() {
         }`}
       >
         <nav
-          className={`q-spotlight-card rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between transition-all duration-300 ${
+          className={`rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between transition-all duration-300 ${
             isScrolled
-              ? "bg-[#030712] border border-white/20 shadow-[0_25px_60px_rgba(0,0,0,0.95)] ring-1 ring-cyan-500/20"
-              : "bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.4)]"
+              ? "q-about-nav-scrolled bg-[#030712] border border-white/20 shadow-[0_25px_60px_rgba(0,0,0,0.95)] ring-1 ring-cyan-500/20"
+              : "q-spotlight-card bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.4)]"
           }`}
+          style={isScrolled ? { background: "#030712", backgroundColor: "#030712" } : undefined}
         >
           {/* SLEEK SPACIOUS BRAND (Logo removed as requested to eliminate chaos and give breathing room) */}
           <Link href="/" className="flex items-center gap-2 group whitespace-nowrap">
@@ -425,7 +411,7 @@ export default function AboutPageClient() {
       </header>
 
       {/* HERO SECTION */}
-      <main className="max-w-6xl mx-auto px-4 pt-16 pb-20 relative z-10">
+      <main className="max-w-6xl mx-auto px-4 pt-16 pb-12 relative z-10">
         <div id="platform" className="text-center max-w-4xl mx-auto mb-16 scroll-mt-28">
           {/* HARDWARE-GRADE METADATA BADGE */}
           <div className="q-btn-hardware inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full text-[11px] font-mono tracking-[0.2em] uppercase text-slate-300 mb-8 cursor-default">
@@ -1066,7 +1052,7 @@ export default function AboutPageClient() {
       </main>
 
       {/* TECH GIANT STANDARD CORPORATE MEGA FOOTER & GOVERNANCE DIRECTORY */}
-      <footer id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408] to-[#020408] backdrop-blur-2xl pt-20 pb-14 overflow-hidden z-10 w-full">
+      <footer id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408] to-[#020408] backdrop-blur-2xl pt-12 pb-14 overflow-hidden z-10 w-full">
         {/* Subtle Ambient Top Border Sheen */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
 
