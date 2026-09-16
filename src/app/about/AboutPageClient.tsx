@@ -196,24 +196,7 @@ export default function AboutPageClient() {
   const lastScrollY = useRef(0);
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const footerRef = useRef<HTMLElement>(null);
-  const footerSeamRef = useRef<HTMLDivElement>(null);
-
-  const updateFooterSeam = () => {
-    if (footerRef.current && footerSeamRef.current && containerRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const footerRect = footerRef.current.getBoundingClientRect();
-      const visibleHeight = Math.max(0, containerRect.bottom - footerRect.top);
-
-      if (visibleHeight > 0) {
-        footerSeamRef.current.style.height = String(visibleHeight) + 'px';
-        footerSeamRef.current.style.display = 'block';
-      } else {
-        footerSeamRef.current.style.height = '0px';
-        footerSeamRef.current.style.display = 'none';
-      }
-    }
-  };
+  const [footerFade, setFooterFade] = useState(0);
 
   // Corporate Trust Modal State (Constitutional Privacy, Autonomous Terms, Warranty Canary)
   const [activeTrustModal, setActiveTrustModal] = useState<"privacy" | "terms" | "canary" | null>(null);
@@ -256,6 +239,19 @@ export default function AboutPageClient() {
     // Dynamically track scroll threshold for adaptive frosted glass shield
     setIsScrolled(currentY > 20);
 
+    // Compute smooth full-canvas fade to obsidian when entering the footer zone
+    const maxScroll = scrollHeight - clientHeight;
+    if (maxScroll > 0) {
+      const footerZone = 650;
+      const distanceToBottom = maxScroll - currentY;
+      if (distanceToBottom < footerZone) {
+        const fade = Math.min(1, Math.max(0, (footerZone - distanceToBottom) / footerZone));
+        setFooterFade(fade);
+      } else {
+        setFooterFade(0);
+      }
+    }
+
     // Always keep header visible near the top of the page
     if (currentY < 60) {
       setIsHeaderVisible(true);
@@ -287,23 +283,14 @@ export default function AboutPageClient() {
   const handleContainerScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
     handleScrollUpdate(target.scrollTop, target.scrollHeight, target.clientHeight);
-    updateFooterSeam();
   };
 
   useEffect(() => {
-    const el = containerRef.current;
-    const handleScroll = () => {
-      updateFooterSeam();
+    const handleWindowScroll = () => {
+      handleScrollUpdate(window.scrollY, document.documentElement.scrollHeight, window.innerHeight);
     };
-    if (el) {
-      el.addEventListener("scroll", handleScroll, { passive: true });
-    }
-    updateFooterSeam();
-    window.addEventListener("resize", updateFooterSeam, { passive: true });
-    return () => {
-      if (el) el.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", updateFooterSeam);
-    };
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleWindowScroll);
   }, []);
 
   useEffect(() => {
@@ -371,6 +358,8 @@ export default function AboutPageClient() {
         {/* Subtle Ambient Contrast Overlay: keeps Earth, network arcs and stars 100% visible while ensuring perfect text legibility */}
         <div className="absolute inset-0 bg-black/40" />
         <div className="absolute inset-0 bg-gradient-to-b from-[#020408]/60 via-transparent to-[#020408]/90" />
+        {/* Full-Canvas Cinematic Fade to Obsidian: eliminates any background bleed at the footer */}
+        <div className="absolute inset-0 bg-[#020408] transition-opacity duration-200 pointer-events-none" style={{ opacity: footerFade }} />
       </div>
 
       {/* ARCHITECTURAL SPINE CAD GRID */}
@@ -1077,7 +1066,7 @@ export default function AboutPageClient() {
       </main>
 
       {/* TECH GIANT STANDARD CORPORATE MEGA FOOTER & GOVERNANCE DIRECTORY */}
-      <footer ref={footerRef} id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408] to-[#020408] backdrop-blur-2xl pt-20 pb-14 overflow-hidden z-10 w-full">
+      <footer id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408] to-[#020408] backdrop-blur-2xl pt-20 pb-14 overflow-hidden z-10 w-full">
         {/* Subtle Ambient Top Border Sheen */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
 
@@ -1331,16 +1320,6 @@ export default function AboutPageClient() {
           </div>
         </div>
       </footer>
-
-      {/* DYNAMIC RIGHT-EDGE SEAM SEAL: Locks height dynamically to footer visibility - 0px at top, 100% sealed at bottom */}
-      <div
-        ref={footerSeamRef}
-        className="fixed right-0 bottom-0 w-[24px] bg-[#020408] z-30 pointer-events-none overflow-hidden"
-        style={{ height: "0px", display: "none" }}
-        aria-hidden="true"
-      >
-        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-transparent to-[#020408]" />
-      </div>
 
       {/* Interactive Corporate Trust Modals (Privacy / Terms / Canary) */}
       {activeTrustModal && (
