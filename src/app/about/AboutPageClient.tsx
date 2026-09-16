@@ -317,10 +317,10 @@ export default function AboutPageClient() {
     <div
       ref={containerRef}
             onScroll={handleContainerScroll}
-      className="relative h-[100dvh] w-full overflow-y-auto overflow-x-hidden text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth q-page-scroll"
+      className="relative h-[100dvh] w-full overflow-y-auto overflow-x-hidden text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth q-page-scroll bg-[#020408]"
     >
       {/* CINEMATIC QUANTUM ORBITAL BACKGROUND ENGINE (z-0 in front of container base, behind z-10/z-50 content) */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#020408]">
+      <div className="absolute top-0 left-0 right-0 h-[3200px] pointer-events-none z-0 overflow-hidden bg-[#020408]">
         {/* Visual Asset: Earth Orbital Quantum Mesh from C:\Users\bhave\OneDrive\Work\Q-link visual */}
         <Image
           src="/visuals/qlink-orbital-vision.jpg"
@@ -328,7 +328,7 @@ export default function AboutPageClient() {
           fill
           priority
           quality={100}
-          className="object-cover object-center scale-100 filter brightness-95 contrast-110"
+          className="object-cover object-top scale-100 filter brightness-95 contrast-110"
         />
 
         {/* Ambient 3D Cyber Motion Video Overlay */}
@@ -1052,7 +1052,7 @@ export default function AboutPageClient() {
       </main>
 
       {/* TECH GIANT STANDARD CORPORATE MEGA FOOTER & GOVERNANCE DIRECTORY */}
-      <footer id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408] to-[#020408] backdrop-blur-2xl pt-12 pb-14 overflow-hidden z-10 w-full">
+      <footer id="corporate-directory" className="relative border-t border-white/10 bg-[#020408] backdrop-blur-2xl pt-12 pb-14 overflow-hidden z-10 w-full">
         {/* Subtle Ambient Top Border Sheen */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
 
