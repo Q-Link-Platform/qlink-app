@@ -291,11 +291,19 @@ export default function AboutPageClient() {
   };
 
   useEffect(() => {
-    const handleWindowScroll = () => {
-      handleScrollUpdate(window.scrollY, document.documentElement.scrollHeight, window.innerHeight);
+    const el = containerRef.current;
+    const handleScroll = () => {
+      updateFooterSeam();
     };
-    window.addEventListener("scroll", handleWindowScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleWindowScroll);
+    if (el) {
+      el.addEventListener("scroll", handleScroll, { passive: true });
+    }
+    updateFooterSeam();
+    window.addEventListener("resize", updateFooterSeam, { passive: true });
+    return () => {
+      if (el) el.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", updateFooterSeam);
+    };
   }, []);
 
   useEffect(() => {
@@ -388,7 +396,7 @@ export default function AboutPageClient() {
         <nav
           className={`q-spotlight-card rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between transition-all duration-300 ${
             isScrolled
-              ? "bg-[#050811]/92 backdrop-blur-2xl border border-white/20 shadow-[0_25px_60px_rgba(0,0,0,0.85)] ring-1 ring-cyan-500/20"
+              ? "bg-[#030712] border border-white/20 shadow-[0_25px_60px_rgba(0,0,0,0.95)] ring-1 ring-cyan-500/20"
               : "bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.4)]"
           }`}
         >
@@ -1069,7 +1077,7 @@ export default function AboutPageClient() {
       </main>
 
       {/* TECH GIANT STANDARD CORPORATE MEGA FOOTER & GOVERNANCE DIRECTORY */}
-      <footer id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408] to-[#020408] backdrop-blur-2xl pt-20 pb-14 overflow-hidden z-10 w-full">
+      <footer ref={footerRef} id="corporate-directory" className="relative border-t border-white/10 bg-gradient-to-b from-transparent via-[#020408] to-[#020408] backdrop-blur-2xl pt-20 pb-14 overflow-hidden z-10 w-full">
         {/* Subtle Ambient Top Border Sheen */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
 
