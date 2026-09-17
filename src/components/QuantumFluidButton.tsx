@@ -315,9 +315,9 @@ export default function QuantumFluidButton({
   return (
     <div className={`w-full flex flex-col items-center ${className}`}>
       <div className="relative group flex flex-col items-center">
-        {/* APPLE-LEVEL SMOOTH GLASS TOOLTIP (Replacing cheap default browser tooltip) */}
+        {/* APPLE-LEVEL SMOOTH GLASS FLOATING PILL (100% Seamless Continuous Curvature - No Sharp Corners) */}
         <div
-          className={`absolute -top-10 z-30 pointer-events-none transition-all duration-300 ${
+          className={`absolute -top-9 z-30 pointer-events-none transition-all duration-300 ${
             isHovered
               ? 'opacity-100 scale-100 -translate-y-1'
               : 'opacity-0 scale-95 translate-y-1'
@@ -326,18 +326,16 @@ export default function QuantumFluidButton({
             transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          <div className="flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#030d1a]/90 backdrop-blur-xl border border-cyan-500/35 shadow-[0_8px_30px_rgba(0,0,0,0.7),0_0_20px_rgba(6,182,212,0.3)] text-[11px] font-mono whitespace-nowrap">
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#030d1a]/92 backdrop-blur-2xl border border-cyan-500/35 shadow-[0_8px_30px_rgba(0,0,0,0.7),0_0_20px_rgba(6,182,212,0.3)] text-[11px] font-mono whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
             <span className="text-white font-medium tracking-wide">Q-Link Setup</span>
             <span className="text-slate-600">•</span>
             <span className="text-cyan-300 font-semibold">75 MB</span>
             <span className="text-slate-600">•</span>
-            <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/20 text-[10px] text-cyan-200 font-sans font-semibold">
+            <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-[10px] text-cyan-200 font-sans font-semibold">
               x64 .exe
             </span>
           </div>
-          {/* Subtle Glass Pip / Arrow */}
-          <div className="w-2 h-2 mx-auto rotate-45 -mt-1 bg-[#030d1a]/90 border-r border-b border-cyan-500/35 backdrop-blur-xl" />
         </div>
 
         <a
