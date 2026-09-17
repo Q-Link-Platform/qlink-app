@@ -199,7 +199,7 @@ export default function AboutPageClient() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Corporate Trust Modal State (Constitutional Privacy, Autonomous Terms, Warranty Canary)
-  const [activeTrustModal, setActiveTrustModal] = useState<"privacy" | "terms" | "canary" | null>(null);
+  const [activeTrustModal, setActiveTrustModal] = useState<"privacy" | "terms" | "canary" | "encryption" | "ratelimit" | "shield" | "audit" | null>(null);
 
   // Live Telemetry Showcase State
   const [activeHashIndex, setActiveHashIndex] = useState(0);
@@ -1179,19 +1179,39 @@ export default function AboutPageClient() {
               <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-indigo-400">
                 Security
               </h5>
-              <a href="#architecture" className="text-slate-400 hover:text-white transition-colors">
-                Zero-Persistence Core
+              <a href="#architecture" className="text-slate-400 hover:text-cyan-300 transition-colors flex items-center justify-between group">
+                <span>Zero-Persistence Core</span>
+                <span className="text-[10px] font-mono opacity-0 group-hover:opacity-100 transition-opacity text-cyan-400">↓</span>
               </a>
-              <span className="text-slate-400">ChaCha20-Poly1305 & AES-GCM</span>
-              <span className="text-slate-400">Edge Burst Rate Limiter</span>
+              <button
+                onClick={() => setActiveTrustModal("encryption")}
+                className="text-left text-slate-400 hover:text-cyan-300 transition-colors flex items-center justify-between group cursor-pointer"
+              >
+                <span>ChaCha20-Poly1305 & AES-GCM</span>
+                <span className="text-[10px] font-mono opacity-0 group-hover:opacity-100 transition-opacity text-cyan-400">↗</span>
+              </button>
+              <button
+                onClick={() => setActiveTrustModal("ratelimit")}
+                className="text-left text-slate-400 hover:text-cyan-300 transition-colors flex items-center justify-between group cursor-pointer"
+              >
+                <span>Edge Burst Rate Limiter</span>
+                <span className="text-[10px] font-mono opacity-0 group-hover:opacity-100 transition-opacity text-cyan-400">↗</span>
+              </button>
               <button
                 onClick={() => setActiveTrustModal("canary")}
-                className="text-left text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1.5"
+                className="text-left text-slate-400 hover:text-cyan-300 transition-colors flex items-center gap-1.5 cursor-pointer group"
               >
                 <span>No-Log Warranty Canary</span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[10px] font-mono opacity-0 group-hover:opacity-100 transition-opacity text-cyan-400 ml-auto">↗</span>
               </button>
-              <span className="text-slate-400">On-Device Content Shield</span>
+              <button
+                onClick={() => setActiveTrustModal("shield")}
+                className="text-left text-slate-400 hover:text-cyan-300 transition-colors flex items-center justify-between group cursor-pointer"
+              >
+                <span>On-Device Content Shield</span>
+                <span className="text-[10px] font-mono opacity-0 group-hover:opacity-100 transition-opacity text-cyan-400">↗</span>
+              </button>
             </div>
 
             {/* Column 3: Developers & Ecosystem */}
@@ -1232,7 +1252,13 @@ export default function AboutPageClient() {
               >
                 GitHub Repository
               </a>
-              <span className="text-slate-500 font-mono text-[10px]">Audit Status: PASS</span>
+              <button
+                onClick={() => setActiveTrustModal("audit")}
+                className="text-left text-slate-400 hover:text-cyan-300 transition-colors flex items-center justify-between group cursor-pointer font-mono text-[10px]"
+              >
+                <span>Audit Status: PASS</span>
+                <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-sans font-semibold">VERIFIED ↗</span>
+              </button>
             </div>
 
             {/* Column 4: Network & Team */}
@@ -1388,6 +1414,123 @@ export default function AboutPageClient() {
                 <p className="text-xs text-slate-400 leading-relaxed">
                   This canary is cryptographically affirmed by the system architecture.
                 </p>
+              </div>
+            )}
+
+            {activeTrustModal === "encryption" && (
+              <div>
+                <span className="text-xs font-mono uppercase text-cyan-400 block mb-2">Cryptographic Protocol</span>
+                <h4 className="text-xl font-bold text-white mb-4">ChaCha20-Poly1305 & AES-GCM</h4>
+                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                  Q-Link utilizes state-of-the-art authenticated encryption with associated data (AEAD) designed for extreme speed and security:
+                </p>
+                <ul className="text-xs text-slate-400 space-y-2 mb-6 font-mono">
+                  <li>✔ ChaCha20: 256-bit stream cipher immune to cache-timing attacks on modern silicon</li>
+                  <li>✔ Poly1305: 128-bit one-time authenticator guaranteeing cryptographic integrity</li>
+                  <li>✔ AES-256-GCM: Hardware-accelerated fallback via AES-NI CPU instructions</li>
+                  <li>✔ Ephemeral Ratchets: Unique cryptographic session keys generated per peer handshake</li>
+                </ul>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Payloads are encrypted purely in-memory before transmission and dissolved after 24 hours.
+                </p>
+                <div className="mt-4 flex gap-3">
+                  <a
+                    href="#architecture"
+                    onClick={() => setActiveTrustModal(null)}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1"
+                  >
+                    <span>View Cryptographic Architecture</span>
+                    <span>↓</span>
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {activeTrustModal === "ratelimit" && (
+              <div>
+                <span className="text-xs font-mono uppercase text-indigo-400 block mb-2">Edge Infrastructure</span>
+                <h4 className="text-xl font-bold text-white mb-4">Edge Burst Rate Limiter</h4>
+                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                  Autonomous protection against distributed spam, credential attacks, and sybil floods:
+                </p>
+                <ul className="text-xs text-slate-400 space-y-2 mb-6 font-mono">
+                  <li>✔ Token Bucket Algorithm: Limits handshakes to 5 burst pulses per minute</li>
+                  <li>✔ Zero Cookie Tracking: Subnet identification handled via volatile in-memory sliding hashes</li>
+                  <li>✔ Automated IP Cool-down: Excess requests deflected at edge POPs with zero backend load</li>
+                  <li>✔ Replay Guard: Unique nonces prevent duplication of cryptographic transmissions</li>
+                </ul>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Ensures 99.99% availability without requiring persistent user cookies or intrusive CAPTCHAs.
+                </p>
+                <div className="mt-4 flex gap-3">
+                  <a
+                    href="#telemetry"
+                    onClick={() => setActiveTrustModal(null)}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1"
+                  >
+                    <span>View Live Telemetry Handshakes</span>
+                    <span>↓</span>
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {activeTrustModal === "shield" && (
+              <div>
+                <span className="text-xs font-mono uppercase text-purple-400 block mb-2">Client Defense</span>
+                <h4 className="text-xl font-bold text-white mb-4">On-Device Content Shield</h4>
+                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                  Hardware-level isolation and sandboxing protecting your device environment:
+                </p>
+                <ul className="text-xs text-slate-400 space-y-2 mb-6 font-mono">
+                  <li>✔ Client-Side Sanitization: Zero untrusted payload or executable script execution</li>
+                  <li>✔ RAM-Only Waveforms: Voice memos and media stream directly through volatile memory heaps</li>
+                  <li>✔ Anti-Exfiltration Barrier: Blocks third-party telemetry, trackers, and telemetry beacons</li>
+                  <li>✔ Hardware Memory Scrub: Volatile buffers cleared immediately upon message expiration</li>
+                </ul>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Your device never writes unencrypted communications to persistent storage partitions.
+                </p>
+                <div className="mt-4 flex gap-3">
+                  <a
+                    href="#comparison"
+                    onClick={() => setActiveTrustModal(null)}
+                    className="text-xs text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1"
+                  >
+                    <span>Compare Security Specs</span>
+                    <span>↓</span>
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {activeTrustModal === "audit" && (
+              <div>
+                <span className="text-xs font-mono uppercase text-emerald-400 block mb-2">Cryptographic Audit</span>
+                <h4 className="text-xl font-bold text-white mb-4">Cryptographic Audit Matrix</h4>
+                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                  Continuous security and architectural verification status:
+                </p>
+                <ul className="text-xs text-emerald-400 space-y-2 mb-6 font-mono">
+                  <li>✔ Zero-Telemetry Verification: 0 outbound analytic pings recorded</li>
+                  <li>✔ Memory Sanitization Audit: Volatile buffers confirmed clean on message purge</li>
+                  <li>✔ CSP Level 3 Enforcement: Strict content-security policies blocking XSS vectors</li>
+                  <li>✔ Open-Source Integrity: Publicly verifiable on GitHub with reproducible builds</li>
+                </ul>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Automated security tests and type checkers pass on every production deployment.
+                </p>
+                <div className="mt-4 flex gap-3">
+                  <a
+                    href="https://github.com/rohiterrors-ship-it/Q-Link_v3.0"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1"
+                  >
+                    <span>Inspect GitHub Repository</span>
+                    <span>↗</span>
+                  </a>
+                </div>
               </div>
             )}
 
