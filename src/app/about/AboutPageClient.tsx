@@ -204,6 +204,33 @@ export default function AboutPageClient() {
   const startXTabs = useRef(0);
   const startScrollLeftTabs = useRef(0);
   const draggedDistance = useRef(0);
+  const [tabScrollProgress, setTabScrollProgress] = useState({ thumbWidth: 35, thumbLeft: 0, canScroll: true });
+
+  const updateTabScrollProgress = useCallback(() => {
+    const el = showcaseTabsRef.current;
+    if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    if (maxScroll <= 2) {
+      setTabScrollProgress({ thumbWidth: 100, thumbLeft: 0, canScroll: false });
+      return;
+    }
+    const ratio = el.clientWidth / el.scrollWidth;
+    const thumbWidthPercent = Math.max(18, Math.min(50, ratio * 100));
+    const scrollPercent = Math.max(0, Math.min(1, el.scrollLeft / maxScroll));
+    const thumbLeftPercent = scrollPercent * (100 - thumbWidthPercent);
+    setTabScrollProgress({
+      thumbWidth: thumbWidthPercent,
+      thumbLeft: thumbLeftPercent,
+      canScroll: true,
+    });
+  }, []);
+
+  // Update progress on mount and window resize
+  useEffect(() => {
+    updateTabScrollProgress();
+    window.addEventListener("resize", updateTabScrollProgress);
+    return () => window.removeEventListener("resize", updateTabScrollProgress);
+  }, [updateTabScrollProgress]);
 
   // Translate vertical wheel scroll into smooth horizontal button container scrolling
   useEffect(() => {
@@ -221,13 +248,14 @@ export default function AboutPageClient() {
         if (willScroll) {
           e.preventDefault();
           el.scrollLeft += delta * 0.95;
+          updateTabScrollProgress();
         }
       }
     };
 
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, []);
+  }, [updateTabScrollProgress]);
 
   // Smoothly center active tab when selection changes
   useEffect(() => {
@@ -243,8 +271,9 @@ export default function AboutPageClient() {
         left: targetScroll,
         behavior: "smooth",
       });
+      setTimeout(updateTabScrollProgress, 180);
     }
-  }, [activeShowcaseTab]);
+  }, [activeShowcaseTab, updateTabScrollProgress]);
 
   const handleTabsMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = showcaseTabsRef.current;
@@ -264,13 +293,28 @@ export default function AboutPageClient() {
     const walk = (x - startXTabs.current) * 1.3;
     draggedDistance.current = Math.abs(walk);
     el.scrollLeft = startScrollLeftTabs.current - walk;
+    updateTabScrollProgress();
   };
 
   const handleTabsMouseUp = () => {
     isDraggingTabs.current = false;
   };
 
-  // Corporate Trust Modal State (Constitutional Privacy, Autonomous Terms, Warranty Canary)
+  const handleScrollbarTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = showcaseTabsRef.current;
+    if (!el) return;
+    const trackRect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - trackRect.left;
+    const percent = Math.max(0, Math.min(1, clickX / trackRect.width));
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    el.scrollTo({
+      left: percent * maxScroll,
+      behavior: "smooth",
+    });
+    setTimeout(updateTabScrollProgress, 200);
+  };
+
+    // Corporate Trust Modal State (Constitutional Privacy, Autonomous Terms, Warranty Canary)
   const [activeTrustModal, setActiveTrustModal] = useState<"privacy" | "terms" | "canary" | "encryption" | "ratelimit" | "shield" | "audit" | null>(null);
 
   // Live Telemetry Showcase State
@@ -611,35 +655,94 @@ export default function AboutPageClient() {
                 </div>
               </div>
 
-              {/* Tab Switchers (Apple VisionOS Liquid Glass Segmented Pill with Smooth Scroll Physics) */}
-              <div
-                ref={showcaseTabsRef}
-                onMouseDown={handleTabsMouseDown}
-                onMouseMove={handleTabsMouseMove}
-                onMouseUp={handleTabsMouseUp}
-                onMouseLeave={handleTabsMouseUp}
-                className="q-apple-segmented-bar max-w-full overflow-x-auto no-scrollbar select-none"
-              >
-                {SHOWCASE_MODULES.map((m) => {
-                  const isActive = activeShowcaseTab === m.id;
-                  return (
+              {/* Tab Switchers (Apple VisionOS Liquid Glass Segmented Pill with Modern Scrollbar) */}
+              <div className="flex flex-col items-center gap-1.5 max-w-full">
+                <div
+                  ref={showcaseTabsRef}
+                  onScroll={updateTabScrollProgress}
+                  onMouseDown={handleTabsMouseDown}
+                  onMouseMove={handleTabsMouseMove}
+                  onMouseUp={handleTabsMouseUp}
+                  onMouseLeave={handleTabsMouseUp}
+                  className="q-apple-segmented-bar max-w-full overflow-x-auto no-scrollbar select-none"
+                >
+                  {SHOWCASE_MODULES.map((m) => {
+                    const isActive = activeShowcaseTab === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => {
+                          if (draggedDistance.current > 6) return;
+                          setActiveShowcaseTab(m.id);
+                        }}
+                        className={`q-apple-tab-item ${isActive ? "q-apple-tab-active" : ""}`}
+                      >
+                        <span className="relative z-10">{m.name}</span>
+                        {isActive && (
+                          <span className="relative z-10 text-[9px] px-2 py-0.5 rounded-full font-mono font-bold tracking-wider uppercase bg-cyan-400/20 text-cyan-300 border border-cyan-400/35 shadow-[0_0_8px_rgba(34,211,238,0.25)]">
+                            {m.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Modern Apple Glass Interactive Scrollbar Indicator */}
+                {tabScrollProgress.canScroll && (
+                  <div className="flex items-center gap-1.5 py-0.5 select-none">
                     <button
-                      key={m.id}
+                      type="button"
                       onClick={() => {
-                        if (draggedDistance.current > 6) return;
-                        setActiveShowcaseTab(m.id);
+                        const el = showcaseTabsRef.current;
+                        if (el) {
+                          el.scrollBy({ left: -160, behavior: "smooth" });
+                          setTimeout(updateTabScrollProgress, 180);
+                        }
                       }}
-                      className={`q-apple-tab-item ${isActive ? "q-apple-tab-active" : ""}`}
+                      className="p-0.5 rounded-full text-slate-500 hover:text-cyan-300 hover:bg-white/10 transition-colors cursor-pointer"
+                      title="Scroll Left"
+                      aria-label="Scroll Tabs Left"
                     >
-                      <span className="relative z-10">{m.name}</span>
-                      {isActive && (
-                        <span className="relative z-10 text-[9px] px-2 py-0.5 rounded-full font-mono font-bold tracking-wider uppercase bg-cyan-400/20 text-cyan-300 border border-cyan-400/35 shadow-[0_0_8px_rgba(34,211,238,0.25)]">
-                          {m.badge}
-                        </span>
-                      )}
+                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+                      </svg>
                     </button>
-                  );
-                })}
+
+                    <div
+                      onClick={handleScrollbarTrackClick}
+                      className="group/scrolltrack relative w-36 sm:w-48 h-[3px] hover:h-[5px] rounded-full bg-white/[0.08] hover:bg-white/[0.12] backdrop-blur-md cursor-pointer transition-all duration-200 overflow-hidden"
+                      title="Click or drag to scroll tabs"
+                    >
+                      {/* Luminous Apple Capsule Thumb */}
+                      <div
+                        className="absolute top-0 bottom-0 rounded-full bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 shadow-[0_0_10px_rgba(34,211,238,0.8)] transition-all duration-100 ease-out"
+                        style={{
+                          width: `${tabScrollProgress.thumbWidth}%`,
+                          left: `${tabScrollProgress.thumbLeft}%`,
+                        }}
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = showcaseTabsRef.current;
+                        if (el) {
+                          el.scrollBy({ left: 160, behavior: "smooth" });
+                          setTimeout(updateTabScrollProgress, 180);
+                        }
+                      }}
+                      className="p-0.5 rounded-full text-slate-500 hover:text-cyan-300 hover:bg-white/10 transition-colors cursor-pointer"
+                      title="Scroll Right"
+                      aria-label="Scroll Tabs Right"
+                    >
+                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Real-time indicator */}
