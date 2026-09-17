@@ -4326,6 +4326,13 @@ textarea,
     0 8px 24px -4px rgba(0, 0, 0, 0.4);
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  cursor: grab;
+  touch-action: pan-x;
+}
+.q-apple-segmented-bar:active {
+  cursor: grabbing;
 }
 .q-apple-segmented-bar::-webkit-scrollbar {
   display: none !important;

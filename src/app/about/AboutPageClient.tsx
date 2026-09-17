@@ -198,6 +198,78 @@ export default function AboutPageClient() {
   const scrollTimeout = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Showcase Horizontal Tab Scroll & Momentum Drag State
+  const showcaseTabsRef = useRef<HTMLDivElement>(null);
+  const isDraggingTabs = useRef(false);
+  const startXTabs = useRef(0);
+  const startScrollLeftTabs = useRef(0);
+  const draggedDistance = useRef(0);
+
+  // Translate vertical wheel scroll into smooth horizontal button container scrolling
+  useEffect(() => {
+    const el = showcaseTabsRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      const maxScrollLeft = el.scrollWidth - el.clientWidth;
+      if (maxScrollLeft <= 0) return;
+
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (delta !== 0) {
+        // Smoothly pan within scrollable bounds without page stutter
+        const willScroll = (delta > 0 && el.scrollLeft < maxScrollLeft - 1) || (delta < 0 && el.scrollLeft > 1);
+        if (willScroll) {
+          e.preventDefault();
+          el.scrollLeft += delta * 0.95;
+        }
+      }
+    };
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
+  // Smoothly center active tab when selection changes
+  useEffect(() => {
+    const container = showcaseTabsRef.current;
+    if (!container) return;
+    const activeBtn = container.querySelector<HTMLElement>(".q-apple-tab-active");
+    if (activeBtn) {
+      const containerWidth = container.clientWidth;
+      const btnLeft = activeBtn.offsetLeft;
+      const btnWidth = activeBtn.offsetWidth;
+      const targetScroll = btnLeft - containerWidth / 2 + btnWidth / 2;
+      container.scrollTo({
+        left: targetScroll,
+        behavior: "smooth",
+      });
+    }
+  }, [activeShowcaseTab]);
+
+  const handleTabsMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const el = showcaseTabsRef.current;
+    if (!el) return;
+    isDraggingTabs.current = true;
+    startXTabs.current = e.pageX - el.offsetLeft;
+    startScrollLeftTabs.current = el.scrollLeft;
+    draggedDistance.current = 0;
+  };
+
+  const handleTabsMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingTabs.current) return;
+    const el = showcaseTabsRef.current;
+    if (!el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = (x - startXTabs.current) * 1.3;
+    draggedDistance.current = Math.abs(walk);
+    el.scrollLeft = startScrollLeftTabs.current - walk;
+  };
+
+  const handleTabsMouseUp = () => {
+    isDraggingTabs.current = false;
+  };
+
   // Corporate Trust Modal State (Constitutional Privacy, Autonomous Terms, Warranty Canary)
   const [activeTrustModal, setActiveTrustModal] = useState<"privacy" | "terms" | "canary" | "encryption" | "ratelimit" | "shield" | "audit" | null>(null);
 
@@ -539,14 +611,24 @@ export default function AboutPageClient() {
                 </div>
               </div>
 
-              {/* Tab Switchers (Apple VisionOS Liquid Glass Segmented Pill) */}
-              <div className="q-apple-segmented-bar max-w-full overflow-x-auto no-scrollbar">
+              {/* Tab Switchers (Apple VisionOS Liquid Glass Segmented Pill with Smooth Scroll Physics) */}
+              <div
+                ref={showcaseTabsRef}
+                onMouseDown={handleTabsMouseDown}
+                onMouseMove={handleTabsMouseMove}
+                onMouseUp={handleTabsMouseUp}
+                onMouseLeave={handleTabsMouseUp}
+                className="q-apple-segmented-bar max-w-full overflow-x-auto no-scrollbar select-none"
+              >
                 {SHOWCASE_MODULES.map((m) => {
                   const isActive = activeShowcaseTab === m.id;
                   return (
                     <button
                       key={m.id}
-                      onClick={() => setActiveShowcaseTab(m.id)}
+                      onClick={() => {
+                        if (draggedDistance.current > 6) return;
+                        setActiveShowcaseTab(m.id);
+                      }}
                       className={`q-apple-tab-item ${isActive ? "q-apple-tab-active" : ""}`}
                     >
                       <span className="relative z-10">{m.name}</span>
