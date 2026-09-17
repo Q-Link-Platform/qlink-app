@@ -124,9 +124,14 @@ export function createAdaptivePoller(
   const runCycle = async () => {
     if (!isRunning || isExecuting) return;
 
-    // Pause if document is hidden or network is offline
-    if (typeof document !== "undefined" && document.hidden) return;
-    if (typeof navigator !== "undefined" && !navigator.onLine) return;
+    const isHidden = typeof document !== "undefined" && document.hidden;
+    const isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+    // Pause only if completely offline, checking back after 8s
+    if (isOffline) {
+      scheduleNext(8000);
+      return;
+    }
 
     isExecuting = true;
     try {
@@ -140,7 +145,9 @@ export function createAdaptivePoller(
         // Success: reset backoff to base interval
         attempt = 0;
         if (onSuccess) onSuccess();
-        scheduleNext(baseIntervalMs);
+        // If hidden/backgrounded, poll at gentle interval (4.5s+) so background tabs never starve
+        const nextDelay = isHidden ? Math.max(baseIntervalMs * 2.5, 4500) : baseIntervalMs;
+        scheduleNext(nextDelay);
       }
     } catch (err) {
       attempt++;
@@ -154,10 +161,9 @@ export function createAdaptivePoller(
 
   const handleVisibilityOrOnline = () => {
     if (!isRunning) return;
-    if (typeof document !== "undefined" && document.hidden) return;
     if (typeof navigator !== "undefined" && !navigator.onLine) return;
 
-    // Reset backoff and execute cycle immediately on wake
+    // Reset backoff and execute cycle immediately on wake or refocus
     attempt = 0;
     if (timerId) clearTimeout(timerId);
     runCycle();
@@ -174,6 +180,7 @@ export function createAdaptivePoller(
       }
       if (typeof window !== "undefined") {
         window.addEventListener("online", handleVisibilityOrOnline);
+        window.addEventListener("qlink:sync-messages", handleVisibilityOrOnline);
       }
 
       // Initial run
@@ -191,6 +198,7 @@ export function createAdaptivePoller(
       }
       if (typeof window !== "undefined") {
         window.removeEventListener("online", handleVisibilityOrOnline);
+        window.removeEventListener("qlink:sync-messages", handleVisibilityOrOnline);
       }
     },
 

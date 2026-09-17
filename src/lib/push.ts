@@ -22,6 +22,7 @@ export interface PushPayload {
   requireInteraction?: boolean;
   vibrate?: number[];
   tag?: string;
+  topic?: string;
   data?: Record<string, any>;
 }
 
@@ -31,11 +32,14 @@ export async function sendPushNotification(
 ) {
   try {
     const rawPayload = JSON.stringify(payload);
+    const headers: Record<string, string> = {
+      urgency: payload.urgency || "high",
+    };
+    if (payload.topic) {
+      headers.topic = payload.topic;
+    }
     const options: Record<string, any> = {
-      headers: {
-        urgency: payload.urgency || "high",
-        topic: "emergency-beacon",
-      },
+      headers,
       TTL: payload.urgency === "high" ? 86400 : 3600,
     };
 

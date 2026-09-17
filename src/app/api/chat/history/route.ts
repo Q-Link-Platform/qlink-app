@@ -143,7 +143,12 @@ export async function GET(request: Request) {
     }
 
     const messages = await prisma.message.findMany({
-      where: { roomId },
+      where: {
+        OR: [
+          { roomId },
+          { roomId: `dm:${roomId}` },
+        ],
+      },
       orderBy: { createdAt: "asc" },
       select: {
         id: true,

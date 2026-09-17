@@ -54,9 +54,9 @@ export async function POST(req: NextRequest) {
 
     const senderHandle = sender?.handle || (session.user as any).handle || "Someone";
 
-    // Compute room ID
+    // Compute room ID (standardized roomId without phantom dm: prefix)
     const userIds = [meId, recipient.id].sort();
-    const roomId = `dm:${userIds[0]}:${userIds[1]}`;
+    const roomId = userIds.join(":");
 
     const beaconMessageContent = `🚨 [Q-BEACON_EMERGENCY]: ${noteText || voiceUrl || "Priority Emergency Pulse"}`;
 

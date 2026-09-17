@@ -1526,6 +1526,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             }
           }
         }
+      } else if (event.data?.type === "CHAT_MESSAGE_RECEIVED") {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("qlink:sync-messages"));
+        }
       }
     };
 
@@ -5991,9 +5995,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           });
           setIncoming(currentIncoming);
 
-          // Check Q-BEACON Priority alerts in incoming
-          currentIncoming.forEach((req: any) => {
-            if (req.status === "ACCEPTED" && req.fromUser?.handle && req.latestMessage) {
+          // Check Q-BEACON Priority alerts in both incoming and outgoing connections
+          const checkBeaconReq = (req: any, peerUser: any) => {
+            if (req.status === "ACCEPTED" && peerUser?.handle && req.latestMessage) {
               const latestMsg = req.latestMessage;
               if (latestMsg?.content && latestMsg.content.includes("[Q-BEACON_EMERGENCY]:")) {
                 const ackKey = `qlink_beacon_ack_${latestMsg.id}`;
@@ -6001,9 +6005,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   localStorage.setItem(ackKey, "1");
                   const rawContent = latestMsg.content.replace(/.*?\[Q-BEACON_EMERGENCY\]:\s*/, "").trim();
                   setActiveBeacon({
-                    senderHandle: req.fromUser.handle,
-                    senderName: req.fromUser.name,
-                    senderImage: req.fromUser.profileImage,
+                    senderHandle: peerUser.handle,
+                    senderName: peerUser.name,
+                    senderImage: peerUser.profileImage || peerUser.image,
                     noteText: rawContent || "Priority Emergency Beacon!",
                   });
                   quantumAudio.warmup();
@@ -6011,7 +6015,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 }
               }
             }
-          });
+          };
+          currentIncoming.forEach((req: any) => checkBeaconReq(req, req.fromUser));
+          currentOutgoing.forEach((req: any) => checkBeaconReq(req, req.toUser));
         }
 
         // Server-Authoritative Unread State Reconciliation:
@@ -6067,29 +6073,54 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     };
 
-    const safeRefresh = () => {
-      if (typeof document !== "undefined" && document.hidden) return;
-      refresh();
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleNextRefresh = () => {
+      if (cancelled) return;
+      if (refreshTimer) clearTimeout(refreshTimer);
+      const isHidden = typeof document !== "undefined" && document.hidden;
+      const delay = isHidden ? 10000 : 5000;
+      refreshTimer = setTimeout(async () => {
+        if (cancelled) return;
+        await refresh();
+        scheduleNextRefresh();
+      }, delay);
     };
 
-    safeRefresh();
-    // 25s smart background sync when visible - prevents CPU exhaustion
-    const id = setInterval(safeRefresh, 25000);
+    refresh().finally(() => {
+      scheduleNextRefresh();
+    });
 
     const onVisChangeRefresh = () => {
       if (typeof document !== "undefined" && !document.hidden) {
-        safeRefresh();
+        if (refreshTimer) clearTimeout(refreshTimer);
+        refresh().finally(() => {
+          scheduleNextRefresh();
+        });
       }
     };
+
+    const onSyncMessages = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refresh().finally(() => {
+        scheduleNextRefresh();
+      });
+    };
+
     if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", onVisChangeRefresh);
+    }
+    if (typeof window !== "undefined") {
+      window.addEventListener("qlink:sync-messages", onSyncMessages);
     }
 
     return () => {
       cancelled = true;
-      clearInterval(id);
+      if (refreshTimer) clearTimeout(refreshTimer);
       if (typeof document !== "undefined") {
         document.removeEventListener("visibilitychange", onVisChangeRefresh);
+      }
+      if (typeof window !== "undefined") {
+        window.removeEventListener("qlink:sync-messages", onSyncMessages);
       }
     };
   }, [status, activePeerHandle, session?.user?.id, desktopNotificationsEnabled]);
@@ -6115,13 +6146,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         setChatRoomId((data.roomId as string) || null);
         setActivePeerPublicKey(peerKey);
 
-        // Q-BEACON Check in active chat
+        // Q-BEACON Check in active chat (matches 🚨, ⚡, or standard format)
         decryptedMessages.forEach((m) => {
-          if (m.content && m.content.includes("⚡ [Q-BEACON_EMERGENCY]:") && m.senderId !== myId) {
+          if (m.content && m.content.includes("[Q-BEACON_EMERGENCY]:") && m.senderId !== myId) {
             const ackKey = `qlink_beacon_ack_${m.id}`;
             if (!localStorage.getItem(ackKey)) {
               localStorage.setItem(ackKey, "1");
-              const rawContent = m.content.replace("⚡ [Q-BEACON_EMERGENCY]:", "").trim();
+              const rawContent = m.content.replace(/.*?\[Q-BEACON_EMERGENCY\]:\s*/, "").trim();
               setActiveBeacon({
                 senderHandle: activePeerHandle,
                 noteText: rawContent || "Priority Emergency Beacon!",
