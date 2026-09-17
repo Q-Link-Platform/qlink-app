@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import "./about.css";
+import QuantumFluidButton from "@/components/QuantumFluidButton";
 
 // Official Verified Social Links with AUTHENTIC OFFICIAL BRAND COLORS & ICONS
 const SOCIAL_LINKS = [
@@ -434,26 +435,8 @@ export default function AboutPageClient() {
 
           {/* HIGH-CONTRAST EXECUTIVE CTAS */}
           <div className="flex flex-col items-center justify-center mb-10 w-full max-w-2xl mx-auto">
-            {/* Primary Centerpiece: 3D Liquid-Chrome Windows Client CTA (Reference Matched) */}
-            <div className="w-full flex flex-col items-center mb-6">
-              <a
-                href="/downloads/Q-Link-Setup.exe"
-                download="Q-Link-Setup.exe"
-                className="group relative block w-full max-w-[300px] sm:max-w-[350px] md:max-w-[390px] transition-all duration-300 transform hover:scale-[1.025] active:scale-[0.985] filter drop-shadow-[0_12px_35px_rgba(6,182,212,0.35)] hover:drop-shadow-[0_20px_60px_rgba(6,182,212,0.7)] cursor-pointer"
-                title="Download Q-Link for Windows - Production Binary"
-              >
-                <div className="relative rounded-full overflow-hidden">
-                  <img
-                    src="/visuals/quantum-download-button.png"
-                    alt="Download for Windows - 75 MB .EXE - Recommended for devs"
-                    className="w-full h-auto select-none pointer-events-none block"
-                    loading="eager"
-                  />
-                  {/* Dynamic specular light shimmer sweep on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none rounded-full" />
-                </div>
-              </a>
-            </div>
+            {/* Primary Centerpiece: 3D Liquid-Chrome Windows Client CTA with Reactive Fluid Spotlight */}
+            <QuantumFluidButton className="mb-6" />
 
             {/* Auxiliary In-Browser Web Client & PWA Actions */}
             <div className="flex flex-wrap items-center justify-center gap-3.5">
