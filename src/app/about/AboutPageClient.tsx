@@ -464,14 +464,21 @@ export default function AboutPageClient() {
             {/* Primary Centerpiece: 3D Liquid-Chrome Windows Client CTA with Reactive Fluid Spotlight */}
             <QuantumFluidButton className="mb-6" />
 
-            {/* Auxiliary In-Browser Web Client & PWA Actions */}
+            {/* Auxiliary In-Browser Web Client & PWA Actions with Apple Glass Spotlight */}
             <div className="flex flex-wrap items-center justify-center gap-3.5">
               <Link
                 href="/"
-                className="px-7 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold text-xs sm:text-sm backdrop-blur-md border border-white/20 hover:border-white/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2 shadow-lg"
+                onPointerMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  e.currentTarget.style.setProperty("--btn-x", `${e.clientX - rect.left}px`);
+                  e.currentTarget.style.setProperty("--btn-y", `${e.clientY - rect.top}px`);
+                }}
+                className="q-apple-spotlight-btn group/apple-btn px-7 py-3 gap-2 text-white font-semibold text-xs sm:text-sm"
               >
-                <span>Launch Web Client</span>
-                <svg className="w-4 h-4 text-cyan-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {/* Top Specular Bevel Glint */}
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-[48%] bg-gradient-to-b from-white/20 via-white/[0.03] to-transparent rounded-t-full z-[2]" />
+                <span className="relative z-10 tracking-wide">Launch Web Client</span>
+                <svg className="w-4 h-4 text-cyan-300 relative z-10 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/apple-btn:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </Link>
@@ -479,9 +486,16 @@ export default function AboutPageClient() {
               {isPwaInstallable && (
                 <button
                   onClick={handleInstallPwa}
-                  className="px-6 py-3 rounded-2xl bg-slate-900/60 hover:bg-slate-800/80 text-slate-300 font-medium text-xs sm:text-sm backdrop-blur-md border border-slate-700/50 hover:border-slate-600 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  onPointerMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    e.currentTarget.style.setProperty("--btn-x", `${e.clientX - rect.left}px`);
+                    e.currentTarget.style.setProperty("--btn-y", `${e.clientY - rect.top}px`);
+                  }}
+                  className="q-apple-spotlight-btn group/apple-btn px-6 py-3 gap-2 text-slate-200 hover:text-white font-medium text-xs sm:text-sm"
                 >
-                  Install Web App (PWA)
+                  {/* Top Specular Bevel Glint */}
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-[48%] bg-gradient-to-b from-white/20 via-white/[0.03] to-transparent rounded-t-full z-[2]" />
+                  <span className="relative z-10 tracking-wide">Install Web App (PWA)</span>
                 </button>
               )}
             </div>
