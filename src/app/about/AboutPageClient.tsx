@@ -638,14 +638,52 @@ export default function AboutPageClient() {
           <div className="q-spotlight-card rounded-[32px] p-4 sm:p-7 border border-white/15 bg-[#050914]/85 backdrop-blur-3xl shadow-[0_30px_90px_rgba(0,0,0,0.85),inset_0_1px_1.5px_rgba(255,255,255,0.2)] relative overflow-hidden">
             {/* Apple VisionOS / macOS Glass Chrome Bar */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-3.5 pb-4 px-2 border-b border-white/[0.08]">
-              {/* Window Controls & Apple Traffic Lights */}
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_1px_2px_rgba(0,0,0,0.3)] transition-transform duration-200 hover:scale-110" />
-                <span className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_1px_2px_rgba(0,0,0,0.3)] transition-transform duration-200 hover:scale-110" />
-                <span className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29]/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_1px_2px_rgba(0,0,0,0.3)] transition-transform duration-200 hover:scale-110" />
-                <div className="flex items-center gap-2 ml-2.5 hidden sm:flex">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
-                  <span className="text-[12px] font-medium text-slate-300 tracking-tight font-mono">Q-Link v3.0 Production App</span>
+              {/* Window Controls & Apple macOS Glass Brand Capsule */}
+              <div className="flex items-center gap-2.5">
+                {/* Authentic macOS Traffic Lights with Interactive Reveal Glyphs */}
+                <div className="group/traffic flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
+                  {/* Close (Red) */}
+                  <div className="relative w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/90 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_1px_2px_rgba(0,0,0,0.3)] flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-110 active:scale-95">
+                    <svg className="w-2 h-2 text-[#4c0000] opacity-0 group-hover/traffic:opacity-100 transition-opacity duration-150" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round">
+                      <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                  {/* Minimize (Yellow) */}
+                  <div className="relative w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/90 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_1px_2px_rgba(0,0,0,0.3)] flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-110 active:scale-95">
+                    <svg className="w-2 h-2 text-[#5c3c00] opacity-0 group-hover/traffic:opacity-100 transition-opacity duration-150" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round">
+                      <path d="M5 12h14" />
+                    </svg>
+                  </div>
+                  {/* Maximize (Green) */}
+                  <div className="relative w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29]/90 shadow-[inset_0_1px_1px_rgba(255,255,255,0.5),0_1px_2px_rgba(0,0,0,0.3)] flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-110 active:scale-95">
+                    <svg className="w-2 h-2 text-[#003800] opacity-0 group-hover/traffic:opacity-100 transition-opacity duration-150" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M5 5h14v14H5z" fillOpacity="0.8" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Apple Frosted Glass App Identity Pill */}
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] backdrop-blur-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.12),0_4px_16px_rgba(0,0,0,0.3)] select-none">
+                  {/* Quantum Orb Emblem */}
+                  <div className="relative w-4 h-4 rounded-full bg-gradient-to-tr from-cyan-500 via-sky-400 to-indigo-500 p-[1px] shadow-[0_0_8px_rgba(34,211,238,0.6)]">
+                    <div className="w-full h-full rounded-full bg-[#030816] flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-300 animate-pulse shadow-[0_0_6px_rgba(34,211,238,1)]" />
+                    </div>
+                  </div>
+
+                  {/* Brand Typography */}
+                  <span className="text-[12px] font-semibold text-white tracking-tight flex items-center gap-1.5">
+                    Q-Link
+                    <span className="text-[9px] font-mono font-medium px-1.5 py-0.2 rounded-md bg-white/[0.08] text-cyan-300 border border-white/[0.1] shadow-sm">
+                      v3.0
+                    </span>
+                  </span>
+
+                  {/* Production Status Tag */}
+                  <div className="hidden sm:flex items-center gap-1 pl-1.5 border-l border-white/[0.12] text-[10px] font-medium text-slate-300">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                    <span>Production</span>
+                  </div>
                 </div>
               </div>
 
