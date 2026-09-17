@@ -369,41 +369,67 @@ export default function AboutPageClient() {
         }`}
       >
         <nav
-          className={`rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between transition-all duration-300 ${
+          onPointerMove={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            e.currentTarget.style.setProperty("--nav-x", `${e.clientX - rect.left}px`);
+            e.currentTarget.style.setProperty("--nav-y", `${e.clientY - rect.top}px`);
+          }}
+          className={`group/nav relative rounded-full px-4 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             isScrolled
-              ? "q-about-nav-scrolled bg-[#030712] border border-white/20 shadow-[0_25px_60px_rgba(0,0,0,0.95)] ring-1 ring-cyan-500/20"
-              : "q-spotlight-card bg-white/[0.04] backdrop-blur-xl border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.4)]"
+              ? "bg-[#030712]/92 backdrop-blur-2xl border border-white/20 shadow-[0_25px_60px_rgba(0,0,0,0.95),inset_0_1px_1px_rgba(255,255,255,0.15)] ring-1 ring-cyan-500/20"
+              : "bg-[#030712]/60 backdrop-blur-2xl border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_1px_1px_rgba(255,255,255,0.2)]"
           }`}
-          style={isScrolled ? { background: "#030712", backgroundColor: "#030712" } : undefined}
         >
-          {/* SLEEK SPACIOUS BRAND (Logo removed as requested to eliminate chaos and give breathing room) */}
-          <Link href="/" className="flex items-center gap-2 group whitespace-nowrap">
+          {/* APPLE DYNAMIC CURSOR SPOTLIGHT (Internal Glass Light Field) */}
+          <div
+            className="pointer-events-none absolute inset-0 rounded-full transition-opacity duration-500 opacity-0 group-hover/nav:opacity-100"
+            style={{
+              background: `radial-gradient(180px circle at var(--nav-x, -999px) var(--nav-y, -999px), rgba(34, 211, 238, 0.14), rgba(99, 102, 241, 0.06) 45%, transparent 75%)`,
+            }}
+          />
+
+          {/* APPLE HAIRLINE SPECULAR BORDER SPOTLIGHT (Refracts Light along Rim) */}
+          <div
+            className="pointer-events-none absolute -inset-[1px] rounded-full transition-opacity duration-500 opacity-0 group-hover/nav:opacity-100"
+            style={{
+              background: `radial-gradient(130px circle at var(--nav-x, -999px) var(--nav-y, -999px), rgba(255, 255, 255, 0.55), rgba(34, 211, 238, 0.35) 40%, transparent 70%)`,
+              mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              maskComposite: "exclude",
+              WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              WebkitMaskComposite: "xor",
+              padding: "1px",
+            }}
+          />
+
+          {/* SLEEK SPACIOUS BRAND */}
+          <Link href="/" className="relative z-10 flex items-center gap-2 group whitespace-nowrap">
             <span className="text-base font-black tracking-tight text-white group-hover:text-cyan-300 transition-colors">
               Q-Link
             </span>
-            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold tracking-wider">
+            <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 font-semibold tracking-wider shadow-[0_0_10px_rgba(6,182,212,0.15)]">
               v3.0
             </span>
           </Link>
 
-          {/* FULL SPELLING RESPONSIVE CORPORATE NAVIGATION (Visible 768px and above) */}
-          <div className="hidden md:flex items-center gap-3 lg:gap-6 text-[11px] lg:text-xs font-mono tracking-wider uppercase text-slate-400 whitespace-nowrap">
-            <a href="#platform" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Platform</a>
-            <a href="#telemetry" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Telemetry</a>
-            <a href="#downloads" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Client Suite</a>
-            <a href="#architecture" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Architecture</a>
-            <a href="#comparison" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Security Specs</a>
-            <a href="#corporate-directory" className="hover:text-cyan-300 hover:bg-white/[0.06] px-2.5 py-1 rounded-full transition-all">Governance</a>
+          {/* FULL SPELLING RESPONSIVE CORPORATE NAVIGATION with Apple Glass Hover Pills */}
+          <div className="relative z-10 hidden md:flex items-center gap-1.5 lg:gap-2 text-[11px] lg:text-xs font-mono tracking-wider uppercase text-slate-300 whitespace-nowrap">
+            <a href="#platform" className="px-3 py-1.5 rounded-full text-slate-300 hover:text-white hover:bg-white/[0.08] hover:border hover:border-white/15 hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_2px_8px_rgba(0,0,0,0.3)] border border-transparent transition-all duration-200">Platform</a>
+            <a href="#telemetry" className="px-3 py-1.5 rounded-full text-slate-300 hover:text-white hover:bg-white/[0.08] hover:border hover:border-white/15 hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_2px_8px_rgba(0,0,0,0.3)] border border-transparent transition-all duration-200">Telemetry</a>
+            <a href="#downloads" className="px-3 py-1.5 rounded-full text-slate-300 hover:text-white hover:bg-white/[0.08] hover:border hover:border-white/15 hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_2px_8px_rgba(0,0,0,0.3)] border border-transparent transition-all duration-200">Client Suite</a>
+            <a href="#architecture" className="px-3 py-1.5 rounded-full text-slate-300 hover:text-white hover:bg-white/[0.08] hover:border hover:border-white/15 hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_2px_8px_rgba(0,0,0,0.3)] border border-transparent transition-all duration-200">Architecture</a>
+            <a href="#comparison" className="px-3 py-1.5 rounded-full text-slate-300 hover:text-white hover:bg-white/[0.08] hover:border hover:border-white/15 hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.2),0_2px_8px_rgba(0,0,0,0.3)] border border-transparent transition-all duration-200">Security Specs</a>
+            <a href="#corporate-directory" className="px-3 py-1.5 rounded-full text-cyan-400 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/25 hover:border-cyan-500/40 hover:shadow-[0_0_15px_rgba(6,182,212,0.25)] transition-all duration-200">Governance</a>
           </div>
 
-          {/* RIGHT SIDE: ONLY CLEAN FOCUSED WEB APP CTA (Windows .exe moved to Hero & Suite to eliminate chaos) */}
-          <div className="flex items-center gap-3 whitespace-nowrap">
+          {/* RIGHT SIDE: APPLE-STYLE LIQUID GLASS CTA */}
+          <div className="relative z-10 flex items-center gap-3 whitespace-nowrap">
             <Link
               href="/"
-              className="text-xs font-bold tracking-wide px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white shadow-[0_0_25px_rgba(6,182,212,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center gap-1.5"
+              className="relative text-xs font-bold tracking-wide px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 via-sky-500 to-blue-600 text-white shadow-[0_0_25px_rgba(6,182,212,0.45),inset_0_1px_1px_rgba(255,255,255,0.45)] hover:shadow-[0_0_35px_rgba(6,182,212,0.75),inset_0_1px_1px_rgba(255,255,255,0.7)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 flex items-center gap-1.5 overflow-hidden"
             >
-              <span>Use Web App</span>
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-transparent pointer-events-none rounded-full" />
+              <span className="relative z-10">Use Web App</span>
+              <svg className="w-3.5 h-3.5 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </Link>
