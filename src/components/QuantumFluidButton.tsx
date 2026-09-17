@@ -314,59 +314,86 @@ export default function QuantumFluidButton({
 
   return (
     <div className={`w-full flex flex-col items-center ${className}`}>
-      <a
-        ref={containerRef}
-        href={href}
-        download={download}
-        onPointerMove={handlePointerMove}
-        onPointerEnter={handlePointerEnter}
-        onPointerLeave={handlePointerLeave}
-        style={{
-          transform: `perspective(600px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`,
-          transformStyle: 'preserve-3d',
-        }}
-        className="group relative block w-full max-w-[300px] sm:max-w-[350px] md:max-w-[390px] transition-transform duration-200 ease-out filter drop-shadow-[0_12px_35px_rgba(6,182,212,0.35)] hover:drop-shadow-[0_22px_65px_rgba(6,182,212,0.85)] cursor-pointer select-none"
-        title="Download Q-Link for Windows - Sovereign Desktop Client (.exe)"
-      >
-        <div className="relative rounded-full overflow-hidden">
-          <img
-            src="/visuals/quantum-download-button.png"
-            alt="Download for Windows - 75 MB .EXE - Recommended for devs"
-            className="w-full h-auto select-none pointer-events-none block"
-            loading="eager"
-            draggable={false}
-          />
+      <div className="relative group flex flex-col items-center">
+        {/* APPLE-LEVEL SMOOTH GLASS TOOLTIP (Replacing cheap default browser tooltip) */}
+        <div
+          className={`absolute -top-10 z-30 pointer-events-none transition-all duration-300 ${
+            isHovered
+              ? 'opacity-100 scale-100 -translate-y-1'
+              : 'opacity-0 scale-95 translate-y-1'
+          }`}
+          style={{
+            transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+        >
+          <div className="flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#030d1a]/90 backdrop-blur-xl border border-cyan-500/35 shadow-[0_8px_30px_rgba(0,0,0,0.7),0_0_20px_rgba(6,182,212,0.3)] text-[11px] font-mono whitespace-nowrap">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" />
+            <span className="text-white font-medium tracking-wide">Q-Link Setup</span>
+            <span className="text-slate-600">•</span>
+            <span className="text-cyan-300 font-semibold">75 MB</span>
+            <span className="text-slate-600">•</span>
+            <span className="px-1.5 py-0.5 rounded-md bg-cyan-500/20 text-[10px] text-cyan-200 font-sans font-semibold">
+              x64 .exe
+            </span>
+          </div>
+          {/* Subtle Glass Pip / Arrow */}
+          <div className="w-2 h-2 mx-auto rotate-45 -mt-1 bg-[#030d1a]/90 border-r border-b border-cyan-500/35 backdrop-blur-xl" />
+        </div>
 
-          {/* DYNAMIC REACTIVE LIQUID CHAMBER CANVAS */}
-          <div
-            className="absolute inset-0 pointer-events-none overflow-hidden rounded-full"
-            style={{
-              clipPath: 'inset(1% 2% 23% 2% round 9999px)',
-            }}
-          >
-            <canvas
-              ref={canvasRef}
-              className="w-full h-full block"
+        <a
+          ref={containerRef}
+          href={href}
+          download={download}
+          aria-label="Download Q-Link for Windows (64-bit .exe, 75 MB)"
+          onPointerMove={handlePointerMove}
+          onPointerEnter={handlePointerEnter}
+          onPointerLeave={handlePointerLeave}
+          style={{
+            transform: `perspective(600px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`,
+            transformStyle: 'preserve-3d',
+          }}
+          className="relative block w-full max-w-[300px] sm:max-w-[350px] md:max-w-[390px] transition-transform duration-200 ease-out filter drop-shadow-[0_12px_35px_rgba(6,182,212,0.35)] hover:drop-shadow-[0_22px_65px_rgba(6,182,212,0.85)] cursor-pointer select-none"
+        >
+          <div className="relative rounded-full overflow-hidden">
+            <img
+              src="/visuals/quantum-download-button.png"
+              alt="Download for Windows - 75 MB .EXE - Recommended for devs"
+              className="w-full h-auto select-none pointer-events-none block"
+              loading="eager"
+              draggable={false}
+            />
+
+            {/* DYNAMIC REACTIVE LIQUID CHAMBER CANVAS */}
+            <div
+              className="absolute inset-0 pointer-events-none overflow-hidden rounded-full"
               style={{
-                mixBlendMode: 'screen',
+                clipPath: 'inset(1% 2% 23% 2% round 9999px)',
+              }}
+            >
+              <canvas
+                ref={canvasRef}
+                className="w-full h-full block"
+                style={{
+                  mixBlendMode: 'screen',
+                }}
+              />
+            </div>
+
+            {/* Specular Refraction Lens Sheen Glint */}
+            <div
+              className="absolute inset-0 pointer-events-none rounded-full transition-opacity duration-300"
+              style={{
+                background: `radial-gradient(130px circle at ${mousePos.current.x * 100}% ${mousePos.current.y * 100}%, rgba(255,255,255,0.22), transparent 75%)`,
+                mixBlendMode: 'overlay',
+                opacity: isHovered ? 1 : 0.35,
               }}
             />
+
+            {/* Specular Shimmer Sweep on Hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none rounded-full" />
           </div>
-
-          {/* Specular Refraction Lens Sheen Glint */}
-          <div
-            className="absolute inset-0 pointer-events-none rounded-full transition-opacity duration-300"
-            style={{
-              background: `radial-gradient(130px circle at ${mousePos.current.x * 100}% ${mousePos.current.y * 100}%, rgba(255,255,255,0.22), transparent 75%)`,
-              mixBlendMode: 'overlay',
-              opacity: isHovered ? 1 : 0.35,
-            }}
-          />
-
-          {/* Specular Shimmer Sweep on Hover */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none rounded-full" />
-        </div>
-      </a>
+        </a>
+      </div>
     </div>
   );
 }
