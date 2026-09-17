@@ -204,24 +204,23 @@ export default function AboutPageClient() {
   const startXTabs = useRef(0);
   const startScrollLeftTabs = useRef(0);
   const draggedDistance = useRef(0);
-  const [tabScrollProgress, setTabScrollProgress] = useState({ thumbWidth: 35, thumbLeft: 0, canScroll: true });
+  const [tabScrollProgress, setTabScrollProgress] = useState({ thumbWidth: 32, thumbLeft: 0 });
 
   const updateTabScrollProgress = useCallback(() => {
     const el = showcaseTabsRef.current;
     if (!el) return;
     const maxScroll = el.scrollWidth - el.clientWidth;
-    if (maxScroll <= 2) {
-      setTabScrollProgress({ thumbWidth: 100, thumbLeft: 0, canScroll: false });
+    if (maxScroll <= 1) {
+      setTabScrollProgress({ thumbWidth: 100, thumbLeft: 0 });
       return;
     }
     const ratio = el.clientWidth / el.scrollWidth;
-    const thumbWidthPercent = Math.max(18, Math.min(50, ratio * 100));
+    const thumbWidthPercent = Math.max(18, Math.min(48, ratio * 100));
     const scrollPercent = Math.max(0, Math.min(1, el.scrollLeft / maxScroll));
     const thumbLeftPercent = scrollPercent * (100 - thumbWidthPercent);
     setTabScrollProgress({
       thumbWidth: thumbWidthPercent,
       thumbLeft: thumbLeftPercent,
-      canScroll: true,
     });
   }, []);
 
@@ -238,18 +237,13 @@ export default function AboutPageClient() {
     if (!el) return;
 
     const onWheel = (e: WheelEvent) => {
-      const maxScrollLeft = el.scrollWidth - el.clientWidth;
-      if (maxScrollLeft <= 0) return;
-
-      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      if (delta !== 0) {
-        // Smoothly pan within scrollable bounds without page stutter
-        const willScroll = (delta > 0 && el.scrollLeft < maxScrollLeft - 1) || (delta < 0 && el.scrollLeft > 1);
-        if (willScroll) {
-          e.preventDefault();
-          el.scrollLeft += delta * 0.95;
-          updateTabScrollProgress();
-        }
+      // Unconditionally prevent vertical page scrolling when scrolling over the tabs
+      if (e.deltaY !== 0 || e.deltaX !== 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        el.scrollLeft += delta * 1.15;
+        updateTabScrollProgress();
       }
     };
 
@@ -290,7 +284,7 @@ export default function AboutPageClient() {
     if (!el) return;
     e.preventDefault();
     const x = e.pageX - el.offsetLeft;
-    const walk = (x - startXTabs.current) * 1.3;
+    const walk = (x - startXTabs.current) * 1.35;
     draggedDistance.current = Math.abs(walk);
     el.scrollLeft = startScrollLeftTabs.current - walk;
     updateTabScrollProgress();
@@ -311,7 +305,7 @@ export default function AboutPageClient() {
       left: percent * maxScroll,
       behavior: "smooth",
     });
-    setTimeout(updateTabScrollProgress, 200);
+    setTimeout(updateTabScrollProgress, 180);
   };
 
     // Corporate Trust Modal State (Constitutional Privacy, Autonomous Terms, Warranty Canary)
@@ -655,8 +649,8 @@ export default function AboutPageClient() {
                 </div>
               </div>
 
-              {/* Tab Switchers (Apple VisionOS Liquid Glass Segmented Pill with Modern Scrollbar) */}
-              <div className="flex flex-col items-center gap-1.5 max-w-full">
+              {/* Tab Switchers (Apple VisionOS Liquid Glass Segmented Pill with Dedicated Downside Scrollbar) */}
+              <div className="flex flex-col items-center gap-2 flex-1 min-w-0 max-w-full md:max-w-[560px] lg:max-w-[620px] mx-auto">
                 <div
                   ref={showcaseTabsRef}
                   onScroll={updateTabScrollProgress}
@@ -664,7 +658,7 @@ export default function AboutPageClient() {
                   onMouseMove={handleTabsMouseMove}
                   onMouseUp={handleTabsMouseUp}
                   onMouseLeave={handleTabsMouseUp}
-                  className="q-apple-segmented-bar max-w-full overflow-x-auto no-scrollbar select-none"
+                  className="q-apple-segmented-bar w-full max-w-full overflow-x-auto no-scrollbar select-none"
                 >
                   {SHOWCASE_MODULES.map((m) => {
                     const isActive = activeShowcaseTab === m.id;
@@ -688,61 +682,59 @@ export default function AboutPageClient() {
                   })}
                 </div>
 
-                {/* Modern Apple Glass Interactive Scrollbar Indicator */}
-                {tabScrollProgress.canScroll && (
-                  <div className="flex items-center gap-1.5 py-0.5 select-none">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const el = showcaseTabsRef.current;
-                        if (el) {
-                          el.scrollBy({ left: -160, behavior: "smooth" });
-                          setTimeout(updateTabScrollProgress, 180);
-                        }
-                      }}
-                      className="p-0.5 rounded-full text-slate-500 hover:text-cyan-300 hover:bg-white/10 transition-colors cursor-pointer"
-                      title="Scroll Left"
-                      aria-label="Scroll Tabs Left"
-                    >
-                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
-                      </svg>
-                    </button>
+                {/* Permanent Modern Apple Glass Downside Scrollbar */}
+                <div className="flex items-center gap-2 py-0.5 select-none w-full justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const el = showcaseTabsRef.current;
+                      if (el) {
+                        el.scrollBy({ left: -180, behavior: "smooth" });
+                        setTimeout(updateTabScrollProgress, 180);
+                      }
+                    }}
+                    className="p-1 rounded-full text-slate-400 hover:text-cyan-300 hover:bg-white/10 transition-colors cursor-pointer"
+                    title="Scroll Left"
+                    aria-label="Scroll Tabs Left"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
 
+                  <div
+                    onClick={handleScrollbarTrackClick}
+                    className="group/scrolltrack relative w-44 sm:w-64 h-[4px] hover:h-[6px] rounded-full bg-white/[0.12] hover:bg-white/[0.18] backdrop-blur-md cursor-pointer transition-all duration-200 overflow-hidden shadow-[inset_0_1px_1px_rgba(0,0,0,0.5)]"
+                    title="Click or drag to scroll tabs"
+                  >
+                    {/* Luminous Apple Capsule Thumb */}
                     <div
-                      onClick={handleScrollbarTrackClick}
-                      className="group/scrolltrack relative w-36 sm:w-48 h-[3px] hover:h-[5px] rounded-full bg-white/[0.08] hover:bg-white/[0.12] backdrop-blur-md cursor-pointer transition-all duration-200 overflow-hidden"
-                      title="Click or drag to scroll tabs"
-                    >
-                      {/* Luminous Apple Capsule Thumb */}
-                      <div
-                        className="absolute top-0 bottom-0 rounded-full bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 shadow-[0_0_10px_rgba(34,211,238,0.8)] transition-all duration-100 ease-out"
-                        style={{
-                          width: `${tabScrollProgress.thumbWidth}%`,
-                          left: `${tabScrollProgress.thumbLeft}%`,
-                        }}
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const el = showcaseTabsRef.current;
-                        if (el) {
-                          el.scrollBy({ left: 160, behavior: "smooth" });
-                          setTimeout(updateTabScrollProgress, 180);
-                        }
+                      className="absolute top-0 bottom-0 rounded-full bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-400 shadow-[0_0_12px_rgba(34,211,238,0.85)] transition-all duration-75 ease-out"
+                      style={{
+                        width: `${Math.max(20, Math.min(55, tabScrollProgress.thumbWidth))}%`,
+                        left: `${tabScrollProgress.thumbLeft}%`,
                       }}
-                      className="p-0.5 rounded-full text-slate-500 hover:text-cyan-300 hover:bg-white/10 transition-colors cursor-pointer"
-                      title="Scroll Right"
-                      aria-label="Scroll Tabs Right"
-                    >
-                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
+                    />
                   </div>
-                )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const el = showcaseTabsRef.current;
+                      if (el) {
+                        el.scrollBy({ left: 180, behavior: "smooth" });
+                        setTimeout(updateTabScrollProgress, 180);
+                      }
+                    }}
+                    className="p-1 rounded-full text-slate-400 hover:text-cyan-300 hover:bg-white/10 transition-colors cursor-pointer"
+                    title="Scroll Right"
+                    aria-label="Scroll Tabs Right"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
               </div>
 
               {/* Real-time indicator */}
