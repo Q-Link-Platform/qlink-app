@@ -525,34 +525,33 @@ export default function AboutPageClient() {
 
         {/* FLAGSHIP REAL PRODUCT SHOWCASE WINDOW (THE VALUE PROPOSITION CANVAS) */}
         <section id="product-showcase" className="w-full max-w-5xl mx-auto mb-28 scroll-mt-24">
-          <div className="q-spotlight-card rounded-3xl p-3 sm:p-6 border border-white/15 bg-[#070b14]/90 shadow-[0_25px_80px_rgba(0,0,0,0.85)] relative">
-            {/* Window Chrome Bar */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 pb-4 px-2 border-b border-white/[0.08]">
-              {/* Window Controls */}
+          <div className="q-spotlight-card rounded-[32px] p-4 sm:p-7 border border-white/15 bg-[#050914]/85 backdrop-blur-3xl shadow-[0_30px_90px_rgba(0,0,0,0.85),inset_0_1px_1.5px_rgba(255,255,255,0.2)] relative overflow-hidden">
+            {/* Apple VisionOS / macOS Glass Chrome Bar */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-3.5 pb-4 px-2 border-b border-white/[0.08]">
+              {/* Window Controls & Apple Traffic Lights */}
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-red-500/80 border border-red-400/40" />
-                <span className="w-3 h-3 rounded-full bg-yellow-500/80 border border-yellow-400/40" />
-                <span className="w-3 h-3 rounded-full bg-emerald-500/80 border border-emerald-400/40" />
-                <span className="text-[11px] font-mono text-slate-400 ml-2 hidden sm:inline">Q-Link v3.0 Production App</span>
+                <span className="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e]/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_1px_2px_rgba(0,0,0,0.3)] transition-transform duration-200 hover:scale-110" />
+                <span className="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123]/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_1px_2px_rgba(0,0,0,0.3)] transition-transform duration-200 hover:scale-110" />
+                <span className="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29]/80 shadow-[inset_0_1px_1px_rgba(255,255,255,0.45),0_1px_2px_rgba(0,0,0,0.3)] transition-transform duration-200 hover:scale-110" />
+                <div className="flex items-center gap-2 ml-2.5 hidden sm:flex">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                  <span className="text-[12px] font-medium text-slate-300 tracking-tight font-mono">Q-Link v3.0 Production App</span>
+                </div>
               </div>
 
-              {/* Tab Switchers (All 6 Flagship Modules with sleek pill buttons) */}
-              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-white/10 text-xs font-mono overflow-x-auto max-w-full no-scrollbar">
+              {/* Tab Switchers (Apple VisionOS Liquid Glass Segmented Pill) */}
+              <div className="q-apple-segmented-bar max-w-full overflow-x-auto no-scrollbar">
                 {SHOWCASE_MODULES.map((m) => {
                   const isActive = activeShowcaseTab === m.id;
                   return (
                     <button
                       key={m.id}
                       onClick={() => setActiveShowcaseTab(m.id)}
-                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                        isActive
-                          ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-md"
-                          : "text-slate-400 hover:text-white"
-                      }`}
+                      className={`q-apple-tab-item ${isActive ? "q-apple-tab-active" : ""}`}
                     >
-                      <span>{m.name}</span>
+                      <span className="relative z-10">{m.name}</span>
                       {isActive && (
-                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-white/20 text-white uppercase tracking-wider">
+                        <span className="relative z-10 text-[9px] px-2 py-0.5 rounded-full font-mono font-bold tracking-wider uppercase bg-cyan-400/20 text-cyan-300 border border-cyan-400/35 shadow-[0_0_8px_rgba(34,211,238,0.25)]">
                           {m.badge}
                         </span>
                       )}
@@ -562,9 +561,9 @@ export default function AboutPageClient() {
               </div>
 
               {/* Real-time indicator */}
-              <div className="hidden xl:flex items-center gap-2 text-[11px] font-mono text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>ACTIVE P2P NODE</span>
+              <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-mono text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.12)]">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                <span className="tracking-wide font-semibold">ACTIVE P2P NODE</span>
               </div>
             </div>
 
