@@ -1459,6 +1459,20 @@ export default function SettingsModal(props: SettingsModalProps) {
                               Tap backdrop or Close button to exit
                             </p>
                           </div>
+
+                          {/* Meta/X Style Institutional Legal Footer */}
+                          <div className="pt-3 pb-1 border-t border-slate-800/70 text-center select-none">
+                            <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[11px] text-slate-500">
+                              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-300 hover:underline transition-colors">Privacy Policy</a>
+                              <span className="text-slate-700">·</span>
+                              <a href="/privacy#section-6" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-300 hover:underline transition-colors">Terms of Protocol</a>
+                              <span className="text-slate-700">·</span>
+                              <a href="/about" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-300 hover:underline transition-colors">About</a>
+                            </div>
+                            <p className="mt-1 text-[10px] text-slate-600 font-mono">
+                              Q-Link Zero-Knowledge Protocol • v3.0
+                            </p>
+                          </div>
                               </>
                             )}
                         </div>

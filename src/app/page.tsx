@@ -6584,6 +6584,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               anyone globally.
             </p>
           </div>
+
+          {/* Meta & X Tech-Giant Style Minimalist Footer */}
+          <footer className="mt-6 pt-4 border-t border-slate-800/60 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[11.5px] text-slate-500 select-none">
+            <a href="/about" className="hover:text-slate-300 hover:underline transition-colors">About</a>
+            <span className="text-slate-700">·</span>
+            <a href="/privacy" className="hover:text-slate-300 hover:underline transition-colors">Privacy Policy</a>
+            <span className="text-slate-700">·</span>
+            <a href="/privacy#section-6" className="hover:text-slate-300 hover:underline transition-colors">Terms of Protocol</a>
+            <span className="text-slate-700">·</span>
+            <a href="/privacy#section-4" className="hover:text-slate-300 hover:underline transition-colors">Cookie Sandbox</a>
+            <span className="text-slate-700">·</span>
+            <span className="text-slate-600 font-mono text-[11px]">© 2026 Q-Link Protocol</span>
+          </footer>
         </div>
 
         {showVipTerms && (
