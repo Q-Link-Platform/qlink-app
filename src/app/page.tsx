@@ -6457,6 +6457,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               >
                 About &amp; Features
               </a>
+              <a
+                href="/privacy"
+                className="rounded-full border border-slate-700/60 bg-slate-900/60 px-3 py-1 font-semibold text-slate-300 hover:border-cyan-400 hover:text-cyan-200 transition-all"
+              >
+                🛡️ Privacy &amp; Protocol Charter
+              </a>
             </div>
           </div>
 
@@ -9841,6 +9847,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     >
                       <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee] shrink-0" />
                       About
+                    </Link>
+
+                    <Link
+                      href="/privacy"
+                      className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-slate-800 bg-slate-900/40 px-2.5 sm:px-3 py-1 text-[11px] sm:text-[11.5px] font-semibold text-slate-300 hover:border-cyan-400/50 hover:text-cyan-300 transition-all duration-300 shrink-0"
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399] shrink-0" />
+                      Privacy
                     </Link>
 
                     <button
