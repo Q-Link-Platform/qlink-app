@@ -1537,24 +1537,40 @@ export default function AboutPageClient() {
             </div>
 
             {/* Column 5: Trust & Constitution */}
-            <div className="flex flex-col gap-3">
-              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-rose-400">
+            <div className="flex flex-col gap-2.5">
+              <h5 className="font-semibold text-white tracking-wider uppercase text-[11px] font-mono text-cyan-400">
                 Trust Charter
               </h5>
+              <Link
+                href="/privacy"
+                className="text-left text-cyan-300 hover:text-white hover:underline transition-colors flex items-center gap-1.5 font-medium"
+              >
+                <span>Privacy Policy</span>
+                <span className="text-[10px] text-cyan-400">↗</span>
+              </Link>
+              <Link
+                href="/privacy#section-6"
+                className="text-left text-slate-300 hover:text-white hover:underline transition-colors flex items-center gap-1.5 font-medium"
+              >
+                <span>Terms of Protocol</span>
+                <span className="text-[10px] text-slate-400">↗</span>
+              </Link>
               <button
+                type="button"
                 onClick={() => setActiveTrustModal("privacy")}
-                className="text-left text-slate-400 hover:text-white transition-colors"
+                className="text-left text-slate-400 hover:text-white transition-colors text-xs"
               >
-                Constitutional Privacy
+                Constitutional Privacy Overview
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTrustModal("terms")}
-                className="text-left text-slate-400 hover:text-white transition-colors"
+                className="text-left text-slate-400 hover:text-white transition-colors text-xs"
               >
-                Autonomous Terms
+                Autonomous Terms Overview
               </button>
-              <span className="text-slate-400">100% Cookie-Free</span>
-              <span className="text-slate-400">Anti-Monopoly Stance</span>
+              <span className="text-slate-400 text-xs">100% Cookie-Free</span>
+              <span className="text-slate-400 text-xs">Anti-Monopoly Stance</span>
               <span className="text-emerald-400 font-mono text-[10px]">Zero Data Retention: ACTIVE</span>
             </div>
           </div>
@@ -1566,7 +1582,11 @@ export default function AboutPageClient() {
               <span>&copy; 2026 Q-LINK PROTOCOL FOUNDATION. ALL RIGHTS RESERVED TO HUMAN PRIVACY.</span>
             </div>
 
-            <div className="flex items-center gap-4 text-center sm:text-right">
+            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-3 gap-y-1.5 text-center sm:text-right">
+              <Link href="/privacy" className="hover:text-cyan-400 transition-colors underline underline-offset-2">Privacy Policy</Link>
+              <span>&middot;</span>
+              <Link href="/privacy#section-6" className="hover:text-cyan-400 transition-colors underline underline-offset-2">Terms of Protocol</Link>
+              <span>&middot;</span>
               <span>ZERO TRACKING</span>
               <span>•</span>
               <span>ZERO TELEMETRY</span>
@@ -1605,6 +1625,16 @@ export default function AboutPageClient() {
                 <p className="text-xs text-slate-400 leading-relaxed">
                   Your cryptographic seed is the sole decider of your identity. Once messages expire their Time-To-Live (TTL), they are permanently incinerated.
                 </p>
+                <div className="mt-5 pt-3.5 border-t border-slate-800 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-500 font-mono">10-Clause Full Autopsy</span>
+                  <Link
+                    href="/privacy"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 text-xs font-semibold transition-all"
+                  >
+                    <span>Read Full Privacy Charter</span>
+                    <span>↗</span>
+                  </Link>
+                </div>
               </div>
             )}
 
@@ -1623,6 +1653,16 @@ export default function AboutPageClient() {
                 <p className="text-xs text-slate-400 leading-relaxed">
                   The protocol is autonomous. There are no corporate admins with backdoor access to private conversations.
                 </p>
+                <div className="mt-5 pt-3.5 border-t border-slate-800 flex items-center justify-between">
+                  <span className="text-[11px] text-slate-500 font-mono">Autonomous Protocol Terms</span>
+                  <Link
+                    href="/privacy#section-6"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-500/30 text-xs font-semibold transition-all"
+                  >
+                    <span>Read Full Terms of Protocol</span>
+                    <span>↗</span>
+                  </Link>
+                </div>
               </div>
             )}
 

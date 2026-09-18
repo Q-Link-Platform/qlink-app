@@ -1438,8 +1438,44 @@ export default function SettingsModal(props: SettingsModalProps) {
                               </div>
                             </div>
 
+                                  {/* Trust & Legal Charter Dedicated Card */}
+                                  <div className="rounded-2xl border border-cyan-500/25 bg-gradient-to-b from-cyan-950/40 via-slate-950/60 to-slate-900/50 p-3.5 backdrop-blur-xl shadow-[0_4px_20px_rgba(6,182,212,0.1)]">
+                                    <div className="flex items-center justify-between mb-1.5">
+                                      <div className="flex items-center gap-2">
+                                        <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                                        <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-300 font-mono">Legal & Trust Charter</span>
+                                      </div>
+                                      <span className="text-[9.5px] text-emerald-400 font-mono bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                                        Zero-Knowledge
+                                      </span>
+                                    </div>
+                                    <p className="text-[10.5px] text-slate-400 mb-2.5 leading-relaxed">
+                                      Big Tech surveillance autopsy vs Q-Link zero-knowledge cryptographic protocol.
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <a
+                                        href="/privacy"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-cyan-500/35 bg-cyan-950/40 hover:bg-cyan-500/20 text-cyan-300 hover:text-white text-[11px] font-semibold transition-all shadow-sm"
+                                      >
+                                        <span>Privacy Policy</span>
+                                        <span className="text-[10px] text-cyan-400">↗</span>
+                                      </a>
+                                      <a
+                                        href="/privacy#section-6"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl border border-slate-700/70 bg-slate-800/50 hover:bg-slate-700/60 text-slate-200 hover:text-white text-[11px] font-semibold transition-all shadow-sm"
+                                      >
+                                        <span>Terms of Protocol</span>
+                                        <span className="text-[10px] text-slate-400">↗</span>
+                                      </a>
+                                    </div>
+                                  </div>
+
                                   {/* Log Out Action Card Inside Scroll Body */}
-                                  <div className="pt-2 pb-2">
+                                  <div className="pt-1 pb-1">
                                     <button
                                       type="button"
                                       onMouseMove={handleSpotlightMouseMove}
@@ -1453,24 +1489,20 @@ export default function SettingsModal(props: SettingsModalProps) {
                                     </button>
                                   </div>
 
-                          {/* Clean Minimal Safe Exit Hint */}
-                          <div className="shrink-0 pt-2 pb-1 text-center">
-                            <p className="text-[10px] text-slate-400/70 font-medium">
+                          {/* Meta/X Style Institutional Legal Footer */}
+                          <div className="pt-2 pb-1 text-center select-none border-t border-slate-800/60 mt-1">
+                            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+                              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-300 hover:underline transition-colors font-semibold">Privacy Policy</a>
+                              <span className="text-slate-600">&middot;</span>
+                              <a href="/privacy#section-6" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-300 hover:underline transition-colors font-semibold">Terms of Protocol</a>
+                              <span className="text-slate-600">&middot;</span>
+                              <a href="/about" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-300 hover:underline transition-colors font-semibold">About Protocol</a>
+                            </div>
+                            <p className="mt-1 text-[10px] text-slate-500 font-medium">
                               Tap backdrop or Close button to exit
                             </p>
-                          </div>
-
-                          {/* Meta/X Style Institutional Legal Footer */}
-                          <div className="pt-3 pb-1 border-t border-slate-800/70 text-center select-none">
-                            <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[11px] text-slate-500">
-                              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-300 hover:underline transition-colors">Privacy Policy</a>
-                              <span className="text-slate-700">·</span>
-                              <a href="/privacy#section-6" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-300 hover:underline transition-colors">Terms of Protocol</a>
-                              <span className="text-slate-700">·</span>
-                              <a href="/about" target="_blank" rel="noopener noreferrer" className="hover:text-cyan-300 hover:underline transition-colors">About</a>
-                            </div>
-                            <p className="mt-1 text-[10px] text-slate-600 font-mono">
-                              Q-Link Zero-Knowledge Protocol • v3.0
+                            <p className="mt-0.5 text-[9.5px] text-slate-600 font-mono">
+                              Q-Link Zero-Knowledge Protocol &middot; v3.0
                             </p>
                           </div>
                               </>
