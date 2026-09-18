@@ -8855,90 +8855,125 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             )}
 
                             <div className="space-y-1.5">
-                              {!showDirectoryMediaOnly && directoryItems.map((item) => (
+                              {!showDirectoryMediaOnly && directoryItems.map((item) => {
+                                const bioText =
+                                  (item.posts && item.posts.length > 0 && item.posts[0].text) ||
+                                  (item.isRedTick
+                                    ? "Founder & CEO at Q-Link • Pioneering decentralized quantum communications"
+                                    : item.blueTickStatus === "DIAMOND"
+                                    ? "Diamond VIP Node • High-throughput quantum mesh explorer"
+                                    : item.blueTickStatus === "SAPPHIRE"
+                                    ? "Sapphire VIP Node • Priority quantum relay operator"
+                                    : item.blueTickStatus === "verified"
+                                    ? "Verified Quantum Operator • Connecting across the global mesh"
+                                    : "Active Quantum Node • Tap to connect and chat");
+
+                                return (
                                 <div
                                   key={item.id}
                                   onMouseMove={handleSpotlightMouseMove}
                                   onMouseLeave={handleSpotlightMouseLeave}
                                   onClick={() => handleDirectorySelect(item.handle)}
-                                  className="x-magnetic-card rounded-2xl border border-slate-700/70 bg-slate-900/85 p-3 sm:p-4 text-[11.5px] sm:text-[11px] text-slate-200 hover:border-cyan-400/70 hover:bg-slate-900/95 transition-all duration-300 smooth-gpu-card cursor-pointer shadow-lg"
+                                  className="group x-magnetic-card rounded-2xl border border-slate-800/80 bg-slate-950/80 p-3.5 sm:p-4 text-slate-200 hover:border-slate-700 hover:bg-slate-900/90 transition-all duration-200 cursor-pointer shadow-lg relative overflow-hidden"
                                 >
-                                  <div className="flex items-center justify-between gap-2 sm:gap-3">
-                                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                                      <span className="inline-flex h-5 min-w-[1.6rem] items-center justify-center rounded-full bg-slate-800/80 text-[10px] font-semibold text-slate-200 shrink-0">
-                                        #{item.rank}
-                                      </span>
-                                      <div className="min-w-0 flex-1">
-                                        <div className="flex items-center gap-1 min-w-0">
-                                          <p
-                                            className={`truncate font-semibold text-xs sm:text-sm ${isDefaultTheme ? "text-cyan-200" : ""}`}
-                                            style={{ color: !isDefaultTheme ? 'var(--duo-accent-text)' : undefined }}
-                                          >
-                                            @{item.handle}
-                                          </p>
-                                          {item.blueTickStatus === "SAPPHIRE" && (
-                                            <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-sky-500/20 border border-sky-400/80 text-[7px] font-bold text-sky-300 shadow-[0_0_8px_rgba(56,189,248,0.4)]">
-                                              ✓
-                                            </span>
-                                          )}
-                                          {item.isRedTick && (
-                                            <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-red-500/25 border border-red-400/80 text-[7px] font-bold text-red-300 shadow-[0_0_8px_rgba(248,113,113,0.4)]">
-                                              ✓
-                                            </span>
-                                          )}
+                                  <div className="flex items-start gap-3 min-w-0">
+                                    {/* Twitter/X Style Avatar */}
+                                    <div className="relative shrink-0 pt-0.5">
+                                      {item.image ? (
+                                        <img
+                                          src={item.image}
+                                          alt={item.name || item.handle}
+                                          className="h-10 w-10 sm:h-11 sm:w-11 rounded-full object-cover border border-slate-700/80 shadow-md"
+                                        />
+                                      ) : (
+                                        <div className={`h-10 w-10 sm:h-11 sm:w-11 rounded-full flex items-center justify-center font-bold text-sm text-white uppercase shadow-inner border ${
+                                          item.isRedTick 
+                                            ? "bg-gradient-to-br from-red-600 to-red-950 border-red-500/50" 
+                                            : item.blueTickStatus === "DIAMOND"
+                                            ? "bg-gradient-to-br from-pink-600 to-pink-950 border-pink-500/50"
+                                            : item.blueTickStatus === "SAPPHIRE"
+                                            ? "bg-gradient-to-br from-sky-600 to-sky-950 border-sky-500/50"
+                                            : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 border-slate-600/60"
+                                        }`}>
+                                          {(item.name || item.handle || "U")[0]}
                                         </div>
-                                        {item.name && (
-                                          <p className="truncate text-[10px] sm:text-xs text-slate-400">
-                                            {item.name}
-                                          </p>
-                                        )}
-                                      </div>
+                                      )}
+                                      <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-slate-950 shadow-[0_0_6px_rgba(16,185,129,0.8)]" />
                                     </div>
 
-                                    <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                                      {/* Aura Display */}
-                                      <div className="flex items-center gap-1">
-                                        <span className={`text-[9.5px] sm:text-[10px] font-bold ${getAuraColor(item.auraPercentage || 0)}`}>
-                                          {item.auraPercentage || 0}% Aura
-                                        </span>
-                                        <button
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            console.log('Aura help button clicked');
-                                            setShowAuraHelp(true);
-                                          }}
-                                          className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-slate-600/50 bg-slate-800/50 text-[8px] text-slate-400 hover:text-slate-300 hover:bg-slate-700/50 transition-all duration-200 cursor-pointer"
-                                          title="What is Aura?"
-                                        >
-                                          ?
-                                        </button>
+                                    {/* Center Content: Name + Badges + @handle + Bio */}
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0 pr-1">
+                                          <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
+                                            <span className="font-bold text-sm text-white truncate group-hover:underline">
+                                              {item.name || item.handle}
+                                            </span>
+                                            {item.isRedTick ? (
+                                              <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-red-500/25 border border-red-400/80 text-[8px] font-extrabold text-red-300 shadow-[0_0_8px_rgba(248,113,113,0.5)]" title="Elite Founder">
+                                                ✓
+                                              </span>
+                                            ) : item.blueTickStatus === "DIAMOND" ? (
+                                              <span className="text-xs shrink-0 drop-shadow-[0_0_6px_rgba(236,72,153,0.8)]" title="Diamond VIP">💎</span>
+                                            ) : item.blueTickStatus === "SAPPHIRE" ? (
+                                              <span className="text-xs shrink-0 drop-shadow-[0_0_6px_rgba(14,165,233,0.8)]" title="Sapphire VIP">💎</span>
+                                            ) : item.blueTickStatus === "verified" ? (
+                                              <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-sky-500 border border-sky-300 text-[8px] font-extrabold text-white shadow-[0_0_8px_rgba(56,189,248,0.5)]" title="Verified Blue Tick">
+                                                ✓
+                                              </span>
+                                            ) : null}
+                                          </div>
+                                          <p className="text-xs text-slate-400 truncate mt-0.5">
+                                            @{item.handle}
+                                          </p>
+                                        </div>
+
+                                        {/* Right-Side Twitter/X Pill Button */}
+                                        <div className="shrink-0">
+                                          {item.id !== (session?.user as any)?.id && (
+                                            <button
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleFollow(item.id);
+                                              }}
+                                              disabled={engagementLoading[item.id]?.follow}
+                                              className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all duration-200 active:scale-95 cursor-pointer select-none shadow-sm ${
+                                                followStatus[item.id]
+                                                  ? "border border-slate-600/80 bg-slate-800/60 text-slate-200 hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-400"
+                                                  : "bg-white text-slate-950 hover:bg-slate-200 hover:shadow-[0_0_12px_rgba(255,255,255,0.25)]"
+                                              }`}
+                                            >
+                                              {engagementLoading[item.id]?.follow ? (
+                                                <span className="inline-block animate-pulse">...</span>
+                                              ) : followStatus[item.id] ? (
+                                                "Following"
+                                              ) : (
+                                                "Follow"
+                                              )}
+                                            </button>
+                                          )}
+                                        </div>
                                       </div>
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDirectorySelect(item.handle);
-                                        }}
-                                        className={`inline-flex items-center rounded-full px-2.5 sm:px-3 py-1 text-[10.5px] sm:text-[11px] font-semibold active:scale-95 transition-all ${
-                                          isDefaultTheme
-                                            ? "border border-cyan-400/70 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
-                                            : "hover:opacity-90"
-                                        }`}
-                                        style={
-                                          !isDefaultTheme
-                                            ? {
-                                                borderColor: 'var(--duo-border-glow)',
-                                                backgroundColor: 'var(--duo-primary-pill-bg)',
-                                                color: 'var(--duo-accent-text)',
-                                                borderWidth: '1px',
-                                                borderStyle: 'solid',
-                                              }
-                                            : undefined
-                                        }
-                                      >
-                                        Send request
-                                      </button>
+
+                                      {/* Clean Twitter/X Style Bio / Thought line */}
+                                      <p className="mt-2 text-xs sm:text-[13px] text-slate-300 leading-relaxed line-clamp-3">
+                                        {bioText}
+                                      </p>
+
+                                      {/* Metadata Footer: Aura & Points pills */}
+                                      <div className="mt-3 flex items-center gap-3 text-[11px] text-slate-400 border-t border-slate-800/60 pt-2">
+                                        <span className={`font-semibold ${getAuraColor(item.auraPercentage || 0)}`}>
+                                          ⚡ {item.auraPercentage || 0}% Aura
+                                        </span>
+                                        {item.points ? (
+                                          <span className="text-slate-400">• {item.points} pts</span>
+                                        ) : null}
+                                        <span className="text-slate-500">• #{item.rank}</span>
+                                        <span className="ml-auto text-[11px] text-cyan-400/90 font-medium group-hover:text-cyan-300 transition-colors">
+                                          Connect →
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
 
