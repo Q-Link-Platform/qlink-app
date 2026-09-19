@@ -16,6 +16,16 @@ export default function PrivacyPageClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSection, setActiveSection] = useState("section-1");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setShowScrollTop(e.currentTarget.scrollTop > 300);
+  };
+
+  const scrollToTop = () => {
+    containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const handleCopyLink = (id: string) => {
     if (typeof window !== "undefined") {
@@ -424,7 +434,31 @@ export default function PrivacyPageClient() {
   }, [searchQuery, sections]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div
+      ref={containerRef}
+      onScroll={handleScroll}
+      className="fixed inset-0 h-[100dvh] w-full overflow-y-auto overflow-x-hidden bg-slate-950 text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans scroll-smooth z-10 privacy-custom-scroll"
+      style={{
+        scrollbarWidth: 'thin',
+        scrollbarColor: 'rgba(6, 182, 212, 0.6) rgba(15, 23, 42, 0.9)',
+      }}
+    >
+      <style>{`
+        .privacy-custom-scroll::-webkit-scrollbar {
+          width: 10px;
+        }
+        .privacy-custom-scroll::-webkit-scrollbar-track {
+          background: #060913;
+        }
+        .privacy-custom-scroll::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, #0891b2 0%, #06b6d4 100%);
+          border-radius: 9999px;
+          border: 2px solid #060913;
+        }
+        .privacy-custom-scroll::-webkit-scrollbar-thumb:hover {
+          background: #22d3ee;
+        }
+      `}</style>
       {/* Top Glass Navigation Bar */}
       <header className="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
@@ -619,6 +653,20 @@ export default function PrivacyPageClient() {
           </p>
         </div>
       </footer>
+
+      {/* Tech-Giant Floating Scroll to Top Action */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-cyan-400/50 bg-slate-900/90 text-cyan-300 shadow-[0_0_25px_rgba(6,182,212,0.45)] backdrop-blur-xl hover:bg-cyan-500/20 hover:text-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
+          title="Scroll to Top"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }
