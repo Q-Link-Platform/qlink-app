@@ -9286,7 +9286,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     );
                                   })()}
                                 </div>
-                              ))}
+                                  );
+                                })}
 
                               {/* Dedicated Content-First Media Feed (Media Active Mode) */}
                               {showDirectoryMediaOnly && (
