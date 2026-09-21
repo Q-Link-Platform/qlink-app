@@ -771,7 +771,7 @@ function PostCommentsSkeleton() {
   );
 }
 
-type ViewMode = "home" | "connect";
+type ViewMode = "home" | "connect" | "profile";
 
 type OutgoingRequest = {
   id: string;
@@ -861,6 +861,7 @@ type DirectoryItem = {
   auraPercentage: number;
   blueTickStatus: string;
   points: number;
+  posts?: any[];
 };
 
 interface UnreadItem {
@@ -1399,6 +1400,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   );
   const myId = (effectiveUser as any)?.id;
   const [mode, setMode] = useState<ViewMode>("home");
+  const [viewingProfileHandle, setViewingProfileHandle] = useState<string | null>(null);
   const [connectionsTab, setConnectionsTab] = useState<"friends" | "requests">("friends");
 
   // Predictive Smart Skeleton: Dynamically memorizes exact friend count per user ID
@@ -7681,9 +7683,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   };
 
-  const handleDirectorySelect = async (handle: string | null) => {
-    if (!handle) return;
-    // Close directory and route into existing connect flow
+  const openUserProfile = (targetHandle: string | null | undefined, initialData?: any) => {
+    if (!targetHandle) return;
+    const clean = cleanHandle(targetHandle);
     setShowDirectory(false);
     setIsConsoleAnimating(false);
     if (typeof window !== "undefined") {
@@ -7691,36 +7693,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       const main = document.getElementById("main-scroll-container");
       if (main) main.scrollLeft = 0;
     }
-    setMode("connect");
-    setFriendIdInput(handle);
-    setSearching(true);
-    setSearchError(null);
-    setFoundUser(null);
-    setSelectedCategories([]);
-    setComment("");
-    setRequestError(null);
-    setRequestSuccess(null);
+    setViewingProfileHandle(clean);
+    setMode("profile");
 
-    try {
-      const res = await fetch("/api/friends/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ handle: handle.trim() }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setSearchError(data.error || "Quantum ID not found.");
-        return;
-      }
-
-      const data = await res.json();
-      setFoundUser(data.user as FoundUser);
-    } catch {
-      setSearchError("Unable to reach quantum directory. Try again.");
-    } finally {
-      setSearching(false);
+    // Pre-populate foundUser if initial data exists
+    if (initialData) {
+      setFoundUser(initialData);
     }
+  };
+
+  const handleDirectorySelect = async (handle: string | null) => {
+    if (!handle) return;
+    const foundItem = (directoryItems || []).find(
+      (item) => cleanHandle(item.handle) === cleanHandle(handle) || item.id === handle
+    );
+    openUserProfile(handle, foundItem);
   };
 
   const handleSignOut = async () => {
@@ -8901,7 +8888,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       {item.image ? (
                                         <img
                                           src={item.image}
-                                          alt={item.name || item.handle}
+                                          alt={item.name || item.handle || "User"}
                                           className="h-10 w-10 sm:h-11 sm:w-11 rounded-full object-cover border border-slate-700/80 shadow-md"
                                         />
                                       ) : (
@@ -9016,8 +9003,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                             >
                                               {/* Meta/X Author Header with Three-Dots Menu */}
                                               <div className="flex items-center justify-between gap-2 pb-1.5 relative">
-                                                <div className="min-w-0 flex items-center gap-2.5">
-                                                  <div className="relative h-7 w-7 rounded-full overflow-hidden flex-shrink-0 bg-slate-800 border border-slate-700/60">
+                                                <div
+                                                  className="min-w-0 flex items-center gap-2.5 cursor-pointer group/author hover:opacity-90 transition-opacity"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    openUserProfile(item?.handle, item);
+                                                  }}
+                                                >
+                                                  <div className="relative h-7 w-7 rounded-full overflow-hidden flex-shrink-0 bg-slate-800 border border-slate-700/60 group-hover/author:border-cyan-400/80 transition-colors">
                                                     <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30 flex items-center justify-center text-[10px] font-bold text-white uppercase">
                                                       {(item?.handle?.[0] || item?.name?.[0] || '?').toUpperCase()}
                                                     </div>
@@ -9034,7 +9027,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                     )}
                                                   </div>
                                                   <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
-                                                    <span className="font-bold text-xs text-white truncate hover:underline">
+                                                    <span className="font-bold text-xs text-white truncate group-hover/author:text-cyan-300 transition-colors">
                                                       {item.name || item.handle}
                                                     </span>
                                                     <span className="text-[11px] text-slate-400 truncate">
@@ -9332,8 +9325,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                                         {/* Header: Profile Info + Label */}
                                         <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-800/80 mb-3.5">
-                                          <div className="flex items-center gap-2.5 min-w-0">
-                                            <div className="relative h-6.5 w-6.5 rounded-full overflow-hidden flex-shrink-0 bg-slate-800 border border-slate-700">
+                                          <div
+                                            className="flex items-center gap-2.5 min-w-0 cursor-pointer group/author hover:opacity-90 transition-opacity"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              openUserProfile(item?.handle, item);
+                                            }}
+                                          >
+                                            <div className="relative h-6.5 w-6.5 rounded-full overflow-hidden flex-shrink-0 bg-slate-800 border border-slate-700 group-hover/author:border-cyan-400/80 transition-colors">
                                               <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30 flex items-center justify-center text-[9.5px] font-bold text-white uppercase">
                                                 {(item?.handle?.[0] || item?.name?.[0] || '?').toUpperCase()}
                                               </div>
@@ -10752,6 +10751,31 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               setShowLogoViewer={setShowLogoViewer}
               mode={mode}
               setMode={setMode}
+              viewingProfileHandle={viewingProfileHandle}
+              onCloseProfile={() => {
+                setViewingProfileHandle(null);
+                setMode("home");
+              }}
+              onStartChatWithUser={(targetHandle) => {
+                setViewingProfileHandle(null);
+                setMode("home");
+                openChatWithPeer(targetHandle);
+              }}
+              onSendConnectRequest={async (targetHandle, categories, note) => {
+                const res = await fetch("/api/friends/request", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    toHandle: targetHandle,
+                    categories: categories.join(","),
+                    message: note.trim(),
+                  }),
+                });
+                if (!res.ok) {
+                  const d = await res.json().catch(() => ({}));
+                  throw new Error(d.error || "Failed to send request");
+                }
+              }}
               highlightConnect={highlightConnect}
               handleSearch={handleSearch}
               friendIdInput={friendIdInput}

@@ -4,9 +4,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   reactCompiler: true,
   outputFileTracingExcludes: {
     "*": [
@@ -19,6 +16,6 @@ const nextConfig: NextConfig = {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3001',
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'development-secret-key'
   }
-};
+} as any;
 
 export default nextConfig;

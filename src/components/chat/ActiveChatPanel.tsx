@@ -11,6 +11,7 @@ import { MessageStatusTicks } from "@/components/MessageStatusTicks";
 import { YouTubeInlinePreview } from "@/components/YouTubeInlinePreview";
 import QAIAssistantModal from "@/components/QAIAssistantModal";
 import QuantumVideoPlayerComponent from "@/components/QuantumVideoPlayer";
+import { QuantumUserProfileView } from "@/components/profile/QuantumUserProfileView";
 
 // ── Shared Helpers (Extracted from page.tsx) ───────────────────────────────────
 function CustomAudioPlayer(props: { src: string }) {
@@ -395,6 +396,11 @@ export interface ActiveChatPanelProps {
   chatMessages?: any[];
   allCategories?: any[];
   selectedCategories?: any[];
+  viewingProfileHandle?: string | null;
+  onCloseProfile?: () => void;
+  onStartChatWithUser?: (handle: string) => void;
+  onSendConnectRequest?: (targetHandle: string, categories: string[], note: string) => Promise<void>;
+  profileInitialData?: any;
   [key: string]: any;
 }
 
@@ -448,6 +454,11 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
     chatLoading,
     chatMessages = [],
     meId,
+    viewingProfileHandle,
+    onCloseProfile,
+    onStartChatWithUser,
+    onSendConnectRequest,
+    profileInitialData,
     myId,
     effectiveUser,
     handleDeleteMessage,
@@ -652,17 +663,46 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
               {/* glow-ping removed to prevent outer sharp corner artifact */}
 
-              <div
-                className={
-                  "liquid-glass-surface glass-panel relative z-10 rounded-2xl fullchat-panel overflow-hidden transition-all duration-300 " +
-                  (isChatExpanded ? "fullscreen rounded-none border-none " : "") +
-                  (chatAnimMode !== 'idle' ? chatAnimMode + " " : "") +
-                  (isChatExpanded
-                    ? "flex-1 flex h-[100dvh] min-h-0 w-full flex-col space-y-3 p-0 sm:p-3"
-                    : "flex h-auto min-h-0 flex-col space-y-5 p-5") +
-                  " border-slate-500/60"
-                }
-              >
+              {Boolean((mode === "profile" || viewingProfileHandle) && viewingProfileHandle) ? (
+                <div
+                  className={
+                    "liquid-glass-surface glass-panel relative z-10 rounded-2xl fullchat-panel overflow-hidden transition-all duration-300 " +
+                    (isChatExpanded ? "fullscreen rounded-none border-none " : "") +
+                    (chatAnimMode !== 'idle' ? chatAnimMode + " " : "") +
+                    "flex flex-1 h-full min-h-[580px] w-full flex-col p-0 border-slate-500/60"
+                  }
+                >
+                  <QuantumUserProfileView
+                    handle={viewingProfileHandle!}
+                    currentUserId={meId}
+                    initialData={profileInitialData || foundUser}
+                    onBack={() => {
+                      if (onCloseProfile) onCloseProfile();
+                      else setMode("home");
+                    }}
+                    onStartChat={(peerHandle) => {
+                      if (onStartChatWithUser) {
+                        onStartChatWithUser(peerHandle);
+                      } else {
+                        setMode("home");
+                      }
+                    }}
+                    onSendConnectRequest={onSendConnectRequest}
+                    allCategories={allCategories}
+                  />
+                </div>
+              ) : (
+                <div
+                  className={
+                    "liquid-glass-surface glass-panel relative z-10 rounded-2xl fullchat-panel overflow-hidden transition-all duration-300 " +
+                    (isChatExpanded ? "fullscreen rounded-none border-none " : "") +
+                    (chatAnimMode !== 'idle' ? chatAnimMode + " " : "") +
+                    (isChatExpanded
+                      ? "flex-1 flex h-[100dvh] min-h-0 w-full flex-col space-y-3 p-0 sm:p-3"
+                      : "flex h-auto min-h-0 flex-col space-y-5 p-5") +
+                    " border-slate-500/60"
+                  }
+                >
                 {!isChatExpanded && (
                   <>
                     <header className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
@@ -2473,6 +2513,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                   </div>
                 )}
               </div>
+              )}
               </section>
   );
 });
