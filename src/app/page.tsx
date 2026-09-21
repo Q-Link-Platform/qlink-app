@@ -4,6 +4,7 @@ import { useDuoTheme } from "@/app/providers/DuoThemeProvider";
 
 import { ActiveChatPanel } from "@/components/chat/ActiveChatPanel";
 import { MessageStatusTicks } from "@/components/MessageStatusTicks";
+import { QuantumUserProfileView } from "@/components/profile/QuantumUserProfileView";
 
 import { cleanHandle, areHandlesEqual, formatDisplayHandle } from "@/lib/handle-utils";
 import {
@@ -2887,6 +2888,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   const [showDirectory, setShowDirectory] = useState(false);
   const [showDirectoryMediaOnly, setShowDirectoryMediaOnly] = useState(false);
+  const [directoryProfileHandle, setDirectoryProfileHandle] = useState<string | null>(null);
+  const [directoryProfileInitialData, setDirectoryProfileInitialData] = useState<any>(null);
   const [mediaFilterTab, setMediaFilterTab] = useState<'all' | 'shorts' | 'posts' | 'tweets'>('all');
   const [directoryItems, setDirectoryItems] = useState<DirectoryItem[] | null>(() => {
     if (typeof window !== "undefined") {
@@ -5894,6 +5897,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const closeDirectory = () => {
     setShowDirectory(false);
     setIsConsoleAnimating(true);
+    setDirectoryProfileHandle(null);
+    setDirectoryProfileInitialData(null);
     setTimeout(() => {
       setIsConsoleAnimating(false);
       setShowDirectoryMediaOnly(false);
@@ -7686,13 +7691,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const openUserProfile = (targetHandle: string | null | undefined, initialData?: any) => {
     if (!targetHandle) return;
     const clean = cleanHandle(targetHandle);
-    setShowDirectory(false);
-    setIsConsoleAnimating(false);
-    if (typeof window !== "undefined") {
-      window.scrollTo({ left: 0 });
-      const main = document.getElementById("main-scroll-container");
-      if (main) main.scrollLeft = 0;
-    }
+    
+    // Open directly INSIDE the Global Quantum Directory modal
+    setDirectoryProfileHandle(clean);
+    setDirectoryProfileInitialData(initialData || null);
+    setShowDirectory(true);
+    setIsConsoleAnimating(true);
+    setTimeout(() => setIsConsoleAnimating(false), 300);
+
+    // Also sync with viewingProfileHandle
     setViewingProfileHandle(clean);
     setMode("profile");
 
@@ -8384,25 +8391,61 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
               <div
                 style={{ overflowAnchor: "none" }}
-                className="relative flex h-full flex-col rounded-none sm:rounded-3xl bg-slate-950/95 px-2 sm:px-6 py-0 overflow-hidden"
+                className={`relative flex h-full flex-col rounded-none sm:rounded-3xl bg-slate-950/95 py-0 overflow-hidden ${
+                  directoryProfileHandle ? "px-0" : "px-2 sm:px-6"
+                }`}
               >
-                <div
-                  className={`pointer-events-none absolute -left-24 -top-24 h-52 w-52 rounded-full blur-3xl ${isDefaultTheme ? "bg-gradient-to-br from-cyan-400/50 via-fuchsia-500/40 to-indigo-400/40" : ""}`}
-                  style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-primary)' : undefined }}
-                />
-                <div
-                  className={`pointer-events-none absolute -right-24 bottom-[-5rem] h-52 w-52 rounded-full blur-3xl ${isDefaultTheme ? "bg-gradient-to-tr from-indigo-400/40 via-sky-500/40 to-fuchsia-500/40" : ""}`}
-                  style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-secondary)' : undefined }}
-                />
+                {directoryProfileHandle ? (
+                  <div className="relative flex-1 min-h-0 h-full w-full overflow-hidden flex flex-col">
+                    <QuantumUserProfileView
+                      handle={directoryProfileHandle}
+                      currentUserId={meId}
+                      initialData={directoryProfileInitialData}
+                      onBack={() => {
+                        setDirectoryProfileHandle(null);
+                      }}
+                      onStartChat={(peerHandle) => {
+                        setDirectoryProfileHandle(null);
+                        closeDirectory();
+                        openChatWithPeer(peerHandle);
+                      }}
+                      onSendConnectRequest={async (targetHandle, categories, note) => {
+                        const res = await fetch("/api/friends/request", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            toHandle: targetHandle,
+                            categories: categories.join(","),
+                            message: note.trim(),
+                          }),
+                        });
+                        if (!res.ok) {
+                          const d = await res.json().catch(() => ({}));
+                          throw new Error(d.error || "Failed to send request");
+                        }
+                      }}
+                      allCategories={allCategories}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      className={`pointer-events-none absolute -left-24 -top-24 h-52 w-52 rounded-full blur-3xl ${isDefaultTheme ? "bg-gradient-to-br from-cyan-400/50 via-fuchsia-500/40 to-indigo-400/40" : ""}`}
+                      style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-primary)' : undefined }}
+                    />
+                    <div
+                      className={`pointer-events-none absolute -right-24 bottom-[-5rem] h-52 w-52 rounded-full blur-3xl ${isDefaultTheme ? "bg-gradient-to-tr from-indigo-400/40 via-sky-500/40 to-fuchsia-500/40" : ""}`}
+                      style={{ backgroundColor: !isDefaultTheme ? 'var(--duo-orb-secondary)' : undefined }}
+                    />
 
-                <div className="relative flex items-center justify-between gap-3 pt-[max(env(safe-area-inset-top),14px)] sm:pt-4 pb-2 border-b border-slate-700/60">
-                  <div>
-                    <p
-                      className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${isDefaultTheme ? "text-cyan-300/90" : ""}`}
-                      style={{ color: !isDefaultTheme ? 'var(--duo-accent-text)' : undefined }}
-                    >
-                      Global Quantum Directory
-                    </p>
+                    <div className="relative flex items-center justify-between gap-3 pt-[max(env(safe-area-inset-top),14px)] sm:pt-4 pb-2 border-b border-slate-700/60">
+                      <div>
+                        <p
+                          className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${isDefaultTheme ? "text-cyan-300/90" : ""}`}
+                          style={{ color: !isDefaultTheme ? 'var(--duo-accent-text)' : undefined }}
+                        >
+                          Global Quantum Directory
+                        </p>
                     <p className="mt-1 text-[11px] text-slate-400">
                       Live view of quantum IDs across the network. Tap an ID to open the connect flow.
                     </p>
@@ -9619,6 +9662,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     <p className="text-[11px] text-slate-500">No quantum IDs are visible in the directory yet.</p>
                   )}
                 </div>
+              </>
+            )}
               </div>
             </div>
           </div>
