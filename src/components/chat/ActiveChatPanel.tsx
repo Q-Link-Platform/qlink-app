@@ -12,6 +12,7 @@ import { YouTubeInlinePreview } from "@/components/YouTubeInlinePreview";
 import QAIAssistantModal from "@/components/QAIAssistantModal";
 import QuantumVideoPlayerComponent from "@/components/QuantumVideoPlayer";
 import { QuantumUserProfileView } from "@/components/profile/QuantumUserProfileView";
+import { QuantumChatImageLightbox } from "./QuantumChatImageLightbox";
 
 // ── Shared Helpers (Extracted from page.tsx) ───────────────────────────────────
 function CustomAudioPlayer(props: { src: string }) {
@@ -1616,14 +1617,15 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                             return (
                                               <div key={a.id} className="space-y-1.5">
                                                 {/* Apple Optical Crystal / Glass Image Container */}
-                                                <div className="relative group/img overflow-hidden rounded-xl sm:rounded-2xl border border-white/15 dark:border-white/10 bg-black/40 backdrop-blur-md shadow-inner">
+                                                <div className="relative group/img overflow-hidden rounded-xl sm:rounded-2xl border border-white/15 dark:border-white/10 bg-black/40 backdrop-blur-md shadow-inner cursor-zoom-in">
                                                   <button
                                                     type="button"
                                                     onClick={() => {
                                                       setLightboxImageUrl(url);
                                                       setLightboxImageName(a.originalName);
                                                     }}
-                                                    className="block w-full focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition-transform duration-300 group-hover/img:scale-[1.01]"
+                                                    className="block w-full focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition-transform duration-300 group-hover/img:scale-[1.01] cursor-zoom-in relative"
+                                                    title="Click to view & zoom image"
                                                   >
                                                     <img
                                                       src={url}
@@ -1632,6 +1634,13 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                       decoding="async"
                                                       className="max-h-72 w-full object-contain chat-image-optimized transition-opacity duration-300"
                                                     />
+                                                    {/* Optical Zoom Pill on hover */}
+                                                    <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-950/75 border border-white/20 text-[10px] text-white/90 backdrop-blur-md opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md">
+                                                      <svg className="h-3 w-3 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                                                      </svg>
+                                                      <span>Zoom</span>
+                                                    </div>
                                                   </button>
                                                   {/* Subtle optical specular gradient overlay */}
                                                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 opacity-60" />
@@ -2456,49 +2465,50 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                       </div>
                     )}
 
-                    {(lightboxImageUrl || lightboxVideoUrl) && (
+                    {/* Zoomable Image Lightbox */}
+                    {lightboxImageUrl && (
+                      <QuantumChatImageLightbox
+                        isOpen={Boolean(lightboxImageUrl)}
+                        imageUrl={lightboxImageUrl}
+                        imageName={lightboxImageName}
+                        onClose={() => {
+                          setLightboxImageUrl(null);
+                          setLightboxImageName(null);
+                        }}
+                      />
+                    )}
+
+                    {/* Video Player Lightbox */}
+                    {lightboxVideoUrl && (
                       <div
                         className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
                         onClick={() => {
-                          setLightboxImageUrl(null);
-                          setLightboxImageName(null);
                           setLightboxVideoUrl(null);
                           setLightboxVideoName(null);
                         }}
                       >
                         <div
-                          className="relative max-h-[90vh] max-w-5xl"
+                          className="relative max-h-[90vh] max-w-5xl w-full"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {lightboxImageUrl && (
-                            <img
-                              src={lightboxImageUrl}
-                              alt={lightboxImageName ?? "Attachment"}
-                              className="max-h-[90vh] w-full rounded-2xl object-contain shadow-2xl"
-                            />
-                          )}
-                          {lightboxVideoUrl && (
-                            <QuantumVideoPlayerComponent
-                              src={lightboxVideoUrl}
-                              autoPlayMuted={false}
-                              className="max-h-[90vh] w-full rounded-2xl"
-                            />
-                          )}
+                          <QuantumVideoPlayerComponent
+                            src={lightboxVideoUrl}
+                            autoPlayMuted={false}
+                            className="max-h-[90vh] w-full rounded-2xl shadow-2xl"
+                          />
                           <button
                             type="button"
                             onClick={() => {
-                              setLightboxImageUrl(null);
-                              setLightboxImageName(null);
                               setLightboxVideoUrl(null);
                               setLightboxVideoName(null);
                             }}
-                            className="absolute right-3 top-3 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-slate-100 hover:bg-black/90"
+                            className="absolute right-3 top-3 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-slate-100 hover:bg-black/90 cursor-pointer"
                           >
                             Close
                           </button>
-                          {(lightboxImageName || lightboxVideoName) && (
+                          {lightboxVideoName && (
                             <div className="mt-2 truncate text-center text-[11px] text-slate-300">
-                              {lightboxImageName || lightboxVideoName}
+                              {lightboxVideoName}
                             </div>
                           )}
                         </div>
