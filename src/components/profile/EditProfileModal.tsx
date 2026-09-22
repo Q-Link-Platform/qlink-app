@@ -53,6 +53,52 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   if (!isOpen) return null;
 
+// Client-side image compression helper to ensure lightning-fast upload & prevent payload size limits
+function compressImage(file: File, maxWidth: number, maxHeight: number, quality = 0.85): Promise<Blob> {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith("image/") || typeof window === "undefined") {
+      return resolve(file);
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(file);
+
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else resolve(file);
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+
   // Handle Avatar Image Upload
   const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,17 +109,17 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Avatar size must be less than 2MB.");
-      return;
-    }
-
     setUploadingAvatar(true);
     setError(null);
 
     try {
+      const optimizedBlob = await compressImage(file, 512, 512, 0.88);
+      const uploadFile = new File([optimizedBlob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+        type: "image/jpeg",
+      });
+
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", uploadFile);
 
       const res = await fetch("/api/user/profile-pic", {
         method: "POST",
@@ -103,17 +149,18 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Banner size must be less than 5MB.");
-      return;
-    }
-
     setUploadingBanner(true);
     setError(null);
 
     try {
+      // Auto-compress large photos to crisp 1600x600 for instant upload
+      const optimizedBlob = await compressImage(file, 1600, 600, 0.85);
+      const uploadFile = new File([optimizedBlob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+        type: "image/jpeg",
+      });
+
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", uploadFile);
 
       const res = await fetch("/api/user/banner", {
         method: "POST",

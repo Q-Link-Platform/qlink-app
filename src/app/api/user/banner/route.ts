@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { prisma } from "@/lib/prisma";
+import { supabasePosts, supabasePostsAdmin } from "@/lib/supabasePosts";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -16,7 +17,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "User id missing in session" }, { status: 400 });
   }
 
-  const formData = await req.formData();
+  let formData: FormData;
+  try {
+    formData = await req.formData();
+  } catch (err: any) {
+    return NextResponse.json({ error: "Failed to parse form data" }, { status: 400 });
+  }
+
   const file = formData.get("file") as File | null;
 
   if (!file) {
@@ -27,33 +34,59 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Only image files are allowed" }, { status: 400 });
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    return NextResponse.json({ error: "Banner file size must be less than 5MB" }, { status: 400 });
+  if (file.size > 10 * 1024 * 1024) {
+    return NextResponse.json({ error: "Banner file size must be less than 10MB" }, { status: 400 });
   }
 
   try {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const mime = file.type || "image/jpeg";
+    const ext = file.name.split('.').pop()?.toLowerCase() || "jpg";
+    const timestamp = Date.now();
+    const filename = `banner-${userId}-${timestamp}.${ext}`;
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), "public", "uploads", "banners");
-    try {
-      await mkdir(uploadsDir, { recursive: true });
-    } catch {
-      // Directory might already exist
+    let url: string | null = null;
+
+    // 1. Try Supabase storage if available
+    const supabase = supabasePostsAdmin || supabasePosts;
+    if (supabase) {
+      try {
+        const uploadRes = await supabase.storage
+          .from("banners")
+          .upload(filename, buffer, {
+            cacheControl: "31536000",
+            upsert: true,
+            contentType: mime,
+          });
+        if (!uploadRes.error) {
+          const pub = supabase.storage.from("banners").getPublicUrl(filename);
+          if (pub?.data?.publicUrl) {
+            url = pub.data.publicUrl;
+          }
+        }
+      } catch (err) {
+        console.warn("[banner-upload] Supabase upload failed, falling back:", err);
+      }
     }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const ext = file.name.split('.').pop()?.toLowerCase() || "jpg";
-    const filename = `banner-${userId}-${timestamp}.${ext}`;
-    const filepath = path.join(uploadsDir, filename);
+    // 2. Try local filesystem if writable (localhost development)
+    if (!url) {
+      try {
+        const uploadsDir = path.join(process.cwd(), "public", "uploads", "banners");
+        await mkdir(uploadsDir, { recursive: true });
+        const filepath = path.join(uploadsDir, filename);
+        await writeFile(filepath, buffer);
+        url = `/uploads/banners/${filename}`;
+      } catch (fsErr) {
+        console.warn("[banner-upload] Local disk write unavailable (serverless environment), routing to database vault");
+      }
+    }
 
-    // Write file
-    await writeFile(filepath, buffer);
-
-    // Return public URL
-    const url = `/uploads/banners/${filename}`;
+    // 3. Resilient Database Vault fallback (works 100% on Vercel and serverless)
+    if (!url) {
+      url = `data:${mime};base64,${buffer.toString("base64")}`;
+    }
 
     // Update user's banner URL in database
     await prisma.user.update({
@@ -64,6 +97,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, url });
   } catch (error: any) {
     console.error("[banner-upload] Error:", error);
-    return NextResponse.json({ error: "Failed to upload banner image" }, { status: 500 });
+    return NextResponse.json({ error: error?.message || "Failed to upload banner image" }, { status: 500 });
   }
 }
