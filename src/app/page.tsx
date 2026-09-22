@@ -858,6 +858,10 @@ type DirectoryItem = {
   handle: string | null;
   name: string | null;
   image?: string | null;
+  bio?: string | null;
+  location?: string | null;
+  website?: string | null;
+  banner?: string | null;
   rank: number;
   isRedTick: boolean;
   auraPercentage: number;
@@ -8940,6 +8944,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                             <div className="space-y-1.5">
                               {!showDirectoryMediaOnly && directoryItems.map((item) => {
                                 const bioText =
+                                  item.bio ||
                                   (item.posts && item.posts.length > 0 && item.posts[0].text) ||
                                   (item.isRedTick
                                     ? "Founder & CEO at Q-Link • Pioneering decentralized quantum communications"

@@ -25,6 +25,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onSaved,
 }) => {
   const [name, setName] = useState(currentUser.name || "");
+  const [handle, setHandle] = useState(currentUser.handle ? currentUser.handle.replace(/^@+/, "") : "");
   const [bio, setBio] = useState(currentUser.bio || "");
   const [location, setLocation] = useState(currentUser.location || "");
   const [website, setWebsite] = useState(currentUser.website || "");
@@ -42,7 +43,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
   const handleCopyHandle = () => {
-    const handleText = currentUser.handle ? `@${currentUser.handle}` : "@your-handle";
+    const handleText = handle ? `@${handle}` : (currentUser.handle ? `@${currentUser.handle}` : "@your-handle");
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(handleText);
       setCopiedHandle(true);
@@ -139,11 +140,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setError(null);
 
     try {
+      const cleanHandle = handle.trim().replace(/^@+/, "");
       const res = await fetch("/api/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim(),
+          handle: cleanHandle.length >= 3 ? cleanHandle : undefined,
           bio: bio.trim(),
           location: location.trim() || null,
           website: website.trim() || null,
@@ -313,32 +316,32 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               />
             </div>
 
-            {/* Handle / Username indicator */}
+            {/* Handle / Username */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5">
-                  <label className="text-slate-300 font-medium">Handle</label>
-                  <span className="text-[10px] text-slate-500 font-mono">(Permanent Q-ID)</span>
+                  <label className="text-slate-300 font-medium">Handle / Username</label>
+                  <span className="text-[10px] text-slate-500 font-mono">(@username)</span>
                 </div>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-cyan-300 border border-cyan-500/20 shrink-0 select-none">
                   <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
                   Unique Q-ID
                 </span>
               </div>
-              <div className="w-full rounded-2xl border border-slate-800/90 bg-slate-950/80 px-3.5 py-2.5 text-sm font-mono text-slate-300 flex items-center justify-between gap-3 shadow-inner backdrop-blur-md group hover:border-slate-700/80 transition-colors">
-                <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
-                  <span className="text-slate-500 text-xs shrink-0 select-none">🔒</span>
-                  <span
-                    className="truncate text-xs sm:text-sm text-cyan-200/90 font-mono tracking-tight select-all min-w-0"
-                    title={`@${currentUser.handle || "your-handle"}`}
-                  >
-                    @{currentUser.handle || "your-handle"}
-                  </span>
-                </div>
+              <div className="relative flex items-center">
+                <span className="absolute left-3.5 text-cyan-400 font-mono text-sm font-semibold select-none">@</span>
+                <input
+                  type="text"
+                  maxLength={30}
+                  value={handle}
+                  onChange={(e) => setHandle(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ""))}
+                  placeholder="your_handle"
+                  className="w-full rounded-2xl border border-slate-700/60 bg-slate-900/60 pl-8 pr-20 py-2.5 text-sm font-mono text-cyan-200 placeholder-slate-500 outline-none transition focus:border-cyan-400/80 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+                />
                 <button
                   type="button"
                   onClick={handleCopyHandle}
-                  className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-sans font-medium bg-slate-800/90 hover:bg-slate-700 border border-slate-700/60 text-slate-300 hover:text-white transition active:scale-95 cursor-pointer shadow-sm"
+                  className="absolute right-2 shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-sans font-medium bg-slate-800/90 hover:bg-slate-700 border border-slate-700/60 text-slate-300 hover:text-white transition active:scale-95 cursor-pointer shadow-sm"
                   title="Copy Quantum Handle"
                 >
                   {copiedHandle ? (
@@ -348,7 +351,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     </>
                   ) : (
                     <>
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-slate-400 group-hover:text-cyan-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
                       <span>Copy</span>
@@ -357,7 +360,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 </button>
               </div>
               <p className="text-[11px] text-slate-500 px-0.5 leading-normal">
-                Your cryptographic quantum handle is immutable and uniquely identifies you across the network.
+                Choose a unique username (3–30 characters: letters, numbers, and underscores).
               </p>
             </div>
 

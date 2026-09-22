@@ -87,6 +87,7 @@ export async function GET(request: Request) {
               aura_percentage: true,
               blue_tick_status: true,
               points: true,
+              bio: true,
             },
           },
           _count: {
@@ -214,6 +215,7 @@ export async function GET(request: Request) {
             handle: true,
             name: true,
             image: true,
+            bio: true,
           },
         },
         _count: {

@@ -13,7 +13,7 @@ function generateHandle(base: string | null | undefined) {
   if (email.includes("rohiterrors@") || email.includes("rohit")) return "Rohit_7779";
   if (email.includes("surajsuthar1971@")) return "surajsuthar1971-4083";
   if (email.includes("bhaveshsuthar6388@")) return "bhaveshsuthar6388-9220";
-  if (email.includes("ghorhh473@")) return "ghorhh473-3269";
+  if (email.includes("ghorhh473@")) return "ghorhh";
   if (email.includes("gp2386024@")) return "gp2386024-4442";
 
   const core = (base || "user").split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase() || "user";

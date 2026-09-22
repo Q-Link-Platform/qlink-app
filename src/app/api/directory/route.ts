@@ -21,6 +21,10 @@ export async function GET() {
         aura_percentage: true,
         blue_tick_status: true,
         points: true,
+        bio: true,
+        location: true,
+        website: true,
+        banner: true,
         posts: {
           select: {
             id: true,
@@ -73,6 +77,10 @@ export async function GET() {
         handle,
         name: u.name,
         image: u.image,
+        bio: u.bio,
+        location: u.location,
+        website: u.website,
+        banner: u.banner,
         rank: 9999, // Will re-assign below after sorting
         isRedTick,
         auraPercentage,
