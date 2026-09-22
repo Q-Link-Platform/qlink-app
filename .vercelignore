@@ -1,0 +1,33 @@
+# Vercel Ignore File - Prevent massive deployment storage bloat
+
+# Heavy desktop binaries & installers (never deploy 80MB exe to web serverless)
+public/downloads/Q-Link-Setup.exe
+public/downloads/
+
+# Large visual design scratch assets not used in production app
+public/ChatGPT Image*.png
+public/logo-high-quality.png
+public/logo-viewer-ultra-hd.png
+public/logo-square.png
+
+# Local development and testing files
+*.md
+!README.md
+scripts/
+scratch/
+test*.js
+test*.ts
+check*.ts
+convert*.js
+create*.js
+generate*.js
+make*.js
+fix*.js
+sharp*.js
+notes
+
+# Configuration & IDE
+.vscode/
+.agents/
+.jarvis_project_index.json
+*.tsbuildinfo

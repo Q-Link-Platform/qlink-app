@@ -8,8 +8,13 @@ const nextConfig: NextConfig = {
   outputFileTracingExcludes: {
     "*": [
       "./public/downloads/**/*",
-      "./public/visuals/**/*.mp4",
-      "./public/media/**/*.mp4",
+      "./public/visuals/**/*",
+      "./public/media/**/*",
+      "./public/uploads/**/*",
+      "./node_modules/@swc/**/*",
+      "./node_modules/@esbuild/**/*",
+      "./node_modules/webpack/**/*",
+      "./node_modules/terser/**/*",
     ],
   },
   env: {
