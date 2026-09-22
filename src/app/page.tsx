@@ -5,6 +5,7 @@ import { useDuoTheme } from "@/app/providers/DuoThemeProvider";
 import { ActiveChatPanel } from "@/components/chat/ActiveChatPanel";
 import { MessageStatusTicks } from "@/components/MessageStatusTicks";
 import { QuantumUserProfileView } from "@/components/profile/QuantumUserProfileView";
+import { EditProfileModal } from "@/components/profile/EditProfileModal";
 
 import { cleanHandle, areHandlesEqual, formatDisplayHandle } from "@/lib/handle-utils";
 import {
@@ -2783,7 +2784,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     }
 
-    // TODO: Save selected interests, bio, age, gender to backend
+    // Save selected bio and profile details to backend
+    if (bioDraft && bioDraft.trim()) {
+      fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bio: bioDraft.trim() }),
+      }).catch((err) => console.warn("[onboarding] Failed to save bio:", err));
+    }
   };
 
   const handleAutoGenerate = () => {
@@ -2971,6 +2979,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   };
 
   const [showIdConsole, setShowIdConsole] = useState(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (showIdConsole && session?.user) {
+      fetch("/api/user/profile")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.success && data?.user) {
+            setCurrentUserProfile(data.user);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [showIdConsole, session]);
   const [showStore, setShowStore] = useState(false);
   const [isStoreAnimating, setIsStoreAnimating] = useState(false);
   const [cardRotateX, setCardRotateX] = useState(0);
@@ -11410,14 +11433,102 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       </svg>
                     </button>
 
-                    <div className="relative flex items-start justify-between gap-4 pr-10">
-                      <div className="min-w-0">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-cyan-300/90">
-                          Quantum ID Console
+                    {/* Quiet Luxury / Apple Glassmorphic Profile Card (X-Standard) */}
+                    <div className="relative rounded-2xl border border-white/10 bg-slate-950/60 shadow-xl overflow-hidden mb-3">
+                      {/* Banner */}
+                      <div
+                        className="relative w-full h-24 sm:h-28 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 overflow-hidden"
+                        style={
+                          currentUserProfile?.banner
+                            ? {
+                                backgroundImage: `url(${currentUserProfile.banner})`,
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                              }
+                            : undefined
+                        }
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
+                      </div>
+
+                      {/* Profile details & Actions */}
+                      <div className="px-4 pb-3.5">
+                        <div className="flex justify-between items-end -mt-9 mb-2 relative z-10">
+                          {/* Avatar */}
+                          <div className="relative">
+                            <div className="h-16 w-16 sm:h-18 sm:w-18 rounded-full overflow-hidden bg-slate-900 border-2 border-slate-950 shadow-xl">
+                              {(currentUserProfile?.image || (session?.user as any)?.image) ? (
+                                <img
+                                  src={currentUserProfile?.image || (session?.user as any)?.image}
+                                  alt="Profile"
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center font-extrabold text-lg text-white bg-gradient-to-br from-cyan-600 via-slate-800 to-indigo-950 uppercase">
+                                  {(currentUserProfile?.name?.[0] || (session?.user as any)?.name?.[0] || (session?.user as any)?.handle?.[0] || "Q")}
+                                </div>
+                              )}
+                            </div>
+                            <span className="absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-slate-950 shadow-[0_0_8px_#10b981]" />
+                          </div>
+
+                          {/* Edit Profile Button (X / Twitter Standard) */}
+                          <button
+                            type="button"
+                            onClick={() => setShowEditProfileModal(true)}
+                            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 hover:border-cyan-400/50 text-white text-xs font-bold transition-all active:scale-95 shadow-md cursor-pointer backdrop-blur-md"
+                          >
+                            <svg className="h-3.5 w-3.5 text-cyan-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            <span>Edit Profile</span>
+                          </button>
+                        </div>
+
+                        {/* Name & Handle */}
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+                              {currentUserProfile?.name || (session?.user as any)?.name || "Quantum User"}
+                            </h2>
+                            {((session?.user as any)?.handle === "Rohit_7779" || (session?.user as any)?.blue_tick_status === "FOUNDER") && (
+                              <span className="text-red-400 text-xs" title="Elite Founder">✓</span>
+                            )}
+                          </div>
+                          <p className="text-xs font-mono text-slate-400">
+                            @{currentUserProfile?.handle || (session?.user as any)?.handle || "your-id"}
+                          </p>
+                        </div>
+
+                        {/* Bio Text */}
+                        <p className="mt-2 text-xs text-slate-200 leading-relaxed">
+                          {currentUserProfile?.bio || (session?.user as any)?.bio || (
+                            <span className="text-slate-500 italic">No bio added yet. Tap "Edit Profile" to tell people about yourself.</span>
+                          )}
                         </p>
-                        <p className="mt-1 text-[11px] text-slate-300">
-                          @{(session?.user as any)?.handle || "your-id"}
-                        </p>
+
+                        {/* Metadata row: Location & Website */}
+                        {(currentUserProfile?.location || currentUserProfile?.website) && (
+                          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+                            {currentUserProfile?.location && (
+                              <div className="flex items-center gap-1">
+                                <span>📍</span>
+                                <span>{currentUserProfile.location}</span>
+                              </div>
+                            )}
+                            {currentUserProfile?.website && (
+                              <a
+                                href={currentUserProfile.website}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-cyan-400 hover:underline"
+                              >
+                                <span>🔗</span>
+                                <span>{currentUserProfile.website.replace(/^https?:\/\//, "")}</span>
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -12030,6 +12141,43 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         <p className="mt-2 text-[11px] text-slate-400">No posts yet.</p>
                       )}
                     </div>
+
+                    {/* Edit Profile Modal */}
+                    {showEditProfileModal && (
+                      <EditProfileModal
+                        isOpen={showEditProfileModal}
+                        onClose={() => setShowEditProfileModal(false)}
+                        currentUser={{
+                          id: (session?.user as any)?.id || "",
+                          name: currentUserProfile?.name || (session?.user as any)?.name,
+                          handle: currentUserProfile?.handle || (session?.user as any)?.handle,
+                          bio: currentUserProfile?.bio || (session?.user as any)?.bio,
+                          image: currentUserProfile?.image || (session?.user as any)?.image,
+                          banner: currentUserProfile?.banner,
+                          location: currentUserProfile?.location,
+                          website: currentUserProfile?.website,
+                        }}
+                        onSaved={(updated) => {
+                          setCurrentUserProfile((prev: any) => (prev ? { ...prev, ...updated } : updated));
+                          if (session?.user) {
+                            if (updated.name) (session.user as any).name = updated.name;
+                            if (updated.image) (session.user as any).image = updated.image;
+                            if (updated.bio !== undefined) (session.user as any).bio = updated.bio;
+                            if (updated.handle) (session.user as any).handle = updated.handle;
+                          }
+                          if (setDirectoryItems) {
+                            setDirectoryItems((prev: any) =>
+                              Array.isArray(prev)
+                                ? prev.map((p: any) => (p.id === (session?.user as any)?.id ? { ...p, ...updated } : p))
+                                : prev
+                            );
+                          }
+                          try {
+                            loadDirectoryData(true);
+                          } catch {}
+                        }}
+                      />
+                    )}
                   </div>
                 </div>
               </div>,

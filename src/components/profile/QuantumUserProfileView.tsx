@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import { EditProfileModal } from "./EditProfileModal";
 
 export interface UserProfileData {
   id: string;
@@ -9,6 +10,9 @@ export interface UserProfileData {
   name: string | null;
   image: string | null;
   bio?: string;
+  banner?: string | null;
+  location?: string | null;
+  website?: string | null;
   createdAt?: string;
   blue_tick_status?: string;
   isRedTick?: boolean;
@@ -50,6 +54,7 @@ interface QuantumUserProfileViewProps {
   onStartChat: (peerHandle: string) => void;
   onSendConnectRequest?: (targetHandle: string, categories: string[], note: string) => Promise<void>;
   allCategories?: string[];
+  onProfileUpdated?: (user: any) => void;
 }
 
 export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
@@ -60,6 +65,7 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
   onStartChat,
   onSendConnectRequest,
   allCategories = ["Friend", "Colleague", "Mentor", "Collaborator", "Investor", "Founder"],
+  onProfileUpdated,
 }) => {
   const [profile, setProfile] = useState<UserProfileData | null>(() => {
     if (!initialData) return null;
@@ -68,7 +74,10 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
       handle: initialData.handle || handle,
       name: initialData.name || null,
       image: initialData.image || null,
-      bio: initialData.bio || "Quantum Link Network Identity",
+      bio: initialData.bio || "Active on Q-Link.",
+      banner: initialData.banner || null,
+      location: initialData.location || null,
+      website: initialData.website || null,
       createdAt: initialData.createdAt || "2026-08-01T00:00:00.000Z",
       blue_tick_status: initialData.blue_tick_status || "NONE",
       isRedTick: initialData.isRedTick || false,
@@ -86,6 +95,7 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
   });
 
   const [loading, setLoading] = useState(!initialData);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"posts" | "replies" | "media" | "aura">("posts");
   const [isFollowing, setIsFollowing] = useState(Boolean(initialData?.isFollowing));
   const [followLoading, setFollowLoading] = useState(false);
@@ -395,7 +405,18 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
       </header>
 
       {/* ── COVER / HERO BANNER ────────────────────────────────────────── */}
-      <div className={`relative w-full h-32 sm:h-44 bg-gradient-to-r ${bannerGradient} border-b border-slate-800/80 overflow-hidden`}>
+      <div
+        className={`relative w-full h-32 sm:h-44 bg-gradient-to-r ${bannerGradient} border-b border-slate-800/80 overflow-hidden`}
+        style={
+          profile?.banner
+            ? {
+                backgroundImage: `url(${profile.banner})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : undefined
+        }
+      >
         {/* Quantum Cybernetic Grid & Particle Lines */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
         <div className="absolute -inset-[10px] bg-gradient-to-tr from-transparent via-cyan-500/10 to-transparent opacity-60 pointer-events-none" />
@@ -445,47 +466,62 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
             <span className="absolute bottom-1 right-2 h-4 w-4 rounded-full bg-emerald-500 border-2 border-slate-950 shadow-[0_0_8px_#10b981]" title="Quantum Optical Node Online" />
           </div>
 
-          {/* Action Buttons (Follow, Message, Connect, Share) */}
+          {/* Action Buttons (Follow, Message, Connect, Share / Edit Profile) */}
           <div className="flex items-center gap-2 flex-wrap justify-end pt-1">
-            {/* Direct Message (Chat) Button */}
-            <button
-              type="button"
-              onClick={() => onStartChat(cleanTargetHandle)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-cyan-400/80 bg-cyan-500/10 text-cyan-200 text-xs font-semibold hover:bg-cyan-500/20 hover:shadow-[0_0_15px_rgba(6,182,212,0.35)] transition-all active:scale-95"
-              title="Open Quantum Chat"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              <span>Message</span>
-            </button>
+            {Boolean(profile?.isSelf || (currentUserId && profile?.id && currentUserId === profile?.id)) ? (
+              <button
+                type="button"
+                onClick={() => setShowEditModal(true)}
+                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-slate-600/80 bg-slate-800/80 hover:bg-slate-700/90 text-white text-xs font-bold hover:border-slate-400 transition-all active:scale-95 shadow-md cursor-pointer"
+              >
+                <svg className="h-3.5 w-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                <span>Edit Profile</span>
+              </button>
+            ) : (
+              <>
+                {/* Direct Message (Chat) Button */}
+                <button
+                  type="button"
+                  onClick={() => onStartChat(cleanTargetHandle)}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-cyan-400/80 bg-cyan-500/10 text-cyan-200 text-xs font-semibold hover:bg-cyan-500/20 hover:shadow-[0_0_15px_rgba(6,182,212,0.35)] transition-all active:scale-95"
+                  title="Open Quantum Chat"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <span>Message</span>
+                </button>
 
-            {/* Connect (Add Friend) Toggle Button */}
-            <button
-              type="button"
-              onClick={() => setShowConnectDrawer(!showConnectDrawer)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-600/80 bg-slate-900/90 text-slate-200 text-xs font-semibold hover:border-slate-400 hover:text-white transition-all active:scale-95"
-              title="Send Quantum Connection Request"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              <span>Connect</span>
-            </button>
+                {/* Connect (Add Friend) Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowConnectDrawer(!showConnectDrawer)}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-600/80 bg-slate-900/90 text-slate-200 text-xs font-semibold hover:border-slate-400 hover:text-white transition-all active:scale-95"
+                  title="Send Quantum Connection Request"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Connect</span>
+                </button>
 
-            {/* Follow / Following Button (X / Twitter Standard) */}
-            <button
-              type="button"
-              onClick={handleToggleFollow}
-              disabled={followLoading}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 ${
-                isFollowing
-                  ? "border border-slate-600 bg-transparent text-slate-200 hover:border-rose-500/80 hover:bg-rose-500/10 hover:text-rose-300"
-                  : "bg-white text-slate-950 hover:bg-slate-200 shadow-md"
-              }`}
-            >
-              {followLoading ? "..." : isFollowing ? "Following" : "Follow"}
-            </button>
+                {/* Follow / Following Button (X / Twitter Standard) */}
+                <button
+                  type="button"
+                  onClick={handleToggleFollow}
+                  disabled={followLoading}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 ${
+                    isFollowing
+                      ? "border border-slate-600 bg-transparent text-slate-200 hover:border-rose-500/80 hover:bg-rose-500/10 hover:text-rose-300"
+                      : "bg-white text-slate-950 hover:bg-slate-200 shadow-md"
+                  }`}
+                >
+                  {followLoading ? "..." : isFollowing ? "Following" : "Follow"}
+                </button>
+              </>
+            )}
           </div>
         </div>
 
@@ -550,7 +586,7 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
               : "Active on Q-Link.")}
           </p>
 
-          {/* Metadata Row (Joined, Node, Aura, Points) */}
+          {/* Metadata Row (Joined, Node, Aura, Points, Location, Website) */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-slate-400 pt-1">
             <div className="flex items-center gap-1">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -558,6 +594,27 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
               </svg>
               <span>Joined August 2026</span>
             </div>
+
+            {profile?.location && (
+              <div className="flex items-center gap-1 text-slate-300">
+                <span>📍</span>
+                <span>{profile.location}</span>
+              </div>
+            )}
+
+            {profile?.website && (
+              <a
+                href={profile.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 hover:underline"
+              >
+                <span>🔗</span>
+                <span className="truncate max-w-[150px] sm:max-w-[200px]">
+                  {profile.website.replace(/^https?:\/\//, "")}
+                </span>
+              </a>
+            )}
 
             <div className="flex items-center gap-1">
               <span className="text-cyan-400">⚡</span>
@@ -953,6 +1010,27 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
             className="max-h-[90vh] max-w-[90vw] object-contain rounded-2xl shadow-2xl border border-slate-800"
           />
         </div>
+      )}
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <EditProfileModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          currentUser={{
+            id: profile?.id || currentUserId || "",
+            name: profile?.name,
+            handle: profile?.handle || cleanTargetHandle,
+            bio: profile?.bio,
+            image: profile?.image,
+            banner: profile?.banner,
+            location: profile?.location,
+            website: profile?.website,
+          }}
+          onSaved={(updatedUser) => {
+            setProfile((prev) => (prev ? { ...prev, ...updatedUser } : updatedUser));
+            if (onProfileUpdated) onProfileUpdated(updatedUser);
+          }}
+        />
       )}
     </div>
   );

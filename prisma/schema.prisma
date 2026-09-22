@@ -18,6 +18,10 @@ model User {
   googleId      String?   @unique
   emailVerified DateTime?
   handle        String?   @unique
+  bio           String?
+  banner        String?
+  location      String?
+  website       String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   aura_percentage Float?   @default(0)

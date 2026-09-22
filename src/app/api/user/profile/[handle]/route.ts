@@ -78,6 +78,10 @@ export async function GET(
           name: true,
           email: true,
           image: true,
+          bio: true,
+          banner: true,
+          location: true,
+          website: true,
           blue_tick_status: true,
           aura_percentage: true,
           points: true,
@@ -211,9 +215,12 @@ export async function GET(
           handle: dbUser.handle || cleaned,
           name: dbUser.name || (isFounder ? "Rohit Purohit" : "Quantum User"),
           image: dbUser.image,
-          bio: isFounder
-            ? "Founder & CEO at Q‑Link • Architect of Quantum Encrypted Hyper-Scale Networks & Sovereign Zero-Trust Protocols ⚡"
-            : `Verified Quantum Node Identity • Active on Q‑Link decentralized mesh.`,
+          bio: dbUser.bio || (isFounder
+            ? "Founder & CEO at Q‑Link ⚡"
+            : "Active on Q-Link."),
+          banner: dbUser.banner || null,
+          location: dbUser.location || null,
+          website: dbUser.website || null,
           createdAt: dbUser.createdAt,
           blue_tick_status: isFounder ? "FOUNDER" : dbUser.blue_tick_status || "NONE",
           isRedTick: isFounder,
