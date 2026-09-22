@@ -380,7 +380,7 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pr-12 sm:pr-14">
           <button
             type="button"
             onClick={handleShareProfile}
