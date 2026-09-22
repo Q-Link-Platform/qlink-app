@@ -1473,25 +1473,48 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                 <div className={`flex-1 flex ${isMe ? "justify-end" : "justify-start"}`}>
                                   {(() => {
                                     const hasMedia = Boolean((attachments && attachments.length > 0) || extractYouTubeVideoId(displayContent));
+                                    const isFilenameOnly = Boolean(
+                                      attachments &&
+                                      attachments.length > 0 &&
+                                      attachments.some(
+                                        (att) =>
+                                          att.originalName.trim().toLowerCase() === displayContent.trim().toLowerCase() ||
+                                          displayContent.trim() === `[IMAGE attachment]` ||
+                                          displayContent.trim() === `[FILE attachment]` ||
+                                          displayContent.trim() === `[VIDEO attachment]`
+                                      )
+                                    );
+                                    const shouldShowCaption = Boolean(displayContent && !isFilenameOnly);
+
                                     return (
                                       <div
                                         data-message-card
                                         style={{ WebkitTouchCallout: "none" }}
                                         title="Right-click for options"
                                         className={
-                                          isMe
-                                            ? `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[85%] sm:max-w-[75%]"} rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-slate-950 select-none cursor-pointer transition-all duration-300 ${isHighlighted
-                                              ? "shadow-[0_0_30px_#22d3ee,0_0_15px_#38bdf8] ring-2 ring-cyan-200 ring-offset-2 ring-offset-slate-950 scale-[1.03]"
-                                              : isSelected
-                                                ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-[0_0_18px_rgba(56,189,248,0.7)]"
-                                                : "shadow-[0_0_12px_rgba(56,189,248,0.45)]"
-                                            }`
-                                            : `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[85%] sm:max-w-[75%]"} rounded-2xl rounded-bl-sm bg-slate-800/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-slate-100 select-none cursor-pointer transition-all duration-300 ${isHighlighted
-                                              ? "bg-slate-700/95 ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 shadow-[0_0_25px_rgba(34,211,238,0.6)] scale-[1.03]"
-                                              : isSelected
-                                                ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-md"
-                                                : "shadow-sm"
-                                            }`
+                                          hasMedia
+                                            ? `w-fit max-w-[94%] sm:max-w-[85%] md:max-w-[460px] rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 backdrop-blur-2xl bg-white/[0.05] dark:bg-slate-950/50 border border-white/20 dark:border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.22)] text-white select-none cursor-pointer transition-all duration-300 ${
+                                                isMe ? "rounded-br-sm" : "rounded-bl-sm"
+                                              } ${
+                                                isHighlighted
+                                                  ? "ring-2 ring-cyan-400/90 shadow-[0_0_30px_rgba(6,182,212,0.5)] scale-[1.02]"
+                                                  : isSelected
+                                                    ? "ring-2 ring-cyan-400/90 shadow-lg scale-[0.99]"
+                                                    : "hover:border-white/30 hover:bg-white/[0.08] dark:hover:bg-slate-900/60"
+                                              }`
+                                            : isMe
+                                              ? `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[85%] sm:max-w-[75%]"} rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-slate-950 select-none cursor-pointer transition-all duration-300 ${isHighlighted
+                                                  ? "shadow-[0_0_30px_#22d3ee,0_0_15px_#38bdf8] ring-2 ring-cyan-200 ring-offset-2 ring-offset-slate-950 scale-[1.03]"
+                                                  : isSelected
+                                                    ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-[0_0_18px_rgba(56,189,248,0.7)]"
+                                                    : "shadow-[0_0_12px_rgba(56,189,248,0.45)]"
+                                                }`
+                                              : `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[85%] sm:max-w-[75%]"} rounded-2xl rounded-bl-sm bg-slate-800/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-slate-100 select-none cursor-pointer transition-all duration-300 ${isHighlighted
+                                                  ? "bg-slate-700/95 ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 shadow-[0_0_25px_rgba(34,211,238,0.6)] scale-[1.03]"
+                                                  : isSelected
+                                                    ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-md"
+                                                    : "shadow-sm"
+                                                }`
                                         }
                                       >
                                         {/* Thin WhatsApp-Style Content Layout */}
@@ -1542,17 +1565,17 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                           </div>
                                         ) : (
                                           <div>
-                                            {displayContent && (
-                                              <p className="break-words flex items-center flex-wrap gap-1 text-[13px] sm:text-[14px] leading-snug mb-1">
+                                            {shouldShowCaption && (
+                                              <p className="break-words flex items-center flex-wrap gap-1 text-[13px] sm:text-[14px] leading-snug mb-1.5 px-0.5 text-white/95 font-medium">
                                                 {m.isEncrypted && (
                                                   <span
                                                     title="End-to-End Encrypted"
-                                                    className={`inline-flex items-center text-[10px] mr-1 select-none ${isMe ? "text-slate-950/60" : "text-cyan-400/80"}`}
+                                                    className="inline-flex items-center text-[10px] mr-1 select-none text-cyan-400/80"
                                                   >
                                                     🔒
                                                   </span>
                                                 )}
-                                                <span>{renderMessageText(displayContent, !!isMe)}</span>
+                                                <span>{renderMessageText(displayContent, false)}</span>
                                               </p>
                                             )}
 
@@ -1566,7 +1589,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
                                     {/* Attachments, if any */}
                                     {attachments && attachments.length > 0 && (
-                                      <div className="mt-1 space-y-2">
+                                      <div className="mt-0.5 space-y-2">
                                         {attachments.map((a) => {
                                           const isImg =
                                             a.kind === "image" ||
@@ -1591,39 +1614,48 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
                                           if (isImg) {
                                             return (
-                                              <div key={a.id} className="space-y-1">
-                                                <button
-                                                  type="button"
-                                                  onClick={() => {
-                                                    setLightboxImageUrl(url);
-                                                    setLightboxImageName(a.originalName);
-                                                  }}
-                                                  className="block w-full overflow-hidden rounded-xl border border-slate-700/70 bg-slate-950/80 focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
-                                                >
-                                                  <img
-                                                    src={url}
-                                                    alt={a.originalName}
-                                                    loading="lazy"
-                                                    decoding="async"
-                                                    className="max-h-64 w-full rounded-xl object-contain chat-image-optimized"
-                                                  />
-                                                </button>
-                                                <div className="flex items-center justify-between gap-2">
-                                                  <span className="truncate text-[10px] text-slate-400">
+                                              <div key={a.id} className="space-y-1.5">
+                                                {/* Apple Optical Crystal / Glass Image Container */}
+                                                <div className="relative group/img overflow-hidden rounded-xl sm:rounded-2xl border border-white/15 dark:border-white/10 bg-black/40 backdrop-blur-md shadow-inner">
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      setLightboxImageUrl(url);
+                                                      setLightboxImageName(a.originalName);
+                                                    }}
+                                                    className="block w-full focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition-transform duration-300 group-hover/img:scale-[1.01]"
+                                                  >
+                                                    <img
+                                                      src={url}
+                                                      alt={a.originalName}
+                                                      loading="lazy"
+                                                      decoding="async"
+                                                      className="max-h-72 w-full object-contain chat-image-optimized transition-opacity duration-300"
+                                                    />
+                                                  </button>
+                                                  {/* Subtle optical specular gradient overlay */}
+                                                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 opacity-60" />
+                                                </div>
+
+                                                {/* Apple Glass Frosted Action Pill Toolbar */}
+                                                <div className="flex items-center justify-between gap-2 px-1 pt-0.5">
+                                                  <span className="truncate text-[11px] font-mono text-white/60 tracking-tight">
                                                     {a.originalName}
                                                   </span>
-                                                  <div className="flex items-center gap-1.5">
-                                                    <button
-                                                      type="button"
-                                                      onClick={() => handleDeleteMessage(m.id)}
-                                                      className="inline-flex items-center gap-1 rounded-full border border-rose-500/60 bg-rose-500/20 px-2 py-0.5 text-[10px] font-medium text-rose-300 hover:border-rose-400 hover:bg-rose-500/35 hover:text-rose-100 transition active:scale-95"
-                                                      title="Delete image"
-                                                    >
-                                                      <svg className="h-3 w-3 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                      </svg>
-                                                      <span>Delete</span>
-                                                    </button>
+                                                  <div className="flex items-center gap-1.5 shrink-0">
+                                                    {isMe && (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteMessage(m.id)}
+                                                        className="inline-flex items-center gap-1 rounded-full border border-rose-500/25 bg-rose-500/10 hover:bg-rose-500/25 px-2.5 py-1 text-[10px] font-medium text-rose-300 hover:text-rose-100 backdrop-blur-md transition-all active:scale-95 shadow-sm"
+                                                        title="Delete image"
+                                                      >
+                                                        <svg className="h-3 w-3 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                        <span>Delete</span>
+                                                      </button>
+                                                    )}
                                                     <button
                                                       type="button"
                                                       onClick={async () => {
@@ -1651,21 +1683,12 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                           setTimeout(() => setChatError(null), 4000);
                                                         }
                                                       }}
-                                                      className="inline-flex items-center gap-1 rounded-full border border-cyan-400/80 bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-2 py-0.5 text-[10px] text-slate-100 hover:border-cyan-400/80 hover:text-cyan-200"
+                                                      className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 hover:border-cyan-400/50 px-2.5 py-1 text-[10px] font-medium text-white/90 hover:text-cyan-200 backdrop-blur-md transition-all active:scale-95 shadow-sm"
+                                                      title="Download image"
                                                     >
-                                                      <svg
-                                                        viewBox="0 0 16 16"
-                                                        aria-hidden="true"
-                                                        className="h-3 w-3"
-                                                      >
-                                                        <path
-                                                          d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z"
-                                                          fill="currentColor"
-                                                        />
-                                                        <path
-                                                          d="M3.25 12.5a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Z"
-                                                          fill="currentColor"
-                                                        />
+                                                      <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3 w-3 text-cyan-400">
+                                                        <path d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z" fill="currentColor" />
+                                                        <path d="M3.25 12.5a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Z" fill="currentColor" />
                                                       </svg>
                                                       <span>Download</span>
                                                     </button>
@@ -1677,36 +1700,40 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
                                           if (isVid) {
                                             return (
-                                              <div key={a.id} className="space-y-1">
-                                                <button
-                                                  type="button"
-                                                  onClick={() => {
-                                                    setLightboxVideoUrl(url);
-                                                    setLightboxVideoName(a.originalName);
-                                                  }}
-                                                  className="block w-full overflow-hidden rounded-xl border border-slate-700/70 bg-slate-950/80 focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
-                                                >
-                                                  <QuantumVideoPlayerComponent
-                                                    src={url}
-                                                    className="max-h-64 w-full rounded-xl"
-                                                  />
-                                                </button>
-                                                <div className="flex items-center justify-between gap-2">
-                                                  <span className="truncate text-[10px] text-slate-400">
+                                              <div key={a.id} className="space-y-1.5">
+                                                <div className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-white/15 dark:border-white/10 bg-black/40 backdrop-blur-md">
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      setLightboxVideoUrl(url);
+                                                      setLightboxVideoName(a.originalName);
+                                                    }}
+                                                    className="block w-full focus:outline-none focus:ring-2 focus:ring-cyan-400/80"
+                                                  >
+                                                    <QuantumVideoPlayerComponent
+                                                      src={url}
+                                                      className="max-h-64 w-full rounded-xl"
+                                                    />
+                                                  </button>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-2 px-1 pt-0.5">
+                                                  <span className="truncate text-[11px] font-mono text-white/60 tracking-tight">
                                                     {a.originalName}
                                                   </span>
-                                                  <div className="flex items-center gap-1.5">
-                                                    <button
-                                                      type="button"
-                                                      onClick={() => handleDeleteMessage(m.id)}
-                                                      className="inline-flex items-center gap-1 rounded-full border border-rose-500/60 bg-rose-500/20 px-2 py-0.5 text-[10px] font-medium text-rose-300 hover:border-rose-400 hover:bg-rose-500/35 hover:text-rose-100 transition active:scale-95"
-                                                      title="Delete video"
-                                                    >
-                                                      <svg className="h-3 w-3 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                      </svg>
-                                                      <span>Delete</span>
-                                                    </button>
+                                                  <div className="flex items-center gap-1.5 shrink-0">
+                                                    {isMe && (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteMessage(m.id)}
+                                                        className="inline-flex items-center gap-1 rounded-full border border-rose-500/25 bg-rose-500/10 hover:bg-rose-500/25 px-2.5 py-1 text-[10px] font-medium text-rose-300 hover:text-rose-100 backdrop-blur-md transition-all active:scale-95 shadow-sm"
+                                                        title="Delete video"
+                                                      >
+                                                        <svg className="h-3 w-3 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                        <span>Delete</span>
+                                                      </button>
+                                                    )}
                                                     <button
                                                       type="button"
                                                       onClick={async () => {
@@ -1734,12 +1761,12 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                           setTimeout(() => setChatError(null), 4000);
                                                         }
                                                       }}
-                                                      className="inline-flex items-center gap-1 rounded-full border border-cyan-400/80 bg-gradient-to-r from-cyan-400 via-sky-400 to-fuchsia-400 px-2 py-0.5 text-[10px] text-slate-100 hover:border-cyan-400/80 hover:text-cyan-200"
+                                                      className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 hover:border-cyan-400/50 px-2.5 py-1 text-[10px] font-medium text-white/90 hover:text-cyan-200 backdrop-blur-md transition-all active:scale-95 shadow-sm"
                                                     >
                                                       <svg
                                                         viewBox="0 0 16 16"
                                                         aria-hidden="true"
-                                                        className="h-3 w-3"
+                                                        className="h-3 w-3 text-cyan-400"
                                                       >
                                                         <path
                                                           d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z"
@@ -1761,7 +1788,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                           if (a.mimeType?.startsWith("audio/") || a.originalName.endsWith(".webm") || a.originalName.endsWith(".ogg") || a.originalName.endsWith(".mp3") || a.originalName.endsWith(".wav")) {
                                             return (
                                               <div key={a.id} className="space-y-1 my-1">
-                                                <div className="rounded-xl border border-cyan-500/40 bg-slate-950/80 p-2 shadow-[0_0_12px_rgba(6,182,212,0.15)] backdrop-blur-md flex flex-col gap-1.5 min-w-[200px] sm:min-w-[240px]">
+                                                <div className="rounded-xl border border-white/15 bg-white/[0.06] dark:bg-slate-950/60 p-2.5 shadow-sm backdrop-blur-md flex flex-col gap-1.5 min-w-[200px] sm:min-w-[240px]">
                                                   <div className="flex items-center justify-between gap-2">
                                                     <div className="flex items-center gap-2">
                                                       <div className="h-6 w-6 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-md">
@@ -1773,7 +1800,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                         <p className="text-[9px] font-bold text-cyan-300 uppercase tracking-wider truncate">
                                                           Voice Message
                                                         </p>
-                                                        <p className="text-[8px] text-slate-400 truncate max-w-[100px] sm:max-w-[130px]">
+                                                        <p className="text-[8px] text-white/60 truncate max-w-[100px] sm:max-w-[130px]">
                                                           {a.originalName}
                                                         </p>
                                                       </div>
@@ -1807,7 +1834,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                           setTimeout(() => setChatError(null), 4000);
                                                         }
                                                       }}
-                                                      className="flex h-5 w-5 items-center justify-center rounded-full border border-cyan-400/50 bg-[#09111c]/95 text-cyan-300 shadow-[0_0_8px_rgba(34,211,238,0.2)] transition hover:-translate-y-0.5 hover:bg-slate-800 hover:text-cyan-200 hover:shadow-[0_0_12px_rgba(34,211,238,0.5)] active:scale-95 shrink-0"
+                                                      className="flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white/80 hover:text-cyan-300 hover:border-cyan-400/50 shadow-sm transition active:scale-95 shrink-0"
                                                       title="Download Voice Note"
                                                     >
                                                       <svg
@@ -1836,9 +1863,9 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                           return (
                                             <div
                                               key={a.id}
-                                              className="flex items-center justify-between gap-2 rounded-xl border border-slate-600/70 bg-slate-900/80 px-2 py-1 text-[11px]"
+                                              className="flex items-center justify-between gap-2 rounded-xl border border-white/15 bg-white/[0.06] dark:bg-slate-950/60 px-3 py-2 text-[11px] backdrop-blur-md"
                                             >
-                                              <span className="truncate text-slate-100">
+                                              <span className="truncate text-white/80">
                                                 {a.originalName}
                                               </span>
                                               <button
@@ -1852,7 +1879,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                       const err = await res.json().catch(() => ({ error: "Download failed" }));
                                                       console.error("[Download] Failed:", res.status, err);
                                                       setChatError(`Download failed · ${err.error ?? "Please try again"}`);
-                                                            setTimeout(() => setChatError(null), 4000);
+                                                      setTimeout(() => setChatError(null), 4000);
                                                       return;
                                                     }
                                                     const blob = await res.blob();
@@ -1865,15 +1892,15 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                   } catch (err) {
                                                     console.error("[Download] Error:", err);
                                                     setChatError(`Download error · ${err instanceof Error ? err.message : "Please try again"}`);
-                                                          setTimeout(() => setChatError(null), 4000);
+                                                    setTimeout(() => setChatError(null), 4000);
                                                   }
                                                 }}
-                                                className="inline-flex items-center gap-1 rounded-full border border-slate-500/80 bg-slate-950/90 px-2 py-0.5 text-[10px] text-slate-100 hover:border-cyan-400/80 hover:text-cyan-100"
+                                                className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 hover:border-cyan-400/50 px-2.5 py-1 text-[10px] font-medium text-white/90 hover:text-cyan-200 backdrop-blur-md transition-all active:scale-95 shadow-sm"
                                               >
                                                 <svg
                                                   viewBox="0 0 16 16"
                                                   aria-hidden="true"
-                                                  className="h-3 w-3 flex-shrink-0"
+                                                  className="h-3 w-3 flex-shrink-0 text-cyan-400"
                                                 >
                                                   <path
                                                     d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z"
@@ -1893,17 +1920,17 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                     )}
 
                                     {/* If this message used to represent a file/video attachment
-                                  but the attachment metadata is now gone (e.g. auto-deleted
-                                  after 24h), show an unavailable placeholder instead of
-                                  leaving nothing. */}
+                                   but the attachment metadata is now gone (e.g. auto-deleted
+                                   after 24h), show an unavailable placeholder instead of
+                                   leaving nothing. */}
                                     {!attachments?.length &&
                                       /\[(FILE|VIDEO) attachment\]/i.test(m.content) &&
                                       m.createdAt &&
                                       Date.now() - new Date(m.createdAt).getTime() > 24 * 60 * 60 * 1000 && (
-                                      <div className="mt-1 flex items-center justify-center rounded-xl border border-dashed border-slate-600/70 bg-slate-900/80 px-3 py-2 text-center text-[11px] text-slate-400">
+                                      <div className="mt-1 flex items-center justify-center rounded-xl border border-dashed border-white/20 bg-black/40 px-3 py-2 text-center text-[11px] text-white/60">
                                         <div>
-                                          <p className="font-medium text-slate-300">Attachment unavailable</p>
-                                          <p className="mt-0.5 text-[10px] text-slate-500">
+                                          <p className="font-medium text-white/80">Attachment unavailable</p>
+                                          <p className="mt-0.5 text-[10px] text-white/40">
                                             This file or video was removed automatically after 24 hours.
                                             Ask the sender to re-send it if you still need it.
                                           </p>
@@ -1913,19 +1940,17 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
                                             {/* Timestamp below Media (only shown if message has media) */}
                                             {hasMedia && m.createdAt && (
-                                              <div className="mt-1 flex items-center justify-end">
+                                              <div className="mt-1.5 flex items-center justify-end px-1">
                                                 <span
                                                   onClick={(e) => {
                                                     e.stopPropagation();
                                                     setDetailModalMessage(m);
                                                   }}
                                                   title="Click or right-click for Message Details"
-                                                  className={`inline-flex items-center gap-1 text-[9px] font-mono tracking-tight select-none cursor-pointer hover:opacity-100 transition ${
-                                                    isMe ? "text-slate-950/70" : "text-slate-400/80"
-                                                  }`}
+                                                  className="inline-flex items-center gap-1.5 text-[9.5px] font-mono tracking-tight select-none cursor-pointer text-white/60 hover:text-white/95 transition"
                                                 >
                                                   {(m as any).isEdited && (
-                                                    <span className="italic text-[8px] opacity-80" title={(m as any).editedAt ? `Edited: ${formatMsgTime((m as any).editedAt)}` : "Edited"}>
+                                                    <span className="italic text-[8.5px] opacity-80" title={(m as any).editedAt ? `Edited: ${formatMsgTime((m as any).editedAt)}` : "Edited"}>
                                                       (edited)
                                                     </span>
                                                   )}
