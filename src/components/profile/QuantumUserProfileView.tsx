@@ -561,21 +561,21 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
             </div>
 
             {/* Clickable @handle */}
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-2 mt-0.5 max-w-full min-w-0">
               <button
                 type="button"
                 onClick={handleCopyHandle}
-                className="text-xs text-slate-400 font-mono hover:text-cyan-300 hover:underline flex items-center gap-1"
-                title="Click to copy handle"
+                className="text-xs text-slate-400 font-mono hover:text-cyan-300 hover:underline flex items-center gap-1 min-w-0 max-w-[200px] sm:max-w-xs md:max-w-sm truncate"
+                title={`Click to copy @${profile?.handle || cleanTargetHandle}`}
               >
-                <span>@{profile?.handle || cleanTargetHandle}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <span className="truncate">@{profile?.handle || cleanTargetHandle}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 opacity-60 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
               </button>
 
-              <span className="text-slate-600 text-xs">•</span>
-              <span className="text-[11px] text-emerald-400/90 font-medium">Optical E2EE Ready</span>
+              <span className="text-slate-600 text-xs shrink-0">•</span>
+              <span className="text-[11px] text-emerald-400/90 font-medium shrink-0">Optical E2EE Ready</span>
             </div>
           </div>
 

@@ -537,7 +537,7 @@ export default function SettingsModal(props: SettingsModalProps) {
                                 <span className="text-[11px] font-medium text-slate-200">Account</span>
                                 <span className="text-[11px] text-slate-300">ID</span>
                               </div>
-                              <p className="text-[11px] text-slate-200">
+                              <p className="text-[11px] text-slate-200 break-all font-mono">
                                 Quantum ID: @{currentHandle || (session as any)?.user?.handle || "not-set"}
                               </p>
                               <p>

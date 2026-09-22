@@ -36,9 +36,19 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [copiedHandle, setCopiedHandle] = useState(false);
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCopyHandle = () => {
+    const handleText = currentUser.handle ? `@${currentUser.handle}` : "@your-handle";
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(handleText);
+      setCopiedHandle(true);
+      setTimeout(() => setCopiedHandle(false), 2000);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -304,12 +314,51 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             </div>
 
             {/* Handle / Username indicator */}
-            <div className="space-y-1">
-              <label className="text-xs text-slate-300 font-medium">Handle</label>
-              <div className="w-full rounded-2xl border border-slate-800 bg-slate-950/60 px-3.5 py-2.5 text-sm font-mono text-slate-400 flex items-center justify-between">
-                <span>@{currentUser.handle || "your-handle"}</span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-wider">Unique Q-ID</span>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5">
+                  <label className="text-slate-300 font-medium">Handle</label>
+                  <span className="text-[10px] text-slate-500 font-mono">(Permanent Q-ID)</span>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-cyan-300 border border-cyan-500/20 shrink-0 select-none">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                  Unique Q-ID
+                </span>
               </div>
+              <div className="w-full rounded-2xl border border-slate-800/90 bg-slate-950/80 px-3.5 py-2.5 text-sm font-mono text-slate-300 flex items-center justify-between gap-3 shadow-inner backdrop-blur-md group hover:border-slate-700/80 transition-colors">
+                <div className="flex items-center gap-2 min-w-0 flex-1 overflow-hidden">
+                  <span className="text-slate-500 text-xs shrink-0 select-none">🔒</span>
+                  <span
+                    className="truncate text-xs sm:text-sm text-cyan-200/90 font-mono tracking-tight select-all min-w-0"
+                    title={`@${currentUser.handle || "your-handle"}`}
+                  >
+                    @{currentUser.handle || "your-handle"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyHandle}
+                  className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-sans font-medium bg-slate-800/90 hover:bg-slate-700 border border-slate-700/60 text-slate-300 hover:text-white transition active:scale-95 cursor-pointer shadow-sm"
+                  title="Copy Quantum Handle"
+                >
+                  {copiedHandle ? (
+                    <>
+                      <span className="text-emerald-400 font-bold text-xs">✓</span>
+                      <span className="text-emerald-300 font-mono text-[10px]">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-slate-400 group-hover:text-cyan-300 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <p className="text-[11px] text-slate-500 px-0.5 leading-normal">
+                Your cryptographic quantum handle is immutable and uniquely identifies you across the network.
+              </p>
             </div>
 
             {/* Bio Field */}
