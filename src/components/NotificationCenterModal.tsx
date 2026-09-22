@@ -33,7 +33,7 @@ export default function NotificationCenterModal({
       id: 'notif-1',
       type: 'reaction',
       title: 'Post Liked',
-      description: 'liked your latest Global broadcast',
+      description: 'liked your latest post',
       actorName: 'Devanshu Suthar',
       actorHandle: 'devanshu-suthar',
       timeAgo: '12m ago',
@@ -120,7 +120,7 @@ export default function NotificationCenterModal({
                   </span>
                 )}
               </h3>
-              <p className="text-[11px] text-slate-400">Live activity and network transmissions</p>
+              <p className="text-[11px] text-slate-400">Live activity and updates</p>
             </div>
           </div>
 
@@ -234,7 +234,7 @@ export default function NotificationCenterModal({
 
         {/* Footer */}
         <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-          <span>Real-time WebSocket Transmissions Active</span>
+          <span>Real-time Connection Active</span>
           <button
             type="button"
             onClick={onClose}

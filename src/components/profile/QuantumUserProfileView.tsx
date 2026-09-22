@@ -374,8 +374,8 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
               )}
             </div>
 
-            <span className="text-[11px] text-slate-400 font-mono tracking-tight">
-              {profile?.posts?.length || profile?.postsCount || 0} Transmissions
+            <span className="text-[11px] text-slate-400 font-medium tracking-tight">
+              {profile?.posts?.length || profile?.postsCount || 0} {((profile?.posts?.length || profile?.postsCount || 0) === 1) ? "Post" : "Posts"}
             </span>
           </div>
         </div>
@@ -404,8 +404,9 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
           <div className="absolute inset-0 bg-gradient-to-r from-red-600/15 via-transparent to-red-600/15 animate-pulse duration-[4000ms] pointer-events-none" />
         )}
 
-        <div className="absolute bottom-2 right-3 px-2.5 py-0.5 rounded-full bg-slate-950/70 border border-slate-700/60 backdrop-blur-md text-[10px] font-mono text-slate-400">
-          NODE://Q‑LINK.MESH.{cleanTargetHandle.toUpperCase()}
+        <div className="absolute bottom-2 right-3 px-2.5 py-0.5 rounded-full bg-slate-950/70 border border-slate-700/60 backdrop-blur-md text-[10px] font-medium text-slate-300 flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>@{cleanTargetHandle}</span>
         </div>
       </div>
 
@@ -545,8 +546,8 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
           {/* Bio Description */}
           <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
             {profile?.bio || (isFounder
-              ? "Founder & CEO at Q‑Link • Architect of Quantum Encrypted Hyper-Scale Networks & Sovereign Zero-Trust Protocols ⚡"
-              : "Active Quantum Node • Secure peer-to-peer transmission via post-quantum cryptography on Q‑Link.")}
+              ? "Founder & CEO at Q‑Link ⚡"
+              : "Active on Q-Link.")}
           </p>
 
           {/* Metadata Row (Joined, Node, Aura, Points) */}
@@ -662,7 +663,7 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
       {/* ── TWITTER / X NAVIGATION TABS ────────────────────────────────── */}
       <div className="sticky top-[53px] z-20 flex border-b border-slate-800/90 bg-slate-950/90 backdrop-blur-md">
         {[
-          { id: "posts", label: "Transmissions" },
+          { id: "posts", label: "Posts" },
           { id: "replies", label: "Replies" },
           { id: "media", label: "Media" },
           { id: "aura", label: "Aura & Badges" },
@@ -684,13 +685,13 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
         })}
       </div>
 
-      {/* ── TAB CONTENT: TRANSMISSIONS (POSTS) ─────────────────────────── */}
+      {/* ── TAB CONTENT: POSTS ───────────────────────────────────────── */}
       {activeTab === "posts" && (
         <div className="divide-y divide-slate-800/80">
           {loading ? (
             <div className="p-8 text-center space-y-3 text-slate-500">
               <div className="inline-block h-6 w-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-              <p className="text-xs">Synchronizing transmissions from quantum ledger...</p>
+              <p className="text-xs">Loading posts...</p>
             </div>
           ) : profile?.posts && profile.posts.length > 0 ? (
             profile.posts.map((post) => {
@@ -818,7 +819,7 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
                         type="button"
                         onClick={handleShareProfile}
                         className="hover:text-cyan-400 transition"
-                        title="Share Transmission"
+                        title="Share Post"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -831,9 +832,9 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
             })
           ) : (
             <div className="p-12 text-center space-y-2">
-              <p className="text-sm font-bold text-slate-300">No transmissions yet</p>
+              <p className="text-sm font-bold text-slate-300">No posts yet</p>
               <p className="text-xs text-slate-500">
-                When @{profile?.handle || cleanTargetHandle} broadcasts to the network, their transmissions will appear here.
+                When @{profile?.handle || cleanTargetHandle} posts, their updates will appear here.
               </p>
             </div>
           )}
@@ -876,9 +877,9 @@ export const QuantumUserProfileView: React.FC<QuantumUserProfileViewProps> = ({
             </div>
           ) : (
             <div className="p-12 text-center space-y-2">
-              <p className="text-sm font-bold text-slate-300">No media transmissions</p>
+              <p className="text-sm font-bold text-slate-300">No photos or videos yet</p>
               <p className="text-xs text-slate-500">
-                Photos and optical recordings shared by @{cleanTargetHandle} will be archived here.
+                Photos and videos shared by @{cleanTargetHandle} will appear here.
               </p>
             </div>
           )}
