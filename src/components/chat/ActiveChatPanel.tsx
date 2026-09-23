@@ -9,6 +9,7 @@ import Cropper from "react-easy-crop";
 import { ChatInputConsole } from "@/components/ChatInputConsole";
 import { MessageStatusTicks } from "@/components/MessageStatusTicks";
 import { YouTubeInlinePreview } from "@/components/YouTubeInlinePreview";
+import { UniversalSocialEmbedPreview, extractSocialMediaEmbedInfo } from "./UniversalSocialEmbedPreview";
 import QAIAssistantModal from "@/components/QAIAssistantModal";
 import QuantumVideoPlayerComponent from "@/components/QuantumVideoPlayer";
 import { QuantumUserProfileView } from "@/components/profile/QuantumUserProfileView";
@@ -1640,14 +1641,13 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                               </p>
                                             )}
 
-                                    {/* YouTube Inline Rich Video Preview (Adaptive Shorts 9:16 vs Widescreen 16:9) */}
+                                    {/* Social Media Inline Video & Reel Embed Preview (YouTube, Instagram, X, Facebook) */}
                                     {(() => {
-                                      const ytInfo = extractYouTubeInfo(displayContent);
-                                      if (!ytInfo) return null;
+                                      const socialInfo = extractSocialMediaEmbedInfo(displayContent);
+                                      if (!socialInfo) return null;
                                       return (
-                                        <YouTubeInlinePreview
-                                          videoId={ytInfo.videoId}
-                                          isShort={ytInfo.isShort}
+                                        <UniversalSocialEmbedPreview
+                                          info={socialInfo}
                                           isMe={!!isMe}
                                         />
                                       );
