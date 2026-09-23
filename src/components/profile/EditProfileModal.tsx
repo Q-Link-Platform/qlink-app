@@ -44,9 +44,52 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
+  // Initial snapshot to strictly track real modifications
+  const initialName = useRef((currentUser.name || "").trim());
+  const initialHandle = useRef((currentUser.handle ? currentUser.handle.replace(/^@+/, "") : "").trim());
+  const initialBio = useRef((currentUser.bio || "").trim());
+  const initialLocation = useRef((currentUser.location || "").trim());
+  const initialWebsite = useRef((currentUser.website || "").trim());
+  const initialImage = useRef(currentUser.image || "");
+  const initialBanner = useRef(currentUser.banner || "");
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Sync state if currentUser changes when opened
+  useEffect(() => {
+    if (isOpen) {
+      initialName.current = (currentUser.name || "").trim();
+      initialHandle.current = (currentUser.handle ? currentUser.handle.replace(/^@+/, "") : "").trim();
+      initialBio.current = (currentUser.bio || "").trim();
+      initialLocation.current = (currentUser.location || "").trim();
+      initialWebsite.current = (currentUser.website || "").trim();
+      initialImage.current = currentUser.image || "";
+      initialBanner.current = currentUser.banner || "";
+
+      setName(currentUser.name || "");
+      setHandle(currentUser.handle ? currentUser.handle.replace(/^@+/, "") : "");
+      setBio(currentUser.bio || "");
+      setLocation(currentUser.location || "");
+      setWebsite(currentUser.website || "");
+      setImage(currentUser.image || "");
+      setBanner(currentUser.banner || "");
+      setError(null);
+      setSuccess(false);
+    }
+  }, [currentUser, isOpen]);
+
+  // Deep diffing across all editable fields
+  const isDirty = (
+    name.trim() !== initialName.current ||
+    handle.trim().replace(/^@+/, "") !== initialHandle.current ||
+    bio.trim() !== initialBio.current ||
+    location.trim() !== initialLocation.current ||
+    website.trim() !== initialWebsite.current ||
+    (image || "") !== initialImage.current ||
+    (banner || "") !== initialBanner.current
+  );
 
   const handleCopyHandle = () => {
     const handleText = handle ? `@${handle}` : (currentUser.handle ? `@${currentUser.handle}` : "@your-handle");
@@ -189,6 +232,7 @@ function compressImage(file: File, maxWidth: number, maxHeight: number, quality 
   // Save Profile Changes
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isDirty || saving || uploadingAvatar || uploadingBanner) return;
     setSaving(true);
     setError(null);
 
@@ -254,14 +298,28 @@ function compressImage(file: File, maxWidth: number, maxHeight: number, quality 
           <button
             type="button"
             onClick={handleSave}
-            disabled={saving || uploadingAvatar || uploadingBanner}
-            className={`rounded-full px-5 py-1.5 text-xs font-bold transition-all shadow-md ${
+            disabled={!isDirty || saving || uploadingAvatar || uploadingBanner}
+            className={`rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-md ${
               success
-                ? "bg-emerald-500 text-white"
-                : "bg-white hover:bg-slate-200 text-slate-950 active:scale-95 disabled:opacity-50"
+                ? "bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.35)]"
+                : !isDirty
+                ? "bg-white/10 text-white/30 cursor-not-allowed border border-white/5 pointer-events-none"
+                : "bg-white hover:bg-slate-200 text-slate-950 active:scale-95 shadow-[0_2px_15px_rgba(255,255,255,0.25)] cursor-pointer"
             }`}
           >
-            {saving ? "Saving..." : success ? "✓ Saved" : "Save"}
+            {saving ? (
+              <>
+                <svg className="animate-spin h-3 w-3 text-slate-950" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                <span>Saving...</span>
+              </>
+            ) : success ? (
+              <span>✓ Saved</span>
+            ) : (
+              <span>Save</span>
+            )}
           </button>
         </div>
 
