@@ -44,7 +44,7 @@ export function extractSocialMediaEmbedInfo(text: string): SocialEmbedInfo | nul
   }
 
   // 3. Instagram Reels
-  const instaReelMatch = text.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:reel|reels)\/([a-zA-Z0-9_-]+)/i);
+  const instaReelMatch = text.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:reel|reels|share\/reel)\/([a-zA-Z0-9_-]+)/i);
   if (instaReelMatch) {
     return {
       platform: "instagram",
@@ -57,7 +57,7 @@ export function extractSocialMediaEmbedInfo(text: string): SocialEmbedInfo | nul
   }
 
   // 4. Instagram Post
-  const instaPostMatch = text.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/p\/([a-zA-Z0-9_-]+)/i);
+  const instaPostMatch = text.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:p|tv)\/([a-zA-Z0-9_-]+)/i);
   if (instaPostMatch) {
     return {
       platform: "instagram",
@@ -70,7 +70,7 @@ export function extractSocialMediaEmbedInfo(text: string): SocialEmbedInfo | nul
   }
 
   // 5. X (Twitter)
-  const xMatch = text.match(/(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/(?:[a-zA-Z0-9_]+)\/status\/(\d+)/i);
+  const xMatch = text.match(/(?:https?:\/\/)?(?:www\.|mobile\.)?(?:twitter\.com|x\.com|fixupx\.com|vxtwitter\.com|fxtwitter\.com)\/(?:[a-zA-Z0-9_]+)\/status\/(\d+)/i);
   if (xMatch) {
     return {
       platform: "x",
@@ -83,7 +83,7 @@ export function extractSocialMediaEmbedInfo(text: string): SocialEmbedInfo | nul
   }
 
   // 6. Facebook Reels
-  const fbReelMatch = text.match(/(?:https?:\/\/)?(?:www\.|m\.|web\.)?facebook\.com\/reel\/(\d+)/i);
+  const fbReelMatch = text.match(/(?:https?:\/\/)?(?:www\.|m\.|web\.)?facebook\.com\/(?:reel|reels|share\/r)\/([a-zA-Z0-9_-]+)/i);
   if (fbReelMatch) {
     return {
       platform: "facebook",
@@ -96,7 +96,7 @@ export function extractSocialMediaEmbedInfo(text: string): SocialEmbedInfo | nul
   }
 
   // 7. Facebook Video / Watch
-  const fbWatchMatch = text.match(/(?:https?:\/\/)?(?:www\.|m\.|web\.)?(?:facebook\.com\/(?:watch\/?\?v=(\d+)|[^/]+\/videos\/(\d+))|fb\.watch\/([a-zA-Z0-9_-]+))/i);
+  const fbWatchMatch = text.match(/(?:https?:\/\/)?(?:www\.|m\.|web\.)?(?:facebook\.com\/(?:watch\/?\?v=([a-zA-Z0-9_-]+)|[^/\s]+\/videos\/([a-zA-Z0-9_-]+))|fb\.watch\/([a-zA-Z0-9_-]+))/i);
   if (fbWatchMatch) {
     const rawUrl = fbWatchMatch[0].startsWith("http") ? fbWatchMatch[0] : `https://${fbWatchMatch[0]}`;
     return {
@@ -122,7 +122,7 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
   isMe = false,
 }: UniversalSocialEmbedPreviewProps) {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   // If it's YouTube, reuse our optimized YouTubeInlinePreview component directly
   if (info.platform === "youtube") {
@@ -175,7 +175,7 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
     ? undefined
     : "16 / 9";
 
-  const minHeight = info.platform === "x" ? "380px" : undefined;
+  const minHeight = info.platform === "x" ? "460px" : undefined;
 
   return (
     <div
@@ -293,7 +293,7 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
               style={{ width: "100%", height: "100%", minHeight: minHeight || (info.isVertical ? "500px" : "320px") }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
-              scrolling="no"
+              scrolling={info.platform === "x" ? "auto" : "no"}
               onLoad={() => setIsLoaded(true)}
             />
           </div>

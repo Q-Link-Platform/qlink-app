@@ -1534,7 +1534,8 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                 {/* Bubble Alignments */}
                                 <div className={`flex-1 flex ${isMe ? "justify-end" : "justify-start"}`}>
                                   {(() => {
-                                    const hasMedia = Boolean((attachments && attachments.length > 0) || extractYouTubeVideoId(displayContent));
+                                    const socialEmbedInfo = extractSocialMediaEmbedInfo(displayContent);
+                                    const hasMedia = Boolean((attachments && attachments.length > 0) || socialEmbedInfo);
                                     const isFilenameOnly = Boolean(
                                       attachments &&
                                       attachments.length > 0 &&
@@ -1565,13 +1566,13 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                     : "hover:border-white/30 hover:bg-white/[0.08] dark:hover:bg-slate-900/60"
                                               }`
                                             : isMe
-                                              ? `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[85%] sm:max-w-[75%]"} rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-slate-950 select-none cursor-pointer transition-all duration-300 ${isHighlighted
+                                              ? `${socialEmbedInfo ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[85%] sm:max-w-[75%]"} rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-slate-950 select-none cursor-pointer transition-all duration-300 ${isHighlighted
                                                   ? "shadow-[0_0_30px_#22d3ee,0_0_15px_#38bdf8] ring-2 ring-cyan-200 ring-offset-2 ring-offset-slate-950 scale-[1.03]"
                                                   : isSelected
                                                     ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-[0_0_18px_rgba(56,189,248,0.7)]"
                                                     : "shadow-[0_0_12px_rgba(56,189,248,0.45)]"
                                                 }`
-                                              : `${extractYouTubeVideoId(displayContent) ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[85%] sm:max-w-[75%]"} rounded-2xl rounded-bl-sm bg-slate-800/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-slate-100 select-none cursor-pointer transition-all duration-300 ${isHighlighted
+                                              : `${socialEmbedInfo ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[85%] sm:max-w-[75%]"} rounded-2xl rounded-bl-sm bg-slate-800/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-slate-100 select-none cursor-pointer transition-all duration-300 ${isHighlighted
                                                   ? "bg-slate-700/95 ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 shadow-[0_0_25px_rgba(34,211,238,0.6)] scale-[1.03]"
                                                   : isSelected
                                                     ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 scale-[0.98] shadow-md"
@@ -1643,7 +1644,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
                                     {/* Social Media Inline Video & Reel Embed Preview (YouTube, Instagram, X, Facebook) */}
                                     {(() => {
-                                      const socialInfo = extractSocialMediaEmbedInfo(displayContent);
+                                      const socialInfo = socialEmbedInfo;
                                       if (!socialInfo) return null;
                                       return (
                                         <UniversalSocialEmbedPreview
