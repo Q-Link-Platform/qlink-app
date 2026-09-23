@@ -537,7 +537,66 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
     setIsVipTermsAnimating,
     setShowVipTerms,
     setManualStopAnimation,
+    handlePasteFile,
   } = props;
+
+  const handlePanelPaste = (e: React.ClipboardEvent) => {
+    if (e.defaultPrevented) return;
+    const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+    if (targetTag === "textarea" || targetTag === "input") {
+      return;
+    }
+
+    const clipboardData = e.clipboardData;
+    if (!clipboardData) return;
+
+    let imageFile: File | null = null;
+    const items = clipboardData.items;
+    if (items && items.length > 0) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type && item.type.startsWith("image/")) {
+          const blob = item.getAsFile();
+          if (blob) {
+            imageFile = blob;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!imageFile && clipboardData.files && clipboardData.files.length > 0) {
+      for (let i = 0; i < clipboardData.files.length; i++) {
+        const file = clipboardData.files[i];
+        const isImage =
+          (file.type && file.type.startsWith("image/")) ||
+          /\.(png|jpe?g|webp|gif|bmp|svg|ico)$/i.test(file.name || "");
+        if (isImage) {
+          imageFile = file;
+          break;
+        }
+      }
+    }
+
+    if (imageFile) {
+      e.preventDefault();
+      const mime = imageFile.type || "image/png";
+      const ext = mime.split("/")[1]?.replace("+xml", "") || "png";
+      const filename =
+        imageFile.name && imageFile.name !== "image.png"
+          ? imageFile.name
+          : `screenshot_${new Date().toISOString().replace(/[:.]/g, "-")}.${ext}`;
+
+      const fileWithCleanName = new File([imageFile], filename, {
+        type: mime,
+        lastModified: Date.now(),
+      });
+
+      if (handlePasteFile) {
+        handlePasteFile(fileWithCleanName);
+      }
+    }
+  };
 
   // Auto-scroll to show live WhatsApp-style typing bubble when peer is typing
   useEffect(() => {
@@ -610,6 +669,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
+              onPaste={handlePanelPaste}
               className={
                 "relative scrollbar-hide " +
                 (isChatExpanded
@@ -2218,6 +2278,9 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                         formatDuration={formatDuration}
                         editingMessage={editingMessage}
                         onCancelEdit={handleCancelEdit}
+                        onPasteFile={handlePasteFile}
+                        hasPendingImage={Boolean(pendingImageFile)}
+                        onSendPendingImage={handleSendPendingImage}
                       />
                     </div>
                     {beaconStatusMsg && (

@@ -28,6 +28,9 @@ interface ChatInputConsoleProps {
   editingMessage?: { id: string; content: string } | null;
   onCancelEdit?: () => void;
   isCompact?: boolean;
+  onPasteFile?: (file: File) => void;
+  hasPendingImage?: boolean;
+  onSendPendingImage?: () => void;
 }
 
 export const ChatInputConsole = memo(function ChatInputConsole({
@@ -52,6 +55,9 @@ export const ChatInputConsole = memo(function ChatInputConsole({
   editingMessage = null,
   onCancelEdit,
   isCompact = false,
+  onPasteFile,
+  hasPendingImage = false,
+  onSendPendingImage,
 }: ChatInputConsoleProps) {
   const { isDefaultTheme } = useDuoTheme();
   const [localInput, setLocalInput] = useState("");
@@ -98,10 +104,90 @@ export const ChatInputConsole = memo(function ChatInputConsole({
     triggerTyping();
   };
 
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const clipboardData = e.clipboardData;
+    if (!clipboardData) return;
+
+    let imageFile: File | null = null;
+
+    // 1. Check clipboard items (standard for screenshots, Snipping tool, and browser copied images)
+    const items = clipboardData.items;
+    if (items && items.length > 0) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type && item.type.startsWith("image/")) {
+          const blob = item.getAsFile();
+          if (blob) {
+            imageFile = blob;
+            break;
+          }
+        }
+      }
+    }
+
+    // 2. Fallback check clipboard files (e.g. copied from Windows Explorer)
+    if (!imageFile && clipboardData.files && clipboardData.files.length > 0) {
+      for (let i = 0; i < clipboardData.files.length; i++) {
+        const file = clipboardData.files[i];
+        const isImage =
+          (file.type && file.type.startsWith("image/")) ||
+          /\.(png|jpe?g|webp|gif|bmp|svg|ico)$/i.test(file.name || "");
+        if (isImage) {
+          imageFile = file;
+          break;
+        }
+      }
+    }
+
+    if (imageFile) {
+      // Prevent raw binary string or placeholder text from dumping into textarea
+      e.preventDefault();
+      const mime = imageFile.type || "image/png";
+      const ext = mime.split("/")[1]?.replace("+xml", "") || "png";
+      const filename =
+        imageFile.name && imageFile.name !== "image.png"
+          ? imageFile.name
+          : `screenshot_${new Date().toISOString().replace(/[:.]/g, "-")}.${ext}`;
+
+      const fileWithCleanName = new File([imageFile], filename, {
+        type: mime,
+        lastModified: Date.now(),
+      });
+
+      if (onPasteFile) {
+        onPasteFile(fileWithCleanName);
+      }
+    } else {
+      // Regular text paste: allow default paste and auto-adjust textarea height
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+          const nextH = Math.min(textareaRef.current.scrollHeight, 140);
+          textareaRef.current.style.height = `${Math.max(36, nextH)}px`;
+        }
+      }, 0);
+    }
+  };
+
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const text = localInput.trim();
-    if (!text || !activePeerHandle) return;
+    if (!activePeerHandle) return;
+
+    // If there is an image pending preview, submit triggers sending the image
+    if (hasPendingImage && onSendPendingImage) {
+      onSendPendingImage();
+      if (text) {
+        setLocalInput("");
+        if (textareaRef.current) {
+          textareaRef.current.style.height = "auto";
+        }
+        onSend(text);
+      }
+      return;
+    }
+
+    if (!text) return;
 
     // Reset local input instantly for 0ms latency feel
     setLocalInput("");
@@ -407,11 +493,12 @@ export const ChatInputConsole = memo(function ChatInputConsole({
               value={localInput}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
               disabled={!activePeerHandle}
               className="min-h-[36px] max-h-24 sm:max-h-32 w-full resize-none rounded-xl border border-slate-600/70 bg-slate-950/70 pl-3 pr-3 py-1.5 text-xs text-slate-100 outline-none ring-0 transition focus:border-cyan-400 focus:bg-slate-950 focus:shadow-[0_0_0_1px_rgba(34,211,238,0.6)] sm:text-sm disabled:opacity-50"
               placeholder={
                 activePeerHandle
-                  ? `Type a message to @${activePeerHandle}…`
+                  ? `Type a message to @${activePeerHandle}… (or Ctrl+V image)`
                   : "Accept a request to start chatting…"
               }
             />
@@ -431,7 +518,7 @@ export const ChatInputConsole = memo(function ChatInputConsole({
           {/* Send Button */}
           <button
             type="submit"
-            disabled={!activePeerHandle || !localInput.trim()}
+            disabled={!activePeerHandle || (!localInput.trim() && !hasPendingImage) || isUploadingAttachment}
             className={`select-none inline-flex h-9 w-9 items-center justify-center rounded-full [clip-path:circle(50%)] transition hover:brightness-110 sm:h-10 sm:w-10 disabled:opacity-50 ${
               isDefaultTheme
                 ? "border border-cyan-400/80 bg-gradient-to-tr from-cyan-400 via-sky-400 to-fuchsia-400 text-slate-950 drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]"

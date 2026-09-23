@@ -5208,6 +5208,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   };
 
+  const handlePasteFile = useCallback(
+    async (file: File) => {
+      if (!activePeerHandle) return;
+      await processSelectedFile(file, "image_video");
+    },
+    [activePeerHandle, pendingImagePreviewUrl]
+  );
+
   const handleSendPendingImage = async () => {
     if (!pendingImageFile || !activePeerHandle) return;
 
@@ -10947,6 +10955,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               videoInputRef={videoInputRef}
               imageVideoInputRef={imageVideoInputRef}
               handleAttachmentSelected={handleAttachmentSelected}
+              handlePasteFile={handlePasteFile}
               formatDuration={formatDuration}
               editingMessage={editingMessage}
               handleCancelEdit={handleCancelEdit}
