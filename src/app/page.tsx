@@ -6632,19 +6632,33 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               </button>
             )}
 
-            <p className="mt-4 text-center text-xs text-slate-500">
-              After sign-in you'll receive your quantum ID and can connect with
-              anyone globally.
-            </p>
+            {/* Terms & Conditions Acceptance Notice (Standard Corporate Tech-Giant Spec) */}
+            <div className="pt-2 text-center text-xs text-slate-400">
+              <p className="leading-relaxed">
+                By logging in, you accept our{" "}
+                <a
+                  href="/terms.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                  title="Open Official Terms & Conditions (PDF)"
+                >
+                  <span>Terms &amp; Conditions</span>
+                  <svg className="h-3 w-3 inline text-cyan-400/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </p>
+            </div>
           </div>
 
           {/* Meta & X Tech-Giant Style Minimalist Footer */}
           <footer className="mt-6 pt-4 border-t border-slate-800/60 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[11.5px] text-slate-500 select-none">
             <a href="/about" className="hover:text-slate-300 hover:underline transition-colors">About</a>
             <span className="text-slate-700">·</span>
-            <a href="/privacy" className="hover:text-slate-300 hover:underline transition-colors">Privacy Policy</a>
+            <a href="/terms.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-slate-300 hover:underline transition-colors">Terms &amp; Conditions</a>
             <span className="text-slate-700">·</span>
-            <a href="/privacy#section-6" className="hover:text-slate-300 hover:underline transition-colors">Terms of Protocol</a>
+            <a href="/privacy" className="hover:text-slate-300 hover:underline transition-colors">Privacy Policy</a>
             <span className="text-slate-700">·</span>
             <a href="/privacy#section-4" className="hover:text-slate-300 hover:underline transition-colors">Cookie Sandbox</a>
             <span className="text-slate-700">·</span>
