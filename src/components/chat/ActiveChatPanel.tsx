@@ -2205,12 +2205,31 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                             Pending image
                           </p>
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                            <div className="overflow-hidden rounded-xl border border-slate-700/70 bg-slate-950/80">
-                              <img
-                                src={pendingImagePreviewUrl}
-                                alt="Pending attachment"
-                                className="max-h-40 w-full object-contain sm:max-h-48 sm:w-64"
-                              />
+                            <div className="relative group/pending overflow-hidden rounded-xl border border-slate-700/70 bg-slate-950/80 cursor-zoom-in">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (pendingImagePreviewUrl) {
+                                    setLightboxImageUrl(pendingImagePreviewUrl);
+                                    setLightboxImageName(pendingImageFile.name || "Pending image");
+                                  }
+                                }}
+                                className="block w-full focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition-transform duration-300 group-hover/pending:scale-[1.02] cursor-zoom-in relative"
+                                title="Click or tap to view & zoom image"
+                              >
+                                <img
+                                  src={pendingImagePreviewUrl}
+                                  alt="Pending attachment"
+                                  className="max-h-40 w-full object-contain sm:max-h-48 sm:w-64 transition-opacity duration-200"
+                                />
+                                {/* Optical Zoom Pill on hover & mobile tap */}
+                                <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-950/80 border border-white/20 text-[10px] text-white/90 backdrop-blur-md opacity-0 group-hover/pending:opacity-100 transition-opacity shadow-md pointer-events-none">
+                                  <svg className="h-3 w-3 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                                  </svg>
+                                  <span>Tap to zoom</span>
+                                </div>
+                              </button>
                             </div>
                             <div className="flex flex-1 flex-col items-stretch gap-1 sm:items-end">
                               <div className="w-full truncate text-left text-[10px] text-slate-400 sm:text-right">

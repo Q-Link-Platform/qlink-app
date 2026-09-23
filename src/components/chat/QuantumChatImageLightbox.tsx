@@ -179,7 +179,7 @@ export const QuantumChatImageLightbox: React.FC<QuantumChatImageLightboxProps> =
     setIsDownloading(true);
     try {
       const filename = imageName || `qlink-image-${Date.now()}.jpg`;
-      if (imageUrl.startsWith("data:")) {
+      if (imageUrl.startsWith("data:") || imageUrl.startsWith("blob:")) {
         const link = document.createElement("a");
         link.href = imageUrl;
         link.download = filename;
