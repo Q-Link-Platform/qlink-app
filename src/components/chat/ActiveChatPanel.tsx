@@ -1640,13 +1640,18 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                               </p>
                                             )}
 
-                                    {/* YouTube Inline Rich Video Preview */}
-                                    {extractYouTubeVideoId(displayContent) && (
-                                      <YouTubeInlinePreview
-                                        videoId={extractYouTubeVideoId(displayContent)!}
-                                        isMe={!!isMe}
-                                      />
-                                    )}
+                                    {/* YouTube Inline Rich Video Preview (Adaptive Shorts 9:16 vs Widescreen 16:9) */}
+                                    {(() => {
+                                      const ytInfo = extractYouTubeInfo(displayContent);
+                                      if (!ytInfo) return null;
+                                      return (
+                                        <YouTubeInlinePreview
+                                          videoId={ytInfo.videoId}
+                                          isShort={ytInfo.isShort}
+                                          isMe={!!isMe}
+                                        />
+                                      );
+                                    })()}
 
                                     {/* Attachments, if any */}
                                     {attachments && attachments.length > 0 && (

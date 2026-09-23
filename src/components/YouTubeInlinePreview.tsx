@@ -4,11 +4,13 @@ import React, { useState, memo } from "react";
 
 interface YouTubeInlinePreviewProps {
   videoId: string;
+  isShort?: boolean;
   isMe?: boolean;
 }
 
 export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
   videoId,
+  isShort = false,
   isMe = false,
 }: YouTubeInlinePreviewProps) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -16,7 +18,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
   const [thumbnailError, setThumbnailError] = useState(false);
 
   // Use maxresdefault first, fallback to hqdefault
-  const thumbnailUrl = thumbnailError
+  const thumbnailUrl = thumbnailError || isShort
     ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
     : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 
@@ -33,21 +35,21 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
 
   return (
     <div
-      className={`mt-2 w-full overflow-hidden rounded-2xl border shadow-2xl transition-all duration-300 ${
+      className={`mt-2 overflow-hidden rounded-2xl sm:rounded-3xl border shadow-2xl transition-all duration-300 ${
         isMe
           ? "border-blue-400/40 bg-slate-900/95 shadow-blue-950/40"
           : "border-slate-700/70 bg-slate-950/95 shadow-black/50"
       }`}
       style={{
-        width: "min(775px, 85vw)",
+        width: isShort ? "min(320px, 80vw)" : "min(775px, 85vw)",
         maxWidth: "100%",
       }}
     >
-      {/* 16:9 Aspect Ratio Container - Clean, Edge-to-Edge Thumbnail & Player */}
+      {/* Dynamic Aspect Ratio Container - 9:16 for Shorts / Reels, 16:9 for Widescreen */}
       <div
         className="relative w-full overflow-hidden bg-black select-none"
         style={{
-          aspectRatio: "16 / 9",
+          aspectRatio: isShort ? "9 / 16" : "16 / 9",
           width: "100%",
         }}
       >
@@ -57,7 +59,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
             className="group absolute inset-0 h-full w-full cursor-pointer select-none"
             role="button"
             tabIndex={0}
-            aria-label="Play YouTube video inline"
+            aria-label={isShort ? "Play YouTube Short inline" : "Play YouTube video inline"}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
@@ -65,10 +67,10 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
               }
             }}
           >
-            {/* Thumbnail Image - Strictly covers the entire 16:9 box */}
+            {/* Thumbnail Image - Strictly covers the entire aspect container */}
             <img
               src={thumbnailUrl}
-              alt="YouTube Video Thumbnail"
+              alt={isShort ? "YouTube Short Thumbnail" : "YouTube Video Thumbnail"}
               loading="lazy"
               onError={() => setThumbnailError(true)}
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
@@ -89,23 +91,37 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
               </div>
             </div>
 
+            {/* Top Badge for Shorts */}
+            {isShort && (
+              <div className="absolute top-2.5 left-2.5 pointer-events-none z-10">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-black/75 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md border border-white/20 shadow-md">
+                  <svg className="h-3.5 w-3.5 fill-red-500" viewBox="0 0 24 24">
+                    <path d="M17.77 10.32l-1.2-.5L18 9.06a4.46 4.46 0 0 0 .5-2 4.4 4.4 0 0 0-4.4-4.4 4.54 4.54 0 0 0-2.8 1l-6 3.6a4.47 4.47 0 0 0-.5 7.14l1.2.5L5.4 15.6a4.46 4.46 0 0 0-.5 2 4.4 4.4 0 0 0 4.4 4.4 4.54 4.54 0 0 0 2.8-1l6-3.6a4.47 4.47 0 0 0 .67-7.08zM10 14.5v-5l4.5 2.5-4.5 2.5z" />
+                  </svg>
+                  <span>Shorts</span>
+                </span>
+              </div>
+            )}
+
             {/* Bottom Info Pill */}
             <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-[11px] font-medium text-white/90 pointer-events-none">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-0.5 backdrop-blur-md border border-white/10">
-                <svg className="h-3.5 w-3.5 fill-red-500" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                </svg>
-                <span>YouTube</span>
-              </span>
+              {!isShort && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-0.5 backdrop-blur-md border border-white/10">
+                  <svg className="h-3.5 w-3.5 fill-red-500" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                  </svg>
+                  <span>YouTube</span>
+                </span>
+              )}
 
-              <span className="rounded-full bg-black/65 px-2 py-0.5 text-[10px] text-white/80 backdrop-blur-md border border-white/10 group-hover:text-white transition">
+              <span className="ml-auto rounded-full bg-black/65 px-2.5 py-0.5 text-[10px] text-white/85 backdrop-blur-md border border-white/10 group-hover:text-white transition">
                 Tap to play
               </span>
             </div>
           </div>
         ) : (
           <div className="relative h-full w-full bg-black">
-            {/* Close / Collapse Video Button (always visible on top) */}
+            {/* Close / Collapse Video Button */}
             <button
               type="button"
               onClick={handleClose}
@@ -118,7 +134,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
               <span>Close</span>
             </button>
 
-            {/* Circular Loading Animation Overlay - Shown until iframe is loaded */}
+            {/* Circular Loading Animation Overlay */}
             <div
               className={`absolute inset-0 z-20 flex flex-col items-center justify-center bg-black transition-opacity duration-500 ease-out ${
                 isIframeLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -133,13 +149,10 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
               />
               <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-              {/* Rotating Circular Spinner & Pulse Glow */}
+              {/* Spinner */}
               <div className="relative z-10 flex flex-col items-center justify-center">
                 <div className="relative flex items-center justify-center">
-                  {/* Subtle Red Ambient Glow */}
                   <div className="absolute h-16 w-16 rounded-full bg-red-600/30 blur-xl animate-pulse" />
-
-                  {/* Rotating Circular Spinner SVG */}
                   <svg
                     className="h-12 w-12 animate-spin text-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,0.8)]"
                     xmlns="http://www.w3.org/2000/svg"
@@ -171,14 +184,17 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
 
             {/* Embedded In-Place Video Player */}
             <iframe
-              src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`}
-              title="YouTube inline video player"
+              src={
+                isShort
+                  ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&loop=1&playlist=${videoId}`
+                  : `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`
+              }
+              title={isShort ? "YouTube Short player" : "YouTube video player"}
               className="h-full w-full border-0"
               style={{ width: "100%", height: "100%" }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               onLoad={() => {
-                // Short buffer to let YouTube iframe finish first frame paint
                 setTimeout(() => setIsIframeLoaded(true), 400);
               }}
             />
@@ -188,3 +204,5 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
     </div>
   );
 });
+
+export default YouTubeInlinePreview;
