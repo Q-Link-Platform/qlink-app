@@ -2,12 +2,14 @@
 
 import React, { useState, memo } from "react";
 import { YouTubeInlinePreview } from "@/components/YouTubeInlinePreview";
+import { XPostNativePreview } from "@/components/chat/XPostNativePreview";
 
 export type SocialPlatform = "youtube" | "instagram" | "x" | "facebook";
 
 export interface SocialEmbedInfo {
   platform: SocialPlatform;
   id: string;
+  user?: string;
   isVertical: boolean;
   badgeLabel: string;
   originalUrl: string;
@@ -70,15 +72,16 @@ export function extractSocialMediaEmbedInfo(text: string): SocialEmbedInfo | nul
   }
 
   // 5. X (Twitter)
-  const xMatch = text.match(/(?:https?:\/\/)?(?:www\.|mobile\.)?(?:twitter\.com|x\.com|fixupx\.com|vxtwitter\.com|fxtwitter\.com)\/(?:[a-zA-Z0-9_]+)\/status\/(\d+)/i);
+  const xMatch = text.match(/(?:https?:\/\/)?(?:www\.|mobile\.)?(?:twitter\.com|x\.com|fixupx\.com|vxtwitter\.com|fxtwitter\.com)\/([a-zA-Z0-9_]+)\/status\/(\d+)/i);
   if (xMatch) {
     return {
       platform: "x",
-      id: xMatch[1],
+      id: xMatch[2],
+      user: xMatch[1],
       isVertical: false,
       badgeLabel: "X",
       originalUrl: xMatch[0],
-      embedUrl: `https://platform.twitter.com/embed/Tweet.html?id=${xMatch[1]}&theme=dark`,
+      embedUrl: `https://api.fxtwitter.com/${xMatch[1]}/status/${xMatch[2]}`,
     };
   }
 
@@ -124,12 +127,24 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
   const [isLoaded, setIsLoaded] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
 
-  // If it's YouTube, reuse our optimized YouTubeInlinePreview component directly
+  // 1. YouTube direct preview & player
   if (info.platform === "youtube") {
     return (
       <YouTubeInlinePreview
         videoId={info.id}
         isShort={info.isVertical}
+        isMe={isMe}
+      />
+    );
+  }
+
+  // 2. X (Twitter) native direct video player & rich post preview
+  if (info.platform === "x") {
+    return (
+      <XPostNativePreview
+        userHandle={info.user || "i"}
+        statusId={info.id}
+        originalUrl={info.originalUrl}
         isMe={isMe}
       />
     );
@@ -145,12 +160,6 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
             </svg>
           </div>
         );
-      case "x":
-        return (
-          <svg className="h-3 w-3 fill-white" viewBox="0 0 24 24">
-            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-          </svg>
-        );
       case "facebook":
         return (
           <svg className="h-3.5 w-3.5 fill-[#1877F2]" viewBox="0 0 24 24">
@@ -162,20 +171,16 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
     }
   };
 
-  // Determine sizing based on vertical reel vs card
+  // Determine sizing based on vertical reel vs card (Instagram / Facebook)
   const containerWidth = info.isVertical
     ? "min(320px, 80vw)"
-    : info.platform === "x"
-    ? "min(460px, 85vw)"
     : "min(600px, 85vw)";
 
   const containerAspect = info.isVertical
     ? "9 / 16"
-    : info.platform === "x"
-    ? undefined
     : "16 / 9";
 
-  const minHeight = info.platform === "x" ? "460px" : undefined;
+  const minHeight = info.isVertical ? "480px" : "320px";
 
   return (
     <div
@@ -293,7 +298,7 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
               style={{ width: "100%", height: "100%", minHeight: minHeight || (info.isVertical ? "500px" : "320px") }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
-              scrolling={info.platform === "x" ? "auto" : "no"}
+              scrolling="no"
               onLoad={() => setIsLoaded(true)}
             />
           </div>
