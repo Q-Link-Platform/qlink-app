@@ -63,6 +63,22 @@ export const XPostNativePreview = memo(function XPostNativePreview({
     const fetchTweet = async () => {
       try {
         const handle = userHandle && userHandle !== "i" ? userHandle : "i";
+        
+        // Try our first-party server route first (bypasses browser adblockers and CSP)
+        try {
+          const proxyRes = await fetch(`/api/media/x-preview?handle=${encodeURIComponent(handle)}&id=${encodeURIComponent(statusId)}`);
+          if (proxyRes.ok) {
+            const proxyData = await proxyRes.json();
+            if (proxyData.success && proxyData.tweet && isMounted) {
+              setTweet(proxyData.tweet);
+              return;
+            }
+          }
+        } catch (proxyErr) {
+          console.warn("Server proxy failed, trying direct client fetch:", proxyErr);
+        }
+
+        // Direct client fallback
         const res = await fetch(`https://api.fxtwitter.com/${handle}/status/${statusId}`);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
