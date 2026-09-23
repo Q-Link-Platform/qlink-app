@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 export interface EditProfileModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   currentUser,
   onSaved,
 }) => {
+  const [mounted, setMounted] = useState(false);
   const [name, setName] = useState(currentUser.name || "");
   const [handle, setHandle] = useState(currentUser.handle ? currentUser.handle.replace(/^@+/, "") : "");
   const [bio, setBio] = useState(currentUser.bio || "");
@@ -42,6 +44,10 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const handleCopyHandle = () => {
     const handleText = handle ? `@${handle}` : (currentUser.handle ? `@${currentUser.handle}` : "@your-handle");
     if (typeof navigator !== "undefined" && navigator.clipboard) {
@@ -51,7 +57,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
 // Client-side image compression helper to ensure lightning-fast upload & prevent payload size limits
 function compressImage(file: File, maxWidth: number, maxHeight: number, quality = 0.85): Promise<Blob> {
@@ -222,9 +228,9 @@ function compressImage(file: File, maxWidth: number, maxHeight: number, quality 
     }
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[2200] flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4 animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
@@ -469,7 +475,8 @@ function compressImage(file: File, maxWidth: number, maxHeight: number, quality 
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
