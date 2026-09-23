@@ -15,12 +15,29 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
 }: YouTubeInlinePreviewProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isIframeLoaded, setIsIframeLoaded] = useState(false);
-  const [thumbnailError, setThumbnailError] = useState(false);
+  const [thumbStage, setThumbStage] = useState<number>(0);
 
-  // Use maxresdefault first, fallback to hqdefault
-  const thumbnailUrl = thumbnailError || isShort
-    ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-    : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  // Native vertical thumbnail resolution hierarchy:
+  // For Shorts:
+  // 1. oar2.jpg: YouTube's official 1080x1920 vertical original aspect ratio thumbnail (100% full frame, zero black bars)
+  // 2. maxresdefault.jpg: 1280x720 HD fallback
+  // 3. hqdefault.jpg: 480x360 fallback
+  // For Widescreen:
+  // 1. maxresdefault.jpg: 1280x720 full 16:9 HD
+  // 2. hqdefault.jpg: fallback
+  const thumbnailUrl = isShort
+    ? thumbStage === 0
+      ? `https://i.ytimg.com/vi/${videoId}/oar2.jpg`
+      : thumbStage === 1
+      ? `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`
+      : `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+    : thumbStage === 0
+    ? `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`
+    : `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
+  const handleThumbnailError = () => {
+    setThumbStage((prev) => prev + 1);
+  };
 
   const handlePlay = () => {
     setIsPlaying(true);
@@ -72,8 +89,8 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
               src={thumbnailUrl}
               alt={isShort ? "YouTube Short Thumbnail" : "YouTube Video Thumbnail"}
               loading="lazy"
-              onError={() => setThumbnailError(true)}
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+              onError={handleThumbnailError}
+              className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-105"
             />
 
             {/* Subtle Vignette Gradient Overlay */}
