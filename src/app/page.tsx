@@ -147,59 +147,29 @@ function StableImage(props: {
   src: string;
   alt: string;
   className?: string;
+  onError?: () => void;
 }) {
   const [loaded, setLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [retryKey, setRetryKey] = useState(0);
 
-  // Safety timeout: if image neither loads nor errors in 8s, treat as unavailable
+  // Safety timeout: if image neither loads nor errors in 6s, treat as unavailable and hide
   useEffect(() => {
     if (loaded || hasError || !props.src) return;
     const timer = setTimeout(() => {
       if (!loaded) {
         setHasError(true);
+        props.onError?.();
       }
-    }, 8000);
+    }, 6000);
     return () => clearTimeout(timer);
-  }, [loaded, hasError, props.src, retryKey]);
+  }, [loaded, hasError, props.src, props.onError]);
 
   if (!props.src || hasError) {
-    return (
-      <div className="relative w-full min-h-[160px] sm:min-h-[220px] overflow-hidden rounded-2xl bg-slate-950/70 border border-slate-800/80 flex flex-col items-center justify-center p-4 text-center">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 border border-slate-800 text-slate-400 mb-2 shadow-inner">
-          <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <p className="text-xs font-semibold text-slate-300">Media unavailable</p>
-        <p className="text-[10px] text-slate-400 mt-0.5 max-w-[240px]">This ephemeral attachment has expired or cannot be retrieved.</p>
-        {props.src && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setHasError(false);
-              setLoaded(false);
-              setRetryKey((k) => k + 1);
-            }}
-            className="mt-2.5 inline-flex items-center gap-1 rounded-full border border-slate-700/80 bg-slate-900/80 px-3 py-1 text-[10px] font-medium text-slate-300 hover:border-cyan-500/50 hover:text-cyan-200 transition-all cursor-pointer"
-          >
-            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Retry
-          </button>
-        )}
-      </div>
-    );
+    return null;
   }
 
-  const computedSrc = retryKey > 0
-    ? `${props.src}${props.src.includes("?") ? "&" : "?"}_r=${retryKey}`
-    : props.src;
-
   return (
-    <div className="relative w-full min-h-[160px] sm:min-h-[220px] overflow-hidden rounded-2xl bg-black/40 flex items-center justify-center">
+    <div className="relative w-full min-h-[140px] sm:min-h-[180px] overflow-hidden rounded-2xl bg-black/40 flex items-center justify-center">
       {/* Skeleton Loading State */}
       {!loaded && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/90 transition-opacity duration-200">
@@ -218,8 +188,7 @@ function StableImage(props: {
         </div>
       )}
       <img
-        key={computedSrc}
-        src={computedSrc}
+        src={props.src}
         alt={props.alt}
         className={
           "block w-full h-auto max-h-[520px] object-cover sm:object-contain rounded-2xl mx-auto transition-all duration-300 " +
@@ -232,7 +201,29 @@ function StableImage(props: {
         onError={() => {
           setHasError(true);
           setLoaded(false);
+          props.onError?.();
         }}
+      />
+    </div>
+  );
+}
+
+function PostImageAttachment(props: {
+  src?: string | null;
+  alt: string;
+  containerClassName?: string;
+  className?: string;
+}) {
+  const [hasError, setHasError] = useState(false);
+  if (!props.src || hasError) return null;
+
+  return (
+    <div className={props.containerClassName || "my-2.5 overflow-hidden rounded-2xl border border-slate-800/90 bg-black/50 w-full relative shadow-lg"}>
+      <StableImage
+        src={props.src}
+        alt={props.alt}
+        className={props.className}
+        onError={() => setHasError(true)}
       />
     </div>
   );
@@ -3455,7 +3446,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const fetchIdConsolePosts = async () => {
     const cachedPosts = offlineCache.getStale<any[]>(CACHE_KEYS.ID_POSTS);
     if (cachedPosts && cachedPosts.length > 0) {
-      setIdConsolePosts(cachedPosts);
+      const sanitized = cachedPosts.map((p) => {
+        if (p.attachmentId === "cmtpyoutj00006yitzg7ufkce" || (p.media && !p.attachmentId)) {
+          return { ...p, media: null, attachmentId: null, attachmentKind: null };
+        }
+        return p;
+      });
+      setIdConsolePosts(sanitized);
       if (!navigator.onLine) { setIdConsolePostsLoading(false); return; }
     }
     try {
@@ -9160,9 +9157,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                                )}
 
                                                {post?.media?.url && post?.media?.kind === "image" && (
-                                                 <div className="my-2.5 overflow-hidden rounded-2xl border border-slate-800/90 bg-black/50 w-full relative shadow-lg">
-                                                   <StableImage src={post.media.url} alt="Post media" />
-                                                 </div>
+                                                 <PostImageAttachment src={post.media.url} alt="Post media" />
                                                )}
 
                                               {post?.media?.url && post?.media?.kind === "video" && (
@@ -9489,9 +9484,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                                          {/* Image Attachment */}
                                          {post?.media?.url && (isImg || post?.media?.kind === "image") && (
-                                           <div className="my-2.5 overflow-hidden rounded-2xl border border-slate-800/90 bg-black/50 w-full relative shadow-xl">
-                                             <StableImage src={post.media.url} alt="Post media" />
-                                           </div>
+                                           <PostImageAttachment src={post.media.url} alt="Post media" containerClassName="my-2.5 overflow-hidden rounded-2xl border border-slate-800/90 bg-black/50 w-full relative shadow-xl" />
                                          )}
 
                                         {/* Video Attachment */}
@@ -11953,11 +11946,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                   ) : null}
 
                                   {p?.media?.url && p?.media?.kind === "image" ? (
-                                    <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg">
-                                      <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[220px] max-h-[75vh]">
-                                        <StableImage src={p.media.url} alt="Post media" />
-                                      </div>
-                                    </div>
+                                    <PostImageAttachment src={p.media.url} alt="Post media" containerClassName="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg" />
                                   ) : p?.media?.url && p?.media?.kind === "video" ? (
                                     <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg">
                                       <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[260px] max-h-[75vh]">

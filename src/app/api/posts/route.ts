@@ -135,6 +135,7 @@ export async function GET(request: Request) {
 
           const att = attachmentById.get(p.attachmentId as string);
           if (!att || !att.bucket || !att.objectKey) {
+            prisma.post.update({ where: { id: p.id }, data: { attachmentId: null, attachmentKind: null } }).catch(() => {});
             return { ...p, media: null, attachmentId: null, attachmentKind: null };
           }
 
@@ -307,8 +308,9 @@ export async function GET(request: Request) {
         if (!p.attachmentId) return p;
         const att = attachmentById.get(p.attachmentId as string);
         if (!att || !att.bucket || !att.objectKey) {
-          return { ...p, media: null, attachmentId: null, attachmentKind: null };
-        }
+            prisma.post.update({ where: { id: p.id }, data: { attachmentId: null, attachmentKind: null } }).catch(() => {});
+            return { ...p, media: null, attachmentId: null, attachmentKind: null };
+          }
 
         const normalizedKind =
           typeof att.kind === "string" ? att.kind.toLowerCase() : att.kind;
