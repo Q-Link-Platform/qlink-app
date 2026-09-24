@@ -336,16 +336,16 @@ export const XPostNativePreview = memo(function XPostNativePreview({
               {!isPlaying && (
                 <div
                   onClick={handlePlayClick}
-                  className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-[2px] cursor-pointer transition group-hover:bg-black/20"
+                  className="absolute inset-0 flex flex-col items-center justify-center bg-black/25 backdrop-blur-[1px] cursor-pointer transition group/play"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-cyan-500/90 text-slate-950 shadow-xl shadow-cyan-500/30 transition-transform duration-200 group-hover:scale-110">
-                    <svg className="ml-1 h-6 w-6 fill-current" viewBox="0 0 24 24">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-black/45 hover:bg-black/65 border border-white/25 backdrop-blur-xl text-white shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all duration-200 group-hover/play:scale-105 group-hover/play:border-white/45 active:scale-90">
+                    <svg className="ml-0.5 h-4 w-4 fill-white" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
                     </svg>
                   </div>
 
                   {primaryVideo.duration && (
-                    <span className="mt-2 rounded-md bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white/90">
+                    <span className="mt-2 rounded-full bg-black/65 border border-white/15 backdrop-blur-md px-2 py-0.5 text-[10px] font-medium text-white/90 shadow-sm">
                       {formatDuration(primaryVideo.duration)}
                     </span>
                   )}
