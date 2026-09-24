@@ -53,7 +53,6 @@ export const XPostNativePreview = memo(function XPostNativePreview({
   const [error, setError] = useState(false);
   const [tweet, setTweet] = useState<XTweetData | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -101,14 +100,29 @@ export const XPostNativePreview = memo(function XPostNativePreview({
     };
   }, [userHandle, statusId]);
 
-  const handlePlayClick = () => {
-    if (videoRef.current) {
-      videoRef.current.play();
-      setIsPlaying(true);
-    }
-  };
+  const [useFallbackDirect, setUseFallbackDirect] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const primaryVideo = tweet?.media?.videos?.[0];
+  const videoSrc = primaryVideo?.url
+    ? useFallbackDirect
+      ? primaryVideo.url
+      : `/api/media/x-video?url=${encodeURIComponent(primaryVideo.url)}`
+    : undefined;
+
+  const handlePlayClick = () => {
+    if (videoRef.current) {
+      videoRef.current
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch((err) => {
+          console.warn("[XPostNativePreview] Play trigger exception:", err);
+          setIsPlaying(true);
+        });
+    }
+  };
   const isVertical = Boolean(
     primaryVideo && primaryVideo.height && primaryVideo.width && primaryVideo.height > primaryVideo.width
   );
@@ -293,14 +307,28 @@ export const XPostNativePreview = memo(function XPostNativePreview({
               }}
             >
               <video
-                ref={videoRef}
-                src={primaryVideo.url}
+                ref={(el) => {
+                  videoRef.current = el;
+                  if (el) {
+                    try {
+                      (el as any).referrerPolicy = "no-referrer";
+                    } catch {}
+                  }
+                }}
+                src={videoSrc}
                 poster={primaryVideo.thumbnail_url}
                 controls
                 playsInline
                 preload="metadata"
+                crossOrigin="anonymous"
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
+                onError={() => {
+                  if (!useFallbackDirect && primaryVideo?.url) {
+                    console.warn("[XPostNativePreview] Proxy error, attempting direct stream fallback");
+                    setUseFallbackDirect(true);
+                  }
+                }}
                 className="h-full w-full object-contain bg-black"
               />
 
