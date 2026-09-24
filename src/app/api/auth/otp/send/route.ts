@@ -26,8 +26,27 @@ export async function POST(request: Request) {
     // The session is only overwritten after successful OTP verification, making the physical SMS the ultimate security barrier.
     // This allows legitimate users to clear cookies and instantly re-request an OTP without waiting for a 3-minute presence timeout.
 
-    // 1. Generate 6-digit code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    // Telephony Flooding & Toll Fraud Shield: Enforce 60-second cooldown per phone number
+    const existingOtp = await prisma.otpCode.findUnique({
+      where: { phone },
+      select: { createdAt: true },
+    });
+
+    if (existingOtp) {
+      const elapsedMs = Date.now() - new Date(existingOtp.createdAt).getTime();
+      const COOLDOWN_MS = 60 * 1000;
+      if (elapsedMs < COOLDOWN_MS) {
+        const remainingSec = Math.ceil((COOLDOWN_MS - elapsedMs) / 1000);
+        return NextResponse.json(
+          { error: `Security cooldown active. Please wait ${remainingSec}s before requesting another verification code.` },
+          { status: 429, headers: { "Retry-After": String(remainingSec) } }
+        );
+      }
+    }
+
+    // 1. Cryptographically secure 6-digit code
+    const crypto = await import("crypto");
+    const code = crypto.randomInt(100000, 999999).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes validity
 
     // 2. Save or update OTP record in PostgreSQL database
@@ -44,6 +63,7 @@ export async function POST(request: Request) {
         expiresAt,
       },
     });
+
 
     // 3. Dispatch SMS if Twilio keys are configured
     const twilioSid = process.env.TWILIO_ACCOUNT_SID;

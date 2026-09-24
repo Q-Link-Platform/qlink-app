@@ -32,10 +32,18 @@ export async function GET(request: Request) {
 
       // High-performance local vault handler (Zero-latency video & image streaming)
       if (att.bucket === "local" || att.objectKey.startsWith("/uploads/")) {
-        const relativeFilePath = att.objectKey.replace(/^\//, "");
-        const localPath = path.join(process.cwd(), "public", relativeFilePath);
+        const relativeFilePath = att.objectKey.replace(/^\//, "").replace(/\.\./g, "");
+        const publicBaseDir = path.resolve(process.cwd(), "public");
+        const localPath = path.resolve(publicBaseDir, relativeFilePath);
+
+        // Security Barrier: Strictly enforce path confinement inside public directory
+        if (!localPath.startsWith(publicBaseDir)) {
+          return new NextResponse("Forbidden: Access path denied", { status: 403 });
+        }
+
         if (fs.existsSync(localPath)) {
           const stats = fs.statSync(localPath);
+
           const mime = att.mimeType || (att.objectKey.endsWith(".mp4") ? "video/mp4" : "image/jpeg");
           const rangeHeader = request.headers.get("range");
           if (rangeHeader) {

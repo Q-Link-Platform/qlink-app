@@ -9,18 +9,25 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    const userId = (session?.user as any)?.id as string | undefined;
     const userEmail = session?.user?.email;
 
-    // Check admin or allow local development inspection
-    const isDev = process.env.NODE_ENV === "development";
-    const authorized = (userEmail && checkIsAdmin(userEmail)) || isDev;
+    if (!session || !session.user || (!userId && !userEmail)) {
+      return NextResponse.json(
+        { error: "Unauthorized: Please sign in." },
+        { status: 401 }
+      );
+    }
+
+    const authorized = await checkIsAdmin(userId || userEmail || "");
 
     if (!authorized) {
       return NextResponse.json(
-        { error: "Unauthorized: Platform Administrator clearance required." },
+        { error: "Forbidden: Platform Administrator clearance required." },
         { status: 403 }
       );
     }
+
 
     // Parallel fetch for speed
     const [totalUsers, verifiedUsers, totalPosts, totalConnections, users] = await Promise.all([

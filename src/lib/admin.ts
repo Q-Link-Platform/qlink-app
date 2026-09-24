@@ -1,31 +1,43 @@
 import { prisma } from './prisma';
 
+export const ADMIN_EMAILS = [
+  'admin@qlink.com',
+  'support@qlink.com',
+  'rohiterrors@gmail.com'
+].map(e => e.toLowerCase());
+
+export const RESERVED_SYSTEM_HANDLES = [
+  'rohit_7779',
+  'admin',
+  'administrator',
+  'system',
+  'support',
+  'qlink',
+  'security',
+  'root',
+  'moderator',
+  'official'
+].map(h => h.toLowerCase());
+
 /**
- * Centralized admin authorization check
- * Uses email-based whitelist (no DB migration required)
+ * Centralized, hardened admin authorization check.
+ * Identifies users by User ID or Email.
+ * Requires verified administrator email to prevent handle-spoofing elevation.
  */
-export async function isAdmin(userId: string): Promise<boolean> {
+export async function isAdmin(identifier: string): Promise<boolean> {
+  if (!identifier) return false;
+
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const isEmail = identifier.includes('@');
+    const user = await prisma.user.findFirst({
+      where: isEmail ? { email: { equals: identifier, mode: 'insensitive' } } : { id: identifier },
       select: { email: true, handle: true }
     });
 
-    if (!user) return false;
+    if (!user || !user.email) return false;
 
-    // Admin whitelist - centralized in one place
-    const ADMIN_EMAILS = [
-      'admin@qlink.com',
-      'support@qlink.com',
-      'rohiterrors@gmail.com'
-    ];
-
-    const ADMIN_HANDLES = [
-      'Rohit_7779'
-    ];
-
-    return ADMIN_EMAILS.includes(user.email || '') || 
-           ADMIN_HANDLES.includes(user.handle || '');
+    const userEmail = user.email.toLowerCase();
+    return ADMIN_EMAILS.includes(userEmail);
   } catch (error) {
     console.error('[Admin check error]', error);
     return false;
@@ -36,8 +48,8 @@ export async function isAdmin(userId: string): Promise<boolean> {
  * Middleware-style admin check for API routes
  * Returns error response if not admin, null if authorized
  */
-export async function requireAdmin(userId: string): Promise<{ error: string } | null> {
-  const authorized = await isAdmin(userId);
+export async function requireAdmin(identifier: string): Promise<{ error: string } | null> {
+  const authorized = await isAdmin(identifier);
   
   if (!authorized) {
     return { error: 'Insufficient permissions' };
@@ -45,3 +57,4 @@ export async function requireAdmin(userId: string): Promise<{ error: string } | 
   
   return null;
 }
+

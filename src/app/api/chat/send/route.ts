@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     touchUserPresence(meId);
 
     const cleanedToHandle = cleanHandle(toHandle);
-    let peer = await prisma.user.findFirst({
+    const peer = await prisma.user.findFirst({
       where: {
         OR: [
           { handle: { equals: cleanedToHandle, mode: "insensitive" } },
@@ -39,20 +39,9 @@ export async function POST(request: Request) {
     });
 
     if (!peer) {
-      const baseHandle = cleanedToHandle.split(/[-_]/)[0];
-      peer = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { handle: { contains: baseHandle, mode: "insensitive" } },
-            { name: { contains: baseHandle, mode: "insensitive" } },
-          ],
-        },
-      });
-    }
-
-    if (!peer) {
       return NextResponse.json({ error: `Peer "@${toHandle}" not found` }, { status: 404 });
     }
+
 
     if (peer.id === meId) {
       return NextResponse.json({ error: "Cannot chat with yourself" }, { status: 400 });

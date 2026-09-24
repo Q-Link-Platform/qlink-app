@@ -2,9 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { RESERVED_SYSTEM_HANDLES } from "@/lib/admin";
 
 function validateHandle(value: string) {
   const trimmed = value.trim();
+  const lower = trimmed.toLowerCase();
+
+  // Block reserved administrative and system identifiers
+  if (RESERVED_SYSTEM_HANDLES.includes(lower)) {
+    return {
+      ok: false,
+      message: "This Quantum ID is reserved for official system administration.",
+    } as const;
+  }
+
   const digitCount = (trimmed.match(/\d/g) || []).length;
   const isValidLength = trimmed.length >= 6;
   const isValidDigits = digitCount >= 4;
@@ -17,6 +28,7 @@ function validateHandle(value: string) {
   }
   return { ok: true as const, value: trimmed };
 }
+
 
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions);

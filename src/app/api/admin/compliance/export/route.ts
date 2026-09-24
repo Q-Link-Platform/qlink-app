@@ -7,14 +7,24 @@ import { generateComplianceReport } from "@/lib/compliance";
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    const userId = (session?.user as any)?.id as string | undefined;
     const userEmail = session?.user?.email;
 
-    if (!session || !session.user || !userEmail || !checkIsAdmin(userEmail)) {
+    if (!session || !session.user || (!userId && !userEmail)) {
       return NextResponse.json(
-        { error: "Unauthorized: Platform Administrator clearance required." },
+        { error: "Unauthorized: Please sign in." },
+        { status: 401 }
+      );
+    }
+
+    const authorized = await checkIsAdmin(userId || userEmail || "");
+    if (!authorized) {
+      return NextResponse.json(
+        { error: "Forbidden: Platform Administrator clearance required." },
         { status: 403 }
       );
     }
+
 
     const { targetIdentifier, warrantReferenceId } = await req.json();
 
@@ -28,8 +38,9 @@ export async function POST(req: NextRequest) {
     const report = await generateComplianceReport(
       targetIdentifier,
       warrantReferenceId || "WARRANT-DIRECT-INSPECTION",
-      userEmail
+      userEmail || "admin@qlink.com"
     );
+
 
     if (!report) {
       return NextResponse.json(

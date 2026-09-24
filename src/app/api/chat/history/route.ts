@@ -77,33 +77,13 @@ export async function GET(request: Request) {
       });
 
       if (!dbPeer) {
-        // Fallback fuzzy search (e.g. "Rohit_7779" -> "rohit")
-        const baseHandle = cleanedPeerHandle.split(/[-_]/)[0];
-        dbPeer = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { handle: { contains: baseHandle, mode: "insensitive" } },
-              { name: { contains: baseHandle, mode: "insensitive" } },
-            ],
-          },
-          select: {
-            id: true,
-            handle: true,
-            name: true,
-            email: true,
-            image: true,
-            publicKeyString: true,
-          },
-        });
-      }
-
-      if (!dbPeer) {
         return NextResponse.json({ error: `Peer "@${peerHandle}" not found.` }, { status: 404 });
       }
 
       if (dbPeer.id === meId) {
         return NextResponse.json({ error: "Cannot chat with yourself" }, { status: 400 });
       }
+
 
       peer = dbPeer;
       roomId = buildRoomId(meId, peer.id);
