@@ -1481,17 +1481,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [isChatFull, setIsChatFull] = useState(false);
   const [isGlowActive, setIsGlowActive] = useState(false);
   const [isPushEnabled, setIsPushEnabled] = useState(false);
-  const [showSigmaPrivacyAlert, setShowSigmaPrivacyAlert] = useState(false);
 
-  useEffect(() => {
-    const myHandle = cleanHandle((session?.user as any)?.handle || "");
-    if (myHandle === "sulabala199-4256" || myHandle.toLowerCase().includes("sulabala")) {
-      const dismissed = typeof window !== "undefined" ? sessionStorage.getItem("qlink_dismissed_policy_advisory") : null;
-      if (!dismissed) {
-        setShowSigmaPrivacyAlert(true);
-      }
-    }
-  }, [session]);
   const [isElectron] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     return !!(window as any).electronAPI;
@@ -12966,38 +12956,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             }
           }}
         />
-      )}
-
-      {/* Community Privacy Policy Direct Advisory Modal for @sulabala199-4256 */}
-      {showSigmaPrivacyAlert && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-200">
-          <div className="relative w-full max-w-md rounded-2xl border border-amber-500/40 bg-[#0c121e]/95 p-6 shadow-[0_0_50px_rgba(245,158,11,0.2)] text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/30 text-3xl shadow-[0_0_20px_rgba(245,158,11,0.25)]">
-              ⚠️
-            </div>
-            <h3 className="text-lg font-bold text-amber-400 mb-2 tracking-wide uppercase font-mono">
-              Community Policy Advisory
-            </h3>
-            <p className="text-base font-semibold text-slate-100 mb-4">
-              Do not upload personal photos on global ⚠️
-            </p>
-            <div className="rounded-xl bg-amber-950/40 border border-amber-500/30 p-3.5 text-xs text-amber-200/90 mb-6 text-left leading-relaxed">
-              <p className="font-bold text-amber-300 mb-1">Notice for @sulabala199-4256 (Sigma):</p>
-              Your previously uploaded personal photos have been removed from the Global feed to preserve personal privacy and community platform safety standards. Please do not share personal pictures on the public network.
-            </div>
-            <button
-              onClick={() => {
-                setShowSigmaPrivacyAlert(false);
-                if (typeof window !== "undefined") {
-                  sessionStorage.setItem("qlink_dismissed_policy_advisory", "true");
-                }
-              }}
-              className="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm tracking-wider uppercase transition-all shadow-lg shadow-amber-500/25 active:scale-[0.98]"
-            >
-              I Understand & Acknowledge
-            </button>
-          </div>
-        </div>
       )}
 
       {/* Autonomous Human Biomechanical Ghost Cursor Overlay */}
