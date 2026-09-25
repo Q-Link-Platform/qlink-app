@@ -192,6 +192,68 @@ function QuantumChatHistorySkeleton({ peerHandle }: { peerHandle?: string | null
   );
 }
 
+/* ==========================================================================
+   QUIET LUXURY ATTACHMENT ACTION BUTTON & MICRO-TOOLTIP
+   Apple Optical Crystal icon button with spring physics and luxury tooltip.
+   ========================================================================== */
+interface AttachmentActionButtonProps {
+  onClick: (e: React.MouseEvent) => void | Promise<void>;
+  ariaLabel: string;
+  tooltip: string;
+  variant?: "default" | "danger" | "cyan";
+  icon: React.ReactNode;
+  disabled?: boolean;
+  className?: string;
+}
+
+function AttachmentActionButton({
+  onClick,
+  ariaLabel,
+  tooltip,
+  variant = "default",
+  icon,
+  disabled = false,
+  className = "",
+}: AttachmentActionButtonProps) {
+  const variantStyles = {
+    default:
+      "border-white/10 bg-white/[0.06] text-white/70 hover:text-white hover:bg-white/[0.14] hover:border-white/30 hover:shadow-[0_0_12px_rgba(255,255,255,0.12)]",
+    danger:
+      "border-rose-500/20 bg-rose-500/[0.08] text-rose-300/80 hover:text-rose-200 hover:bg-rose-500/20 hover:border-rose-400/40 hover:shadow-[0_0_12px_rgba(244,63,94,0.25)]",
+    cyan:
+      "border-cyan-500/20 bg-cyan-500/[0.08] text-cyan-300/80 hover:text-cyan-100 hover:bg-cyan-500/20 hover:border-cyan-400/40 hover:shadow-[0_0_12px_rgba(34,211,238,0.25)]",
+  };
+
+  const tooltipVariantStyles = {
+    default: "text-white/90 border-white/15 bg-black/90",
+    danger: "text-rose-200 border-rose-500/30 bg-black/90",
+    cyan: "text-cyan-200 border-cyan-500/30 bg-black/90",
+  };
+
+  return (
+    <div className="relative group/act-btn inline-flex items-center justify-center">
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={onClick}
+        aria-label={ariaLabel}
+        className={`relative flex h-7 w-7 items-center justify-center rounded-full border backdrop-blur-xl transition-all duration-200 active:scale-90 disabled:opacity-40 disabled:pointer-events-none cursor-pointer shadow-sm ${variantStyles[variant]} ${className}`}
+      >
+        {icon}
+      </button>
+
+      {/* Apple-grade luxury micro-tooltip */}
+      <div className="pointer-events-none absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 z-50 opacity-0 group-hover/act-btn:opacity-100 group-hover/act-btn:-translate-y-0.5 transition-all duration-150 ease-out whitespace-nowrap">
+        <div
+          className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[9.5px] font-medium tracking-tight shadow-[0_4px_16px_rgba(0,0,0,0.8)] backdrop-blur-xl select-none ${tooltipVariantStyles[variant]}`}
+        >
+          {tooltip}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function extractYouTubeInfo(text: string): { videoId: string; isShort: boolean } | null {
   if (!text) return null;
   const isShort = /youtube\.com\/shorts\//i.test(text);
@@ -618,6 +680,37 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
   const [detailModalMessage, setDetailModalMessage] = useState<any | null>(null);
   const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Centralized Optical Attachment Download Handler with loading state
+  const [downloadingAttachmentId, setDownloadingAttachmentId] = useState<string | null>(null);
+
+  const handleDownloadAttachment = async (attachmentId: string, originalName: string) => {
+    if (downloadingAttachmentId === attachmentId) return;
+    setDownloadingAttachmentId(attachmentId);
+    try {
+      const res = await fetch(`/api/attachments/download?id=${encodeURIComponent(attachmentId)}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Download failed" }));
+        console.error("[Download] Failed:", res.status, err);
+        setChatError(`Download failed · ${err.error ?? "Please try again"}`);
+        setTimeout(() => setChatError(null), 4000);
+        return;
+      }
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = originalName;
+      link.click();
+      URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      console.error("[Download] Error:", err);
+      setChatError(`Download error · ${err instanceof Error ? err.message : "Please try again"}`);
+      setTimeout(() => setChatError(null), 4000);
+    } finally {
+      setDownloadingAttachmentId(null);
+    }
+  };
 
   useEffect(() => {
     if (!contextMenu) return;
@@ -1700,12 +1793,20 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                       decoding="async"
                                                       className="max-h-72 w-full object-contain chat-image-optimized transition-opacity duration-300"
                                                     />
-                                                    {/* Optical Zoom Pill on hover */}
-                                                    <div className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-950/75 border border-white/20 text-[10px] text-white/90 backdrop-blur-md opacity-0 group-hover/img:opacity-100 transition-opacity shadow-md">
-                                                      <svg className="h-3 w-3 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-                                                      </svg>
-                                                      <span>Zoom</span>
+                                                    {/* Optical Zoom Action Icon on hover */}
+                                                    <div className="absolute bottom-2.5 right-2.5 pointer-events-none opacity-0 group-hover/img:opacity-100 transition-all duration-200 z-10">
+                                                      <div className="relative group/zoom-btn flex items-center justify-center">
+                                                        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-cyan-300 shadow-lg backdrop-blur-xl transition-all duration-200 hover:scale-105 hover:bg-slate-900 active:scale-95">
+                                                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                                                          </svg>
+                                                        </div>
+                                                        <div className="pointer-events-none absolute bottom-full mb-1.5 right-0 z-30 opacity-0 group-hover/zoom-btn:opacity-100 transition-all duration-150 ease-out whitespace-nowrap">
+                                                          <div className="flex items-center gap-1 rounded-full border border-white/15 bg-black/90 px-2 py-0.5 text-[9.5px] font-medium tracking-tight text-white/90 shadow-xl backdrop-blur-xl">
+                                                            Zoom
+                                                          </div>
+                                                        </div>
+                                                      </div>
                                                     </div>
                                                   </button>
                                                   {/* Subtle optical specular gradient overlay */}
@@ -1714,59 +1815,44 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
                                                 {/* Apple Glass Frosted Action Pill Toolbar */}
                                                 <div className="flex items-center justify-between gap-2 px-1 pt-0.5">
-                                                  <span className="truncate text-[11px] font-mono text-white/60 tracking-tight">
+                                                  <span className="truncate text-[10.5px] font-mono text-white/50 tracking-tight select-none">
                                                     {a.originalName}
                                                   </span>
                                                   <div className="flex items-center gap-1.5 shrink-0">
                                                     {isMe && (
-                                                      <button
-                                                        type="button"
+                                                      <AttachmentActionButton
                                                         onClick={() => handleDeleteMessage(m.id)}
-                                                        className="inline-flex items-center gap-1 rounded-full border border-rose-500/25 bg-rose-500/10 hover:bg-rose-500/25 px-2.5 py-1 text-[10px] font-medium text-rose-300 hover:text-rose-100 backdrop-blur-md transition-all active:scale-95 shadow-sm"
-                                                        title="Delete image"
-                                                      >
-                                                        <svg className="h-3 w-3 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                        <span>Delete</span>
-                                                      </button>
-                                                    )}
-                                                    <button
-                                                      type="button"
-                                                      onClick={async () => {
-                                                        try {
-                                                          const res = await fetch(
-                                                            `/api/attachments/download?id=${encodeURIComponent(a.id)}`
-                                                          );
-                                                          if (!res.ok) {
-                                                            const err = await res.json().catch(() => ({ error: "Download failed" }));
-                                                            console.error("[Download] Failed:", res.status, err);
-                                                            setChatError(`Download failed · ${err.error ?? "Please try again"}`);
-                                                            setTimeout(() => setChatError(null), 4000);
-                                                            return;
-                                                          }
-                                                          const blob = await res.blob();
-                                                          const objectUrl = URL.createObjectURL(blob);
-                                                          const link = document.createElement("a");
-                                                          link.href = objectUrl;
-                                                          link.download = a.originalName;
-                                                          link.click();
-                                                          URL.revokeObjectURL(objectUrl);
-                                                        } catch (err) {
-                                                          console.error("[Download] Error:", err);
-                                                          setChatError(`Download error · ${err instanceof Error ? err.message : "Please try again"}`);
-                                                          setTimeout(() => setChatError(null), 4000);
+                                                        ariaLabel="Delete image"
+                                                        tooltip="Delete image"
+                                                        variant="danger"
+                                                        icon={
+                                                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                          </svg>
                                                         }
-                                                      }}
-                                                      className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 hover:border-cyan-400/50 px-2.5 py-1 text-[10px] font-medium text-white/90 hover:text-cyan-200 backdrop-blur-md transition-all active:scale-95 shadow-sm"
-                                                      title="Download image"
-                                                    >
-                                                      <svg viewBox="0 0 16 16" aria-hidden="true" className="h-3 w-3 text-cyan-400">
-                                                        <path d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z" fill="currentColor" />
-                                                        <path d="M3.25 12.5a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Z" fill="currentColor" />
-                                                      </svg>
-                                                      <span>Download</span>
-                                                    </button>
+                                                      />
+                                                    )}
+                                                    <AttachmentActionButton
+                                                      onClick={() => handleDownloadAttachment(a.id, a.originalName)}
+                                                      ariaLabel="Download image"
+                                                      tooltip={downloadingAttachmentId === a.id ? "Downloading…" : "Download image"}
+                                                      variant="cyan"
+                                                      disabled={downloadingAttachmentId === a.id}
+                                                      icon={
+                                                        downloadingAttachmentId === a.id ? (
+                                                          <svg className="h-3.5 w-3.5 animate-spin text-cyan-300" viewBox="0 0 24 24" fill="none">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                                                          </svg>
+                                                        ) : (
+                                                          <svg className="h-3.5 w-3.5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                            <polyline points="7 10 12 15 17 10" />
+                                                            <line x1="12" y1="15" x2="12" y2="3" />
+                                                          </svg>
+                                                        )
+                                                      }
+                                                    />
                                                   </div>
                                                 </div>
                                               </div>
@@ -1792,68 +1878,44 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                   </button>
                                                 </div>
                                                 <div className="flex items-center justify-between gap-2 px-1 pt-0.5">
-                                                  <span className="truncate text-[11px] font-mono text-white/60 tracking-tight">
+                                                  <span className="truncate text-[10.5px] font-mono text-white/50 tracking-tight select-none">
                                                     {a.originalName}
                                                   </span>
                                                   <div className="flex items-center gap-1.5 shrink-0">
                                                     {isMe && (
-                                                      <button
-                                                        type="button"
+                                                      <AttachmentActionButton
                                                         onClick={() => handleDeleteMessage(m.id)}
-                                                        className="inline-flex items-center gap-1 rounded-full border border-rose-500/25 bg-rose-500/10 hover:bg-rose-500/25 px-2.5 py-1 text-[10px] font-medium text-rose-300 hover:text-rose-100 backdrop-blur-md transition-all active:scale-95 shadow-sm"
-                                                        title="Delete video"
-                                                      >
-                                                        <svg className="h-3 w-3 text-rose-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                        <span>Delete</span>
-                                                      </button>
-                                                    )}
-                                                    <button
-                                                      type="button"
-                                                      onClick={async () => {
-                                                        try {
-                                                          const res = await fetch(
-                                                            `/api/attachments/download?id=${encodeURIComponent(a.id)}`
-                                                          );
-                                                          if (!res.ok) {
-                                                            const err = await res.json().catch(() => ({ error: "Download failed" }));
-                                                            console.error("[Download] Failed:", res.status, err);
-                                                            setChatError(`Download failed · ${err.error ?? "Please try again"}`);
-                                                            setTimeout(() => setChatError(null), 4000);
-                                                            return;
-                                                          }
-                                                          const blob = await res.blob();
-                                                          const objectUrl = URL.createObjectURL(blob);
-                                                          const link = document.createElement("a");
-                                                          link.href = objectUrl;
-                                                          link.download = a.originalName;
-                                                          link.click();
-                                                          URL.revokeObjectURL(objectUrl);
-                                                        } catch (err) {
-                                                          console.error("[Download] Error:", err);
-                                                          setChatError(`Download error · ${err instanceof Error ? err.message : "Please try again"}`);
-                                                          setTimeout(() => setChatError(null), 4000);
+                                                        ariaLabel="Delete video"
+                                                        tooltip="Delete video"
+                                                        variant="danger"
+                                                        icon={
+                                                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                          </svg>
                                                         }
-                                                      }}
-                                                      className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 hover:border-cyan-400/50 px-2.5 py-1 text-[10px] font-medium text-white/90 hover:text-cyan-200 backdrop-blur-md transition-all active:scale-95 shadow-sm"
-                                                    >
-                                                      <svg
-                                                        viewBox="0 0 16 16"
-                                                        aria-hidden="true"
-                                                        className="h-3 w-3 text-cyan-400"
-                                                      >
-                                                        <path
-                                                          d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z"
-                                                          fill="currentColor"
-                                                        />
-                                                        <path
-                                                          d="M3.25 12.5a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Z"
-                                                          fill="currentColor"
-                                                        />
-                                                      </svg>
-                                                      <span>Download</span>
-                                                    </button>
+                                                      />
+                                                    )}
+                                                    <AttachmentActionButton
+                                                      onClick={() => handleDownloadAttachment(a.id, a.originalName)}
+                                                      ariaLabel="Download video"
+                                                      tooltip={downloadingAttachmentId === a.id ? "Downloading…" : "Download video"}
+                                                      variant="cyan"
+                                                      disabled={downloadingAttachmentId === a.id}
+                                                      icon={
+                                                        downloadingAttachmentId === a.id ? (
+                                                          <svg className="h-3.5 w-3.5 animate-spin text-cyan-300" viewBox="0 0 24 24" fill="none">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                                                          </svg>
+                                                        ) : (
+                                                          <svg className="h-3.5 w-3.5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                            <polyline points="7 10 12 15 17 10" />
+                                                            <line x1="12" y1="15" x2="12" y2="3" />
+                                                          </svg>
+                                                        )
+                                                      }
+                                                    />
                                                   </div>
                                                 </div>
                                               </div>
@@ -1881,52 +1943,45 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                       </div>
                                                     </div>
 
-                                                    {/* Modern Download Button */}
-                                                    <button
-                                                      type="button"
-                                                      onClick={async () => {
-                                                        try {
-                                                          const res = await fetch(
-                                                            `/api/attachments/download?id=${encodeURIComponent(a.id)}`
-                                                          );
-                                                          if (!res.ok) {
-                                                            const err = await res.json().catch(() => ({ error: "Download failed" }));
-                                                            console.error("[Download] Failed:", res.status, err);
-                                                            setChatError(`Download failed · ${err.error ?? "Please try again"}`);
-                                                            setTimeout(() => setChatError(null), 4000);
-                                                            return;
+                                                    {/* Quiet Luxury Action Buttons */}
+                                                    <div className="flex items-center gap-1.5 shrink-0">
+                                                      {isMe && (
+                                                        <AttachmentActionButton
+                                                          onClick={() => handleDeleteMessage(m.id)}
+                                                          ariaLabel="Delete voice message"
+                                                          tooltip="Delete voice note"
+                                                          variant="danger"
+                                                          icon={
+                                                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                              <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
                                                           }
-                                                          const blob = await res.blob();
-                                                          const objectUrl = URL.createObjectURL(blob);
-                                                          const link = document.createElement("a");
-                                                          link.href = objectUrl;
-                                                          link.download = a.originalName;
-                                                          link.click();
-                                                          URL.revokeObjectURL(objectUrl);
-                                                        } catch (err) {
-                                                          console.error("[Download] Error:", err);
-                                                          setChatError(`Download error · ${err instanceof Error ? err.message : "Please try again"}`);
-                                                          setTimeout(() => setChatError(null), 4000);
+                                                          className="!h-6 !w-6"
+                                                        />
+                                                      )}
+                                                      <AttachmentActionButton
+                                                        onClick={() => handleDownloadAttachment(a.id, a.originalName)}
+                                                        ariaLabel="Download Voice Note"
+                                                        tooltip={downloadingAttachmentId === a.id ? "Downloading…" : "Download audio"}
+                                                        variant="cyan"
+                                                        disabled={downloadingAttachmentId === a.id}
+                                                        icon={
+                                                          downloadingAttachmentId === a.id ? (
+                                                            <svg className="h-3 w-3 animate-spin text-cyan-300" viewBox="0 0 24 24" fill="none">
+                                                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                                                            </svg>
+                                                          ) : (
+                                                            <svg className="h-3 w-3 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                              <polyline points="7 10 12 15 17 10" />
+                                                              <line x1="12" y1="15" x2="12" y2="3" />
+                                                            </svg>
+                                                          )
                                                         }
-                                                      }}
-                                                      className="flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white/80 hover:text-cyan-300 hover:border-cyan-400/50 shadow-sm transition active:scale-95 shrink-0"
-                                                      title="Download Voice Note"
-                                                    >
-                                                      <svg
-                                                        viewBox="0 0 16 16"
-                                                        aria-hidden="true"
-                                                        className="h-2.5 w-2.5"
-                                                      >
-                                                        <path
-                                                          d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z"
-                                                          fill="currentColor"
-                                                        />
-                                                        <path
-                                                          d="M3.25 12.5a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Z"
-                                                          fill="currentColor"
-                                                        />
-                                                      </svg>
-                                                    </button>
+                                                        className="!h-6 !w-6"
+                                                      />
+                                                    </div>
                                                   </div>
                                                   <CustomAudioPlayer src={url} />
                                                 </div>
@@ -1934,60 +1989,66 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                             );
                                           }
 
-                                          // Default: generic file attachment (separate download button)
+                                          // Default: generic file attachment card
                                           return (
                                             <div
                                               key={a.id}
-                                              className="flex items-center justify-between gap-2 rounded-xl border border-white/15 bg-white/[0.06] dark:bg-slate-950/60 px-3 py-2 text-[11px] backdrop-blur-md"
+                                              className="group/file flex items-center justify-between gap-3 rounded-xl border border-white/15 bg-white/[0.05] dark:bg-slate-950/60 p-2.5 backdrop-blur-xl shadow-sm transition hover:border-white/25"
                                             >
-                                              <span className="truncate text-white/80">
-                                                {a.originalName}
-                                              </span>
-                                              <button
-                                                type="button"
-                                                onClick={async () => {
-                                                  try {
-                                                    const res = await fetch(
-                                                      `/api/attachments/download?id=${encodeURIComponent(a.id)}`
-                                                    );
-                                                    if (!res.ok) {
-                                                      const err = await res.json().catch(() => ({ error: "Download failed" }));
-                                                      console.error("[Download] Failed:", res.status, err);
-                                                      setChatError(`Download failed · ${err.error ?? "Please try again"}`);
-                                                      setTimeout(() => setChatError(null), 4000);
-                                                      return;
+                                              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 to-blue-500/15 text-cyan-300 shadow-sm backdrop-blur-md">
+                                                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                                    <polyline points="14 2 14 8 20 8" />
+                                                    <line x1="16" y1="13" x2="8" y2="13" />
+                                                    <line x1="16" y1="17" x2="8" y2="17" />
+                                                  </svg>
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                  <p className="truncate text-[12px] font-medium text-white/90">
+                                                    {a.originalName}
+                                                  </p>
+                                                  <p className="text-[10px] text-white/40 tracking-tight">
+                                                    Attachment
+                                                  </p>
+                                                </div>
+                                              </div>
+                                              <div className="flex items-center gap-1.5 shrink-0">
+                                                {isMe && (
+                                                  <AttachmentActionButton
+                                                    onClick={() => handleDeleteMessage(m.id)}
+                                                    ariaLabel="Delete file"
+                                                    tooltip="Delete file"
+                                                    variant="danger"
+                                                    icon={
+                                                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                      </svg>
                                                     }
-                                                    const blob = await res.blob();
-                                                    const objectUrl = URL.createObjectURL(blob);
-                                                    const link = document.createElement("a");
-                                                    link.href = objectUrl;
-                                                    link.download = a.originalName;
-                                                    link.click();
-                                                    URL.revokeObjectURL(objectUrl);
-                                                  } catch (err) {
-                                                    console.error("[Download] Error:", err);
-                                                    setChatError(`Download error · ${err instanceof Error ? err.message : "Please try again"}`);
-                                                    setTimeout(() => setChatError(null), 4000);
+                                                  />
+                                                )}
+                                                <AttachmentActionButton
+                                                  onClick={() => handleDownloadAttachment(a.id, a.originalName)}
+                                                  ariaLabel="Download file"
+                                                  tooltip={downloadingAttachmentId === a.id ? "Downloading…" : "Download file"}
+                                                  variant="cyan"
+                                                  disabled={downloadingAttachmentId === a.id}
+                                                  icon={
+                                                    downloadingAttachmentId === a.id ? (
+                                                      <svg className="h-3.5 w-3.5 animate-spin text-cyan-300" viewBox="0 0 24 24" fill="none">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                                                      </svg>
+                                                    ) : (
+                                                      <svg className="h-3.5 w-3.5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                        <polyline points="7 10 12 15 17 10" />
+                                                        <line x1="12" y1="15" x2="12" y2="3" />
+                                                      </svg>
+                                                    )
                                                   }
-                                                }}
-                                                className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 hover:border-cyan-400/50 px-2.5 py-1 text-[10px] font-medium text-white/90 hover:text-cyan-200 backdrop-blur-md transition-all active:scale-95 shadow-sm"
-                                              >
-                                                <svg
-                                                  viewBox="0 0 16 16"
-                                                  aria-hidden="true"
-                                                  className="h-3 w-3 flex-shrink-0 text-cyan-400"
-                                                >
-                                                  <path
-                                                    d="M8 2.25a.75.75 0 0 1 .75.75v5.19l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L3.97 7.53a.75.75 0 0 1 1.06-1.06L6.75 8.19V3a.75.75 0 0 1 .75-.75Z"
-                                                    fill="currentColor"
-                                                  />
-                                                  <path
-                                                    d="M3.25 12.5a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Z"
-                                                    fill="currentColor"
-                                                  />
-                                                </svg>
-                                                <span>Download</span>
-                                              </button>
+                                                />
+                                              </div>
                                             </div>
                                           );
                                         })}

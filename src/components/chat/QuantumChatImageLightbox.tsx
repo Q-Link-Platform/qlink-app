@@ -232,14 +232,23 @@ export const QuantumChatImageLightbox: React.FC<QuantumChatImageLightboxProps> =
 
         {/* Right: Actions (Close Button) */}
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-950/80 border border-white/20 text-white hover:bg-slate-800 transition active:scale-95 shadow-xl cursor-pointer"
-            title="Close (Esc)"
-          >
-            ✕
-          </button>
+          <div className="relative group/lb flex items-center justify-center">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-950/80 border border-white/20 text-white/80 hover:text-white hover:bg-slate-800 transition active:scale-90 shadow-xl cursor-pointer"
+              aria-label="Close image preview"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="pointer-events-none absolute top-full mt-2 right-0 z-50 opacity-0 group-hover/lb:opacity-100 group-hover/lb:translate-y-0.5 transition-all duration-150 ease-out whitespace-nowrap">
+              <div className="rounded-full border border-white/15 bg-black/90 px-2.5 py-0.5 text-[9.5px] font-medium tracking-tight text-white/90 shadow-xl backdrop-blur-xl">
+                Close (Esc)
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -264,78 +273,113 @@ export const QuantumChatImageLightbox: React.FC<QuantumChatImageLightboxProps> =
 
       {/* Bottom Floating Apple Optical Crystal Toolbar */}
       <div
-        className="absolute bottom-6 z-50 flex items-center gap-2 rounded-full border border-white/20 bg-slate-950/85 px-4 py-2 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.15)] pointer-events-auto animate-in slide-in-from-bottom-4 duration-200"
+        className="absolute bottom-6 z-50 flex items-center gap-1.5 rounded-full border border-white/20 bg-slate-950/85 px-3 py-1.5 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.15)] pointer-events-auto animate-in slide-in-from-bottom-4 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Zoom Out Button */}
-        <button
-          type="button"
-          onClick={zoomOut}
-          disabled={scale <= 0.5}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-slate-300 hover:text-white hover:bg-white/10 active:scale-95 disabled:opacity-30 transition cursor-pointer"
-          title="Zoom Out (-)"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
-          </svg>
-        </button>
+        <div className="relative group/lb flex items-center justify-center">
+          <button
+            type="button"
+            onClick={zoomOut}
+            disabled={scale <= 0.5}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-300 hover:text-white hover:bg-white/10 active:scale-90 disabled:opacity-30 transition cursor-pointer"
+            aria-label="Zoom out"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+            </svg>
+          </button>
+          <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 opacity-0 group-hover/lb:opacity-100 group-hover/lb:-translate-y-0.5 transition-all duration-150 ease-out whitespace-nowrap">
+            <div className="rounded-full border border-white/15 bg-black/90 px-2.5 py-0.5 text-[9.5px] font-medium tracking-tight text-white/90 shadow-xl backdrop-blur-xl">
+              Zoom Out
+            </div>
+          </div>
+        </div>
 
         {/* Current Zoom Percentage (Click to reset) */}
-        <button
-          type="button"
-          onClick={resetZoom}
-          className="px-2.5 py-1 rounded-full text-xs font-mono font-semibold text-cyan-300 hover:bg-cyan-500/10 transition active:scale-95 cursor-pointer"
-          title="Reset Zoom (100%)"
-        >
-          {Math.round(scale * 100)}%
-        </button>
+        <div className="relative group/lb flex items-center justify-center">
+          <button
+            type="button"
+            onClick={resetZoom}
+            className="px-2 py-1 rounded-full text-xs font-mono font-semibold text-cyan-300 hover:bg-cyan-500/10 transition active:scale-95 cursor-pointer"
+            aria-label="Reset zoom"
+          >
+            {Math.round(scale * 100)}%
+          </button>
+          <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 opacity-0 group-hover/lb:opacity-100 group-hover/lb:-translate-y-0.5 transition-all duration-150 ease-out whitespace-nowrap">
+            <div className="rounded-full border border-white/15 bg-black/90 px-2.5 py-0.5 text-[9.5px] font-medium tracking-tight text-white/90 shadow-xl backdrop-blur-xl">
+              Reset Zoom
+            </div>
+          </div>
+        </div>
 
         {/* Zoom In Button */}
-        <button
-          type="button"
-          onClick={zoomIn}
-          disabled={scale >= 5}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-slate-300 hover:text-white hover:bg-white/10 active:scale-95 disabled:opacity-30 transition cursor-pointer"
-          title="Zoom In (+)"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-        </button>
+        <div className="relative group/lb flex items-center justify-center">
+          <button
+            type="button"
+            onClick={zoomIn}
+            disabled={scale >= 5}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-300 hover:text-white hover:bg-white/10 active:scale-90 disabled:opacity-30 transition cursor-pointer"
+            aria-label="Zoom in"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+          <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 opacity-0 group-hover/lb:opacity-100 group-hover/lb:-translate-y-0.5 transition-all duration-150 ease-out whitespace-nowrap">
+            <div className="rounded-full border border-white/15 bg-black/90 px-2.5 py-0.5 text-[9.5px] font-medium tracking-tight text-white/90 shadow-xl backdrop-blur-xl">
+              Zoom In
+            </div>
+          </div>
+        </div>
 
-        <span className="h-4 w-[1px] bg-white/20 mx-1" />
+        <span className="h-4 w-[1px] bg-white/20 mx-0.5" />
 
         {/* Rotate Button */}
-        <button
-          type="button"
-          onClick={rotateClockwise}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-slate-300 hover:text-white hover:bg-white/10 active:scale-95 transition cursor-pointer"
-          title="Rotate 90°"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
+        <div className="relative group/lb flex items-center justify-center">
+          <button
+            type="button"
+            onClick={rotateClockwise}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-slate-300 hover:text-white hover:bg-white/10 active:scale-90 transition cursor-pointer"
+            aria-label="Rotate 90 degrees"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 opacity-0 group-hover/lb:opacity-100 group-hover/lb:-translate-y-0.5 transition-all duration-150 ease-out whitespace-nowrap">
+            <div className="rounded-full border border-white/15 bg-black/90 px-2.5 py-0.5 text-[9.5px] font-medium tracking-tight text-white/90 shadow-xl backdrop-blur-xl">
+              Rotate 90°
+            </div>
+          </div>
+        </div>
 
         {/* Download / Save Button */}
-        <button
-          type="button"
-          onClick={handleDownload}
-          disabled={isDownloading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-slate-200 hover:text-white hover:bg-white/10 active:scale-95 transition cursor-pointer"
-          title="Download full resolution image"
-        >
-          {isDownloading ? (
-            <span className="text-[11px] text-cyan-400 animate-pulse">Saving…</span>
-          ) : (
-            <>
-              <svg className="h-3.5 w-3.5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        <div className="relative group/lb flex items-center justify-center">
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-cyan-300 hover:text-cyan-100 hover:bg-cyan-500/15 active:scale-90 disabled:opacity-50 transition cursor-pointer"
+            aria-label="Save image"
+          >
+            {isDownloading ? (
+              <svg className="h-4 w-4 animate-spin text-cyan-300" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
               </svg>
-              <span>Save</span>
-            </>
-          )}
-        </button>
+            ) : (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            )}
+          </button>
+          <div className="pointer-events-none absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 opacity-0 group-hover/lb:opacity-100 group-hover/lb:-translate-y-0.5 transition-all duration-150 ease-out whitespace-nowrap">
+            <div className="rounded-full border border-cyan-500/30 bg-black/90 px-2.5 py-0.5 text-[9.5px] font-medium tracking-tight text-cyan-200 shadow-xl backdrop-blur-xl">
+              {isDownloading ? "Saving…" : "Save Image"}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Helpful Hint on first zoom */}

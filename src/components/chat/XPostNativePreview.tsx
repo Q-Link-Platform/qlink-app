@@ -191,32 +191,45 @@ export const XPostNativePreview = memo(function XPostNativePreview({
           <span className="text-[11px] font-semibold tracking-wide text-white/90">X</span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <a
-            href={originalUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-1 rounded-full bg-white/5 hover:bg-white/15 px-2 py-0.5 text-[10px] font-medium text-slate-300 transition"
-            title="Open on X"
-          >
-            <span>Open</span>
-            <svg className="h-2.5 w-2.5 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <div className="relative group/x-btn flex items-center justify-center">
+            <a
+              href={originalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-white/5 border border-white/10 hover:bg-white/15 text-slate-300 hover:text-white transition-all duration-200 active:scale-90"
+              aria-label="Open on X"
+            >
+              <svg className="h-3 w-3 text-slate-300" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+            <div className="pointer-events-none absolute bottom-full mb-1.5 right-0 z-30 opacity-0 group-hover/x-btn:opacity-100 transition-all duration-150 ease-out whitespace-nowrap">
+              <div className="rounded-full border border-white/15 bg-black/90 px-2 py-0.5 text-[9px] font-medium tracking-tight text-white/90 shadow-xl backdrop-blur-xl">
+                Open on X
+              </div>
+            </div>
+          </div>
 
           {onClose && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex items-center gap-1 rounded-full bg-white/10 hover:bg-white/20 px-2 py-0.5 text-[10px] font-medium text-slate-300 transition"
-            >
-              <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              <span>Close</span>
-            </button>
+            <div className="relative group/x-btn flex items-center justify-center">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex h-6 w-6 items-center justify-center rounded-full bg-white/10 border border-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-all duration-200 active:scale-90"
+                aria-label="Close preview"
+              >
+                <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <div className="pointer-events-none absolute bottom-full mb-1.5 right-0 z-30 opacity-0 group-hover/x-btn:opacity-100 transition-all duration-150 ease-out whitespace-nowrap">
+                <div className="rounded-full border border-white/15 bg-black/90 px-2 py-0.5 text-[9px] font-medium tracking-tight text-white/90 shadow-xl backdrop-blur-xl">
+                  Close
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
