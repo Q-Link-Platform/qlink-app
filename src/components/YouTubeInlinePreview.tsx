@@ -52,10 +52,10 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
 
   return (
     <div
-      className={`mt-2 overflow-hidden rounded-2xl sm:rounded-3xl border shadow-2xl transition-all duration-300 ${
+      className={`overflow-hidden rounded-2xl sm:rounded-3xl border shadow-2xl transition-all duration-300 ${
         isMe
-          ? "border-blue-400/40 bg-slate-900/95 shadow-blue-950/40"
-          : "border-slate-700/70 bg-slate-950/95 shadow-black/50"
+          ? "border-white/20 bg-slate-950/80 shadow-black/60"
+          : "border-white/15 bg-slate-950/80 shadow-black/60"
       }`}
       style={{
         width: isShort ? "min(320px, 80vw)" : "min(775px, 85vw)",
@@ -111,8 +111,8 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
             {/* Top Badge for Shorts */}
             {isShort && (
               <div className="absolute top-2.5 left-2.5 pointer-events-none z-10">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-black/75 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md border border-white/20 shadow-md">
-                  <svg className="h-3.5 w-3.5 fill-red-500" viewBox="0 0 24 24">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-md border border-white/15 shadow-md">
+                  <svg className="h-3.5 w-3.5 fill-white" viewBox="0 0 24 24">
                     <path d="M17.77 10.32l-1.2-.5L18 9.06a4.46 4.46 0 0 0 .5-2 4.4 4.4 0 0 0-4.4-4.4 4.54 4.54 0 0 0-2.8 1l-6 3.6a4.47 4.47 0 0 0-.5 7.14l1.2.5L5.4 15.6a4.46 4.46 0 0 0-.5 2 4.4 4.4 0 0 0 4.4 4.4 4.54 4.54 0 0 0 2.8-1l6-3.6a4.47 4.47 0 0 0 .67-7.08zM10 14.5v-5l4.5 2.5-4.5 2.5z" />
                   </svg>
                   <span>Shorts</span>
@@ -123,15 +123,15 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
             {/* Bottom Info Pill */}
             <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-[11px] font-medium text-white/90 pointer-events-none">
               {!isShort && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-0.5 backdrop-blur-md border border-white/10">
-                  <svg className="h-3.5 w-3.5 fill-red-500" viewBox="0 0 24 24">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-0.5 backdrop-blur-md border border-white/15">
+                  <svg className="h-3.5 w-3.5 fill-white" viewBox="0 0 24 24">
                     <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
                   </svg>
                   <span>YouTube</span>
                 </span>
               )}
 
-              <span className="ml-auto rounded-full bg-black/65 px-2.5 py-0.5 text-[10px] text-white/85 backdrop-blur-md border border-white/10 group-hover:text-white transition">
+              <span className="ml-auto rounded-full bg-black/65 px-2.5 py-0.5 text-[10px] text-white/85 backdrop-blur-md border border-white/15 group-hover:text-white transition">
                 Tap to play
               </span>
             </div>
@@ -143,7 +143,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
               type="button"
               onClick={handleClose}
               title="Close video"
-              className="absolute top-2.5 right-2.5 z-30 flex items-center gap-1.5 rounded-full bg-black/80 px-2.5 py-1 text-[11px] font-semibold text-white/90 backdrop-blur-md border border-white/20 hover:bg-black hover:text-white transition active:scale-95 shadow-xl"
+              className="absolute top-2.5 right-2.5 z-30 flex items-center gap-1.5 rounded-full bg-black/65 px-2.5 py-1 text-[11px] font-medium text-white/90 backdrop-blur-xl border border-white/20 hover:bg-black/85 hover:border-white/40 hover:text-white transition-all duration-200 active:scale-95 shadow-xl"
             >
               <svg className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -169,9 +169,9 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
               {/* Spinner */}
               <div className="relative z-10 flex flex-col items-center justify-center">
                 <div className="relative flex items-center justify-center">
-                  <div className="absolute h-16 w-16 rounded-full bg-red-600/30 blur-xl animate-pulse" />
+                  <div className="absolute h-14 w-14 rounded-full bg-white/10 blur-xl animate-pulse" />
                   <svg
-                    className="h-12 w-12 animate-spin text-red-500 drop-shadow-[0_0_12px_rgba(239,68,68,0.8)]"
+                    className="h-10 w-10 animate-spin text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -182,7 +182,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
                       cy="12"
                       r="10"
                       stroke="currentColor"
-                      strokeWidth="3.5"
+                      strokeWidth="3"
                     />
                     <path
                       className="opacity-90"

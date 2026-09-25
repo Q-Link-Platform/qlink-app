@@ -271,19 +271,50 @@ function extractYouTubeVideoId(text: string): string | null {
 function parseUrlDetails(urlStr: string) {
   try {
     const parsed = new URL(urlStr);
-    const domain = parsed.hostname.replace(/^www\./, "");
+    let domain = parsed.hostname.replace(/^(?:www\.|m\.|mobile\.)/i, "");
+
+    // Normalize platform domains for clean human-readable branding
+    if (domain === "youtu.be" || domain.endsWith(".youtube.com") || domain === "youtube.com") {
+      domain = "youtube.com";
+    } else if (domain === "twitter.com" || domain === "x.com" || domain.endsWith(".twitter.com")) {
+      domain = "x.com";
+    } else if (domain === "instagr.am" || domain.endsWith(".instagram.com") || domain === "instagram.com") {
+      domain = "instagram.com";
+    } else if (domain === "fb.watch" || domain.endsWith(".facebook.com") || domain === "facebook.com") {
+      domain = "facebook.com";
+    }
+
+    // Clean pathname
     const pathname = parsed.pathname === "/" ? "" : parsed.pathname;
-    const search = parsed.search ? parsed.search : "";
-    const pathAndQuery = pathname + search;
+
+    let cleanPath = "";
+    if (domain === "youtube.com") {
+      cleanPath = pathname.toLowerCase().includes("shorts") ? "shorts" : "";
+    } else if (domain === "x.com") {
+      const userMatch = pathname.match(/^\/([a-zA-Z0-9_]+)/);
+      cleanPath = userMatch && !["i", "intent", "status"].includes(userMatch[1]) ? `@${userMatch[1]}` : "";
+    } else if (domain === "instagram.com") {
+      cleanPath = pathname.toLowerCase().includes("reel") ? "reel" : "";
+    } else {
+      // General web links: display clean path segments without tracking queries
+      if (pathname && pathname !== "/") {
+        const segments = pathname.split("/").filter(Boolean);
+        if (segments.length > 0) {
+          cleanPath = segments.slice(0, 2).join("/");
+          if (segments.length > 2) cleanPath += "/…";
+        }
+      }
+    }
+
     return {
       domain,
-      path: pathAndQuery,
+      path: cleanPath,
       isValid: true,
     };
   } catch {
     return {
-      domain: "",
-      path: urlStr,
+      domain: urlStr.replace(/^https?:\/\//i, "").split(/[/?#]/)[0] || urlStr,
+      path: "",
       isValid: false,
     };
   }
@@ -304,23 +335,19 @@ function renderMessageText(text: string, isMe: boolean) {
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
           title={part}
-          className={`group/link relative inline-flex items-center gap-1.5 align-middle my-0.5 px-2.5 py-1 rounded-xl text-[12px] sm:text-[12.5px] font-sans font-medium no-underline overflow-hidden backdrop-blur-md transition-all duration-300 ease-out select-text ${
+          className={`group/link inline-flex items-center gap-1.5 align-middle my-0.5 px-2.5 py-0.5 rounded-full text-[12px] font-sans font-medium no-underline overflow-hidden backdrop-blur-xl border transition-all duration-200 ease-out select-text active:scale-95 ${
             isMe
-              ? "bg-slate-950/85 hover:bg-slate-950 text-white border border-cyan-400/40 hover:border-cyan-300 shadow-[0_2px_10px_rgba(0,0,0,0.35)] hover:shadow-[0_0_20px_rgba(34,211,238,0.5)]"
-              : "bg-slate-900/90 hover:bg-slate-800 text-slate-100 border border-cyan-500/30 hover:border-cyan-400/70 shadow-[0_2px_8px_rgba(0,0,0,0.25)] hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]"
+              ? "bg-white/15 hover:bg-white/25 text-white border-white/20 hover:border-white/35 shadow-sm"
+              : "bg-white/[0.08] hover:bg-white/[0.14] text-white/90 hover:text-white border-white/15 hover:border-white/30 shadow-sm"
           }`}
         >
-          {/* Luminous Shimmer Sweep Highlight */}
-          <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 ease-in-out group-hover/link:translate-x-full" />
-
-          {/* Micro-badge with animated link arrow */}
-          <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-cyan-500/20 text-cyan-300 transition-all duration-300 group-hover/link:bg-cyan-400 group-hover/link:text-slate-950 group-hover/link:scale-105">
+          {/* Hairline subtle external link icon */}
+          <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center text-white/60 transition-transform duration-200 group-hover/link:text-white group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5">
             <svg
-              className="h-2.5 w-2.5 transition-transform duration-300 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5"
+              className="h-3 w-3 stroke-[2]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2.5}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
             </svg>
@@ -328,21 +355,21 @@ function renderMessageText(text: string, isMe: boolean) {
 
           {/* Structured Domain & Path Highlight */}
           {isValid ? (
-            <span className="inline-flex items-center gap-1.5 max-w-[85vw] sm:max-w-[650px] truncate">
-              <span className="font-semibold text-cyan-300 group-hover/link:text-cyan-200 tracking-tight">
+            <span className="inline-flex items-center gap-1 truncate max-w-[80vw] sm:max-w-[420px]">
+              <span className="font-semibold text-white tracking-tight">
                 {domain}
               </span>
-              {path && (
+              {path ? (
                 <>
                   <span className="text-white/30 text-[10px] select-none">•</span>
-                  <span className="font-mono text-[11px] text-slate-300 group-hover/link:text-white/90 truncate tracking-tight">
+                  <span className="text-[11px] text-white/70 group-hover/link:text-white/90 truncate tracking-tight">
                     {path}
                   </span>
                 </>
-              )}
+              ) : null}
             </span>
           ) : (
-            <span className="font-mono text-[11.5px] text-cyan-200 truncate max-w-[85vw] sm:max-w-[650px]">
+            <span className="font-mono text-[11.5px] text-white/80 truncate max-w-[80vw] sm:max-w-[420px]">
               {part}
             </span>
           )}
@@ -1629,6 +1656,11 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                   {(() => {
                                     const socialEmbedInfo = extractSocialMediaEmbedInfo(displayContent);
                                     const hasMedia = Boolean((attachments && attachments.length > 0) || socialEmbedInfo);
+
+                                    // Check if message content is exclusively the social media URL
+                                    const textWithoutUrls = displayContent ? displayContent.replace(/(https?:\/\/[^\s]+)/gi, "").trim() : "";
+                                    const isSocialUrlOnly = Boolean(socialEmbedInfo && textWithoutUrls.length === 0);
+
                                     const isFilenameOnly = Boolean(
                                       attachments &&
                                       attachments.length > 0 &&
@@ -1640,7 +1672,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                           displayContent.trim() === `[VIDEO attachment]`
                                       )
                                     );
-                                    const shouldShowCaption = Boolean(displayContent && !isFilenameOnly);
+                                    const shouldShowCaption = Boolean(displayContent && !isFilenameOnly && !isSocialUrlOnly);
 
                                     return (
                                       <div
@@ -1649,7 +1681,15 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                         title="Right-click for options"
                                         className={
                                           hasMedia
-                                            ? `w-fit max-w-[94%] sm:max-w-[85%] md:max-w-[460px] rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 backdrop-blur-2xl bg-white/[0.05] dark:bg-slate-950/50 border border-white/20 dark:border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.22)] text-white select-none cursor-pointer transition-all duration-300 ${
+                                            ? `${
+                                                socialEmbedInfo
+                                                  ? socialEmbedInfo.isVertical
+                                                    ? "w-fit max-w-[94%] sm:max-w-[340px]"
+                                                    : "w-full max-w-[96%] sm:max-w-[560px] md:max-w-[620px]"
+                                                  : "w-fit max-w-[94%] sm:max-w-[85%] md:max-w-[460px]"
+                                              } rounded-2xl sm:rounded-3xl ${
+                                                socialEmbedInfo && isSocialUrlOnly ? "p-1 sm:p-1.5" : "p-2 sm:p-2.5"
+                                              } backdrop-blur-2xl bg-white/[0.05] dark:bg-slate-950/50 border border-white/20 dark:border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.22)] text-white select-none cursor-pointer transition-all duration-300 ${
                                                 isMe ? "rounded-br-sm" : "rounded-bl-sm"
                                               } ${
                                                 isHighlighted
@@ -1731,7 +1771,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                                     🔒
                                                   </span>
                                                 )}
-                                                <span>{renderMessageText(displayContent, false)}</span>
+                                                <span>{renderMessageText(socialEmbedInfo ? textWithoutUrls : displayContent, false)}</span>
                                               </p>
                                             )}
 

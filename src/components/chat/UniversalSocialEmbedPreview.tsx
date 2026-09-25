@@ -188,7 +188,7 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
 
   return (
     <div
-      className={`mt-2 overflow-hidden rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 ${
+      className={`overflow-hidden rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 ${
         isMe
           ? "border-white/20 bg-slate-900/90 shadow-black/60"
           : "border-white/10 bg-slate-950/90 shadow-black/70"
