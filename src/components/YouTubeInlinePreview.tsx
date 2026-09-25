@@ -96,11 +96,11 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
             {/* Subtle Vignette Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 group-hover:via-transparent transition-opacity" />
 
-            {/* Center Play Button */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-full bg-red-600/90 text-white shadow-[0_0_24px_rgba(220,38,38,0.7)] backdrop-blur-md transition-all duration-300 group-hover:scale-115 group-hover:bg-red-600 group-active:scale-95">
+            {/* Center Optical Crystal Glass Play Button (Same as X) */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/25 backdrop-blur-[1px] pointer-events-none transition-all duration-200 group-hover:bg-black/35">
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-black/45 hover:bg-black/65 border border-white/25 hover:border-white/45 backdrop-blur-xl text-white shadow-[0_4px_24px_rgba(0,0,0,0.6)] transition-all duration-200 group-hover:scale-105 active:scale-90">
                 <svg
-                  className="ml-1 h-6 w-6 fill-current text-white"
+                  className="ml-0.5 h-4 w-4 sm:h-5 sm:w-5 fill-white"
                   viewBox="0 0 24 24"
                 >
                   <path d="M8 5v14l11-7z" />

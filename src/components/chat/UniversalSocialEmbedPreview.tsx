@@ -288,9 +288,9 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
                 }`}
               />
 
-              {/* Sleek 36px Optical Crystal Disc */}
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.08] border border-white/20 text-white shadow-xl backdrop-blur-xl transition-all duration-200 group-hover:scale-105 group-hover:bg-white/[0.14] group-active:scale-95">
-                <svg className="ml-0.5 h-4 w-4 fill-white" viewBox="0 0 24 24">
+              {/* Sleek Optical Crystal Blur Glass Disc (Same as X) */}
+              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-black/45 hover:bg-black/65 border border-white/25 hover:border-white/45 backdrop-blur-xl text-white shadow-[0_4px_24px_rgba(0,0,0,0.6)] transition-all duration-200 group-hover:scale-105 active:scale-90">
+                <svg className="ml-0.5 h-4 w-4 sm:h-5 sm:w-5 fill-white" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z" />
                 </svg>
               </div>
@@ -303,7 +303,7 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
               {info.originalUrl.replace(/^https?:\/\//, "")}
             </p>
 
-            <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-white/10 border border-white/15 px-3 py-1 text-[10px] font-medium text-white/90 backdrop-blur-md shadow-sm transition-all duration-200 group-hover:bg-white/20 group-hover:text-white group-active:scale-95">
+            <span className="mt-3 inline-flex items-center gap-1 rounded-full bg-black/65 border border-white/15 px-2.5 py-0.5 text-[10px] font-medium text-white/90 backdrop-blur-md shadow-sm transition-all duration-200 group-hover:bg-black/80 group-hover:text-white group-active:scale-95">
               <span>Tap to preview</span>
             </span>
           </div>
