@@ -1766,10 +1766,26 @@ body {
   background: radial-gradient(circle at center, #050816 0, #020617 60%, #020617 100%);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
+    "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", "Android Emoji", sans-serif;
   height: 100vh;
   height: 100dvh;
   overflow: hidden !important;
+}
+
+/* Universal Cross-Platform Emoji Rendering Preservation */
+/* Prevents CSS text-gradient masks (bg-clip-text) from hollowing or making emojis transparent */
+[data-emoji],
+.emoji,
+span[role="img"],
+.text-transparent > span:not([class*="bg-clip-text"]) {
+  -webkit-text-fill-color: initial !important;
+  color: initial !important;
+  background: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 /* Subtle dark scrollbars to match the glass UI - strictly excluding html and body */

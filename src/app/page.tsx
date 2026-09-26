@@ -52,6 +52,14 @@ import { ChatInputConsole } from "@/components/ChatInputConsole";
 import { YouTubeInlinePreview } from "@/components/YouTubeInlinePreview";
 import QuantumOnboardingTour from "@/components/QuantumOnboardingTour";
 
+import {
+  pushNavState,
+  replaceNavState,
+  parseCurrentNavState,
+  popOrCloseNav,
+  QNavState,
+} from "@/lib/navigationRouter";
+
 const StoreModal = dynamic(() => import("@/components/StoreModal"), {
   ssr: false,
 });
@@ -2223,6 +2231,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setIsSettingsAnimating(true);
     setShowSettings(true);
     setSettingsScreen("main");
+    pushNavState({ screen: "settings" });
   };
 
   useEffect(() => {
@@ -5946,6 +5955,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const openDirectory = async () => {
     setIsConsoleAnimating(true);
     setShowDirectory(true);
+    pushNavState({ screen: "directory" });
     setTimeout(() => {
       setIsConsoleAnimating(false);
     }, 600);
@@ -5959,6 +5969,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setIsConsoleAnimating(true);
     setDirectoryProfileHandle(null);
     setDirectoryProfileInitialData(null);
+    replaceNavState({ screen: "home" });
     setTimeout(() => {
       setIsConsoleAnimating(false);
       setShowDirectoryMediaOnly(false);
@@ -6449,10 +6460,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     try {
       window.sessionStorage.removeItem("ql_auto_demo");
       document.cookie = "ql_auto_demo=; path=/; max-age=0; SameSite=Lax";
-      if (window.location.search) {
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-      }
     } catch {}
 
     // Execute instant seamless opening
@@ -6472,6 +6479,136 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       setShowAIHelpButton(false);
     }
   }, [status, showGuide, showOnboarding, showInstallPrompt]);
+
+  // Tech-Giant Multi-Screen URL Router & Android Hardware/Gesture Back Interceptor
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // 1. Initial Desktop Refresh (F5) & Direct Link Screen Hydration
+    const initialNav = parseCurrentNavState();
+    if (initialNav.screen === "directory") {
+      openDirectory();
+      if (initialNav.handle) {
+        setDirectoryProfileHandle(initialNav.handle);
+      }
+    } else if (initialNav.screen === "settings") {
+      setShowSettings(true);
+    } else if (initialNav.screen === "qai") {
+      setIsQAIOpen(true);
+    } else if (initialNav.screen === "notifications") {
+      setIsNotifCenterOpen(true);
+    } else if (initialNav.screen === "store") {
+      setShowStore(true);
+    } else if (initialNav.screen === "idconsole") {
+      setShowIdConsole(true);
+    } else if (initialNav.screen === "editprofile") {
+      setShowEditProfileModal(true);
+    } else if (initialNav.screen === "profile" && initialNav.handle) {
+      setViewingProfileHandle(initialNav.handle);
+    } else if (initialNav.screen === "chat" && initialNav.handle) {
+      openChatWithPeer(initialNav.handle);
+    }
+
+    // 2. Android 3-Button & Gesture System Back Interception
+    const handlePopState = (e: PopStateEvent) => {
+      // Priority 1: Fullscreen Media Lightbox
+      if (lightboxImageUrl || lightboxVideoUrl) {
+        setLightboxImageUrl(null);
+        setLightboxVideoUrl(null);
+        return;
+      }
+
+      // Priority 2: Edit Profile Modal
+      if (showEditProfileModal) {
+        setShowEditProfileModal(false);
+        return;
+      }
+
+      // Priority 3: Sub-view inside Directory (User Profile)
+      if (directoryProfileHandle) {
+        setDirectoryProfileHandle(null);
+        return;
+      }
+
+      // Priority 4: Global Quantum Directory Modal
+      if (showDirectory) {
+        setShowDirectory(false);
+        setIsConsoleAnimating(true);
+        setTimeout(() => setIsConsoleAnimating(false), 400);
+        return;
+      }
+
+      // Priority 5: Settings Console
+      if (showSettings) {
+        setShowSettings(false);
+        return;
+      }
+
+      // Priority 6: QAI Copilot
+      if (isQAIOpen) {
+        setIsQAIOpen(false);
+        return;
+      }
+
+      // Priority 7: Notification Center
+      if (isNotifCenterOpen) {
+        setIsNotifCenterOpen(false);
+        return;
+      }
+
+      // Priority 8: Quantum Store / Pass
+      if (showStore) {
+        setShowStore(false);
+        return;
+      }
+
+      // Priority 9: ID Console
+      if (showIdConsole) {
+        setShowIdConsole(false);
+        return;
+      }
+
+      // Priority 10: Profile Preview in right panel
+      if (viewingProfileHandle) {
+        setViewingProfileHandle(null);
+        return;
+      }
+
+      // Priority 11: Active Chat (back returns to home stream on mobile)
+      if (activePeerHandle) {
+        setActivePeerHandle(null);
+        setIsChatFull(false);
+        return;
+      }
+
+      // Dynamic forward restoration if state dictates
+      const state = (e.state as QNavState) || parseCurrentNavState();
+      if (state.screen === "directory") {
+        setShowDirectory(true);
+        loadDirectoryData(false);
+      } else if (state.screen === "chat" && state.handle) {
+        openChatWithPeer(state.handle);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [
+    showDirectory,
+    directoryProfileHandle,
+    activePeerHandle,
+    showSettings,
+    isQAIOpen,
+    isNotifCenterOpen,
+    showStore,
+    showIdConsole,
+    showEditProfileModal,
+    viewingProfileHandle,
+    lightboxImageUrl,
+    lightboxVideoUrl,
+  ]);
 
   // While auth is loading, show loading spinner (only on initial launch, preventing flash during updateSession background refreshes)
   if (status === "loading" && !hasInitiallyLoaded) {
@@ -7284,6 +7421,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     const targetPeer = peerHandle.trim();
     currentPeerFetchRef.current = targetPeer;
     setActivePeerHandle(targetPeer);
+    pushNavState({ screen: "chat", handle: targetPeer });
     setChatError(null);
     setPeerOnline(null);
     setPeerLastSeen(null);
@@ -7770,6 +7908,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setDirectoryProfileHandle(clean);
     setDirectoryProfileInitialData(initialData || null);
     setShowDirectory(true);
+    pushNavState({ screen: "directory", handle: clean });
     setIsConsoleAnimating(true);
     setTimeout(() => setIsConsoleAnimating(false), 300);
 
@@ -10027,7 +10166,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 <SettingsModal
                   showSettings={showSettings}
                   isSettingsAnimating={isSettingsAnimating}
-                  setShowSettings={setShowSettings}
+                  setShowSettings={(val) => {
+                    setShowSettings(val);
+                    if (!val) replaceNavState({ screen: "home" });
+                    else pushNavState({ screen: "settings" });
+                  }}
                   setIsSettingsAnimating={setIsSettingsAnimating}
                   settingsScreen={settingsScreen}
                   setSettingsScreen={setSettingsScreen}
@@ -10116,6 +10259,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                     </div>
                   </div>
                 )}
+
+                <NotificationCenterModal
+                  isOpen={isNotifCenterOpen}
+                  onClose={() => {
+                    setIsNotifCenterOpen(false);
+                    replaceNavState({ screen: "home" });
+                  }}
+                  currentUserId={myId}
+                  onNavigateToChat={(userHandle) => {
+                    setIsNotifCenterOpen(false);
+                    openChatWithPeer(userHandle);
+                  }}
+                />
 
                 {!isFocusMode && (
                   <>
