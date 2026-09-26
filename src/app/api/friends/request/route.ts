@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const raw = toHandle.trim();
     const cleaned = cleanHandle(raw);
 
-    const toUser = await prisma.user.findFirst({
+    let toUser = await prisma.user.findFirst({
       where: {
         OR: [
           { handle: { equals: raw, mode: "insensitive" } },
@@ -46,47 +46,44 @@ export async function POST(request: Request) {
       // Seamlessly handle connection requests to global synthetic ecosystem profiles
       const synthTarget = findSyntheticUser(cleaned) || findSyntheticUser(raw);
       if (synthTarget) {
-        const concatenatedCategories = (categories as string[])
-          .map((c) => c.trim())
-          .filter(Boolean)
-          .join(",");
-
-        const synthRequest = {
-          id: `synth_req_${synthTarget.id}`,
-          fromUserId,
-          toUserId: synthTarget.id,
-          categories: concatenatedCategories,
-          message: typeof message === "string" && message.trim() ? message.trim() : null,
-          status: "PENDING",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          toUser: synthTarget,
-        };
-
-        // Read existing synthetic requests from cookie
-        let existingSynthReqs: any[] = [];
-        try {
-          const cookieHeader = request.headers.get("cookie") || "";
-          const match = cookieHeader.match(/ql_synth_reqs=([^;]+)/);
-          if (match && match[1]) {
-            existingSynthReqs = JSON.parse(decodeURIComponent(match[1]));
-          }
-        } catch {}
-
-        const filtered = existingSynthReqs.filter((r: any) => r.toUserId !== synthTarget.id);
-        const updatedSynthReqs = [synthRequest, ...filtered].slice(0, 30);
-
-        const response = NextResponse.json({ request: synthRequest });
-        response.cookies.set("ql_synth_reqs", encodeURIComponent(JSON.stringify(updatedSynthReqs)), {
-          path: "/",
-          maxAge: 60 * 60 * 24 * 30, // 30 days
-          sameSite: "lax",
+        // Upsert synthetic user into database to ensure genuine persistence and zero cookie bloat
+        let resolvedUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { handle: { equals: synthTarget.handle, mode: "insensitive" } },
+              { id: synthTarget.id },
+            ],
+          },
         });
-
-        return response;
+        if (!resolvedUser) {
+          resolvedUser = await prisma.user.create({
+            data: {
+              id: synthTarget.id,
+              handle: synthTarget.handle,
+              name: synthTarget.displayName || synthTarget.name || synthTarget.handle,
+              publicKeyString: synthTarget.publicKey || null,
+              image: synthTarget.avatarUrl || null,
+              bio: synthTarget.bio || null,
+            },
+          }).catch(async () => {
+            return await prisma.user.findFirst({
+              where: {
+                OR: [
+                  { handle: { equals: synthTarget.handle, mode: "insensitive" } },
+                  { id: synthTarget.id },
+                ],
+              },
+            });
+          });
+        }
+        if (resolvedUser) {
+          toUser = resolvedUser;
+        }
       }
 
-      return NextResponse.json({ error: `Target user "@${toHandle}" not found` }, { status: 404 });
+      if (!toUser) {
+        return NextResponse.json({ error: `Target user "@${toHandle}" not found` }, { status: 404 });
+      }
     }
 
     if (toUser.id === fromUserId) {
@@ -164,7 +161,9 @@ export async function POST(request: Request) {
       console.error("[PUSH ERROR IN REQUEST ROUTE]", pushErr);
     }
 
-    return NextResponse.json({ request: friendRequest });
+    const response = NextResponse.json({ request: friendRequest });
+    response.cookies.delete("ql_synth_reqs");
+    return response;
   } catch (err) {
     console.error("[friends/request]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

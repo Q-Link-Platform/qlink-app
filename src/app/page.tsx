@@ -2315,6 +2315,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           window.scrollTo({ left: 0 });
           const main = document.getElementById("main-scroll-container");
           if (main) main.scrollLeft = 0;
+          if (window.innerWidth < 1024) {
+            setActivePeerHandle(null);
+            replaceNavState({ screen: "home" });
+          }
         }
       }, 450);
     }
@@ -3095,20 +3099,23 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setCanUseDom(true);
   }, []);
 
-  // Pre-Login Intent Capture: preserve ?demo=ai, ?copilot=1, or ?chat= across OAuth redirects
+  // Enterprise Cookie Hygiene & Pre-Login Intent Capture: preserve ?demo=ai across OAuth redirects without cookie bloat
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
+      // Proactively purge oversized legacy cookies causing HTTP 494
+      document.cookie = "ql_auto_demo=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      document.cookie = "ql_synth_reqs=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+
       const params = new URLSearchParams(window.location.search);
       const isDemoAi = params.get("demo") === "ai" || params.get("demo") === "copilot";
       const isCopilot = params.get("copilot") === "1" || params.get("copilot") === "true";
       const chatParam = params.get("chat");
 
-      if (isDemoAi || isCopilot || (chatParam && isCopilot)) {
+      if (isDemoAi || isCopilot) {
         const targetPeer = chatParam || "Rohit_7779";
         const intent = JSON.stringify({ chat: targetPeer, copilot: true, ts: Date.now() });
         window.sessionStorage.setItem("ql_auto_demo", intent);
-        document.cookie = `ql_auto_demo=${encodeURIComponent(intent)}; path=/; max-age=3600; SameSite=Lax`;
       }
     } catch {}
   }, []);
@@ -6396,7 +6403,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   const autoDemoTriggeredRef = useRef(false);
 
-  // Auto-Launch Coordinator: Opens Chat UI + Docks Q-AI Copilot immediately once user logs in and app is free
+  // Auto-Launch Coordinator: ONLY opens Chat or Q-AI if explicitly requested via URL params (?demo=ai, ?copilot=1, ?chat=...)
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (status !== "authenticated") return;
@@ -6410,7 +6417,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     let wantCopilot = false;
     let messageId: string | null = null;
 
-    // 1. Check current URL query params
+    // Check current URL query params
     try {
       const params = new URLSearchParams(window.location.search);
       const isDemoAi = params.get("demo") === "ai" || params.get("demo") === "copilot";
@@ -6427,13 +6434,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
     } catch {}
 
-    // 2. Fallback to pre-login saved intent if query parameters were lost during OAuth redirect
+    // Only fallback to pre-login intent if explicitly saved within last 45 seconds (e.g. immediately post OAuth callback)
     if (!targetChat) {
       try {
         const stored = window.sessionStorage.getItem("ql_auto_demo");
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (parsed && parsed.chat) {
+          if (parsed && parsed.chat && (Date.now() - (parsed.ts || 0) < 45000)) {
             targetChat = parsed.chat;
             wantCopilot = !!parsed.copilot;
           }
@@ -6441,33 +6448,26 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       } catch {}
     }
 
-    if (!targetChat) {
-      try {
-        const match = document.cookie.match(/ql_auto_demo=([^;]+)/);
-        if (match && match[1]) {
-          const parsed = JSON.parse(decodeURIComponent(match[1]));
-          if (parsed && parsed.chat) {
-            targetChat = parsed.chat;
-            wantCopilot = !!parsed.copilot;
-          }
-        }
-      } catch {}
-    }
+    // Always clean up persistent demo intent flags and legacy cookies
+    try {
+      window.sessionStorage.removeItem("ql_auto_demo");
+      document.cookie = "ql_auto_demo=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    } catch {}
 
     if (!targetChat) return;
 
+    // Safety guard: cannot chat with oneself
+    const meHandle = (session?.user as any)?.handle;
+    if (meHandle && cleanHandle(targetChat).toLowerCase() === cleanHandle(meHandle).toLowerCase()) {
+      replaceNavState({ screen: "home" });
+      return;
+    }
+
     autoDemoTriggeredRef.current = true;
 
-    // Clean up persistent demo intent flags
-    try {
-      window.sessionStorage.removeItem("ql_auto_demo");
-      document.cookie = "ql_auto_demo=; path=/; max-age=0; SameSite=Lax";
-    } catch {}
-
-    // Execute instant seamless opening
+    // Execute seamless opening
     const peerToOpen = targetChat.trim();
     openChatWithPeer(peerToOpen);
-    setIsChatFull(true);
     setShowDirectory(false);
     setMode("home");
 
@@ -6476,17 +6476,49 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
 
     if (wantCopilot) {
-      // Instantly dock Q-AI Copilot panel beside active chat
       setIsQAIOpen(true);
       setShowAIHelpButton(false);
     }
-  }, [status, showGuide, showOnboarding, showInstallPrompt]);
+  }, [status, showGuide, showOnboarding, showInstallPrompt, session]);
 
-  // Tech-Giant Multi-Screen URL Router & Android Hardware/Gesture Back Interceptor
+  // Keep a stable ref of current UI states for seamless gesture/hardware back handling without effect re-binding
+  const navStateRef = useRef({
+    showDirectory,
+    directoryProfileHandle,
+    activePeerHandle,
+    showSettings,
+    isQAIOpen,
+    isNotifCenterOpen,
+    showStore,
+    showIdConsole,
+    showEditProfileModal,
+    viewingProfileHandle,
+    lightboxImageUrl,
+    lightboxVideoUrl,
+  });
+
+  navStateRef.current = {
+    showDirectory,
+    directoryProfileHandle,
+    activePeerHandle,
+    showSettings,
+    isQAIOpen,
+    isNotifCenterOpen,
+    showStore,
+    showIdConsole,
+    showEditProfileModal,
+    viewingProfileHandle,
+    lightboxImageUrl,
+    lightboxVideoUrl,
+  };
+
+  // 1. Initial Desktop Refresh (F5) & Direct Link Screen Hydration (runs strictly ONCE on mount)
+  const initialNavHydratedRef = useRef(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (initialNavHydratedRef.current) return;
+    initialNavHydratedRef.current = true;
 
-    // 1. Initial Desktop Refresh (F5) & Direct Link Screen Hydration
     const initialNav = parseCurrentNavState();
     if (initialNav.screen === "directory") {
       openDirectory();
@@ -6508,84 +6540,105 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     } else if (initialNav.screen === "profile" && initialNav.handle) {
       setViewingProfileHandle(initialNav.handle);
     } else if (initialNav.screen === "chat" && initialNav.handle) {
-      openChatWithPeer(initialNav.handle);
+      const myHandle = (session?.user as any)?.handle;
+      if (!myHandle || cleanHandle(initialNav.handle).toLowerCase() !== cleanHandle(myHandle).toLowerCase()) {
+        openChatWithPeer(initialNav.handle);
+      } else {
+        replaceNavState({ screen: "home" });
+      }
     }
+  }, []);
 
-    // 2. Android 3-Button & Gesture System Back Interception
+  // 2. Android 3-Button & Browser Back Navigation Interceptor (Bound ONCE on mount)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const handlePopState = (e: PopStateEvent) => {
+      const current = navStateRef.current;
+
       // Priority 1: Fullscreen Media Lightbox
-      if (lightboxImageUrl || lightboxVideoUrl) {
+      if (current.lightboxImageUrl || current.lightboxVideoUrl) {
         setLightboxImageUrl(null);
         setLightboxVideoUrl(null);
         return;
       }
 
       // Priority 2: Edit Profile Modal
-      if (showEditProfileModal) {
+      if (current.showEditProfileModal) {
         setShowEditProfileModal(false);
+        replaceNavState({ screen: "home" });
         return;
       }
 
       // Priority 3: Sub-view inside Directory (User Profile)
-      if (directoryProfileHandle) {
+      if (current.directoryProfileHandle) {
         setDirectoryProfileHandle(null);
         setViewingProfileHandle(null);
         setMode("home");
+        replaceNavState({ screen: "directory" });
         return;
       }
 
       // Priority 4: Global Quantum Directory Modal
-      if (showDirectory) {
+      if (current.showDirectory) {
         setShowDirectory(false);
         setDirectoryProfileHandle(null);
         setViewingProfileHandle(null);
         setMode("home");
         setIsConsoleAnimating(true);
         setTimeout(() => setIsConsoleAnimating(false), 400);
+        replaceNavState({ screen: "home" });
         return;
       }
 
       // Priority 5: Settings Console
-      if (showSettings) {
+      if (current.showSettings) {
         setShowSettings(false);
+        replaceNavState({ screen: "home" });
         return;
       }
 
       // Priority 6: QAI Copilot
-      if (isQAIOpen) {
+      if (current.isQAIOpen) {
         setIsQAIOpen(false);
+        replaceNavState({ screen: "home" });
         return;
       }
 
       // Priority 7: Notification Center
-      if (isNotifCenterOpen) {
+      if (current.isNotifCenterOpen) {
         setIsNotifCenterOpen(false);
+        replaceNavState({ screen: "home" });
         return;
       }
 
       // Priority 8: Quantum Store / Pass
-      if (showStore) {
+      if (current.showStore) {
         setShowStore(false);
+        replaceNavState({ screen: "home" });
         return;
       }
 
       // Priority 9: ID Console
-      if (showIdConsole) {
+      if (current.showIdConsole) {
         setShowIdConsole(false);
+        replaceNavState({ screen: "home" });
         return;
       }
 
       // Priority 10: Profile Preview in right panel
-      if (viewingProfileHandle) {
+      if (current.viewingProfileHandle) {
         setViewingProfileHandle(null);
         setMode("home");
+        replaceNavState({ screen: "home" });
         return;
       }
 
-      // Priority 11: Active Chat (back returns to home stream on mobile)
-      if (activePeerHandle) {
+      // Priority 11: Active Chat (back returns to home stream)
+      if (current.activePeerHandle) {
         setActivePeerHandle(null);
         setIsChatFull(false);
+        replaceNavState({ screen: "home" });
         return;
       }
 
@@ -6596,6 +6649,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         loadDirectoryData(false);
       } else if (state.screen === "chat" && state.handle) {
         openChatWithPeer(state.handle);
+      } else if (state.screen === "home" || !state.screen) {
+        replaceNavState({ screen: "home" });
       }
     };
 
@@ -6603,20 +6658,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [
-    showDirectory,
-    directoryProfileHandle,
-    activePeerHandle,
-    showSettings,
-    isQAIOpen,
-    isNotifCenterOpen,
-    showStore,
-    showIdConsole,
-    showEditProfileModal,
-    viewingProfileHandle,
-    lightboxImageUrl,
-    lightboxVideoUrl,
-  ]);
+  }, []);
 
   // While auth is loading, show loading spinner (only on initial launch, preventing flash during updateSession background refreshes)
   if (status === "loading" && !hasInitiallyLoaded) {
@@ -7427,13 +7469,36 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   async function openChatWithPeer(peerHandle: string) {
     const targetPeer = peerHandle.trim();
+    if (!targetPeer) return;
+
+    // Safety guard: cannot chat with oneself
+    const meHandle = (session?.user as any)?.handle;
+    const meId = (session?.user as any)?.id;
+    if (
+      (meHandle && cleanHandle(targetPeer).toLowerCase() === cleanHandle(meHandle).toLowerCase()) ||
+      (meId && targetPeer === meId)
+    ) {
+      setActivePeerHandle(null);
+      setIsChatFull(false);
+      replaceNavState({ screen: "home" });
+      return;
+    }
+
     currentPeerFetchRef.current = targetPeer;
     setActivePeerHandle(targetPeer);
     setViewingProfileHandle(null);
     setMode("home");
     setDirectoryProfileHandle(null);
     setShowDirectory(false);
-    setIsChatFull(true);
+
+    // Responsive split layout: On desktop (>= 1024px), keep split-screen layout with Home feed active and visible!
+    // On mobile (< 1024px), expand chat to full viewport.
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setIsChatFull(true);
+    } else {
+      setIsChatFull(false);
+    }
+
     pushNavState({ screen: "chat", handle: targetPeer });
     setChatError(null);
     setPeerOnline(null);
@@ -7473,6 +7538,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       if (currentPeerFetchRef.current !== targetPeer) return;
 
       if (!res.ok) {
+        setChatLoading(false);
         // If offline or server error, preserve cached & outbox messages without error banner
         const outboxForPeer = outboxQueue.getForHandle(targetPeer);
         if (outboxForPeer.length > 0) {
@@ -11044,6 +11110,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               onCloseProfile={() => {
                 setViewingProfileHandle(null);
                 setMode("home");
+              }}
+              onCloseChat={() => {
+                setActivePeerHandle(null);
+                setIsChatFull(false);
+                replaceNavState({ screen: "home" });
               }}
               onStartChatWithUser={(targetHandle) => {
                 setViewingProfileHandle(null);

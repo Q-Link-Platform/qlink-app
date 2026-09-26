@@ -165,6 +165,22 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Q-link Chat" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (typeof document !== 'undefined' && document.cookie) {
+                  if (document.cookie.indexOf('ql_synth_reqs') !== -1) {
+                    document.cookie = 'ql_synth_reqs=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                  }
+                  if (document.cookie.indexOf('ql_auto_demo') !== -1) {
+                    document.cookie = 'ql_auto_demo=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                  }
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-[100dvh] w-full overflow-hidden`}

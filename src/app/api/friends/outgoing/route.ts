@@ -136,31 +136,7 @@ export async function GET(request: Request) {
       })
     );
 
-    // Read synthetic outgoing requests from cookie
-    let synthRequests: any[] = [];
-    try {
-      const cookieHeader = (request as any)?.headers?.get("cookie") || "";
-      const match = cookieHeader.match(/ql_synth_reqs=([^;]+)/);
-      if (match && match[1]) {
-        synthRequests = JSON.parse(decodeURIComponent(match[1]));
-      }
-    } catch {}
-
-    const shapedSynth = synthRequests.map((r: any) => ({
-      id: r.id,
-      status: "PENDING",
-      categories: typeof r.categories === "string" ? r.categories.split(",").filter(Boolean) : (r.categories || []),
-      message: r.message,
-      createdAt: r.createdAt,
-      updatedAt: r.updatedAt,
-      lastInteractionAt: r.createdAt,
-      toUser: r.toUser,
-      latestMessage: null,
-      unreadCount: 0,
-      isUnread: false,
-    }));
-
-    const allRequests = [...shaped, ...shapedSynth];
+    const allRequests = [...shaped];
 
     // Advanced Ranking Algorithm:
     // 1. ACCEPTED friends ranked by unread status & most recent message / interaction timestamp (descending)
@@ -190,7 +166,9 @@ export async function GET(request: Request) {
       return handleA.localeCompare(handleB);
     });
 
-    return NextResponse.json({ requests: allRequests });
+    const res = NextResponse.json({ requests: allRequests });
+    res.cookies.delete("ql_synth_reqs");
+    return res;
   } catch (err) {
     console.error("[friends/outgoing]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -221,8 +221,13 @@ export async function middleware(request: NextRequest) {
     // Referrer policy - Control what information is sent in Referer header
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     
-    // Permissions policy - Control which browser features can be used
-    response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    // Enterprise Header Hygiene: Purge bloated legacy cookies causing HTTP 494
+    if (request.cookies.has('ql_synth_reqs')) {
+      response.cookies.delete('ql_synth_reqs');
+    }
+    if (request.cookies.has('ql_auto_demo')) {
+      response.cookies.delete('ql_auto_demo');
+    }
 
     return response;
 
