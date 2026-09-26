@@ -5969,6 +5969,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setIsConsoleAnimating(true);
     setDirectoryProfileHandle(null);
     setDirectoryProfileInitialData(null);
+    setViewingProfileHandle(null);
+    setMode("home");
     replaceNavState({ screen: "home" });
     setTimeout(() => {
       setIsConsoleAnimating(false);
@@ -6527,12 +6529,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       // Priority 3: Sub-view inside Directory (User Profile)
       if (directoryProfileHandle) {
         setDirectoryProfileHandle(null);
+        setViewingProfileHandle(null);
+        setMode("home");
         return;
       }
 
       // Priority 4: Global Quantum Directory Modal
       if (showDirectory) {
         setShowDirectory(false);
+        setDirectoryProfileHandle(null);
+        setViewingProfileHandle(null);
+        setMode("home");
         setIsConsoleAnimating(true);
         setTimeout(() => setIsConsoleAnimating(false), 400);
         return;
@@ -6571,6 +6578,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       // Priority 10: Profile Preview in right panel
       if (viewingProfileHandle) {
         setViewingProfileHandle(null);
+        setMode("home");
         return;
       }
 
@@ -7421,6 +7429,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     const targetPeer = peerHandle.trim();
     currentPeerFetchRef.current = targetPeer;
     setActivePeerHandle(targetPeer);
+    setViewingProfileHandle(null);
+    setMode("home");
+    setDirectoryProfileHandle(null);
+    setShowDirectory(false);
+    setIsChatFull(true);
     pushNavState({ screen: "chat", handle: targetPeer });
     setChatError(null);
     setPeerOnline(null);
@@ -7911,10 +7924,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     pushNavState({ screen: "directory", handle: clean });
     setIsConsoleAnimating(true);
     setTimeout(() => setIsConsoleAnimating(false), 300);
-
-    // Also sync with viewingProfileHandle
-    setViewingProfileHandle(clean);
-    setMode("profile");
 
     // Pre-populate foundUser if initial data exists
     if (initialData) {
@@ -8616,9 +8625,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       initialData={directoryProfileInitialData}
                       onBack={() => {
                         setDirectoryProfileHandle(null);
+                        setViewingProfileHandle(null);
+                        setMode("home");
+                        replaceNavState({ screen: "directory" });
                       }}
                       onStartChat={(peerHandle) => {
                         setDirectoryProfileHandle(null);
+                        setViewingProfileHandle(null);
+                        setMode("home");
                         closeDirectory();
                         openChatWithPeer(peerHandle);
                       }}
@@ -10191,6 +10205,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   setShowOnboarding={setShowOnboarding}
                   setOnboardingStep={setOnboardingStep}
                   displayName={displayName || ""}
+                  setDisplayName={(val) => {
+                    setDisplayName(val);
+                    setCurrentUserProfile((prev: any) => (prev ? { ...prev, name: val } : { name: val }));
+                    if (session?.user) {
+                      (session.user as any).name = val;
+                    }
+                  }}
                   nameDraft={nameDraft}
                   setNameDraft={setNameDraft}
                   bioDraft={bioDraft}

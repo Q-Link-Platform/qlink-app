@@ -1094,10 +1094,20 @@ export default function SettingsModal(props: SettingsModalProps) {
                                 <div className="flex justify-end">
                                   <button
                                     type="button"
-                                    onClick={() => {
-                                      setDisplayName(nameDraft.trim() || null);
-                                      setNameDraft(nameDraft.trim());
+                                    onClick={async () => {
+                                      const cleanName = nameDraft.trim();
+                                      setDisplayName(cleanName || null);
+                                      setNameDraft(cleanName);
                                       setSettingsScreen("main");
+                                      try {
+                                        await fetch("/api/user/profile", {
+                                          method: "PATCH",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ name: cleanName }),
+                                        });
+                                      } catch (err) {
+                                        console.error("Failed to save display name:", err);
+                                      }
                                     }}
                                     className="rounded-xl border border-cyan-400/50 bg-cyan-500/10 px-3 py-2 text-[11px] font-medium text-cyan-200 hover:bg-cyan-500/20"
                                   >

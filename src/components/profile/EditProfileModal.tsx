@@ -53,13 +53,16 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const initialImage = useRef(currentUser.image || "");
   const initialBanner = useRef(currentUser.banner || "");
 
+  const prevIsOpenRef = useRef(false);
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Sync state if currentUser changes when opened
+  // Only initialize/reset state when the modal transitions from closed to open
+  // This prevents parent re-renders (like presence pings or timers) from wiping out user keystrokes
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !prevIsOpenRef.current) {
       initialName.current = (currentUser.name || "").trim();
       initialHandle.current = (currentUser.handle ? currentUser.handle.replace(/^@+/, "") : "").trim();
       initialBio.current = (currentUser.bio || "").trim();
@@ -78,7 +81,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       setError(null);
       setSuccess(false);
     }
-  }, [currentUser, isOpen]);
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, currentUser]);
 
   // Deep diffing across all editable fields
   const isDirty = (
