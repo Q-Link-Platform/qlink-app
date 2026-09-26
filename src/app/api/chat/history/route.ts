@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { cleanHandle } from "@/lib/handle-utils";
+import { findSyntheticUser } from "@/lib/globalMockDirectory";
 
 function buildRoomId(a: string, b: string) {
   return [a, b].sort().join(":");
@@ -75,6 +76,47 @@ export async function GET(request: Request) {
           publicKeyString: true,
         },
       });
+
+      if (!dbPeer) {
+        const synthTarget = findSyntheticUser(cleanedPeerHandle) || findSyntheticUser(peerHandle);
+        if (synthTarget) {
+          dbPeer = await prisma.user.create({
+            data: {
+              id: synthTarget.id,
+              handle: synthTarget.handle,
+              name: synthTarget.displayName || synthTarget.name || synthTarget.handle,
+              publicKeyString: synthTarget.publicKey || null,
+              image: synthTarget.avatarUrl || null,
+              bio: synthTarget.bio || null,
+            },
+            select: {
+              id: true,
+              handle: true,
+              name: true,
+              email: true,
+              image: true,
+              publicKeyString: true,
+            },
+          }).catch(async () => {
+            return await prisma.user.findFirst({
+              where: {
+                OR: [
+                  { handle: { equals: synthTarget.handle, mode: "insensitive" } },
+                  { id: synthTarget.id },
+                ],
+              },
+              select: {
+                id: true,
+                handle: true,
+                name: true,
+                email: true,
+                image: true,
+                publicKeyString: true,
+              },
+            });
+          });
+        }
+      }
 
       if (!dbPeer) {
         return NextResponse.json({ error: `Peer "@${peerHandle}" not found.` }, { status: 404 });

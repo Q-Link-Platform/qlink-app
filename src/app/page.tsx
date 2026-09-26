@@ -7489,7 +7489,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     setViewingProfileHandle(null);
     setMode("home");
     setDirectoryProfileHandle(null);
+    setDirectoryProfileInitialData(null);
     setShowDirectory(false);
+    setFoundUser(null);
+    setIsConsoleAnimating(false);
 
     // Responsive split layout: On desktop (>= 1024px), keep split-screen layout with Home feed active and visible!
     // On mobile (< 1024px), expand chat to full viewport.
@@ -7990,11 +7993,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     pushNavState({ screen: "directory", handle: clean });
     setIsConsoleAnimating(true);
     setTimeout(() => setIsConsoleAnimating(false), 300);
-
-    // Pre-populate foundUser if initial data exists
-    if (initialData) {
-      setFoundUser(initialData);
-    }
   };
 
   const handleDirectorySelect = async (handle: string | null) => {
@@ -8696,10 +8694,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         replaceNavState({ screen: "directory" });
                       }}
                       onStartChat={(peerHandle) => {
+                        setShowDirectory(false);
+                        setIsConsoleAnimating(false);
                         setDirectoryProfileHandle(null);
+                        setDirectoryProfileInitialData(null);
                         setViewingProfileHandle(null);
+                        setFoundUser(null);
                         setMode("home");
-                        closeDirectory();
                         openChatWithPeer(peerHandle);
                       }}
                       onSendConnectRequest={async (targetHandle, categories, note) => {
@@ -10925,7 +10926,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                   onMouseLeave={handleSpotlightMouseLeave}
                                   onClick={() => {
                                     openChatWithPeer(f.peerHandle);
-                                    setIsChatFull(true);
                                   }}
                                   className={
                                     "x-magnetic-card group flex items-center justify-between gap-2 rounded-xl px-3 py-2 transition-all duration-200 cursor-pointer " +
@@ -10972,7 +10972,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         openChatWithPeer(f.peerHandle);
-                                        setIsChatFull(true);
                                       }}
                                       className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-medium transition-all ${
                                         f.isUnread

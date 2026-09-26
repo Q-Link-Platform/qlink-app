@@ -865,6 +865,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                       else setMode("home");
                     }}
                     onStartChat={(peerHandle) => {
+                      setFoundUser(null);
                       if (onStartChatWithUser) {
                         onStartChatWithUser(peerHandle);
                       } else {
@@ -1024,7 +1025,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                     )}
 
                     {/* Found user + categories + note / VIP special card */}
-                    {foundUser && (
+                    {foundUser && !activePeerHandle && (
                       <>
                         {isVipHandle(foundUser.handle) ? (
                           <div className="relative mt-3">
@@ -1394,7 +1395,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                 )}
 
                 {/* Chat view */}
-                {!foundUser && (
+                {(!foundUser || Boolean(activePeerHandle)) && (
                   <div
                     className={
                       "glass-panel flex flex-col gap-3 text-xs text-slate-300 relative overflow-y-hidden scrollbar-hide transition-all duration-300 ease-out " + (isQAIOpen ? "sm:pr-[360px] " : "") +
