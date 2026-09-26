@@ -8445,7 +8445,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 onMouseLeave={(e) => {
                   e.currentTarget.style.setProperty("--spotlight-opacity", "0");
                 }}
-                className={`x-magnetic-close group absolute top-[max(env(safe-area-inset-top),10px)] right-2.5 z-50 flex h-8 w-8 items-center justify-center rounded-full border border-slate-600/60 bg-slate-900/90 text-slate-300 shadow-lg backdrop-blur-sm hover:border-red-400/80 hover:bg-red-500/10 hover:text-red-200 active:scale-95 sm:top-2 sm:right-4 sm:h-9 sm:w-9 cursor-pointer ${showDirectory ? (isConsoleAnimating ? 'close-button-enter' : '') : 'close-button-exit'
+                className={`x-magnetic-close group absolute top-[max(env(safe-area-inset-top),2.5px)] right-2.5 z-50 flex h-8 w-8 items-center justify-center rounded-full border border-slate-600/60 bg-slate-900/90 text-slate-300 shadow-lg backdrop-blur-sm hover:border-red-400/80 hover:bg-red-500/10 hover:text-red-200 active:scale-95 sm:top-2 sm:right-4 sm:h-9 sm:w-9 cursor-pointer ${showDirectory ? (isConsoleAnimating ? 'close-button-enter' : '') : 'close-button-exit'
                   }`}
                 aria-label="Close Global Quantum Directory"
               >
