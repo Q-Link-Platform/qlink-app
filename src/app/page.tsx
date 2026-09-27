@@ -2572,15 +2572,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     return () => unsubscribe();
   }, [isRecording, isQAIOpen, isChatFull, chatMessages, session]);
-  // Auto-process due scheduled messages in the background
+  // Auto-process due scheduled messages in the background (only run when tab is visible, at most every 3 minutes)
   useEffect(() => {
+    let lastProcessed = 0;
     const processScheduledQueue = async () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      const now = Date.now();
+      if (now - lastProcessed < 180_000) return; // 3 min throttle
+      lastProcessed = now;
       try {
         await fetch("/api/chat/schedule/process", { method: "POST" });
       } catch {}
     };
     processScheduledQueue();
-    const interval = setInterval(processScheduledQueue, 30000);
+    const interval = setInterval(processScheduledQueue, 180_000);
     return () => clearInterval(interval);
   }, []);
   const [isAIArrowButtonVisible, setIsAIArrowButtonVisible] = useState(true);
@@ -3254,23 +3259,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
       const now = Date.now();
       const isVisible = document.visibilityState === "visible";
-      const isWithinActiveWindow = now - lastActivityTime <= 60_000; // 1 minute idle timeout
+      const isWithinActiveWindow = now - lastActivityTime <= 90_000; // 90s active window
 
       if (isVisible && isWithinActiveWindow) {
-        // User is active and tab is visible: ping only if we haven't in 15 seconds OR if our last state was offline
-        if (lastSentOnline !== true || now - lastPingTime >= 15_000) {
+        // Tech-giant heartbeat: ping every 45s while actively interacting
+        if (lastSentOnline !== true || now - lastPingTime >= 45_000) {
           await sendPing(false);
         }
       } else {
-        // User is offline/idle: send offline ping ONCE to transition status immediately
+        // User is idle or tab is hidden: send offline state once
         if (lastSentOnline === true || lastSentOnline === null) {
           await sendPing(true);
         }
       }
 
       if (!stopped) {
-        // Check state every 5 seconds for fast response, but only send requests on changes/heartbeats
-        setTimeout(runPingCycle, 5_000);
+        // Intelligent backoff: check every 10s if visible, 30s if hidden to minimize background timer wakeups
+        const nextCheck = isVisible ? 10_000 : 30_000;
+        setTimeout(runPingCycle, nextCheck);
       }
     };
 
@@ -3280,7 +3286,6 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     // Listen to visibility change event (tab minimize, mobile background, phone lock)
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        // Instantly restore online state when tab becomes visible or returns from file picker
         lastActivityTime = Date.now();
         sendPing(false);
       }
@@ -3288,10 +3293,15 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Safety events for page unloading / closing tab
+    // Tech-giant non-blocking beacon for tab close / navigation
     const handleUnload = () => {
       if (lastSentOnline === true || lastSentOnline === null) {
-        sendPing(true);
+        const payload = JSON.stringify({ offline: true });
+        if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+          navigator.sendBeacon("/api/presence/ping", payload);
+        } else {
+          sendPing(true);
+        }
       }
     };
     window.addEventListener("pagehide", handleUnload);

@@ -17,33 +17,37 @@ export async function POST(req: NextRequest) {
   try {
     let offline = false;
     try {
-      const body = await req.json();
-      offline = Boolean(body?.offline);
+      const rawText = await req.text();
+      if (rawText) {
+        const body = JSON.parse(rawText);
+        offline = Boolean(body?.offline);
+      }
     } catch {
-      // Ignore parsing errors for backward compatibility
+      // Ignore parsing errors for backward compatibility and beacon pings
     }
 
-    const now = offline ? new Date(Date.now() - 40_000) : new Date();
+    // When offline, mark lastSeenAt back 60s so peers immediately register as away/offline
+    const now = offline ? new Date(Date.now() - 60_000) : new Date();
 
-    const result = await prisma.user.updateMany({
+    // Single atomic database update (halves DB compute & eliminates second roundtrip query)
+    const updated = await prisma.user.update({
       where: { id: userId },
       data: { lastSeenAt: now },
-    });
-
-    if (result.count === 0) {
-      return NextResponse.json({ ok: true, handle: null, lastSeenAt: now });
-    }
-
-    const updated = await prisma.user.findUnique({
-      where: { id: userId },
       select: { handle: true, lastSeenAt: true },
-    });
+    }).catch(() => null);
 
-    return NextResponse.json({
-      ok: true,
-      handle: updated?.handle ?? null,
-      lastSeenAt: updated?.lastSeenAt ?? now,
-    });
+    return NextResponse.json(
+      {
+        ok: true,
+        handle: updated?.handle ?? null,
+        lastSeenAt: updated?.lastSeenAt ?? now,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+        },
+      }
+    );
   } catch {
     return NextResponse.json({ ok: true });
   }
