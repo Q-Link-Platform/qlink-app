@@ -1471,19 +1471,6 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                           )}
                       </p>
                       <div className="flex items-center gap-2">
-                        {activePeerHandle && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (onCloseChat) onCloseChat();
-                              else if (toggleChatFull && isChatExpanded) toggleChatFull();
-                            }}
-                            className="rounded-full border border-slate-700/80 bg-slate-900/90 px-2.5 py-0.5 text-[10px] font-medium text-slate-300 hover:border-rose-500/70 hover:text-rose-300 transition active:scale-95 cursor-pointer"
-                            title="Close chat"
-                          >
-                            Close
-                          </button>
-                        )}
                         <button
                           id="chat-toggle-full-btn"
                           data-tour="full-chat"
