@@ -4,6 +4,8 @@ import { useDuoTheme } from "@/app/providers/DuoThemeProvider";
 
 import { ActiveChatPanel } from "@/components/chat/ActiveChatPanel";
 import { MessageReactionDetailsModal, MessageReactionItem } from "@/components/chat/MessageReactionDetailsModal";
+import { UniversalEmojiPickerModal } from "@/components/chat/UniversalEmojiPickerModal";
+import { QUICK_DOCK_REACTIONS } from "@/lib/emojiData";
 import { MessageStatusTicks } from "@/components/MessageStatusTicks";
 import { QuantumUserProfileView } from "@/components/profile/QuantumUserProfileView";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
@@ -4538,6 +4540,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   // Message Context Menu state & touch long-press tracking
   const [detailModalMessage, setDetailModalMessage] = useState<ChatMessage | null>(null);
   const [reactionModalMessage, setReactionModalMessage] = useState<ChatMessage | null>(null);
+  const [emojiPickerTargetMessageId, setEmojiPickerTargetMessageId] = useState<string | null>(null);
   const [showE2EHelp, setShowE2EHelp] = useState<boolean>(false);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -13212,11 +13215,23 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         onRemoveReaction={handleRemoveReaction}
       />
 
+      {/* ── Universal Emoji Picker Modal (1,800+ categorised emojis with live search) ── */}
+      <UniversalEmojiPickerModal
+        isOpen={Boolean(emojiPickerTargetMessageId)}
+        onClose={() => setEmojiPickerTargetMessageId(null)}
+        onSelectEmoji={(emoji) => {
+          if (emojiPickerTargetMessageId) {
+            handleToggleReaction(emojiPickerTargetMessageId, emoji);
+            setEmojiPickerTargetMessageId(null);
+          }
+        }}
+      />
+
 
       {/* Premium Sci-Fi WhatsApp-style Context Menu */}
       {contextMenu && (() => {
-        const menuWidth = 230;
-        const menuHeight = 170;
+        const menuWidth = 260;
+        const menuHeight = 175;
         let topPos = contextMenu.y - 10;
         let leftPos = contextMenu.x;
         let translateY = "-100%";
@@ -13249,43 +13264,45 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               transform: `translate(-50%, ${translateY})`,
               zIndex: 9999,
             }}
-            className="animate-fade-in min-w-[210px] max-w-[250px] overflow-hidden rounded-2xl border border-cyan-500/30 bg-[#09111c]/95 p-1.5 shadow-[0_0_30px_rgba(6,182,212,0.3)] backdrop-blur-xl"
+            className="animate-fade-in min-w-[240px] max-w-[280px] overflow-hidden rounded-2xl border border-cyan-500/30 bg-[#09111c]/95 p-1.5 shadow-[0_0_30px_rgba(6,182,212,0.3)] backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Quick Reaction Bar (Apple / WhatsApp / Telegram Tech-Giant Standard) */}
-            <div className="flex items-center justify-between gap-1 px-1 py-1 mb-1 rounded-xl bg-white/[0.04] border border-white/10 shadow-inner">
-              {["🙏", "❤️", "👍", "🔥", "😂", "😮"].map((emoji) => {
-                const isSelected = myReactionEmoji === emoji;
-                return (
-                  <button
-                    key={emoji}
-                    type="button"
-                    onClick={() => {
-                      handleToggleReaction(contextMenu.messageId, emoji);
-                      setContextMenu(null);
-                    }}
-                    className={`flex h-7 w-7 items-center justify-center rounded-lg text-base transition-transform duration-150 hover:scale-130 active:scale-90 cursor-pointer ${
-                      isSelected
-                        ? "bg-cyan-500/30 border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.5)] scale-110"
-                        : "hover:bg-white/10"
-                    }`}
-                    title={`React ${emoji}`}
-                  >
-                    {emoji}
-                  </button>
-                );
-              })}
-              {/* More / Custom Emoji Picker Button */}
+            {/* Horizontally Scrollable Tech-Giant Quick Reaction Bar */}
+            <div className="relative mb-1.5 flex items-center rounded-xl bg-white/[0.04] border border-white/10 p-1 shadow-inner overflow-hidden">
+              {/* Scrollable Emojis List with Smooth Touch / Mouse Scroll */}
+              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth pr-1 flex-1">
+                {QUICK_DOCK_REACTIONS.map((emoji) => {
+                  const isSelected = myReactionEmoji === emoji;
+                  return (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => {
+                        handleToggleReaction(contextMenu.messageId, emoji);
+                        setContextMenu(null);
+                      }}
+                      className={`shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-base transition-transform duration-150 hover:scale-135 active:scale-90 cursor-pointer ${
+                        isSelected
+                          ? "bg-cyan-500/30 border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.5)] scale-110"
+                          : "hover:bg-white/10"
+                      }`}
+                      title={`React ${emoji}`}
+                    >
+                      {emoji}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Pinned '+' Button opening Universal Emoji Picker (1,800+ Emojis) */}
               <button
                 type="button"
                 onClick={() => {
-                  if (targetMsg) {
-                    setReactionModalMessage(targetMsg);
-                  }
+                  setEmojiPickerTargetMessageId(contextMenu.messageId);
                   setContextMenu(null);
                 }}
-                className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/15 bg-white/[0.06] text-slate-300 hover:text-white hover:border-cyan-400/50 hover:bg-cyan-500/10 transition-all duration-150 active:scale-90 cursor-pointer"
-                title="Add custom reaction or view all"
+                className="shrink-0 ml-1 flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-500/40 bg-cyan-950/50 text-cyan-300 hover:text-white hover:border-cyan-400 hover:bg-cyan-500/25 shadow-[0_0_8px_rgba(6,182,212,0.3)] transition-all duration-150 active:scale-90 cursor-pointer"
+                title="Browse all 1,800+ emojis"
               >
                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />

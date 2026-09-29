@@ -3,6 +3,9 @@
 import React, { useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 
+import { QUICK_DOCK_REACTIONS } from "@/lib/emojiData";
+import { UniversalEmojiPickerModal } from "./UniversalEmojiPickerModal";
+
 export interface MessageReactionItem {
   emoji: string;
   userId: string;
@@ -25,8 +28,6 @@ interface MessageReactionDetailsModalProps {
   onRemoveReaction: (messageId: string) => void;
 }
 
-const QUICK_REACTION_EMOJIS = ["🙏", "❤️", "👍", "🔥", "😂", "😮", "😢", "🎉"];
-
 export function MessageReactionDetailsModal({
   isOpen,
   onClose,
@@ -36,8 +37,7 @@ export function MessageReactionDetailsModal({
   onRemoveReaction,
 }: MessageReactionDetailsModalProps) {
   const [selectedFilter, setSelectedFilter] = useState<string>("ALL");
-  const [customEmojiInput, setCustomEmojiInput] = useState<string>("");
-  const [showCustomInput, setShowCustomInput] = useState<boolean>(false);
+  const [showUniversalPicker, setShowUniversalPicker] = useState<boolean>(false);
 
   const reactions = useMemo(() => {
     return message?.reactions || [];
@@ -105,16 +105,12 @@ export function MessageReactionDetailsModal({
 
         {/* Reaction Filter Tabs (WhatsApp & Telegram Style) */}
         <div className="relative flex items-center gap-2 py-3 overflow-x-auto no-scrollbar border-b border-white/10">
-          {/* Add Reaction Button */}
+          {/* Add Reaction Button -> opens 1,800+ Universal Emoji Picker */}
           <button
             type="button"
-            onClick={() => setShowCustomInput((prev) => !prev)}
-            title="Add reaction"
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-all duration-200 active:scale-95 cursor-pointer ${
-              showCustomInput
-                ? "border-cyan-400 bg-cyan-500/20 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.4)]"
-                : "border-white/15 bg-white/[0.06] text-slate-300 hover:border-white/30 hover:bg-white/10"
-            }`}
+            onClick={() => setShowUniversalPicker(true)}
+            title="Browse all 1,800+ emojis"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-500/40 bg-cyan-950/50 text-cyan-300 hover:text-white hover:border-cyan-400 hover:bg-cyan-500/25 shadow-[0_0_8px_rgba(6,182,212,0.3)] transition-all duration-200 active:scale-95 cursor-pointer"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -156,65 +152,6 @@ export function MessageReactionDetailsModal({
             );
           })}
         </div>
-
-        {/* Custom / Quick Emoji Selector Dropdown */}
-        {showCustomInput && (
-          <div className="py-2.5 px-1 animate-fade-in border-b border-white/10">
-            <div className="flex items-center justify-between gap-1.5 mb-2">
-              <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                Choose reaction:
-              </span>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (customEmojiInput.trim()) {
-                    onReact(message.id, customEmojiInput.trim());
-                    setCustomEmojiInput("");
-                    setShowCustomInput(false);
-                  }
-                }}
-                className="flex items-center gap-1"
-              >
-                <input
-                  type="text"
-                  placeholder="Custom emoji"
-                  value={customEmojiInput}
-                  onChange={(e) => setCustomEmojiInput(e.target.value)}
-                  className="w-24 px-2 py-0.5 rounded-lg border border-white/20 bg-black/40 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
-                />
-                <button
-                  type="submit"
-                  disabled={!customEmojiInput.trim()}
-                  className="px-2 py-0.5 rounded-lg bg-cyan-500/20 border border-cyan-400/40 text-[11px] text-cyan-300 hover:bg-cyan-500/30 disabled:opacity-40"
-                >
-                  Add
-                </button>
-              </form>
-            </div>
-            <div className="flex items-center justify-between gap-1">
-              {QUICK_REACTION_EMOJIS.map((emoji) => {
-                const isSelected = myReaction?.emoji === emoji;
-                return (
-                  <button
-                    key={emoji}
-                    type="button"
-                    onClick={() => {
-                      onReact(message.id, emoji);
-                      setShowCustomInput(false);
-                    }}
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg transition-transform duration-150 hover:scale-125 active:scale-95 cursor-pointer ${
-                      isSelected
-                        ? "bg-cyan-500/30 border border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.4)]"
-                        : "hover:bg-white/10"
-                    }`}
-                  >
-                    {emoji}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Reactor List */}
         <div className="max-h-64 sm:max-h-72 overflow-y-auto py-2 space-y-1 divide-y divide-white/[0.04]">
@@ -299,33 +236,60 @@ export function MessageReactionDetailsModal({
           )}
         </div>
 
-        {/* Bottom Quick React Bar if user hasn't reacted or wants to add another */}
-        <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-          <span className="text-[11px] font-medium text-slate-400 font-mono">
-            {myReaction ? `Your reaction: ${myReaction.emoji}` : "React to message:"}
-          </span>
-          <div className="flex items-center gap-1">
-            {QUICK_REACTION_EMOJIS.slice(0, 5).map((emoji) => {
-              const isSelected = myReaction?.emoji === emoji;
-              return (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => onReact(message.id, emoji)}
-                  className={`flex h-7 w-7 items-center justify-center rounded-lg text-sm transition-transform duration-150 hover:scale-125 active:scale-90 cursor-pointer ${
-                    isSelected
-                      ? "bg-cyan-500/30 border border-cyan-400/60 shadow-[0_0_8px_rgba(6,182,212,0.4)]"
-                      : "hover:bg-white/10"
-                  }`}
-                  title={`React ${emoji}`}
-                >
-                  {emoji}
-                </button>
-              );
-            })}
+        {/* Bottom Horizontally Scrollable Tech-Giant Quick React Bar */}
+        <div className="pt-3 border-t border-white/10 flex flex-col gap-2">
+          <div className="flex items-center justify-between text-[11px] font-medium text-slate-400 font-mono">
+            <span>{myReaction ? `Your reaction: ${myReaction.emoji}` : "Quick react:"}</span>
+            <span className="text-[10px] text-cyan-400/80">Scroll for more →</span>
+          </div>
+
+          <div className="relative flex items-center rounded-xl bg-white/[0.04] border border-white/10 p-1 shadow-inner overflow-hidden">
+            {/* Scrollable Emojis List with Smooth Touch / Mouse Scroll */}
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth pr-1 flex-1">
+              {QUICK_DOCK_REACTIONS.map((emoji) => {
+                const isSelected = myReaction?.emoji === emoji;
+                return (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => onReact(message.id, emoji)}
+                    className={`shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-base transition-transform duration-150 hover:scale-130 active:scale-90 cursor-pointer ${
+                      isSelected
+                        ? "bg-cyan-500/30 border border-cyan-400/70 shadow-[0_0_8px_rgba(6,182,212,0.45)] scale-110"
+                        : "hover:bg-white/10"
+                    }`}
+                    title={`React ${emoji}`}
+                  >
+                    {emoji}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Pinned '+' Button opening Universal Emoji Picker (1,800+ Emojis) */}
+            <button
+              type="button"
+              onClick={() => setShowUniversalPicker(true)}
+              className="shrink-0 ml-1 flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-500/40 bg-cyan-950/50 text-cyan-300 hover:text-white hover:border-cyan-400 hover:bg-cyan-500/25 shadow-[0_0_8px_rgba(6,182,212,0.3)] transition-all duration-150 active:scale-90 cursor-pointer"
+              title="Browse all 1,800+ emojis"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Universal Emoji Picker (1,800+ Emojis with live search & categories) */}
+      <UniversalEmojiPickerModal
+        isOpen={showUniversalPicker}
+        onClose={() => setShowUniversalPicker(false)}
+        onSelectEmoji={(emoji) => {
+          onReact(message.id, emoji);
+          setShowUniversalPicker(false);
+        }}
+      />
     </div>,
     document.body
   );
