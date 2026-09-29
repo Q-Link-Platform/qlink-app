@@ -243,9 +243,29 @@ export function MessageReactionDetailsModal({
             <span className="text-[10px] text-cyan-400/80">Scroll for more →</span>
           </div>
 
-          <div className="relative flex items-center rounded-xl bg-white/[0.04] border border-white/10 p-1 shadow-inner overflow-hidden">
+          <div className="relative flex items-center rounded-xl bg-white/[0.04] border border-white/10 p-0.5 shadow-inner w-full min-w-0">
+            {/* Left Scroll Arrow */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                const track = e.currentTarget.parentElement?.querySelector("[data-reaction-track]");
+                if (track) track.scrollBy({ left: -90, behavior: "smooth" });
+              }}
+              className="shrink-0 flex h-7 w-3.5 items-center justify-center rounded text-slate-400 hover:text-white hover:bg-white/10 transition active:scale-90 text-[11px] font-bold cursor-pointer"
+              title="Scroll left"
+            >
+              ‹
+            </button>
+
             {/* Scrollable Emojis List with Smooth Touch / Mouse Scroll */}
-            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth pr-1 flex-1">
+            <div
+              data-reaction-track
+              onWheel={(e) => {
+                e.currentTarget.scrollLeft += e.deltaY;
+              }}
+              className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth px-1 flex-1 min-w-0"
+            >
               {QUICK_DOCK_REACTIONS.map((emoji) => {
                 const isSelected = myReaction?.emoji === emoji;
                 return (
@@ -266,12 +286,26 @@ export function MessageReactionDetailsModal({
               })}
             </div>
 
-            {/* Pinned '+' Button opening Universal Emoji Picker (1,800+ Emojis) */}
+            {/* Right Scroll Arrow */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                const track = e.currentTarget.parentElement?.querySelector("[data-reaction-track]");
+                if (track) track.scrollBy({ left: 90, behavior: "smooth" });
+              }}
+              className="shrink-0 flex h-7 w-3.5 items-center justify-center rounded text-slate-400 hover:text-white hover:bg-white/10 transition active:scale-90 text-[11px] font-bold cursor-pointer"
+              title="Scroll right"
+            >
+              ›
+            </button>
+
+            {/* Pinned '+' Button opening Universal Emoji Picker (1,900+ Emojis) */}
             <button
               type="button"
               onClick={() => setShowUniversalPicker(true)}
-              className="shrink-0 ml-1 flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-500/40 bg-cyan-950/50 text-cyan-300 hover:text-white hover:border-cyan-400 hover:bg-cyan-500/25 shadow-[0_0_8px_rgba(6,182,212,0.3)] transition-all duration-150 active:scale-90 cursor-pointer"
-              title="Browse all 1,800+ emojis"
+              className="shrink-0 ml-0.5 flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-500/40 bg-cyan-950/50 text-cyan-300 hover:text-white hover:border-cyan-400 hover:bg-cyan-500/25 shadow-[0_0_8px_rgba(6,182,212,0.3)] transition-all duration-150 active:scale-90 cursor-pointer"
+              title="Browse all 1,900+ Android emojis"
             >
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -281,7 +315,7 @@ export function MessageReactionDetailsModal({
         </div>
       </div>
 
-      {/* Universal Emoji Picker (1,800+ Emojis with live search & categories) */}
+      {/* Universal Emoji Picker (1,900+ Emojis with live search & categories) */}
       <UniversalEmojiPickerModal
         isOpen={showUniversalPicker}
         onClose={() => setShowUniversalPicker(false)}

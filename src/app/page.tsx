@@ -13230,7 +13230,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
       {/* Premium Sci-Fi WhatsApp-style Context Menu */}
       {contextMenu && (() => {
-        const menuWidth = 260;
+        const menuWidth = 230;
         const menuHeight = 175;
         let topPos = contextMenu.y - 10;
         let leftPos = contextMenu.x;
@@ -13264,13 +13264,33 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               transform: `translate(-50%, ${translateY})`,
               zIndex: 9999,
             }}
-            className="animate-fade-in min-w-[240px] max-w-[280px] overflow-hidden rounded-2xl border border-cyan-500/30 bg-[#09111c]/95 p-1.5 shadow-[0_0_30px_rgba(6,182,212,0.3)] backdrop-blur-xl"
+            className="animate-fade-in w-[230px] max-w-[230px] overflow-hidden rounded-2xl border border-cyan-500/30 bg-[#09111c]/95 p-1.5 shadow-[0_0_30px_rgba(6,182,212,0.3)] backdrop-blur-xl select-none"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Horizontally Scrollable Tech-Giant Quick Reaction Bar */}
-            <div className="relative mb-1.5 flex items-center rounded-xl bg-white/[0.04] border border-white/10 p-1 shadow-inner overflow-hidden">
-              {/* Scrollable Emojis List with Smooth Touch / Mouse Scroll */}
-              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth pr-1 flex-1">
+            {/* Horizontally Scrollable Tech-Giant Quick Reaction Bar with Left/Right Controls */}
+            <div className="relative mb-1.5 flex items-center rounded-xl bg-white/[0.04] border border-white/10 p-0.5 shadow-inner w-full min-w-0">
+              {/* Left Scroll Arrow */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const track = e.currentTarget.parentElement?.querySelector("[data-reaction-track]");
+                  if (track) track.scrollBy({ left: -90, behavior: "smooth" });
+                }}
+                className="shrink-0 flex h-7 w-3.5 items-center justify-center rounded text-slate-400 hover:text-white hover:bg-white/10 transition active:scale-90 text-[11px] font-bold cursor-pointer"
+                title="Scroll left"
+              >
+                ‹
+              </button>
+
+              {/* Scrollable Emojis List with Smooth Touch / Mouse / Wheel Scroll */}
+              <div
+                data-reaction-track
+                onWheel={(e) => {
+                  e.currentTarget.scrollLeft += e.deltaY;
+                }}
+                className="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth px-1 flex-1 min-w-0"
+              >
                 {QUICK_DOCK_REACTIONS.map((emoji) => {
                   const isSelected = myReactionEmoji === emoji;
                   return (
@@ -13281,7 +13301,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         handleToggleReaction(contextMenu.messageId, emoji);
                         setContextMenu(null);
                       }}
-                      className={`shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-base transition-transform duration-150 hover:scale-135 active:scale-90 cursor-pointer ${
+                      className={`shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-base transition-transform duration-150 hover:scale-130 active:scale-90 cursor-pointer ${
                         isSelected
                           ? "bg-cyan-500/30 border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.5)] scale-110"
                           : "hover:bg-white/10"
@@ -13294,15 +13314,29 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 })}
               </div>
 
-              {/* Pinned '+' Button opening Universal Emoji Picker (1,800+ Emojis) */}
+              {/* Right Scroll Arrow */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const track = e.currentTarget.parentElement?.querySelector("[data-reaction-track]");
+                  if (track) track.scrollBy({ left: 90, behavior: "smooth" });
+                }}
+                className="shrink-0 flex h-7 w-3.5 items-center justify-center rounded text-slate-400 hover:text-white hover:bg-white/10 transition active:scale-90 text-[11px] font-bold cursor-pointer"
+                title="Scroll right"
+              >
+                ›
+              </button>
+
+              {/* Pinned '+' Button opening Universal Android Keypad Emoji Picker (1,900+ Emojis) */}
               <button
                 type="button"
                 onClick={() => {
                   setEmojiPickerTargetMessageId(contextMenu.messageId);
                   setContextMenu(null);
                 }}
-                className="shrink-0 ml-1 flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-500/40 bg-cyan-950/50 text-cyan-300 hover:text-white hover:border-cyan-400 hover:bg-cyan-500/25 shadow-[0_0_8px_rgba(6,182,212,0.3)] transition-all duration-150 active:scale-90 cursor-pointer"
-                title="Browse all 1,800+ emojis"
+                className="shrink-0 ml-0.5 flex h-7 w-7 items-center justify-center rounded-lg border border-cyan-500/40 bg-cyan-950/50 text-cyan-300 hover:text-white hover:border-cyan-400 hover:bg-cyan-500/25 shadow-[0_0_8px_rgba(6,182,212,0.3)] transition-all duration-150 active:scale-90 cursor-pointer"
+                title="Browse all 1,900+ Android emojis"
               >
                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
