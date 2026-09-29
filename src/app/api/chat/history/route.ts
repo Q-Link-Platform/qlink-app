@@ -183,6 +183,7 @@ export async function GET(request: Request) {
         readAt: true,
         isEdited: true,
         editedAt: true,
+        reactions: true,
       },
     });
 
@@ -264,10 +265,22 @@ export async function GET(request: Request) {
         image: peer.image,
         publicKeyString: peer.publicKeyString,
       },
-      messages: messages.map((m) => ({
-        ...m,
-        attachments: attachmentsByMessageId.get(m.id) || [],
-      })),
+      messages: messages.map((m) => {
+        let reactionsList: any[] = [];
+        if (m.reactions) {
+          try {
+            reactionsList = JSON.parse(m.reactions);
+            if (!Array.isArray(reactionsList)) reactionsList = [];
+          } catch {
+            reactionsList = [];
+          }
+        }
+        return {
+          ...m,
+          reactions: reactionsList,
+          attachments: attachmentsByMessageId.get(m.id) || [],
+        };
+      }),
     });
   } catch (err: any) {
     console.error("[chat/history]", err);

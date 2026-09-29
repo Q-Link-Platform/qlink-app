@@ -96,6 +96,7 @@ model Message {
   readAt      DateTime?
   isEdited    Boolean   @default(false)
   editedAt    DateTime?
+  reactions   String?
 
   senderId String
   sender   User     @relation("UserMessages", fields: [senderId], references: [id])

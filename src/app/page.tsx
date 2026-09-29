@@ -3,6 +3,7 @@
 import { useDuoTheme } from "@/app/providers/DuoThemeProvider";
 
 import { ActiveChatPanel } from "@/components/chat/ActiveChatPanel";
+import { MessageReactionDetailsModal, MessageReactionItem } from "@/components/chat/MessageReactionDetailsModal";
 import { MessageStatusTicks } from "@/components/MessageStatusTicks";
 import { QuantumUserProfileView } from "@/components/profile/QuantumUserProfileView";
 import { EditProfileModal } from "@/components/profile/EditProfileModal";
@@ -813,6 +814,7 @@ type ChatMessage = {
   readAt?: string | null;
   isEdited?: boolean;
   editedAt?: string | null;
+  reactions?: MessageReactionItem[];
 };
 
 type IncomingRequest = {
@@ -4535,6 +4537,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Message Context Menu state & touch long-press tracking
   const [detailModalMessage, setDetailModalMessage] = useState<ChatMessage | null>(null);
+  const [reactionModalMessage, setReactionModalMessage] = useState<ChatMessage | null>(null);
   const [showE2EHelp, setShowE2EHelp] = useState<boolean>(false);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -5446,6 +5449,148 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       return { messageId, message: targetMsg, timerId };
     });
   }, [chatMessages]);
+
+  const handleToggleReaction = useCallback(async (messageId: string, emoji: string) => {
+    if (!messageId || !emoji) return;
+    const currentUserId = (session?.user as any)?.id as string;
+    if (!currentUserId) return;
+
+    const currentUserName = (session?.user as any)?.name || (session?.user as any)?.handle || "You";
+    const currentUserHandle = (session?.user as any)?.handle || "user";
+    const currentUserImage = (session?.user as any)?.image || null;
+
+    // 1. Optimistic Update (0ms instant response)
+    setChatMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id !== messageId) return msg;
+        const existingReactions = [...(msg.reactions || [])];
+        const existingIndex = existingReactions.findIndex((r) => r.userId === currentUserId);
+        const trimmedEmoji = emoji.trim();
+
+        if (existingIndex > -1) {
+          if (existingReactions[existingIndex].emoji === trimmedEmoji) {
+            // Toggle OFF (remove)
+            existingReactions.splice(existingIndex, 1);
+          } else {
+            // Replace with new emoji
+            existingReactions[existingIndex] = {
+              ...existingReactions[existingIndex],
+              emoji: trimmedEmoji,
+              createdAt: new Date().toISOString(),
+            };
+          }
+        } else {
+          // Add new reaction
+          existingReactions.push({
+            emoji: trimmedEmoji,
+            userId: currentUserId,
+            userHandle: currentUserHandle,
+            userName: currentUserName,
+            userImage: currentUserImage,
+            createdAt: new Date().toISOString(),
+          });
+        }
+        return { ...msg, reactions: existingReactions };
+      })
+    );
+
+    // Also update reactionModalMessage if open
+    setReactionModalMessage((curr) => {
+      if (!curr || curr.id !== messageId) return curr;
+      const existingReactions = [...(curr.reactions || [])];
+      const existingIndex = existingReactions.findIndex((r) => r.userId === currentUserId);
+      const trimmedEmoji = emoji.trim();
+
+      if (existingIndex > -1) {
+        if (existingReactions[existingIndex].emoji === trimmedEmoji) {
+          existingReactions.splice(existingIndex, 1);
+        } else {
+          existingReactions[existingIndex] = {
+            ...existingReactions[existingIndex],
+            emoji: trimmedEmoji,
+            createdAt: new Date().toISOString(),
+          };
+        }
+      } else {
+        existingReactions.push({
+          emoji: trimmedEmoji,
+          userId: currentUserId,
+          userHandle: currentUserHandle,
+          userName: currentUserName,
+          userImage: currentUserImage,
+          createdAt: new Date().toISOString(),
+        });
+      }
+      return { ...curr, reactions: existingReactions };
+    });
+
+    // 2. Dispatch to server
+    try {
+      const res = await fetch("/api/chat/react", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messageId, emoji: emoji.trim() }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.reactions) {
+          setChatMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === messageId ? { ...msg, reactions: data.reactions } : msg
+            )
+          );
+          setReactionModalMessage((curr) =>
+            curr && curr.id === messageId ? { ...curr, reactions: data.reactions } : curr
+          );
+        }
+      }
+    } catch (err) {
+      console.error("[Reaction] Failed to sync reaction with server:", err);
+    }
+  }, [session]);
+
+  const handleRemoveReaction = useCallback(async (messageId: string) => {
+    if (!messageId) return;
+    const currentUserId = (session?.user as any)?.id as string;
+    if (!currentUserId) return;
+
+    // 1. Optimistic removal
+    setChatMessages((prev) =>
+      prev.map((msg) => {
+        if (msg.id !== messageId) return msg;
+        const filtered = (msg.reactions || []).filter((r) => r.userId !== currentUserId);
+        return { ...msg, reactions: filtered };
+      })
+    );
+
+    setReactionModalMessage((curr) => {
+      if (!curr || curr.id !== messageId) return curr;
+      const filtered = (curr.reactions || []).filter((r) => r.userId !== currentUserId);
+      return { ...curr, reactions: filtered };
+    });
+
+    // 2. Dispatch delete to server
+    try {
+      const res = await fetch(`/api/chat/react?messageId=${encodeURIComponent(messageId)}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.reactions) {
+          setChatMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === messageId ? { ...msg, reactions: data.reactions } : msg
+            )
+          );
+          setReactionModalMessage((curr) =>
+            curr && curr.id === messageId ? { ...curr, reactions: data.reactions } : curr
+          );
+        }
+      }
+    } catch (err) {
+      console.error("[Reaction] Failed to remove reaction on server:", err);
+    }
+  }, [session]);
 
   const handleStartEditMessage = useCallback((messageId: string, content: string) => {
     setContextMenu(null);
@@ -11182,6 +11327,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               myId={myId}
               effectiveUser={effectiveUser}
               handleDeleteMessage={handleDeleteMessage}
+              onToggleReaction={handleToggleReaction}
+              onRemoveReaction={handleRemoveReaction}
+              onOpenReactionModal={(msg: any) => setReactionModalMessage(msg)}
               isSelectionMode={isSelectionMode}
               setIsSelectionMode={setIsSelectionMode}
               selectedMessageIds={selectedMessageIds}
@@ -13054,11 +13202,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         document.body
       )}
 
+      {/* ── Message Reaction Details Modal (WhatsApp / Telegram / Apple style) ── */}
+      <MessageReactionDetailsModal
+        isOpen={Boolean(reactionModalMessage)}
+        onClose={() => setReactionModalMessage(null)}
+        message={reactionModalMessage}
+        currentUserId={meId || myId || (session?.user as any)?.id || ""}
+        onReact={handleToggleReaction}
+        onRemoveReaction={handleRemoveReaction}
+      />
+
 
       {/* Premium Sci-Fi WhatsApp-style Context Menu */}
       {contextMenu && (() => {
-        const menuWidth = 170;
-        const menuHeight = 110;
+        const menuWidth = 230;
+        const menuHeight = 170;
         let topPos = contextMenu.y - 10;
         let leftPos = contextMenu.x;
         let translateY = "-100%";
@@ -13075,6 +13233,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           }
         }
 
+        const targetMsg = chatMessages.find((m) => m.id === contextMenu.messageId);
+        const myReactionEmoji = targetMsg?.reactions?.find(
+          (r) => r.userId === (meId || myId || (session?.user as any)?.id)
+        )?.emoji;
+        const reactionsCount = targetMsg?.reactions?.length || 0;
+
         return (
           <div
             data-context-menu
@@ -13085,20 +13249,89 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               transform: `translate(-50%, ${translateY})`,
               zIndex: 9999,
             }}
-            className="animate-fade-in min-w-[170px] overflow-hidden rounded-2xl border border-cyan-500/30 bg-[#09111c]/95 p-1.5 shadow-[0_0_25px_rgba(6,182,212,0.25)] backdrop-blur-md"
+            className="animate-fade-in min-w-[210px] max-w-[250px] overflow-hidden rounded-2xl border border-cyan-500/30 bg-[#09111c]/95 p-1.5 shadow-[0_0_30px_rgba(6,182,212,0.3)] backdrop-blur-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header Info (Sci-fi Theme) */}
-            <div className="border-b border-slate-800 px-2.5 py-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono">
-              Message Ops
+            {/* Quick Reaction Bar (Apple / WhatsApp / Telegram Tech-Giant Standard) */}
+            <div className="flex items-center justify-between gap-1 px-1 py-1 mb-1 rounded-xl bg-white/[0.04] border border-white/10 shadow-inner">
+              {["🙏", "❤️", "👍", "🔥", "😂", "😮"].map((emoji) => {
+                const isSelected = myReactionEmoji === emoji;
+                return (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => {
+                      handleToggleReaction(contextMenu.messageId, emoji);
+                      setContextMenu(null);
+                    }}
+                    className={`flex h-7 w-7 items-center justify-center rounded-lg text-base transition-transform duration-150 hover:scale-130 active:scale-90 cursor-pointer ${
+                      isSelected
+                        ? "bg-cyan-500/30 border border-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.5)] scale-110"
+                        : "hover:bg-white/10"
+                    }`}
+                    title={`React ${emoji}`}
+                  >
+                    {emoji}
+                  </button>
+                );
+              })}
+              {/* More / Custom Emoji Picker Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (targetMsg) {
+                    setReactionModalMessage(targetMsg);
+                  }
+                  setContextMenu(null);
+                }}
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/15 bg-white/[0.06] text-slate-300 hover:text-white hover:border-cyan-400/50 hover:bg-cyan-500/10 transition-all duration-150 active:scale-90 cursor-pointer"
+                title="Add custom reaction or view all"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+              </button>
             </div>
 
-                        <div className="mt-1 space-y-0.5">
+            {/* Header Info (Sci-fi Theme) */}
+            <div className="flex items-center justify-between border-b border-slate-800 px-2 py-1 text-[9px] font-bold text-slate-500 uppercase tracking-widest font-mono">
+              <span>Message Ops</span>
+              {reactionsCount > 0 && (
+                <span className="text-cyan-400/90 font-mono lowercase">
+                  {reactionsCount} {reactionsCount === 1 ? "reaction" : "reactions"}
+                </span>
+              )}
+            </div>
+
+            <div className="mt-1 space-y-0.5">
+              {/* View Reactions Option (Shows if message has reactions) */}
+              {reactionsCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (targetMsg) {
+                      setReactionModalMessage(targetMsg);
+                    }
+                    setContextMenu(null);
+                  }}
+                  className="flex w-full items-center justify-between rounded-xl px-2.5 py-2 text-left text-xs font-semibold text-emerald-300 transition duration-150 hover:bg-emerald-950/50 hover:text-emerald-100 active:scale-95"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">
+                      {targetMsg?.reactions?.[0]?.emoji || "🙏"}
+                    </span>
+                    <span>View Reactions</span>
+                  </div>
+                  <span className="rounded-full bg-emerald-500/20 border border-emerald-400/40 px-1.5 py-0.5 text-[10px] font-mono font-bold text-emerald-300">
+                    {reactionsCount}
+                  </span>
+                </button>
+              )}
+
               {/* Message Details (Detailed Date & Timestamp Section) */}
               <button
                 type="button"
                 onClick={() => {
-                  const targetMsg = chatMessages.find((m) => m.id === contextMenu.messageId);
                   if (targetMsg) {
                     setDetailModalMessage(targetMsg);
                     setShowE2EHelp(false);

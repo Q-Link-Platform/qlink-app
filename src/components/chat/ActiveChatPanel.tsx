@@ -493,6 +493,9 @@ export interface ActiveChatPanelProps {
   onStartChatWithUser?: (handle: string) => void;
   onSendConnectRequest?: (targetHandle: string, categories: string[], note: string) => Promise<void>;
   profileInitialData?: any;
+  onToggleReaction?: (messageId: string, emoji: string) => void;
+  onRemoveReaction?: (messageId: string) => void;
+  onOpenReactionModal?: (message: any) => void;
   [key: string]: any;
 }
 
@@ -555,6 +558,9 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
     myId,
     effectiveUser,
     handleDeleteMessage,
+    onToggleReaction,
+    onRemoveReaction,
+    onOpenReactionModal,
     isSelectionMode,
     setIsSelectionMode,
     selectedMessageIds,
@@ -1655,7 +1661,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                 </div>
 
                                 {/* Bubble Alignments */}
-                                <div className={`flex-1 flex ${isMe ? "justify-end" : "justify-start"}`}>
+                                <div className={`flex-1 flex flex-col ${isMe ? "items-end" : "items-start"}`}>
                                   {(() => {
                                     const socialEmbedInfo = extractSocialMediaEmbedInfo(displayContent);
                                     const hasMedia = Boolean((attachments && attachments.length > 0) || socialEmbedInfo);
@@ -1678,6 +1684,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                     const shouldShowCaption = Boolean(displayContent && !isFilenameOnly && !isSocialUrlOnly);
 
                                     return (
+                                      <React.Fragment>
                                       <div
                                         data-message-card
                                         style={{ WebkitTouchCallout: "none" }}
@@ -2141,6 +2148,54 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                           </div>
                                         )}
                                       </div>
+
+                                      {/* Floating Message Reaction Badge (WhatsApp/Telegram/Apple style) */}
+                                      {m.reactions && m.reactions.length > 0 && (() => {
+                                        const uniqueEmojis = Array.from(new Set(m.reactions.map((r: any) => r.emoji))).slice(0, 3);
+                                        const totalCount = m.reactions.length;
+                                        const hasMyReaction = m.reactions.some(
+                                          (r: any) => r.userId === meId || r.userId === myId
+                                        );
+
+                                        return (
+                                          <div
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              if (onOpenReactionModal) {
+                                                onOpenReactionModal(m);
+                                              } else {
+                                                setDetailModalMessage(m);
+                                              }
+                                            }}
+                                            title={
+                                              m.reactions
+                                                .map((r: any) => `${r.userName || r.userHandle}: ${r.emoji}`)
+                                                .join(", ") + " · Click to view"
+                                            }
+                                            className={`-mt-2.5 z-10 flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold backdrop-blur-xl transition-all duration-200 cursor-pointer shadow-md select-none hover:scale-110 active:scale-95 ${
+                                              isMe ? "self-end mr-1.5" : "self-start ml-1.5"
+                                            } ${
+                                              hasMyReaction
+                                                ? "bg-[#09111c]/95 border border-cyan-400/60 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)]"
+                                                : "bg-[#0b1320]/90 border border-white/20 text-slate-200 hover:border-white/40"
+                                            }`}
+                                          >
+                                            <span className="flex items-center tracking-tight">
+                                              {uniqueEmojis.map((emoji: any, i: number) => (
+                                                <span key={i} className="text-xs leading-none">
+                                                  {emoji}
+                                                </span>
+                                              ))}
+                                            </span>
+                                            {totalCount > 1 && (
+                                              <span className="text-[10px] font-mono font-bold leading-none opacity-90">
+                                                {totalCount}
+                                              </span>
+                                            )}
+                                          </div>
+                                        );
+                                      })()}
+                                      </React.Fragment>
                                     );
                                   })()}
                                 </div>
