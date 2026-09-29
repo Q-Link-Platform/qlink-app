@@ -2860,6 +2860,19 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           setProfilePicUrl(getHighResProfilePic(session.user.image));
         }
 
+        // Fetch authoritative profile directly from database API on every authenticated mount
+        fetch("/api/user/profile")
+          .then((res) => res.json())
+          .then((data) => {
+            if (data?.success && data?.user) {
+              setCurrentUserProfile(data.user);
+              if (data.user.name) setDisplayName(data.user.name);
+              if (data.user.handle) setCurrentHandle(data.user.handle);
+              if (data.user.image) setProfilePicUrl(getHighResProfilePic(data.user.image));
+            }
+          })
+          .catch(() => {});
+
         // Check if user has completed onboarding (you can store this in localStorage or backend)
         const hasCompletedOnboarding = localStorage.getItem("qc_onboarding_completed");
         const hasSeenGuide = localStorage.getItem("qc_seen_guide_v1");
@@ -3023,6 +3036,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         .then((data) => {
           if (data?.success && data?.user) {
             setCurrentUserProfile(data.user);
+            if (data.user.name) setDisplayName(data.user.name);
+            if (data.user.handle) setCurrentHandle(data.user.handle);
+            if (data.user.image) setProfilePicUrl(getHighResProfilePic(data.user.image));
           }
         })
         .catch(() => {});
@@ -8036,9 +8052,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       const updatedHandle = (data.user?.handle as string | undefined) || trimmed;
       setCurrentHandle(updatedHandle);
 
+      let updatedName = displayName;
       // Update display name if it changed
       const nameToSend = nameDraft.trim();
-      if (nameToSend !== (displayName || "")) {
+      if (nameToSend && nameToSend !== (displayName || "")) {
         try {
           const nameRes = await fetch("/api/user/profile", {
             method: "PATCH",
@@ -8054,7 +8071,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
               "We couldn't update your display name. Please try again.",
             );
           } else {
-            const updatedName = (nameData.user?.name as string | undefined) || nameToSend;
+            updatedName = (nameData.user?.name as string | undefined) || nameToSend;
             setDisplayName(updatedName || null);
           }
         } catch {
@@ -8063,6 +8080,25 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           );
         }
       }
+
+      // Authoritative state update: keep currentUserProfile, session, and local cache synchronized
+      setCurrentUserProfile((prev: any) => ({
+        ...prev,
+        handle: updatedHandle,
+        name: updatedName || prev?.name,
+      }));
+      if (session?.user) {
+        (session.user as any).handle = updatedHandle;
+        if (updatedName) (session.user as any).name = updatedName;
+      }
+      try {
+        await updateSession({
+          user: {
+            handle: updatedHandle,
+            name: updatedName || displayName,
+          },
+        });
+      } catch {}
 
       setEditingHandle(false);
       setHandleDraft("");
@@ -8121,10 +8157,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
       const data = await res.json();
       setProfilePicUrl(data.url);
+      setCurrentUserProfile((prev: any) => ({ ...prev, image: data.url }));
+      if (session?.user) {
+        (session.user as any).image = data.url;
+      }
 
       // Instantly update next-auth session and reload feed to propagate avatar across existing posts
       try {
-        await updateSession();
+        await updateSession({
+          user: {
+            image: data.url,
+          },
+        });
       } catch (err) {
         console.warn("Failed to update session silently:", err);
       }
@@ -8849,6 +8893,24 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                       handle={directoryProfileHandle}
                       currentUserId={meId}
                       initialData={directoryProfileInitialData}
+                      onProfileUpdated={(updatedUser) => {
+                        setCurrentUserProfile((prev: any) => (prev ? { ...prev, ...updatedUser } : updatedUser));
+                        if (updatedUser.name) setDisplayName(updatedUser.name);
+                        if (updatedUser.handle) {
+                          setCurrentHandle(updatedUser.handle);
+                          setDirectoryProfileHandle(updatedUser.handle);
+                        }
+                        if (updatedUser.image) setProfilePicUrl(getHighResProfilePic(updatedUser.image));
+                        if (session?.user) {
+                          if (updatedUser.name) (session.user as any).name = updatedUser.name;
+                          if (updatedUser.image) (session.user as any).image = updatedUser.image;
+                          if (updatedUser.bio !== undefined) (session.user as any).bio = updatedUser.bio;
+                          if (updatedUser.handle) (session.user as any).handle = updatedUser.handle;
+                        }
+                        try {
+                          updateSession({ user: updatedUser });
+                        } catch {}
+                      }}
                       onBack={() => {
                         setDirectoryProfileHandle(null);
                         setViewingProfileHandle(null);
@@ -12592,12 +12654,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                         }}
                         onSaved={(updated) => {
                           setCurrentUserProfile((prev: any) => (prev ? { ...prev, ...updated } : updated));
+                          if (updated.name) setDisplayName(updated.name);
+                          if (updated.handle) setCurrentHandle(updated.handle);
+                          if (updated.image) setProfilePicUrl(getHighResProfilePic(updated.image));
                           if (session?.user) {
                             if (updated.name) (session.user as any).name = updated.name;
                             if (updated.image) (session.user as any).image = updated.image;
                             if (updated.bio !== undefined) (session.user as any).bio = updated.bio;
                             if (updated.handle) (session.user as any).handle = updated.handle;
                           }
+                          try {
+                            updateSession({ user: updated });
+                          } catch {}
                           if (setDirectoryItems) {
                             setDirectoryItems((prev: any) =>
                               Array.isArray(prev)

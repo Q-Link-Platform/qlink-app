@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useSession } from "next-auth/react";
 import { usePerformance } from "@/app/providers/PerformanceProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useDuoTheme } from "@/app/providers/DuoThemeProvider";
@@ -246,6 +247,7 @@ export default function SettingsModal(props: SettingsModalProps) {
     playSciFiSound = () => {},
     setDisplayName = () => {},
   } = props;
+  const { update: updateSession } = useSession();
   const { primaryColor, secondaryColor } = useDuoTheme();
 
   const isElectron = typeof window !== "undefined" && Boolean((window as any).electronAPI);
@@ -1099,6 +1101,12 @@ export default function SettingsModal(props: SettingsModalProps) {
                                       setDisplayName(cleanName || null);
                                       setNameDraft(cleanName);
                                       setSettingsScreen("main");
+                                      if (session?.user) {
+                                        (session.user as any).name = cleanName;
+                                      }
+                                      try {
+                                        await updateSession({ user: { name: cleanName } });
+                                      } catch {}
                                       try {
                                         await fetch("/api/user/profile", {
                                           method: "PATCH",

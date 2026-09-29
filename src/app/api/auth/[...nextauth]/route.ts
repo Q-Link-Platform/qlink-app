@@ -267,13 +267,28 @@ export const authOptions: NextAuthOptions = {
 
       return true;
     },
-    async jwt({ token, user }) {
-      // On initial sign-in, copy over id, handle and sessionToken from the freshly logged-in user
+    async jwt({ token, user, trigger, session }) {
+      // On initial sign-in, copy over id, handle, name, picture and sessionToken
       if (user) {
         token.id = (user as any).id;
         token.handle = (user as any).handle;
+        token.name = user.name;
+        token.picture = user.image;
         token.sessionToken = (user as any).sessionToken;
       }
+
+      // When updateSession is triggered from client
+      if (trigger === "update" && session) {
+        if (session.name) token.name = session.name;
+        if (session.handle) token.handle = session.handle;
+        if (session.image) token.picture = session.image;
+        if (session.user) {
+          if (session.user.name) token.name = session.user.name;
+          if (session.user.handle) token.handle = session.user.handle;
+          if (session.user.image) token.picture = session.user.image;
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -300,11 +315,16 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (dbUser) {
-          // Expose database real-time attributes to session
+          // Authoritative DB sync: expose fresh real-time attributes to session
+          sUser.name = dbUser.name ?? sUser.name;
           sUser.points = dbUser.points ?? 0;
           sUser.blue_tick_status = dbUser.blue_tick_status ?? "NONE";
           sUser.aura_percentage = dbUser.aura_percentage ?? 0;
           sUser.image = dbUser.image ?? sUser.image ?? null;
+          sUser.bio = dbUser.bio ?? null;
+          sUser.banner = dbUser.banner ?? null;
+          sUser.location = dbUser.location ?? null;
+          sUser.website = dbUser.website ?? null;
           sUser.publicKeyString = dbUser.publicKeyString ?? null;
           sUser.encryptedPrivateKey = dbUser.encryptedPrivateKey ?? null;
           
@@ -314,7 +334,7 @@ export const authOptions: NextAuthOptions = {
             .update(dbUser.id)
             .digest("hex");
 
-          // 2. Handle Logic:
+          // 2. Handle Logic (authoritative from DB):
           let handle = dbUser.handle;
           if (!handle) {
             handle = generateHandle(dbUser.email ?? dbUser.name ?? undefined);
@@ -333,14 +353,16 @@ export const authOptions: NextAuthOptions = {
           }
           
           (token as any).handle = handle;
+          (token as any).name = sUser.name;
+          (token as any).picture = sUser.image;
           sUser.handle = handle;
         }
       } catch (err) {
         console.error("Session verification error:", err);
       }
 
-      // If token already has a handle, make sure it's exposed
-      if (token.handle) {
+      // Fallback: only if session user somehow still has no handle, check token
+      if (!sUser.handle && token.handle) {
         sUser.handle = token.handle;
       }
 
