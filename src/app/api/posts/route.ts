@@ -364,7 +364,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(
       { posts: finalPosts, feedMode: feed },
-      { headers: { "Cache-Control": "no-store" } },
+      { headers: { "Cache-Control": "private, max-age=4, stale-while-revalidate=20" } },
     );
   } catch (err: any) {
     console.error("[posts] GET Unhandled error", err);

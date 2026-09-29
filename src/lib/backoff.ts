@@ -145,8 +145,12 @@ export function createAdaptivePoller(
         // Success: reset backoff to base interval
         attempt = 0;
         if (onSuccess) onSuccess();
-        // If hidden/backgrounded, poll at gentle interval (4.5s+) so background tabs never starve
-        const nextDelay = isHidden ? Math.max(baseIntervalMs * 2.5, 4500) : baseIntervalMs;
+        // Zero-Waste Energy & Bandwidth Standard (Apple / Linear Grade):
+        // If tab is hidden/backgrounded, relax interval to 15s-20s.
+        // The instant user returns to the tab, visibilitychange immediately wakes it with 0ms delay.
+        const nextDelay = isHidden
+          ? Math.min(maxIntervalMs, Math.max(baseIntervalMs * 5, 15000))
+          : baseIntervalMs;
         scheduleNext(nextDelay);
       }
     } catch (err) {

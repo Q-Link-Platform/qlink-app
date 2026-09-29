@@ -80,11 +80,18 @@ export async function GET(
       !!lastTyping &&
       now - lastTyping <= 6_000;
 
-    return NextResponse.json({
-      online,
-      lastSeenAt: user.lastSeenAt,
-      typing,
-    });
+    return NextResponse.json(
+      {
+        online,
+        lastSeenAt: user.lastSeenAt,
+        typing,
+      },
+      {
+        headers: {
+          "Cache-Control": "private, max-age=2, stale-while-revalidate=5",
+        },
+      }
+    );
   } catch {
     return NextResponse.json({ error: "Unable to read presence" }, { status: 500 });
   }

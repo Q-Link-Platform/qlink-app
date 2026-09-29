@@ -6381,6 +6381,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         const res = await fetch(
           `/api/chat/history?peerHandle=${encodeURIComponent(activePeerHandle)}`
         );
+        if (res.status === 304) {
+          // Zero-byte 304 Not Modified: Conversation is unchanged
+          return;
+        }
         if (!res.ok) return;
         const data = await res.json();
         const peerKey = data.peer?.publicKeyString || null;

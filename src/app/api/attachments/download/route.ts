@@ -82,14 +82,44 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Storage client not configured" }, { status: 500 });
     }
 
-    console.log("[attachments/download] Attempting download from bucket:", attachment.bucket, "key:", attachment.objectKey);
+    // Zero-Origin-Egress Architecture (Meta / X Standard):
+    // Redirect directly to Supabase CDN signed/public URL to bypass Vercel serverless egress completely.
+    try {
+      // First try generating a signed URL valid for 2 hours
+      const { data: signedData, error: signedErr } = await supabase.storage
+        .from(attachment.bucket)
+        .createSignedUrl(attachment.objectKey, 7200);
+
+      if (signedData?.signedUrl && !signedErr) {
+        const redirectRes = NextResponse.redirect(signedData.signedUrl, { status: 307 });
+        redirectRes.headers.set(
+          "Cache-Control",
+          "public, max-age=3600, s-maxage=7200, stale-while-revalidate=3600"
+        );
+        return redirectRes;
+      }
+
+      // If signed URL failed, check if bucket is public
+      const pub = supabase.storage.from(attachment.bucket).getPublicUrl(attachment.objectKey);
+      if (pub.data?.publicUrl) {
+        const redirectRes = NextResponse.redirect(pub.data.publicUrl, { status: 307 });
+        redirectRes.headers.set(
+          "Cache-Control",
+          "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400"
+        );
+        return redirectRes;
+      }
+    } catch (urlErr) {
+      console.warn("[attachments/download] CDN URL generation failed, falling back to stream:", urlErr);
+    }
+
+    console.log("[attachments/download] Fallback stream from bucket:", attachment.bucket, "key:", attachment.objectKey);
     
     const { data, error } = await supabase.storage
       .from(attachment.bucket)
       .download(attachment.objectKey);
 
     if (error || !data) {
-      // eslint-disable-next-line no-console
       console.error("[attachments/download] Storage download error", id, error?.message, "bucket:", attachment.bucket, "key:", attachment.objectKey);
       return NextResponse.json({ error: "Failed to download attachment: " + (error?.message || "File not found in storage") }, { status: 500 });
     }
@@ -104,7 +134,7 @@ export async function GET(request: Request) {
       headers: {
         "Content-Type": contentType,
         "Content-Disposition": `attachment; filename="${encodeURIComponent(filename)}"`,
-        "Cache-Control": "private, max-age=0, must-revalidate",
+        "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400",
       },
     });
   } catch (err) {

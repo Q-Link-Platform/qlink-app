@@ -255,33 +255,60 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({
-      roomId,
-      peer: {
-        id: peer.id,
-        handle: peer.handle,
-        name: peer.name,
-        email: peer.email,
-        image: peer.image,
-        publicKeyString: peer.publicKeyString,
-      },
-      messages: messages.map((m) => {
-        let reactionsList: any[] = [];
-        if (m.reactions) {
-          try {
-            reactionsList = JSON.parse(m.reactions);
-            if (!Array.isArray(reactionsList)) reactionsList = [];
-          } catch {
-            reactionsList = [];
+    // High-Efficiency ETag Generator (RFC 9110 Standard):
+    // If the conversation state (message count, status, latest edit/reaction) is identical,
+    // return HTTP 304 with 0 bytes payload, completely eliminating redundant origin egress.
+    const lastMsg = messages[messages.length - 1];
+    const firstMsg = messages[0];
+    const etagSource = `${roomId}-${messages.length}-${firstMsg?.id || "0"}-${lastMsg?.id || "0"}-${lastMsg?.status || ""}-${lastMsg?.updatedAt ? new Date(lastMsg.updatedAt).getTime() : 0}-${lastMsg?.readAt || ""}-${attachments.length}`;
+    const etag = `W/"${Buffer.from(etagSource).toString("base64")}"`;
+
+    const clientIfNoneMatch = request.headers.get("if-none-match");
+    if (clientIfNoneMatch && clientIfNoneMatch === etag) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          ETag: etag,
+          "Cache-Control": "private, no-cache",
+        },
+      });
+    }
+
+    return NextResponse.json(
+      {
+        roomId,
+        peer: {
+          id: peer.id,
+          handle: peer.handle,
+          name: peer.name,
+          email: peer.email,
+          image: peer.image,
+          publicKeyString: peer.publicKeyString,
+        },
+        messages: messages.map((m) => {
+          let reactionsList: any[] = [];
+          if (m.reactions) {
+            try {
+              reactionsList = JSON.parse(m.reactions);
+              if (!Array.isArray(reactionsList)) reactionsList = [];
+            } catch {
+              reactionsList = [];
+            }
           }
-        }
-        return {
-          ...m,
-          reactions: reactionsList,
-          attachments: attachmentsByMessageId.get(m.id) || [],
-        };
-      }),
-    });
+          return {
+            ...m,
+            reactions: reactionsList,
+            attachments: attachmentsByMessageId.get(m.id) || [],
+          };
+        }),
+      },
+      {
+        headers: {
+          ETag: etag,
+          "Cache-Control": "private, no-cache",
+        },
+      }
+    );
   } catch (err: any) {
     console.error("[chat/history]", err);
     return NextResponse.json({ error: err?.message || "Internal server error" }, { status: 500 });
