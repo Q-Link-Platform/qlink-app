@@ -176,6 +176,7 @@ export async function GET(request: Request) {
         id: true,
         content: true,
         createdAt: true,
+        updatedAt: true,
         senderId: true,
         roomId: true,
         status: true,
@@ -214,10 +215,7 @@ export async function GET(request: Request) {
       try {
         attachments = await prisma.attachment.findMany({
           where: {
-            OR: [
-              { messageId: { in: messageIds } },
-              { roomId },
-            ],
+            messageId: { in: messageIds },
           },
           select: {
             id: true,
@@ -250,17 +248,21 @@ export async function GET(request: Request) {
       };
       if (att.messageId) {
         const list = attachmentsByMessageId.get(att.messageId) || [];
-        list.push(serialized);
-        attachmentsByMessageId.set(att.messageId, list);
+        // Strictly deduplicate attachments per message by objectKey or ID
+        if (!list.some((existing) => existing.objectKey === serialized.objectKey || existing.id === serialized.id)) {
+          list.push(serialized);
+          attachmentsByMessageId.set(att.messageId, list);
+        }
       }
     }
 
     // High-Efficiency ETag Generator (RFC 9110 Standard):
-    // If the conversation state (message count, status, latest edit/reaction) is identical,
-    // return HTTP 304 with 0 bytes payload, completely eliminating redundant origin egress.
+    // Cryptographically digest conversation state including reactions, edits, attachments, and delivery statuses
     const lastMsg = messages[messages.length - 1];
     const firstMsg = messages[0];
-    const etagSource = `${roomId}-${messages.length}-${firstMsg?.id || "0"}-${lastMsg?.id || "0"}-${lastMsg?.status || ""}-${lastMsg?.updatedAt ? new Date(lastMsg.updatedAt).getTime() : 0}-${lastMsg?.readAt || ""}-${attachments.length}`;
+    const reactionsDigest = messages.map((m) => `${m.id}:${m.reactions || ""}`).join(";");
+    const editsDigest = messages.map((m) => `${m.id}:${m.isEdited ? m.editedAt : ""}`).join(";");
+    const etagSource = `${roomId}-${messages.length}-${firstMsg?.id || "0"}-${lastMsg?.id || "0"}-${lastMsg?.status || ""}-${lastMsg?.readAt || ""}-${attachments.length}-${reactionsDigest}-${editsDigest}`;
     const etag = `W/"${Buffer.from(etagSource).toString("base64")}"`;
 
     const clientIfNoneMatch = request.headers.get("if-none-match");

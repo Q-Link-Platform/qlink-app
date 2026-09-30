@@ -4546,6 +4546,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
   // Image preview + cropping before upload (for image attachments)
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const isSendingImageRef = useRef(false);
   const [pendingImagePreviewUrl, setPendingImagePreviewUrl] = useState<string | null>(null);
   const [isEditingImage, setIsEditingImage] = useState(false);
   const [crop, setCrop] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -5279,13 +5280,28 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   );
 
   const handleSendPendingImage = async () => {
-    if (!pendingImageFile || !activePeerHandle) return;
+    if (!pendingImageFile || !activePeerHandle || isSendingImageRef.current || isUploadingAttachment) return;
 
+    isSendingImageRef.current = true;
     setIsUploadingAttachment(true);
     setAttachmentError(null);
 
+    const fileToSend = pendingImageFile;
+
+    // Clear preview state immediately to prevent duplicate clicks/submits
+    if (pendingImagePreviewUrl) {
+      try {
+        URL.revokeObjectURL(pendingImagePreviewUrl);
+      } catch {
+        // ignore
+      }
+    }
+    setPendingImageFile(null);
+    setPendingImagePreviewUrl(null);
+    setIsEditingImage(false);
+
     try {
-      const compressedFile = await compressImage(pendingImageFile);
+      const compressedFile = await compressImage(fileToSend);
       const formData = new FormData();
       formData.append("file", compressedFile);
       formData.append("kind", "image");
@@ -5324,22 +5340,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           return [...prev, fullMessage as ChatMessage];
         });
       }
-
-      // Clear preview after successful send
-      if (pendingImagePreviewUrl) {
-        try {
-          URL.revokeObjectURL(pendingImagePreviewUrl);
-        } catch {
-          // ignore
-        }
-      }
-      setPendingImageFile(null);
-      setPendingImagePreviewUrl(null);
-      setIsEditingImage(false);
     } catch {
       setAttachmentError("Unable to upload attachment. Please try again.");
     } finally {
       setIsUploadingAttachment(false);
+      isSendingImageRef.current = false;
     }
   };
 
@@ -6443,6 +6448,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 status: fresh.status || m.status,
                 readAt: fresh.readAt,
                 deliveredAt: fresh.deliveredAt,
+                reactions: (fresh as any).reactions || [],
                 attachments: ((fresh as any).attachments && (fresh as any).attachments.length > 0)
                   ? (fresh as any).attachments
                   : (m as any).attachments,
@@ -6464,6 +6470,7 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 m.isEdited === prev[i].isEdited &&
                 m.readAt === prev[i].readAt &&
                 m.deliveredAt === prev[i].deliveredAt &&
+                JSON.stringify((m as any).reactions || []) === JSON.stringify((prev[i] as any).reactions || []) &&
                 ((m as any).attachments?.length || 0) === ((prev[i] as any).attachments?.length || 0)
             )
           ) {
@@ -6475,6 +6482,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           }
           return updated;
         });
+
+        // Sync open reactions modal if active
+        if (reactionModalMessage) {
+          const freshModalMsg = decryptedMessages.find((m) => m.id === reactionModalMessage.id);
+          if (freshModalMsg && (freshModalMsg as any).reactions) {
+            setReactionModalMessage((curr) =>
+              curr && curr.id === freshModalMsg.id ? { ...curr, reactions: (freshModalMsg as any).reactions } : curr
+            );
+          }
+        }
 
         const isAppHidden = typeof document !== "undefined" && (document.hidden || !document.hasFocus());
 

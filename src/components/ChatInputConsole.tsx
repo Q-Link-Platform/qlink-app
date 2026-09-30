@@ -176,7 +176,9 @@ export const ChatInputConsole = memo(function ChatInputConsole({
 
     // If there is an image pending preview, submit triggers sending the image
     if (hasPendingImage && onSendPendingImage) {
-      onSendPendingImage();
+      if (!isUploadingAttachment) {
+        onSendPendingImage();
+      }
       if (text) {
         setLocalInput("");
         if (textareaRef.current) {

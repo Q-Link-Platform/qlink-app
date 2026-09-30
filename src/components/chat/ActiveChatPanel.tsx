@@ -1798,9 +1798,13 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                     })()}
 
                                     {/* Attachments, if any */}
-                                    {attachments && attachments.length > 0 && (
-                                      <div className="mt-0.5 space-y-2">
-                                        {attachments.map((a) => {
+                                    {attachments && attachments.length > 0 && (() => {
+                                      const uniqueAttachments = Array.from(
+                                        new Map(attachments.map((att: any) => [att.objectKey || att.id, att])).values()
+                                      );
+                                      return (
+                                        <div className="mt-0.5 space-y-2">
+                                          {uniqueAttachments.map((a) => {
                                           const isImg =
                                             a.kind === "image" ||
                                             a.mimeType?.startsWith("image/") ||
@@ -2103,7 +2107,8 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                           );
                                         })}
                                       </div>
-                                    )}
+                                    );
+                                  })()}
 
                                     {/* If this message used to represent a file/video attachment
                                    but the attachment metadata is now gone (e.g. auto-deleted

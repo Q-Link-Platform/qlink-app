@@ -208,13 +208,6 @@ export async function POST(request: Request) {
           status: "uploaded",
         },
       });
-
-      await createAttachmentLogRecord({
-        data: {
-          attachmentId: attachmentRecord?.id,
-          event: "upload",
-        },
-      });
     } catch (createErr) {
       console.warn("[attachments/upload] Primary attachment create fallback:", createErr);
       try {
@@ -234,6 +227,19 @@ export async function POST(request: Request) {
         });
       } catch (fallbackErr) {
         console.error("[attachments/upload] Failed to write attachment metadata:", fallbackErr);
+      }
+    }
+
+    if (attachmentRecord?.id) {
+      try {
+        await createAttachmentLogRecord({
+          data: {
+            attachmentId: attachmentRecord.id,
+            event: "upload",
+          },
+        });
+      } catch {
+        // Non-blocking log failure
       }
     }
 
