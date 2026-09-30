@@ -136,7 +136,14 @@ export async function GET() {
     const syntheticItems = getSyntheticDirectoryItems(items.length + 1);
     const combinedItems = [...items, ...syntheticItems];
 
-    return NextResponse.json({ items: combinedItems });
+    return NextResponse.json(
+      { items: combinedItems },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+        },
+      }
+    );
   } catch (err) {
     console.error("[directory]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
