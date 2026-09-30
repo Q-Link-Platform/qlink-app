@@ -30,6 +30,26 @@ export interface QNavState {
   messageId?: string;
   view?: string;
   subView?: string;
+  isRootGuard?: boolean;
+  isRootBase?: boolean;
+}
+
+/**
+ * Arms the root navigation sentinel in browser history to prevent back-button
+ * navigation from escaping into external OAuth redirect endpoints or login history.
+ */
+export function armRootNavigationGuard() {
+  if (typeof window === "undefined") return;
+  try {
+    const currentState = window.history.state as QNavState | null;
+    const currentUrl = `${window.location.pathname}${window.location.search}`;
+    if (!currentState?.isRootGuard && !currentState?.isRootBase) {
+      window.history.replaceState({ screen: "home", isRootBase: true }, "", currentUrl);
+      window.history.pushState({ screen: "home", isRootGuard: true }, "", currentUrl);
+    }
+  } catch (err) {
+    console.warn("[NavigationRouter] armRootNavigationGuard failed:", err);
+  }
 }
 
 export function buildNavUrl(state: QNavState): string {
@@ -136,8 +156,9 @@ export function replaceNavState(state: QNavState) {
   try {
     const targetUrl = buildNavUrl(state);
     const currentUrl = `${window.location.pathname}${window.location.search}`;
-    if (targetUrl !== currentUrl) {
-      window.history.replaceState(state, "", targetUrl);
+    const enrichedState = (state.screen === "home" && !state.handle) ? { ...state, isRootGuard: true } : state;
+    if (targetUrl !== currentUrl || !window.history.state?.screen) {
+      window.history.replaceState(enrichedState, "", targetUrl);
     }
   } catch (err) {
     console.warn("[NavigationRouter] replaceNavState failed:", err);

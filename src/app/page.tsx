@@ -60,6 +60,7 @@ import {
   replaceNavState,
   parseCurrentNavState,
   popOrCloseNav,
+  armRootNavigationGuard,
   QNavState,
 } from "@/lib/navigationRouter";
 
@@ -1525,6 +1526,31 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   // States for the Secure Message Sharing feature
   const [shareToastText, setShareToastText] = useState<string | null>(null);
   const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+
+  // States & Refs for Android PWA Hardware Back & Exit Protection
+  const [exitToastVisible, setExitToastVisible] = useState(false);
+  const lastBackPressTimeRef = useRef<number>(0);
+  const exitToastTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [oauthLaunchingProvider, setOauthLaunchingProvider] = useState<string | null>(null);
+
+  const handleOAuthSignIn = async (provider: string) => {
+    if (oauthLaunchingProvider) return;
+    setOauthLaunchingProvider(provider);
+    try {
+      // Use redirect: false to get the OAuth URL directly from NextAuth without appending a history entry
+      const res = await signIn(provider, { redirect: false, callbackUrl: "/" });
+      if (res?.url) {
+        // window.location.replace completely replaces the login page in the browser history stack.
+        // This ensures the login screen does NOT sit in the browser history behind the authenticated session!
+        window.location.replace(res.url);
+        return;
+      }
+    } catch (err) {
+      console.warn(`[Auth] handleOAuthSignIn redirect:false failed for ${provider}:`, err);
+    }
+    // Fallback if needed
+    signIn(provider, { callbackUrl: "/" });
+  };
 
   // States for Q-BEACON Priority Emergency Protocol
   const [activeBeacon, setActiveBeacon] = useState<{
@@ -6842,11 +6868,44 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       if (state.screen === "directory") {
         setShowDirectory(true);
         loadDirectoryData(false);
+        return;
       } else if (state.screen === "chat" && state.handle) {
         openChatWithPeer(state.handle);
-      } else if (state.screen === "home" || !state.screen) {
-        replaceNavState({ screen: "home" });
+        return;
       }
+
+      // Priority 12: Root Home Screen Interception (Android Hardware Back Protection)
+      // When the user is on the root home screen and presses the system Back button:
+      // Prevent browser from navigating backwards into external OAuth redirect intermediates
+      // (such as accounts.google.com), previous login sessions, or cross-origin referrers.
+      const now = Date.now();
+      const timeSinceLastPress = now - lastBackPressTimeRef.current;
+
+      // Immediately re-anchor the history so the browser cannot slide backwards into OAuth
+      try {
+        window.history.pushState({ screen: "home", isRootGuard: true }, "", "/");
+      } catch {}
+
+      if (timeSinceLastPress < 2000) {
+        // Confirmed intentional exit (double-back within 2 seconds)
+        if (typeof window !== "undefined") {
+          const isStandalone =
+            window.matchMedia("(display-mode: standalone)").matches ||
+            (window.navigator as any).standalone;
+          if (isStandalone) {
+            window.close();
+          }
+        }
+        return;
+      }
+
+      // First back press at root: trigger luxury "Press back again to exit" toast
+      lastBackPressTimeRef.current = now;
+      setExitToastVisible(true);
+      if (exitToastTimerRef.current) clearTimeout(exitToastTimerRef.current);
+      exitToastTimerRef.current = setTimeout(() => {
+        setExitToastVisible(false);
+      }, 2000);
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -6854,6 +6913,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       window.removeEventListener("popstate", handlePopState);
     };
   }, []);
+
+  // 3. Android PWA Root Navigation Guard Initialization
+  useEffect(() => {
+    if (typeof window === "undefined" || !isAuthenticated) return;
+    armRootNavigationGuard();
+  }, [isAuthenticated]);
 
   // While auth is loading, show loading spinner (only on initial launch, preventing flash during updateSession background refreshes)
   if (status === "loading" && !hasInitiallyLoaded) {
@@ -6920,7 +6985,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
             {/* Google Sign-in Button */}
             <button
               className="group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-slate-700/80 bg-white px-3.5 text-xs sm:text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
-              onClick={() => signIn("google", { callbackUrl: typeof window !== "undefined" ? window.location.href : "/" })}
+              onClick={() => handleOAuthSignIn("google")}
+              disabled={!!oauthLaunchingProvider}
             >
               {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/[0.08] to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
@@ -6932,14 +6998,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   style={{ animationDelay: '0s' }}
                 />
               </div>
-              <span className="text-center whitespace-nowrap tracking-wide truncate">Continue with Google</span>
+              <span className="text-center whitespace-nowrap tracking-wide truncate">
+                {oauthLaunchingProvider === "google" ? "Connecting..." : "Continue with Google"}
+              </span>
               <div />
             </button>
 
             {/* Microsoft Sign-in Button */}
             <button
               className="group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-slate-700/80 bg-white px-3.5 text-xs sm:text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
-              onClick={() => signIn("azure-ad", { callbackUrl: typeof window !== "undefined" ? window.location.href : "/" })}
+              onClick={() => handleOAuthSignIn("azure-ad")}
+              disabled={!!oauthLaunchingProvider}
             >
               {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/[0.08] to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
@@ -6951,14 +7020,17 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                   style={{ animationDelay: '0.6s' }}
                 />
               </div>
-              <span className="text-center whitespace-nowrap tracking-wide truncate">Continue with Microsoft</span>
+              <span className="text-center whitespace-nowrap tracking-wide truncate">
+                {oauthLaunchingProvider === "azure-ad" ? "Connecting..." : "Continue with Microsoft"}
+              </span>
               <div />
             </button>
 
             {/* GitHub Sign-in Button */}
             <button
               className="group relative overflow-hidden grid w-full h-[52px] min-h-[52px] max-h-[52px] grid-cols-[40px_1fr_40px] items-center rounded-xl border border-slate-700/80 bg-white px-3.5 text-xs sm:text-sm font-semibold text-slate-900 shadow-md transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[transform,box-shadow,border-color] hover:-translate-y-[2px] hover:scale-[1.012] hover:border-slate-300 hover:bg-slate-50 hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.38),0_0_25px_rgba(255,255,255,0.3)] hover:ring-2 hover:ring-white/40 active:translate-y-0 active:scale-[0.985] active:duration-150"
-              onClick={() => signIn("github", { callbackUrl: typeof window !== "undefined" ? window.location.href : "/" })}
+              onClick={() => handleOAuthSignIn("github")}
+              disabled={!!oauthLaunchingProvider}
             >
               {/* Silky Smooth Satin Light Beam Sheen on Exact Hover */}
               <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-slate-900/[0.08] to-transparent transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-full" />
@@ -8242,8 +8314,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       if (typeof window !== "undefined" && (window as any).electronAPI?.logout) {
         (window as any).electronAPI.logout();
       } else {
-        // Web redirect fallback
-        window.location.href = '/';
+        // Web redirect fallback: use replace to avoid appending a redundant login state to the history stack
+        window.location.replace('/');
       }
     } catch (error) {
       console.error('Sign out error:', error);
@@ -13568,6 +13640,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[10000] animate-fade-in px-4 py-2 rounded-full border border-cyan-500/30 bg-[#09111c]/90 text-cyan-400 text-xs font-mono font-bold tracking-wider shadow-[0_0_20px_rgba(6,182,212,0.4)] backdrop-blur-md flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-ping" />
           {shareToastText}
+        </div>
+      )}
+
+      {/* Quantum PWA Root Back Protection Exit Toast */}
+      {exitToastVisible && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[10000] pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] animate-in fade-in slide-in-from-bottom-3">
+          <div className="flex items-center gap-2.5 rounded-full border border-cyan-400/40 bg-slate-950/90 px-4 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_20px_rgba(6,182,212,0.25)] backdrop-blur-xl ring-1 ring-white/10">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
+            </span>
+            <span className="text-xs font-medium tracking-wide text-slate-200">
+              Press back again to exit Q-Link
+            </span>
+          </div>
         </div>
       )}
 
