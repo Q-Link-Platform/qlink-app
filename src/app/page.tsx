@@ -54,6 +54,12 @@ import { PerformanceProvider, usePerformance } from "@/app/providers/Performance
 import { ChatInputConsole } from "@/components/ChatInputConsole";
 import { YouTubeInlinePreview } from "@/components/YouTubeInlinePreview";
 import QuantumOnboardingTour from "@/components/QuantumOnboardingTour";
+import {
+  OpticalAllFeedIcon,
+  OpticalShortsIcon,
+  OpticalPostsIcon,
+  OpticalTweetsIcon,
+} from "@/components/OpticalMediaIcons";
 
 import {
   pushNavState,
@@ -9477,20 +9483,21 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                                   {[
-                                    { id: 'all', label: 'All Feed', icon: '🌐', color: 'cyan' },
-                                    { id: 'shorts', label: 'Shorts', icon: '🎬', color: 'amber' },
-                                    { id: 'posts', label: 'Posts', icon: '📷', color: 'rose' },
-                                    { id: 'tweets', label: 'Tweets', icon: '💬', color: 'indigo' }
+                                    { id: 'all', label: 'All Feed', icon: OpticalAllFeedIcon, color: 'cyan' },
+                                    { id: 'shorts', label: 'Shorts', icon: OpticalShortsIcon, color: 'amber' },
+                                    { id: 'posts', label: 'Posts', icon: OpticalPostsIcon, color: 'rose' },
+                                    { id: 'tweets', label: 'Tweets', icon: OpticalTweetsIcon, color: 'indigo' }
                                   ].map((tab) => {
                                     const isActive = mediaFilterTab === tab.id;
+                                    const TabIcon = tab.icon;
                                     let activeClass = "";
-                                    let inactiveClass = "border-slate-800 bg-slate-900/40 text-slate-400 hover:border-slate-700 hover:text-slate-200";
+                                    let inactiveClass = "border-white/[0.08] bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-slate-200 hover:bg-white/[0.06] backdrop-blur-xl shadow-[0_2px_8px_rgba(0,0,0,0.2)]";
 
                                     if (isActive) {
-                                      if (tab.color === 'cyan') activeClass = "border-cyan-400/80 bg-cyan-500/15 text-cyan-200 shadow-[0_0_12px_rgba(34,211,238,0.25)]";
-                                      else if (tab.color === 'amber') activeClass = "border-amber-400/80 bg-amber-500/15 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.25)]";
-                                      else if (tab.color === 'rose') activeClass = "border-rose-400/80 bg-rose-500/15 text-rose-200 shadow-[0_0_12px_rgba(244,63,94,0.25)]";
-                                      else if (tab.color === 'indigo') activeClass = "border-indigo-400/80 bg-indigo-500/15 text-indigo-200 shadow-[0_0_12px_rgba(99,102,241,0.25)]";
+                                      if (tab.color === 'cyan') activeClass = "border-cyan-400/80 bg-gradient-to-r from-cyan-500/20 to-cyan-500/10 text-cyan-200 shadow-[0_0_14px_rgba(34,211,238,0.3)] ring-1 ring-cyan-400/30";
+                                      else if (tab.color === 'amber') activeClass = "border-amber-400/80 bg-gradient-to-r from-amber-500/20 to-amber-500/10 text-amber-200 shadow-[0_0_14px_rgba(245,158,11,0.3)] ring-1 ring-amber-400/30";
+                                      else if (tab.color === 'rose') activeClass = "border-rose-400/80 bg-gradient-to-r from-rose-500/20 to-rose-500/10 text-rose-200 shadow-[0_0_14px_rgba(244,63,94,0.3)] ring-1 ring-rose-400/30";
+                                      else if (tab.color === 'indigo') activeClass = "border-indigo-400/80 bg-gradient-to-r from-indigo-500/20 to-indigo-500/10 text-indigo-200 shadow-[0_0_14px_rgba(99,102,241,0.3)] ring-1 ring-indigo-400/30";
                                     }
 
                                     return (
@@ -9498,10 +9505,12 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                         key={tab.id}
                                         type="button"
                                         onClick={() => setMediaFilterTab(tab.id as any)}
-                                        className={`flex items-center gap-1 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all duration-300 active:scale-95 cursor-pointer ${isActive ? activeClass : inactiveClass
+                                        className={`group flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-95 cursor-pointer ${isActive ? activeClass : inactiveClass
                                           }`}
                                       >
-                                        <span>{tab.icon}</span>
+                                        <span className="transition-transform duration-300 group-hover:scale-110">
+                                          <TabIcon className="w-3.5 h-3.5" />
+                                        </span>
                                         <span>{tab.label}</span>
                                       </button>
                                     );
@@ -9955,15 +9964,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     const mediaKind = (post?.media?.kind || post?.attachmentKind || "").toLowerCase();
                                     const isVid = mediaKind === "video";
                                     const isImg = mediaKind === "image";
-                                    let label = "💬 Tweet";
-                                    let badgeClass = "border-indigo-500/40 bg-indigo-500/10 text-indigo-300 shadow-[0_0_10px_rgba(99,102,241,0.2)]";
-                                    if (isVid) {
-                                      label = "🎬 Shorts";
-                                      badgeClass = "border-amber-500/40 bg-amber-500/10 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]";
-                                    } else if (isImg) {
-                                      label = "📷 Post";
-                                      badgeClass = "border-cyan-500/40 bg-cyan-500/10 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]";
-                                    }
+                                    let BadgeIcon = OpticalTweetsIcon;
+                                     let badgeText = "Tweet";
+                                     let badgeClass = "border-indigo-500/40 bg-indigo-500/10 text-indigo-300 shadow-[0_0_10px_rgba(99,102,241,0.2)]";
+                                     if (isVid) {
+                                       BadgeIcon = OpticalShortsIcon;
+                                       badgeText = "Shorts";
+                                       badgeClass = "border-amber-500/40 bg-amber-500/10 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.2)]";
+                                     } else if (isImg) {
+                                       BadgeIcon = OpticalPostsIcon;
+                                       badgeText = "Post";
+                                       badgeClass = "border-cyan-500/40 bg-cyan-500/10 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.2)]";
+                                     }
 
                                     return (
                                       <div
@@ -10023,10 +10035,11 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                           </div>
 
                                           <div className="flex items-center gap-2">
-                                            <span className={`rounded-full border px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ${badgeClass}`}>
-                                              {label}
-                                            </span>
-                                          </div>
+                                             <span className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider backdrop-blur-md ${badgeClass}`}>
+                                               <BadgeIcon className="w-3 h-3" />
+                                               <span>{badgeText}</span>
+                                             </span>
+                                           </div>
                                         </div>
 
                                         {/* Text content */}
