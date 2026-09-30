@@ -84,10 +84,10 @@ export async function GET(request: Request) {
             data: {
               id: synthTarget.id,
               handle: synthTarget.handle,
-              name: synthTarget.displayName || synthTarget.name || synthTarget.handle,
-              publicKeyString: synthTarget.publicKey || null,
-              image: synthTarget.avatarUrl || null,
-              bio: synthTarget.bio || null,
+              name: synthTarget.name || synthTarget.handle,
+              email: synthTarget.email,
+              image: synthTarget.image || null,
+              blue_tick_status: synthTarget.blue_tick_status || "NONE",
             },
             select: {
               id: true,
@@ -176,7 +176,6 @@ export async function GET(request: Request) {
         id: true,
         content: true,
         createdAt: true,
-        updatedAt: true,
         senderId: true,
         roomId: true,
         status: true,

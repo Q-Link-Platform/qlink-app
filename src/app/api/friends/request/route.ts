@@ -60,10 +60,10 @@ export async function POST(request: Request) {
             data: {
               id: synthTarget.id,
               handle: synthTarget.handle,
-              name: synthTarget.displayName || synthTarget.name || synthTarget.handle,
-              publicKeyString: synthTarget.publicKey || null,
-              image: synthTarget.avatarUrl || null,
-              bio: synthTarget.bio || null,
+              name: synthTarget.name || synthTarget.handle,
+              email: synthTarget.email,
+              image: synthTarget.image || null,
+              blue_tick_status: synthTarget.blue_tick_status || "NONE",
             },
           }).catch(async () => {
             return await prisma.user.findFirst({
