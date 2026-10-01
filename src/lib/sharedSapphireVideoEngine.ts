@@ -36,10 +36,8 @@ class SharedSapphireVideoEngine {
   private constructor() {
     if (typeof window === 'undefined') return;
 
-    this.initVideo();
-    this.initBufferCanvas();
-    this.initVisibilityListeners();
-    this.startWatchdog();
+    // Video streaming temporarily paused to reduce Vercel bandwidth
+    return;
   }
 
   public static getInstance(): SharedSapphireVideoEngine {
