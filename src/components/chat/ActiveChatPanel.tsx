@@ -1682,6 +1682,16 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                       )
                                     );
                                     const shouldShowCaption = Boolean(displayContent && !isFilenameOnly && !isSocialUrlOnly);
+                                    const isImageOnlyAttachment = Boolean(
+                                      attachments &&
+                                      attachments.length > 0 &&
+                                      attachments.every((a: any) =>
+                                        a.kind === "image" ||
+                                        a.mimeType?.startsWith("image/") ||
+                                        /\.(jpe?g|png|webp|gif|svg|bmp)$/i.test(a.originalName)
+                                      ) &&
+                                      !shouldShowCaption
+                                    );
 
                                     return (
                                       <React.Fragment>
@@ -1692,7 +1702,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                         className={
                                           hasMedia
                                             ? `${
-                                                socialEmbedInfo && isSocialUrlOnly
+                                                (socialEmbedInfo && isSocialUrlOnly) || isImageOnlyAttachment
                                                   ? "w-fit max-w-[95%] sm:max-w-[420px] p-0 bg-transparent border-0 shadow-none"
                                                   : socialEmbedInfo
                                                     ? "w-fit max-w-[95%] sm:max-w-[420px] p-2 rounded-2xl sm:rounded-3xl backdrop-blur-2xl bg-white/[0.05] dark:bg-slate-950/50 border border-white/20 dark:border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.55)]"
@@ -1826,87 +1836,136 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
 
                                           if (isImg) {
                                             return (
-                                              <div key={a.id} className="space-y-1.5">
-                                                {/* Apple Optical Crystal / Glass Image Container */}
-                                                <div className="relative group/img overflow-hidden rounded-xl sm:rounded-2xl border border-white/15 dark:border-white/10 bg-black/40 backdrop-blur-md shadow-inner cursor-zoom-in">
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
+                                              <div key={a.id} className="relative group/img overflow-hidden rounded-2xl sm:rounded-3xl border border-white/20 dark:border-white/15 shadow-[0_12px_36px_rgba(0,0,0,0.65)] transition-all duration-300 w-fit max-w-full">
+                                                <div
+                                                  role="button"
+                                                  tabIndex={0}
+                                                  onClick={() => {
+                                                    setLightboxImageUrl(url);
+                                                    setLightboxImageName(a.originalName);
+                                                  }}
+                                                  onKeyDown={(e) => {
+                                                    if (e.key === "Enter" || e.key === " ") {
                                                       setLightboxImageUrl(url);
                                                       setLightboxImageName(a.originalName);
-                                                    }}
-                                                    className="block w-full focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition-transform duration-300 group-hover/img:scale-[1.01] cursor-zoom-in relative"
-                                                    title="Click to view & zoom image"
-                                                  >
-                                                    <img
-                                                      src={url}
-                                                      alt={a.originalName}
-                                                      loading="lazy"
-                                                      decoding="async"
-                                                      className="max-h-72 w-full object-contain chat-image-optimized transition-opacity duration-300"
-                                                    />
-                                                    {/* Optical Zoom Action Icon on hover */}
-                                                    <div className="absolute bottom-2.5 right-2.5 pointer-events-none opacity-0 group-hover/img:opacity-100 transition-all duration-200 z-10">
-                                                      <div className="relative group/zoom-btn flex items-center justify-center">
-                                                        <div className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-cyan-300 shadow-lg backdrop-blur-xl transition-all duration-200 hover:scale-105 hover:bg-slate-900 active:scale-95">
-                                                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-                                                          </svg>
-                                                        </div>
-                                                        <div className="pointer-events-none absolute bottom-full mb-1.5 right-0 z-30 opacity-0 group-hover/zoom-btn:opacity-100 transition-all duration-150 ease-out whitespace-nowrap">
-                                                          <div className="flex items-center gap-1 rounded-full border border-white/15 bg-black/90 px-2 py-0.5 text-[9.5px] font-medium tracking-tight text-white/90 shadow-xl backdrop-blur-xl">
-                                                            Zoom
-                                                          </div>
+                                                    }
+                                                  }}
+                                                  className="block focus:outline-none focus:ring-2 focus:ring-cyan-400/80 transition-transform duration-300 group-hover/img:scale-[1.01] cursor-zoom-in relative"
+                                                  title="Click to view & zoom image"
+                                                >
+                                                  <img
+                                                    src={url}
+                                                    alt={a.originalName}
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    className="max-h-[360px] sm:max-h-[420px] max-w-[280px] sm:max-w-[340px] w-auto h-auto object-contain block select-none rounded-2xl sm:rounded-3xl"
+                                                  />
+                                          
+                                                  {/* Subtle optical specular gradient overlay */}
+                                                  <div className="pointer-events-none absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-t from-black/50 via-transparent to-black/15 opacity-70" />
+                                                </div>
+                                          
+                                                {/* Floating Apple Optical Glass Action Toolbar (top-right) */}
+                                                <div className="absolute top-2 right-2 flex items-center gap-1.5 opacity-90 sm:opacity-0 group-hover/img:opacity-100 transition-all duration-200 z-20">
+                                                  <div className="relative group/img-btn flex items-center justify-center">
+                                                    <button
+                                                      type="button"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setLightboxImageUrl(url);
+                                                        setLightboxImageName(a.originalName);
+                                                      }}
+                                                      aria-label="Zoom image"
+                                                      title="Zoom"
+                                                      className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-cyan-300 shadow-lg backdrop-blur-xl transition-all duration-200 hover:scale-105 hover:bg-slate-900 active:scale-95 cursor-pointer"
+                                                    >
+                                                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+                                                      </svg>
+                                                    </button>
+                                                    <div className="pointer-events-none absolute bottom-full mb-1 right-0 z-30 opacity-0 group-hover/img-btn:opacity-100 transition-all duration-150 ease-out whitespace-nowrap">
+                                                      <div className="rounded-full border border-white/15 bg-black/90 px-2 py-0.5 text-[9px] font-medium tracking-tight text-white/90 shadow-xl backdrop-blur-xl">
+                                                        Zoom
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                          
+                                                  <div className="relative group/img-btn flex items-center justify-center">
+                                                    <button
+                                                      type="button"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDownloadAttachment(a.id, a.originalName);
+                                                      }}
+                                                      disabled={downloadingAttachmentId === a.id}
+                                                      aria-label="Download image"
+                                                      title="Download"
+                                                      className="flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-slate-950/80 text-cyan-300 shadow-lg backdrop-blur-xl transition-all duration-200 hover:scale-105 hover:bg-slate-900 active:scale-95 cursor-pointer disabled:opacity-50"
+                                                    >
+                                                      {downloadingAttachmentId === a.id ? (
+                                                        <svg className="h-3.5 w-3.5 animate-spin text-cyan-300" viewBox="0 0 24 24" fill="none">
+                                                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                                                        </svg>
+                                                      ) : (
+                                                        <svg className="h-3.5 w-3.5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                          <polyline points="7 10 12 15 17 10" />
+                                                          <line x1="12" y1="15" x2="12" y2="3" />
+                                                        </svg>
+                                                      )}
+                                                    </button>
+                                                    <div className="pointer-events-none absolute bottom-full mb-1 right-0 z-30 opacity-0 group-hover/img-btn:opacity-100 transition-all duration-150 ease-out whitespace-nowrap">
+                                                      <div className="rounded-full border border-white/15 bg-black/90 px-2 py-0.5 text-[9px] font-medium tracking-tight text-white/90 shadow-xl backdrop-blur-xl">
+                                                        Download
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                          
+                                                  {isMe && (
+                                                    <div className="relative group/img-btn flex items-center justify-center">
+                                                      <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          handleDeleteMessage(m.id);
+                                                        }}
+                                                        aria-label="Delete image"
+                                                        title="Delete"
+                                                        className="flex h-7 w-7 items-center justify-center rounded-full border border-rose-500/30 bg-slate-950/80 text-rose-300 shadow-lg backdrop-blur-xl transition-all duration-200 hover:scale-105 hover:bg-rose-950/80 active:scale-95 cursor-pointer"
+                                                      >
+                                                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                          <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                      </button>
+                                                      <div className="pointer-events-none absolute bottom-full mb-1 right-0 z-30 opacity-0 group-hover/img-btn:opacity-100 transition-all duration-150 ease-out whitespace-nowrap">
+                                                        <div className="rounded-full border border-rose-500/30 bg-black/90 px-2 py-0.5 text-[9px] font-medium tracking-tight text-rose-200 shadow-xl backdrop-blur-xl">
+                                                          Delete
                                                         </div>
                                                       </div>
                                                     </div>
-                                                  </button>
-                                                  {/* Subtle optical specular gradient overlay */}
-                                                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 opacity-60" />
+                                                  )}
                                                 </div>
-
-                                                {/* Apple Glass Frosted Action Pill Toolbar */}
-                                                <div className="flex items-center justify-between gap-2 px-1 pt-0.5">
-                                                  <span className="truncate text-[10.5px] font-mono text-white/50 tracking-tight select-none">
-                                                    {a.originalName}
-                                                  </span>
-                                                  <div className="flex items-center gap-1.5 shrink-0">
-                                                    {isMe && (
-                                                      <AttachmentActionButton
-                                                        onClick={() => handleDeleteMessage(m.id)}
-                                                        ariaLabel="Delete image"
-                                                        tooltip="Delete image"
-                                                        variant="danger"
-                                                        icon={
-                                                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                                                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                          </svg>
-                                                        }
-                                                      />
+                                          
+                                                {/* WhatsApp/Telegram Floating Timestamp Pill (bottom-right) */}
+                                                {m.createdAt && (
+                                                  <div
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      setDetailModalMessage(m);
+                                                    }}
+                                                    title="Click for Message Details"
+                                                    className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md px-2.5 py-0.5 text-[9.5px] font-mono tracking-tight text-white/90 shadow-md border border-white/10 select-none cursor-pointer hover:bg-black/80 transition z-20"
+                                                  >
+                                                    {(m as any).isEdited && (
+                                                      <span className="italic text-[8px] opacity-80" title={(m as any).editedAt ? `Edited: ${formatMsgTime((m as any).editedAt)}` : "Edited"}>
+                                                        (edited)
+                                                      </span>
                                                     )}
-                                                    <AttachmentActionButton
-                                                      onClick={() => handleDownloadAttachment(a.id, a.originalName)}
-                                                      ariaLabel="Download image"
-                                                      tooltip={downloadingAttachmentId === a.id ? "Downloading…" : "Download image"}
-                                                      variant="cyan"
-                                                      disabled={downloadingAttachmentId === a.id}
-                                                      icon={
-                                                        downloadingAttachmentId === a.id ? (
-                                                          <svg className="h-3.5 w-3.5 animate-spin text-cyan-300" viewBox="0 0 24 24" fill="none">
-                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                                                          </svg>
-                                                        ) : (
-                                                          <svg className="h-3.5 w-3.5 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                                            <polyline points="7 10 12 15 17 10" />
-                                                            <line x1="12" y1="15" x2="12" y2="3" />
-                                                          </svg>
-                                                        )
-                                                      }
-                                                    />
+                                                    <span>{formatMsgTime(m.createdAt)}</span>
+                                                    <MessageStatusTicks status={(m as any).status} isMe={!!isMe} onRetry={() => handleRetryMessage && handleRetryMessage(m.id)} />
                                                   </div>
-                                                </div>
+                                                )}
                                               </div>
                                             );
                                           }
@@ -2128,7 +2187,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                     )}
 
                                             {/* Timestamp below Media (only shown if message has media) */}
-                                            {hasMedia && m.createdAt && (
+                                            {hasMedia && !isImageOnlyAttachment && m.createdAt && (
                                               <div className="mt-1.5 flex items-center justify-end px-1">
                                                 <span
                                                   onClick={(e) => {
