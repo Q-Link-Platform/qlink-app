@@ -3033,6 +3033,73 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [directoryOpenCommentsPostId, setDirectoryOpenCommentsPostId] =
     useState<string | null>(null);
 
+  // Directory scroll preservation & X-style floating Scroll-to-Top button
+  const directoryScrollRef = useRef<HTMLDivElement | null>(null);
+  const directoryScrollTopRef = useRef<number>(0);
+  const [showDirectoryScrollToTop, setShowDirectoryScrollToTop] = useState(false);
+
+  const handleDirectoryScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const top = e.currentTarget.scrollTop;
+    directoryScrollTopRef.current = top;
+    try {
+      sessionStorage.setItem("qc_directory_scroll", String(top));
+    } catch {}
+    if (top > 160) {
+      if (!showDirectoryScrollToTop) setShowDirectoryScrollToTop(true);
+    } else {
+      if (showDirectoryScrollToTop) setShowDirectoryScrollToTop(false);
+    }
+  };
+
+  const scrollToDirectoryTop = () => {
+    if (directoryScrollRef.current) {
+      directoryScrollRef.current.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+    directoryScrollTopRef.current = 0;
+    setShowDirectoryScrollToTop(false);
+    try {
+      sessionStorage.setItem("qc_directory_scroll", "0");
+    } catch {}
+  };
+
+  // Restore scroll position when Global Directory opens or when returning to user list
+  useEffect(() => {
+    if (!showDirectory || directoryProfileHandle) return;
+    const savedTop = directoryScrollTopRef.current || (typeof window !== "undefined" ? Number(sessionStorage.getItem("qc_directory_scroll") || 0) : 0);
+    if (!savedTop || savedTop <= 0) return;
+
+    let cancelled = false;
+    const restore = () => {
+      if (cancelled) return;
+      if (directoryScrollRef.current) {
+        if (Math.abs(directoryScrollRef.current.scrollTop - savedTop) > 5) {
+          directoryScrollRef.current.scrollTop = savedTop;
+        }
+      }
+    };
+
+    restore();
+    const raf1 = requestAnimationFrame(restore);
+    const raf2 = requestAnimationFrame(() => requestAnimationFrame(restore));
+    const t1 = setTimeout(restore, 40);
+    const t2 = setTimeout(restore, 120);
+    const t3 = setTimeout(restore, 250);
+    const t4 = setTimeout(restore, 450);
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
+  }, [showDirectory, directoryProfileHandle, directoryItems, directoryLoading]);
+
   // Engagement state management
   const [followStatus, setFollowStatus] = useState<Record<string, boolean>>({});
   const [postReactions, setPostReactions] = useState<Record<string, { likes: number; dislikes: number; userReaction: number | null }>>({});
@@ -6192,6 +6259,13 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   };
 
   const closeDirectory = () => {
+    if (directoryScrollRef.current) {
+      const top = directoryScrollRef.current.scrollTop;
+      directoryScrollTopRef.current = top;
+      try {
+        sessionStorage.setItem("qc_directory_scroll", String(top));
+      } catch {}
+    }
     setShowDirectory(false);
     setIsConsoleAnimating(true);
     setDirectoryProfileHandle(null);
@@ -9075,8 +9149,48 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                 </div>
 
                 <div
+                  ref={(node) => {
+                    directoryScrollRef.current = node;
+                    if (node) {
+                      const savedTop = directoryScrollTopRef.current || (typeof window !== "undefined" ? Number(sessionStorage.getItem("qc_directory_scroll") || 0) : 0);
+                      if (savedTop > 0 && node.scrollTop === 0) {
+                        node.scrollTop = savedTop;
+                      }
+                    }
+                  }}
+                  onScroll={handleDirectoryScroll}
                   className="relative mt-3 flex-1 min-h-0 overflow-y-auto pb-6 pr-0 sm:pr-1 custom-directory-scroll"
                 >
+                  {/* X-Style Floating Scroll-to-Top Pill in Top-Center Area */}
+                  <div
+                    className={`sticky top-2 z-40 flex justify-center w-full pointer-events-none transition-all duration-300 ease-out ${
+                      showDirectoryScrollToTop
+                        ? "opacity-100 translate-y-0 scale-100"
+                        : "opacity-0 -translate-y-3 scale-95 pointer-events-none"
+                    }`}
+                    style={{ height: 0, overflow: "visible" }}
+                  >
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        scrollToDirectoryTop();
+                      }}
+                      className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-cyan-400/50 bg-slate-900/95 px-3.5 py-1.5 text-xs font-bold text-cyan-300 shadow-[0_4px_24px_rgba(0,0,0,0.7),0_0_16px_rgba(6,182,212,0.35)] backdrop-blur-xl transition-all duration-200 hover:scale-105 hover:border-cyan-300 hover:bg-slate-800 hover:text-white active:scale-95 cursor-pointer group select-none"
+                      title="Scroll to Top"
+                      aria-label="Scroll to top of Global Directory"
+                    >
+                      <svg
+                        className="w-3.5 h-3.5 transform transition-transform duration-200 group-hover:-translate-y-0.5 text-cyan-400 group-hover:text-cyan-200"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                      </svg>
+                      <span className="tracking-wide text-[11px]">Top</span>
+                    </button>
+                  </div>
                   {directoryLoading && (
                     showDirectoryMediaOnly ? (
                       <GlobalDirectoryMediaSkeleton />
