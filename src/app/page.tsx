@@ -3596,12 +3596,20 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
   };
 
+  const isDisplayablePost = (p: any) => {
+    if (!p) return false;
+    const hasText = typeof p?.text === "string" && p.text.trim().length > 0;
+    const hasMedia = Boolean(p?.media?.url || p?.attachment?.url || p?.attachmentId);
+    return hasText || hasMedia;
+  };
+
   const fetchDirectoryLatestPosts = async () => {
     const cachedPosts = offlineCache.getStale<any[]>(CACHE_KEYS.DIR_POSTS);
     if (cachedPosts && cachedPosts.length > 0) {
-      setDirectoryGlobalPosts(cachedPosts);
+      const validCached = cachedPosts.filter(isDisplayablePost);
+      setDirectoryGlobalPosts(validCached);
       const byAuthorId: Record<string, any[]> = {};
-      for (const p of cachedPosts) {
+      for (const p of validCached) {
         if (!p?.authorId) continue;
         const arr = byAuthorId[p.authorId] || [];
         if (arr.length >= 5) continue;
@@ -3637,7 +3645,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       }
       const postsData: { posts?: any[] } = await postsRes.json();
       const byAuthorId: Record<string, any[]> = {};
-      const posts = Array.isArray(postsData.posts) ? postsData.posts : [];
+      const rawPosts = Array.isArray(postsData.posts) ? postsData.posts : [];
+      const posts = rawPosts.filter(isDisplayablePost);
       offlineCache.set(CACHE_KEYS.DIR_POSTS, posts, CACHE_TTL.DIR_POSTS);
       setDirectoryGlobalPosts(posts);
 
@@ -9108,6 +9117,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
                         for (const p of rawPosts) {
                           if (!p?.id || seenIds.has(p.id)) continue;
+                          const hasText = typeof p?.text === "string" && p.text.trim().length > 0;
+                          const hasMedia = Boolean(p?.media?.url || p?.attachment?.url || p?.attachmentId);
+                          if (!hasText && !hasMedia) continue;
                           seenIds.add(p.id);
                           const authorItem = authorById.get(p.authorId) || p.author || {
                             id: p.authorId,
@@ -9643,196 +9655,208 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                                     </div>
                                   </div>
 
-                                  {/* Latest GLOBAL post card for this ID */}
-                                  {(() => {
-                                    const posts = directoryLatestPostsByAuthorId?.[item.id] || [];
-                                    if (!posts.length) return null;
-                                    return (
-                                      <div className="mt-2 space-y-2" style={{ overflowAnchor: "none" }}>
-                                        {posts.map((post) => {
-                                          const timeAgo = formatTimeAgo(post?.createdAt);
-                                          return (
-                                            <div
-                                              key={post.id}
-                                              style={{ overflowAnchor: "none" }}
-                                              className="rounded-none sm:rounded-2xl border-0 sm:border border-slate-700/60 bg-transparent sm:bg-slate-950/60 p-0 sm:p-2.5 mt-3 sm:mt-2.5 pt-3 sm:pt-2.5 border-t border-slate-800/80 sm:border-t-0 cursor-pointer hover:border-slate-600/80 transition-all"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                trackPostView(post.id);
-                                              }}
-                                            >
-                                              {/* Meta/X Author Header with Three-Dots Menu */}
-                                              <div className="flex items-center justify-between gap-2 pb-1.5 relative">
-                                                <div
-                                                  className="min-w-0 flex items-center gap-2.5 cursor-pointer group/author hover:opacity-90 transition-opacity"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openUserProfile(item?.handle, item);
-                                                  }}
-                                                >
-                                                  <div className="relative h-7 w-7 rounded-full overflow-hidden flex-shrink-0 bg-slate-800 border border-slate-700/60 group-hover/author:border-cyan-400/80 transition-colors">
-                                                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30 flex items-center justify-center text-[10px] font-bold text-white uppercase">
-                                                      {(item?.handle?.[0] || item?.name?.[0] || '?').toUpperCase()}
-                                                    </div>
-                                                    {isValidImageUrl(item?.image) && (
-                                                      <img
-                                                        src={getHighResProfilePic(item.image)}
-                                                        alt={item.name || item.handle || 'User'}
-                                                        className="absolute inset-0 h-full w-full object-cover rounded-full"
-                                                        referrerPolicy="no-referrer"
-                                                        onError={(e) => {
-                                                          (e.target as HTMLImageElement).style.display = 'none';
-                                                        }}
-                                                      />
-                                                    )}
-                                                  </div>
-                                                  <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
-                                                    <span className="font-bold text-xs text-white truncate group-hover/author:text-cyan-300 transition-colors">
-                                                      {item.name || item.handle}
-                                                    </span>
-                                                    <span className="text-[11px] text-slate-400 truncate">
-                                                      @{item.handle}
-                                                    </span>
-                                                    {timeAgo && (
-                                                      <>
-                                                        <span className="text-slate-600 text-[10px]">&middot;</span>
-                                                        <span className="text-[11px] text-slate-400 whitespace-nowrap">
-                                                          {timeAgo}
-                                                        </span>
-                                                      </>
-                                                    )}
-                                                  </div>
-                                                </div>
+                                   {/* Latest GLOBAL post preview for this user */}
+                                   {(() => {
+                                     const rawPosts = directoryLatestPostsByAuthorId?.[item.id] || [];
+                                     // Strictly guard against ghost/empty posts (must have displayable text or media)
+                                     const posts = rawPosts.filter((post) => {
+                                       const hasText = typeof post?.text === "string" && post.text.trim().length > 0;
+                                       const hasMedia = Boolean(post?.media?.url || post?.attachment?.url || post?.attachmentId);
+                                       return hasText || hasMedia;
+                                     });
+                                     if (!posts.length) return null;
+                                     return (
+                                       <div className="mt-2.5 space-y-2.5" style={{ overflowAnchor: "none" }}>
+                                         {posts.map((post) => {
+                                           const timeAgo = formatTimeAgo(post?.createdAt);
+                                           return (
+                                             <div
+                                               key={post.id}
+                                               style={{ overflowAnchor: "none" }}
+                                               className="rounded-xl border border-white/[0.08] bg-slate-900/60 backdrop-blur-md p-3 sm:p-3.5 mt-2.5 cursor-pointer hover:border-cyan-500/40 hover:bg-slate-900/80 transition-all duration-200 group/post shadow-inner"
+                                               onClick={(e) => {
+                                                 e.stopPropagation();
+                                                 trackPostView(post.id);
+                                               }}
+                                             >
+                                               {/* Quiet Luxury Transmission Header (Eliminates redundant duplicate author card) */}
+                                               <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-white/[0.06]">
+                                                 <div className="flex items-center gap-2 min-w-0">
+                                                   <span className="flex h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.8)]" />
+                                                   <span className="text-[10.5px] font-bold tracking-wider text-cyan-300 uppercase">
+                                                     Latest Transmission
+                                                   </span>
+                                                   {timeAgo && (
+                                                     <>
+                                                       <span className="text-slate-600 text-[10px]">&middot;</span>
+                                                       <span className="text-[11px] text-slate-400 whitespace-nowrap">
+                                                         {timeAgo}
+                                                       </span>
+                                                     </>
+                                                   )}
+                                                 </div>
 
-                                                <div className="flex items-center gap-1.5">
-                                                  <span className="rounded-full border border-slate-700/60 bg-slate-900/80 px-2 py-0.5 text-[9px] font-medium text-cyan-300">
-                                                    Global
-                                                  </span>
-                                                </div>
-                                              </div>
+                                                 <div className="flex items-center gap-1.5">
+                                                   <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[9px] font-semibold text-cyan-300 shadow-[0_0_8px_rgba(6,182,212,0.15)]">
+                                                     Global
+                                                   </span>
+                                                   {post.authorId === (session?.user as any)?.id && (
+                                                     <button
+                                                       type="button"
+                                                       onClick={(e) => {
+                                                         e.stopPropagation();
+                                                         handleDeletePost(post.id);
+                                                       }}
+                                                       className="p-1 rounded-full text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                                                       title="Delete Post"
+                                                     >
+                                                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                       </svg>
+                                                     </button>
+                                                   )}
+                                                 </div>
+                                               </div>
 
-                                               {post?.text && (
-                                                 <FormattedPostText text={post.text} />
+                                                {post?.text && (
+                                                  <div className="text-xs sm:text-[13px] text-slate-200 leading-relaxed break-words">
+                                                    <FormattedPostText text={post.text} />
+                                                  </div>
+                                                )}
+
+                                                {post?.media?.url && post?.media?.kind === "image" && (
+                                                  <div className="mt-2.5">
+                                                    <PostImageAttachment src={post.media.url} alt="Post media" />
+                                                  </div>
+                                                )}
+
+                                               {post?.media?.url && post?.media?.kind === "video" && (
+                                                 <div className="mt-2.5 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg">
+                                                   <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[300px] sm:min-h-[420px] max-h-[75vh]">
+                                                     <SmartVideo
+                                                       src={post.media.url}
+                                                       className="w-full h-auto min-h-[300px] sm:min-h-[420px] max-h-[75vh]"
+                                                       preload="auto"
+                                                       autoplayMuted
+                                                     />
+                                                   </div>
+                                                 </div>
                                                )}
 
-                                               {post?.media?.url && post?.media?.kind === "image" && (
-                                                 <PostImageAttachment src={post.media.url} alt="Post media" />
-                                               )}
+                                                 {/* Meta / X Level Unified Action Bar */}
+                                                 <div className="mt-3 pt-2.5 border-t border-white/[0.06] flex items-center justify-between text-xs text-slate-400">
+                                                   {/* Left Actions: Comment, Repost/Share, Like, Views */}
+                                                   <div className="flex items-center gap-1 sm:gap-2.5">
+                                                     {/* 1. Comment Action */}
+                                                     <button
+                                                       type="button"
+                                                       onClick={(e) => {
+                                                         e.stopPropagation();
+                                                         const willOpen = directoryOpenCommentsPostId !== post.id;
+                                                         setDirectoryOpenCommentsPostId(willOpen ? post.id : null);
+                                                         if (willOpen) {
+                                                           fetchComments(post.id);
+                                                         }
+                                                       }}
+                                                       className={`group flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-150 active:scale-95 cursor-pointer ${
+                                                         directoryOpenCommentsPostId === post.id
+                                                           ? 'bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-[0_0_10px_rgba(14,165,233,0.3)]'
+                                                           : 'text-slate-400 hover:text-sky-300 hover:bg-sky-500/10'
+                                                       }`}
+                                                       title="Comment"
+                                                     >
+                                                       <svg className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                       </svg>
+                                                       <span>{postComments[post.id]?.length ?? (post?._count?.comments || 0)}</span>
+                                                     </button>
 
-                                              {post?.media?.url && post?.media?.kind === "video" && (
-                                                <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950 w-full relative shadow-lg">
-                                                  <div className="w-full relative bg-slate-950 flex items-center justify-center min-h-[380px] sm:min-h-[480px] max-h-[82vh]">
-                                                    <SmartVideo
-                                                      src={post.media.url}
-                                                      className="w-full h-auto min-h-[380px] sm:min-h-[480px] max-h-[82vh]"
-                                                      preload="auto"
-                                                      autoplayMuted
-                                                    />
-                                                  </div>
-                                                </div>
-                                              )}
+                                                     {/* 2. Repost / Share Link */}
+                                                     <button
+                                                       type="button"
+                                                       onClick={(e) => {
+                                                         e.stopPropagation();
+                                                         if (typeof window !== "undefined") {
+                                                           const copyText = `${window.location.origin}/#post-${post.id}`;
+                                                           if (navigator?.clipboard?.writeText) {
+                                                             navigator.clipboard.writeText(copyText).catch(() => {});
+                                                           } else {
+                                                             const ta = document.createElement("textarea");
+                                                             ta.value = copyText;
+                                                             ta.style.position = "fixed";
+                                                             ta.style.opacity = "0";
+                                                             document.body.appendChild(ta);
+                                                             ta.select();
+                                                             document.execCommand("copy");
+                                                             document.body.removeChild(ta);
+                                                           }
+                                                           setCopiedPostId(post.id);
+                                                           setTimeout(() => setCopiedPostId(null), 2500);
+                                                         }
+                                                       }}
+                                                       className={`group flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-150 active:scale-95 cursor-pointer ${
+                                                         copiedPostId === post.id
+                                                           ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/40 scale-105'
+                                                           : 'text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10'
+                                                       }`}
+                                                       title="Share Post Link"
+                                                     >
+                                                       <svg className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                       </svg>
+                                                       <span>{copiedPostId === post.id ? '\u2713 Copied' : 'Share'}</span>
+                                                     </button>
 
-                                                {/* Meta / X Level Unified Action Bar */}
-                                                <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
-                                                  {/* Left Actions: Comment, Repost/Share, Like, Views */}
-                                                  <div className="flex items-center gap-1 sm:gap-3">
-                                                    {/* 1. Comment Action */}
-                                                    <button
-                                                      type="button"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setDirectoryOpenCommentsPostId((cur) => cur === post.id ? null : post.id);
-                                                        if (!directoryOpenCommentsPostId || directoryOpenCommentsPostId !== post.id) {
-                                                          fetchComments(post.id);
-                                                        }
-                                                      }}
-                                                      className={`group flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-150 active:scale-95 cursor-pointer ${
-                                                        directoryOpenCommentsPostId === post.id
-                                                          ? 'bg-sky-500/20 text-sky-300 border border-sky-400/40 shadow-[0_0_10px_rgba(14,165,233,0.3)]'
-                                                          : 'text-slate-400 hover:text-sky-300 hover:bg-sky-500/10'
-                                                      }`}
-                                                      title="Comment"
-                                                    >
-                                                      <svg className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                                      </svg>
-                                                      <span>{postComments[post.id]?.length ?? (post?._count?.comments || 0)}</span>
-                                                    </button>
+                                                     {/* 3. Like (Heart) */}
+                                                     <button
+                                                       type="button"
+                                                       onClick={(e) => {
+                                                         e.stopPropagation();
+                                                         handleReaction(post.id, 1);
+                                                       }}
+                                                       disabled={!(session?.user as any)?.id || engagementLoading[post.id]?.reaction}
+                                                       className={`group flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-150 active:scale-90 cursor-pointer ${
+                                                         postReactions[post.id]?.userReaction === 1
+                                                           ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-[0_0_12px_rgba(244,63,94,0.3)]'
+                                                           : 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
+                                                       }`}
+                                                       title="Like"
+                                                     >
+                                                       <svg className={`w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 ${postReactions[post.id]?.userReaction === 1 ? 'scale-110 text-rose-400' : ''}`} fill={postReactions[post.id]?.userReaction === 1 ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                                       </svg>
+                                                       <span>{postReactions[post.id]?.likes || post?._count?.reactions || 0}</span>
+                                                     </button>
 
-                                                    {/* 2. Repost / Share Link */}
-                                                    <button
-                                                      type="button"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (typeof window !== "undefined") {
-                                                          navigator.clipboard.writeText(`${window.location.origin}/#post-${post.id}`);
-                                                          setCopiedPostId(post.id);
-                                                          setTimeout(() => setCopiedPostId(null), 2500);
-                                                        }
-                                                      }}
-                                                      className={`group flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-150 active:scale-95 cursor-pointer ${
-                                                        copiedPostId === post.id
-                                                          ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-400/40 scale-105'
-                                                          : 'text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10'
-                                                      }`}
-                                                      title="Share Post Link"
-                                                    >
-                                                      <svg className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                                      </svg>
-                                                      <span>{copiedPostId === post.id ? '✓ Copied' : 'Share'}</span>
-                                                    </button>
+                                                     {/* 4. Impressions / Views */}
+                                                     <div className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-slate-500" title="Views">
+                                                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                       </svg>
+                                                       <span>{post?._count?.views || 1}</span>
+                                                     </div>
+                                                   </div>
 
-                                                    {/* 3. Like (Heart) */}
-                                                    <button
-                                                      type="button"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleReaction(post.id, 1);
-                                                      }}
-                                                      disabled={!(session?.user as any)?.id || engagementLoading[post.id]?.reaction}
-                                                      className={`group flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-150 active:scale-90 cursor-pointer ${
-                                                        postReactions[post.id]?.userReaction === 1
-                                                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-[0_0_12px_rgba(244,63,94,0.3)]'
-                                                          : 'text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
-                                                      }`}
-                                                      title="Like"
-                                                    >
-                                                      <svg className={`w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-110 ${postReactions[post.id]?.userReaction === 1 ? 'scale-110 text-rose-400' : ''}`} fill={postReactions[post.id]?.userReaction === 1 ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                                      </svg>
-                                                      <span>{postReactions[post.id]?.likes || post?._count?.reactions || 0}</span>
-                                                    </button>
-
-                                                    {/* 4. Impressions / Views */}
-                                                    <div className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-slate-500" title="Views">
-                                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                      </svg>
-                                                      <span>{post?._count?.views || 1}</span>
-                                                    </div>
-                                                  </div>
-
-                                                  {/* Right Actions: Bookmark & Options */}
-                                                  <div className="flex items-center gap-1.5">
-                                                    <button
-                                                      type="button"
-                                                      onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setBookmarkedPosts(prev => ({ ...prev, [post.id]: !prev[post.id] }));
-                                                      }}
-                                                      className={`p-1.5 rounded-full transition-all duration-150 active:scale-90 cursor-pointer ${
-                                                        bookmarkedPosts[post.id] ? 'text-amber-400 bg-amber-400/15' : 'text-slate-500 hover:text-amber-400 hover:bg-amber-400/10'
-                                                      }`}
-                                                      title="Bookmark"
-                                                    >
-                                                      <svg className="w-3.5 h-3.5 transition-transform hover:scale-110" fill={bookmarkedPosts[post.id] ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                                                      </svg>
-                                                    </button>
-                                                  </div>
-                                                </div>
+                                                   {/* Right Actions: Bookmark & Options */}
+                                                   <div className="flex items-center gap-1.5">
+                                                     <button
+                                                       type="button"
+                                                       onClick={(e) => {
+                                                         e.stopPropagation();
+                                                         setBookmarkedPosts(prev => ({ ...prev, [post.id]: !prev[post.id] }));
+                                                       }}
+                                                       className={`p-1.5 rounded-full transition-all duration-150 active:scale-90 cursor-pointer ${
+                                                         bookmarkedPosts[post.id] ? 'text-amber-400 bg-amber-400/15' : 'text-slate-500 hover:text-amber-400 hover:bg-amber-400/10'
+                                                       }`}
+                                                       title="Bookmark"
+                                                     >
+                                                       <svg className="w-3.5 h-3.5 transition-transform hover:scale-110" fill={bookmarkedPosts[post.id] ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
+                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                                       </svg>
+                                                     </button>
+                                                   </div>
+                                                 </div>
                                               {directoryOpenCommentsPostId === post.id && (
                                                 <div className="mt-2.5 rounded-2xl border border-slate-700/70 bg-slate-950/85 backdrop-blur-md p-3 shadow-2xl transition-all">
                                                   {/* YouTube-style Container Header */}
@@ -12467,11 +12491,14 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
                           className="mt-3 space-y-3"
                         >
                           {idConsolePosts
-                            .filter((p) =>
-                              idConsoleTab === "my"
+                            .filter((p) => {
+                              const hasText = typeof p?.text === "string" && p.text.trim().length > 0;
+                              const hasMedia = Boolean(p?.media?.url || p?.attachment?.url || p?.attachmentId);
+                              if (!hasText && !hasMedia) return false;
+                              return idConsoleTab === "my"
                                 ? p?.authorId === (session?.user as any)?.id
-                                : true,
-                            )
+                                : true;
+                            })
                             .map((p) => {
                               return (
                                 <div

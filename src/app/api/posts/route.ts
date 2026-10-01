@@ -173,9 +173,22 @@ export async function GET(request: Request) {
         }),
       );
 
-      let sortedDirectoryPosts = postsWithMedia;
+      // Filter out ghost/empty posts that have neither non-empty text nor media
+      const validDirectoryPosts = postsWithMedia.filter((p: any) => {
+        const hasText = typeof p?.text === "string" && p.text.trim().length > 0;
+        const hasMedia = Boolean(p?.media?.url);
+        if (!hasText && !hasMedia) {
+          if (p?.id) {
+            (prisma as any).post.delete({ where: { id: p.id } }).catch(() => {});
+          }
+          return false;
+        }
+        return true;
+      });
+
+      let sortedDirectoryPosts = validDirectoryPosts;
       if (feed === "foryou") {
-        sortedDirectoryPosts = [...postsWithMedia].sort((a: any, b: any) => {
+        sortedDirectoryPosts = [...validDirectoryPosts].sort((a: any, b: any) => {
           const scoreA = calculateFeedRankScore({
             authorAura: a.author?.aura_percentage || 50,
             reactionsCount: a._count?.reactions || 0,
@@ -338,7 +351,20 @@ export async function GET(request: Request) {
       }),
     );
 
-    let finalPosts = postsWithMedia;
+    // Filter out ghost/empty posts that have neither non-empty text nor media
+    const validPostsWithMedia = postsWithMedia.filter((p: any) => {
+      const hasText = typeof p?.text === "string" && p.text.trim().length > 0;
+      const hasMedia = Boolean(p?.media?.url);
+      if (!hasText && !hasMedia) {
+        if (p?.id) {
+          (prisma as any).post.delete({ where: { id: p.id } }).catch(() => {});
+        }
+        return false;
+      }
+      return true;
+    });
+
+    let finalPosts = validPostsWithMedia;
 
     if (feed === "network" && meId) {
       finalPosts = finalPosts.filter((p: any) => p.authorId === meId || followingSet.has(p.authorId) || friendSet.has(p.authorId));
