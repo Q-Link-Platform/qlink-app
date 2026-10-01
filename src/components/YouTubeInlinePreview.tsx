@@ -58,16 +58,17 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
           : "border-white/15 bg-slate-950/80 shadow-black/60"
       }`}
       style={{
-        width: isShort ? "min(320px, 80vw)" : "min(775px, 85vw)",
+        width: isShort ? "min(280px, 80vw)" : "min(460px, 86vw)",
         maxWidth: "100%",
       }}
     >
       {/* Dynamic Aspect Ratio Container - 9:16 for Shorts / Reels, 16:9 for Widescreen */}
       <div
-        className="relative w-full overflow-hidden bg-black select-none"
+        className="relative w-full overflow-hidden bg-black select-none mx-auto flex items-center justify-center"
         style={{
           aspectRatio: isShort ? "9 / 16" : "16 / 9",
           width: "100%",
+          maxHeight: isShort ? "340px" : "260px",
         }}
       >
         {!isPlaying ? (

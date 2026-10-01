@@ -128,10 +128,10 @@ export const XPostNativePreview = memo(function XPostNativePreview({
   );
 
   const containerWidth = isVertical
-    ? "min(320px, 85vw)"
+    ? "min(280px, 80vw)"
     : primaryVideo
-    ? "min(520px, 92vw)"
-    : "min(460px, 90vw)";
+    ? "min(420px, 88vw)"
+    : "min(360px, 86vw)";
 
   // Format tweet text to highlight links
   const renderFormattedText = (text: string) => {
@@ -172,7 +172,7 @@ export const XPostNativePreview = memo(function XPostNativePreview({
 
   return (
     <div
-      className={`mt-2 overflow-hidden rounded-2xl border shadow-2xl transition-all duration-300 ${
+      className={`mt-0.5 overflow-hidden rounded-2xl border shadow-2xl transition-all duration-300 ${
         isMe
           ? "border-sky-500/30 bg-slate-950/95 text-slate-100"
           : "border-slate-800 bg-slate-950/95 text-slate-100"
@@ -313,10 +313,11 @@ export const XPostNativePreview = memo(function XPostNativePreview({
           {/* Video Player */}
           {primaryVideo && (
             <div
-              className="relative overflow-hidden rounded-xl bg-black border border-white/10 group"
+              className="relative overflow-hidden rounded-xl bg-black border border-white/10 group flex items-center justify-center mx-auto"
               style={{
                 aspectRatio: isVertical ? "9 / 16" : "16 / 9",
                 width: "100%",
+                maxHeight: isVertical ? "320px" : "260px",
               }}
             >
               <video

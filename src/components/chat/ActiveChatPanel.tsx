@@ -1692,21 +1692,19 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                         className={
                                           hasMedia
                                             ? `${
-                                                socialEmbedInfo
-                                                  ? socialEmbedInfo.isVertical
-                                                    ? "w-fit max-w-[94%] sm:max-w-[340px]"
-                                                    : "w-full max-w-[96%] sm:max-w-[560px] md:max-w-[620px]"
-                                                  : "w-fit max-w-[94%] sm:max-w-[85%] md:max-w-[460px]"
-                                              } rounded-2xl sm:rounded-3xl ${
-                                                socialEmbedInfo && isSocialUrlOnly ? "p-1 sm:p-1.5" : "p-2 sm:p-2.5"
-                                              } backdrop-blur-2xl bg-white/[0.05] dark:bg-slate-950/50 border border-white/20 dark:border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.22)] text-white select-none cursor-pointer transition-all duration-300 ${
-                                                isMe ? "rounded-br-sm" : "rounded-bl-sm"
+                                                socialEmbedInfo && isSocialUrlOnly
+                                                  ? "w-fit max-w-[95%] sm:max-w-[420px] p-0 bg-transparent border-0 shadow-none"
+                                                  : socialEmbedInfo
+                                                    ? "w-fit max-w-[95%] sm:max-w-[420px] p-2 rounded-2xl sm:rounded-3xl backdrop-blur-2xl bg-white/[0.05] dark:bg-slate-950/50 border border-white/20 dark:border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.55)]"
+                                                    : "w-fit max-w-[94%] sm:max-w-[85%] md:max-w-[460px] p-2 sm:p-2.5 rounded-2xl sm:rounded-3xl backdrop-blur-2xl bg-white/[0.05] dark:bg-slate-950/50 border border-white/20 dark:border-white/10 shadow-[0_16px_40px_rgba(0,0,0,0.55)]"
                                               } ${
+                                                isMe ? "rounded-br-sm" : "rounded-bl-sm"
+                                              } text-white select-none cursor-pointer transition-all duration-300 ${
                                                 isHighlighted
                                                   ? "ring-2 ring-cyan-400/90 shadow-[0_0_30px_rgba(6,182,212,0.5)] scale-[1.02]"
                                                   : isSelected
                                                     ? "ring-2 ring-cyan-400/90 shadow-lg scale-[0.99]"
-                                                    : "hover:border-white/30 hover:bg-white/[0.08] dark:hover:bg-slate-900/60"
+                                                    : "hover:border-white/30"
                                               }`
                                             : isMe
                                               ? `${socialEmbedInfo ? "w-fit max-w-[95%] sm:max-w-[85%] md:max-w-[805px]" : "max-w-[85%] sm:max-w-[75%]"} rounded-2xl rounded-br-sm bg-gradient-to-r from-cyan-400/90 to-sky-500/90 px-2.5 py-1 sm:px-3 sm:py-1.5 text-slate-950 select-none cursor-pointer transition-all duration-300 ${isHighlighted
@@ -1770,7 +1768,7 @@ export const ActiveChatPanel = memo(function ActiveChatPanel(props: ActiveChatPa
                                             )}
                                           </div>
                                         ) : (
-                                          <div>
+                                          <div className={`flex flex-col ${isMe ? "items-end" : "items-start"} w-fit max-w-full`}>
                                             {shouldShowCaption && (
                                               <p className="break-words flex items-center flex-wrap gap-1 text-[13px] sm:text-[14px] leading-snug mb-1.5 px-0.5 text-white/95 font-medium">
                                                 {m.isEncrypted && (

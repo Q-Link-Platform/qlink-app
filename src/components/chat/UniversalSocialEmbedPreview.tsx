@@ -140,12 +140,28 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
 
   // 2. X (Twitter) native direct video player & rich post preview
   if (info.platform === "x") {
+    if (!isOpen) {
+      return (
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/80 border border-white/10 hover:border-white/20 text-[11px] text-slate-300 hover:text-white transition my-0.5 active:scale-95"
+        >
+          <svg className="h-3 w-3 fill-white" viewBox="0 0 24 24">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+          <span>@{info.user}&apos;s post on X</span>
+          <span className="text-[10px] text-cyan-400 font-medium ml-1">Show</span>
+        </button>
+      );
+    }
     return (
       <XPostNativePreview
         userHandle={info.user || "i"}
         statusId={info.id}
         originalUrl={info.originalUrl}
         isMe={isMe}
+        onClose={() => setIsOpen(false)}
       />
     );
   }
@@ -171,16 +187,30 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
     }
   };
 
+  if (!isOpen) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/80 border border-white/10 hover:border-white/20 text-[11px] text-slate-300 hover:text-white transition my-0.5 active:scale-95"
+      >
+        {renderBadgeIcon()}
+        <span>{info.badgeLabel || "Preview"}</span>
+        <span className="text-[10px] text-cyan-400 font-medium ml-1">Show</span>
+      </button>
+    );
+  }
+
   // Determine sizing based on vertical reel vs card (Instagram / Facebook)
   const containerWidth = info.isVertical
-    ? "min(320px, 82vw)"
-    : "min(560px, 86vw)";
+    ? "min(280px, 80vw)"
+    : "min(460px, 86vw)";
 
   const containerAspect = info.isVertical
     ? "9 / 16"
     : "16 / 9";
 
-  const minHeight = info.isVertical ? "480px" : "315px";
+  const minHeight = info.isVertical ? "360px" : "260px";
 
   const cleanExternalUrl = info.originalUrl.startsWith("http")
     ? info.originalUrl
