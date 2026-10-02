@@ -203,14 +203,14 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
 
   // Determine sizing based on vertical reel vs card (Instagram / Facebook)
   const containerWidth = info.isVertical
-    ? "min(280px, 80vw)"
-    : "min(460px, 86vw)";
+    ? "min(360px, 88vw)"
+    : "min(500px, 90vw)";
 
   const containerAspect = info.isVertical
     ? "9 / 16"
     : "16 / 9";
 
-  const minHeight = info.isVertical ? "360px" : "260px";
+  const minHeight = info.isVertical ? "560px" : "280px";
 
   const cleanExternalUrl = info.originalUrl.startsWith("http")
     ? info.originalUrl
@@ -288,7 +288,8 @@ export const UniversalSocialEmbedPreview = memo(function UniversalSocialEmbedPre
         className="relative w-full overflow-hidden bg-black select-none"
         style={{
           aspectRatio: containerAspect,
-          minHeight: isOpen ? minHeight : (info.isVertical ? "480px" : "220px"),
+          minHeight: isOpen ? minHeight : (info.isVertical ? "560px" : "240px"),
+          maxHeight: info.isVertical ? "min(640px, 75vh)" : "min(320px, 52vh)",
           width: "100%",
         }}
       >

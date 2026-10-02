@@ -128,10 +128,10 @@ export const XPostNativePreview = memo(function XPostNativePreview({
   );
 
   const containerWidth = isVertical
-    ? "min(280px, 80vw)"
+    ? "min(360px, 88vw)"
     : primaryVideo
-    ? "min(420px, 88vw)"
-    : "min(360px, 86vw)";
+    ? "min(480px, 90vw)"
+    : "min(400px, 88vw)";
 
   // Format tweet text to highlight links
   const renderFormattedText = (text: string) => {
@@ -317,7 +317,7 @@ export const XPostNativePreview = memo(function XPostNativePreview({
               style={{
                 aspectRatio: isVertical ? "9 / 16" : "16 / 9",
                 width: "100%",
-                maxHeight: isVertical ? "320px" : "260px",
+                maxHeight: isVertical ? "min(640px, 75vh)" : "min(300px, 50vh)",
               }}
             >
               <video

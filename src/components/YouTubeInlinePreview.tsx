@@ -58,7 +58,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
           : "border-white/15 bg-slate-950/80 shadow-black/60"
       }`}
       style={{
-        width: isShort ? "min(280px, 80vw)" : "min(460px, 86vw)",
+        width: isShort ? "min(360px, 88vw)" : "min(500px, 90vw)",
         maxWidth: "100%",
       }}
     >
@@ -68,7 +68,7 @@ export const YouTubeInlinePreview = memo(function YouTubeInlinePreview({
         style={{
           aspectRatio: isShort ? "9 / 16" : "16 / 9",
           width: "100%",
-          maxHeight: isShort ? "340px" : "260px",
+          maxHeight: isShort ? "min(640px, 75vh)" : "min(320px, 52vh)",
         }}
       >
         {!isPlaying ? (
