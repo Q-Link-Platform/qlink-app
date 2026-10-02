@@ -1491,6 +1491,10 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const peerMessagesCacheRef = useRef<Map<string, ChatMessage[]>>(new Map());
   const chatEtagsRef = useRef<Map<string, string>>(new Map());
   const presenceEtagsRef = useRef<Map<string, string>>(new Map());
+  const idConsolePostsEtagRef = useRef<string | null>(null);
+  const dirPostsEtagRef = useRef<string | null>(null);
+  const incomingFriendsEtagRef = useRef<string | null>(null);
+  const outgoingFriendsEtagRef = useRef<string | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{
     messageId: string;
@@ -3640,7 +3644,18 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       setIdConsolePostsLoading(true);
       setIdConsolePostsError(null);
 
-      const res = await fetch("/api/posts");
+      const headers: Record<string, string> = {};
+      if (idConsolePostsEtagRef.current && cachedPosts && cachedPosts.length > 0) {
+        headers["If-None-Match"] = idConsolePostsEtagRef.current;
+      }
+
+      const res = await fetch("/api/posts", { headers });
+      if (res.status === 304) {
+        // Zero-byte 304: Post feed is 100% unchanged!
+        setIdConsolePostsLoading(false);
+        return;
+      }
+
       if (!res.ok) {
         if (cachedPosts && cachedPosts.length > 0) { setIdConsolePosts(cachedPosts); setIdConsolePostsError(null); setIdConsolePostsLoading(false); return; }
         const err = await res.json().catch(() => ({} as any));
@@ -3648,6 +3663,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         setIdConsolePostsError(`Failed to load posts (${msg})`);
         return;
       }
+
+      const newPostsEtag = res.headers.get("etag");
+      if (newPostsEtag) idConsolePostsEtagRef.current = newPostsEtag;
 
       const data: { posts?: any[] } = await res.json();
       const posts = Array.isArray(data.posts) ? data.posts : [];
@@ -3712,10 +3730,23 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     try {
       setDirectoryPostsLoading(true);
       setDirectoryPostsError(null);
+
+      const dirHeaders: Record<string, string> = {};
+      if (dirPostsEtagRef.current && cachedPosts && cachedPosts.length > 0) {
+        dirHeaders["If-None-Match"] = dirPostsEtagRef.current;
+      }
+
       const postsRes = await fetch(
-        `/api/posts?mode=directory_global_latest&perAuthor=10&t=${Date.now()}`,
-        { cache: "no-store" },
+        `/api/posts?mode=directory_global_latest&perAuthor=10`,
+        { headers: dirHeaders },
       );
+
+      if (postsRes.status === 304) {
+        // Zero-byte 304: Directory posts unchanged!
+        setDirectoryPostsLoading(false);
+        return;
+      }
+
       if (!postsRes.ok) {
         if (cachedPosts && cachedPosts.length > 0) {
           setDirectoryPostsError(null);
@@ -3729,6 +3760,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         setDirectoryPostsError(`Unable to load global posts (${msg}).`);
         return;
       }
+
+      const newDirEtag = postsRes.headers.get("etag");
+      if (newDirEtag) dirPostsEtagRef.current = newDirEtag;
       const postsData: { posts?: any[] } = await postsRes.json();
       const byAuthorId: Record<string, any[]> = {};
       const rawPosts = Array.isArray(postsData.posts) ? postsData.posts : [];
@@ -6168,9 +6202,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       setIncomingError(null);
 
       // Independent high-speed parallel fetches for instant millisecond UI hydration
-      fetch("/api/friends/outgoing")
+      const outHeaders: Record<string, string> = {};
+      if (outgoingFriendsEtagRef.current) {
+        outHeaders["If-None-Match"] = outgoingFriendsEtagRef.current;
+      }
+      fetch("/api/friends/outgoing", { headers: outHeaders })
         .then(async (res) => {
+          if (res.status === 304) return;
           if (res.ok) {
+            const newEtag = res.headers.get("etag");
+            if (newEtag) outgoingFriendsEtagRef.current = newEtag;
             const outData = await res.json();
             setOutgoing(deduplicateByToUser((outData.requests || []) as OutgoingRequest[]));
           }
@@ -6181,9 +6222,16 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
           setIsLoadingOutgoing(false);
         });
 
-      fetch("/api/friends/incoming")
+      const inHeaders: Record<string, string> = {};
+      if (incomingFriendsEtagRef.current) {
+        inHeaders["If-None-Match"] = incomingFriendsEtagRef.current;
+      }
+      fetch("/api/friends/incoming", { headers: inHeaders })
         .then(async (res) => {
+          if (res.status === 304) return;
           if (res.ok) {
+            const newEtag = res.headers.get("etag");
+            if (newEtag) incomingFriendsEtagRef.current = newEtag;
             const inData = await res.json();
             setIncoming(deduplicateByFromUser((inData.requests || []) as IncomingRequest[]));
           } else {

@@ -166,7 +166,32 @@ export async function GET(request: Request) {
       return handleA.localeCompare(handleB);
     });
 
-    const res = NextResponse.json({ requests: allRequests });
+    // High-Efficiency RFC 9110 ETag Generation for Outgoing Requests:
+    const firstReq = allRequests[0];
+    const lastReq = allRequests[allRequests.length - 1];
+    const outDigest = `out-${allRequests.length}-${firstReq?.id || "0"}-${lastReq?.id || "0"}-${firstReq?.lastInteractionAt || firstReq?.updatedAt || ""}-${fromUserId}`;
+    const outEtag = `W/"${Buffer.from(outDigest).toString("base64")}"`;
+
+    const clientIfNoneMatch = request.headers.get("if-none-match");
+    if (clientIfNoneMatch && clientIfNoneMatch === outEtag) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          ETag: outEtag,
+          "Cache-Control": "private, no-cache",
+        },
+      });
+    }
+
+    const res = NextResponse.json(
+      { requests: allRequests },
+      {
+        headers: {
+          ETag: outEtag,
+          "Cache-Control": "private, no-cache",
+        },
+      }
+    );
     res.cookies.delete("ql_synth_reqs");
     return res;
   } catch (err) {

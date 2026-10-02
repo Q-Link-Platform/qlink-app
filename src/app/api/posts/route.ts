@@ -207,9 +207,31 @@ export async function GET(request: Request) {
         });
       }
 
+      // High-Efficiency RFC 9110 ETag Generation for Directory Global Latest:
+      const firstPost = sortedDirectoryPosts[0];
+      const lastPost = sortedDirectoryPosts[sortedDirectoryPosts.length - 1];
+      const dirDigest = `dir-${sortedDirectoryPosts.length}-${firstPost?.id || "0"}-${lastPost?.id || "0"}-${firstPost?.createdAt || ""}-${feed}`;
+      const dirEtag = `W/"${Buffer.from(dirDigest).toString("base64")}"`;
+
+      const ifNoneMatch = request.headers.get("if-none-match");
+      if (ifNoneMatch && ifNoneMatch === dirEtag) {
+        return new Response(null, {
+          status: 304,
+          headers: {
+            ETag: dirEtag,
+            "Cache-Control": "public, max-age=15, stale-while-revalidate=60",
+          },
+        });
+      }
+
       return NextResponse.json(
         { posts: sortedDirectoryPosts, perAuthor, feedMode: feed },
-        { headers: { "Cache-Control": "no-store" } },
+        {
+          headers: {
+            ETag: dirEtag,
+            "Cache-Control": "public, max-age=15, stale-while-revalidate=60",
+          },
+        },
       );
     }
 
@@ -388,9 +410,32 @@ export async function GET(request: Request) {
       });
     }
 
+    // High-Efficiency RFC 9110 ETag Generation for Feed:
+    const firstPost = finalPosts[0];
+    const lastPost = finalPosts[finalPosts.length - 1];
+    const reactionsSum = finalPosts.reduce((acc: number, p: any) => acc + (p._count?.reactions || 0) + (p._count?.comments || 0), 0);
+    const feedDigest = `feed-${finalPosts.length}-${firstPost?.id || "0"}-${lastPost?.id || "0"}-${firstPost?.createdAt || ""}-${reactionsSum}-${feed}-${meId || "anon"}`;
+    const feedEtag = `W/"${Buffer.from(feedDigest).toString("base64")}"`;
+
+    const clientIfNoneMatch = request.headers.get("if-none-match");
+    if (clientIfNoneMatch && clientIfNoneMatch === feedEtag) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          ETag: feedEtag,
+          "Cache-Control": "private, max-age=5, stale-while-revalidate=30",
+        },
+      });
+    }
+
     return NextResponse.json(
       { posts: finalPosts, feedMode: feed },
-      { headers: { "Cache-Control": "private, max-age=4, stale-while-revalidate=20" } },
+      {
+        headers: {
+          ETag: feedEtag,
+          "Cache-Control": "private, max-age=5, stale-while-revalidate=30",
+        },
+      },
     );
   } catch (err: any) {
     console.error("[posts] GET Unhandled error", err);

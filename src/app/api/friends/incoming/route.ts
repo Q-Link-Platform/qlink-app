@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user || !(session.user as any).id) {
@@ -165,7 +165,32 @@ export async function GET() {
       return handleA.localeCompare(handleB);
     });
 
-    return NextResponse.json({ requests: shaped });
+        // High-Efficiency RFC 9110 ETag Generation for Incoming Requests:
+    const firstReq = shaped[0];
+    const lastReq = shaped[shaped.length - 1];
+    const inDigest = `in-${shaped.length}-${firstReq?.id || "0"}-${lastReq?.id || "0"}-${firstReq?.lastInteractionAt || firstReq?.updatedAt || ""}-${toUserId}`;
+    const inEtag = `W/"${Buffer.from(inDigest).toString("base64")}"`;
+
+    const clientIfNoneMatch = request.headers.get("if-none-match");
+    if (clientIfNoneMatch && clientIfNoneMatch === inEtag) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          ETag: inEtag,
+          "Cache-Control": "private, no-cache",
+        },
+      });
+    }
+
+    return NextResponse.json(
+      { requests: shaped },
+      {
+        headers: {
+          ETag: inEtag,
+          "Cache-Control": "private, no-cache",
+        },
+      }
+    );
   } catch (err) {
     console.error("[friends/incoming]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

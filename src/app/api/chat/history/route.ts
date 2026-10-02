@@ -164,28 +164,65 @@ export async function GET(request: Request) {
       });
     }
 
-    const messages = await prisma.message.findMany({
-      where: {
-        OR: [
-          { roomId },
-          { roomId: `dm:${roomId}` },
-        ],
-      },
-      orderBy: { createdAt: "asc" },
-      select: {
-        id: true,
-        content: true,
-        createdAt: true,
-        senderId: true,
-        roomId: true,
-        status: true,
-        deliveredAt: true,
-        readAt: true,
-        isEdited: true,
-        editedAt: true,
-        reactions: true,
-      },
-    });
+    const sinceParam = url.searchParams.get("since");
+    const limitParam = url.searchParams.get("limit");
+    const limit = limitParam ? Math.min(200, Math.max(1, parseInt(limitParam, 10))) : 100;
+
+    let messages: any[];
+    if (sinceParam) {
+      const sinceDate = new Date(sinceParam);
+      messages = await prisma.message.findMany({
+        where: {
+          OR: [
+            { roomId, createdAt: { gt: sinceDate } },
+            { roomId: `dm:${roomId}`, createdAt: { gt: sinceDate } },
+            { roomId, editedAt: { gt: sinceDate } },
+            { roomId: `dm:${roomId}`, editedAt: { gt: sinceDate } },
+          ],
+        },
+        orderBy: { createdAt: "asc" },
+        take: limit,
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          senderId: true,
+          roomId: true,
+          status: true,
+          deliveredAt: true,
+          readAt: true,
+          isEdited: true,
+          editedAt: true,
+          reactions: true,
+        },
+      });
+    } else {
+      // High-Scale Optimization: Fetch most recent messages up to limit in reverse, then re-sort chronologically
+      const rawMessages = await prisma.message.findMany({
+        where: {
+          OR: [
+            { roomId },
+            { roomId: `dm:${roomId}` },
+          ],
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          senderId: true,
+          roomId: true,
+          status: true,
+          deliveredAt: true,
+          readAt: true,
+          isEdited: true,
+          editedAt: true,
+          reactions: true,
+        },
+      });
+      messages = rawMessages.reverse();
+    }
 
     // Auto-mark unread messages as READ
     const unreadMessageIds = messages
