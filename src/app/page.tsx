@@ -1489,6 +1489,8 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
   const [chatLoading, setChatLoading] = useState(false);
   const currentPeerFetchRef = useRef<string | null>(null);
   const peerMessagesCacheRef = useRef<Map<string, ChatMessage[]>>(new Map());
+  const chatEtagsRef = useRef<Map<string, string>>(new Map());
+  const presenceEtagsRef = useRef<Map<string, string>>(new Map());
   const [chatError, setChatError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{
     messageId: string;
@@ -3548,10 +3550,27 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     const fetchPresence = async () => {
       try {
+        const cleanPeer = cleanHandle(activePeerHandle);
+        const cachedEtag = presenceEtagsRef.current.get(cleanPeer);
+        const headers: Record<string, string> = {};
+        if (cachedEtag) {
+          headers["If-None-Match"] = cachedEtag;
+        }
+
         const res = await fetch(
           `/api/presence/${encodeURIComponent(activePeerHandle)}`,
+          { headers }
         );
+        if (res.status === 304) {
+          // Zero-byte 304 Not Modified: Presence state unchanged
+          return;
+        }
         if (!res.ok) return;
+
+        const newEtag = res.headers.get("etag");
+        if (newEtag) {
+          presenceEtagsRef.current.set(cleanPeer, newEtag);
+        }
 
         const data: {
           online?: boolean;
@@ -5050,6 +5069,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
       status: "PENDING", // Tech-giant standard: queued in outbox as PENDING
     };
 
+    // Invalidate cached ETag to guarantee fresh sync on next poll cycle
+    chatEtagsRef.current.delete(cleanHandle(activePeerHandle));
+
     // Queue in persistent Outbox
     outboxQueue.enqueue({
       tempId,
@@ -6514,14 +6536,28 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
 
     const poll = async () => {
       try {
+        const cleanPeer = cleanHandle(activePeerHandle);
+        const cachedEtag = chatEtagsRef.current.get(cleanPeer);
+        const headers: Record<string, string> = {};
+        if (cachedEtag) {
+          headers["If-None-Match"] = cachedEtag;
+        }
+
         const res = await fetch(
-          `/api/chat/history?peerHandle=${encodeURIComponent(activePeerHandle)}`
+          `/api/chat/history?peerHandle=${encodeURIComponent(activePeerHandle)}`,
+          { headers }
         );
         if (res.status === 304) {
           // Zero-byte 304 Not Modified: Conversation is unchanged
           return;
         }
         if (!res.ok) return;
+
+        const newEtag = res.headers.get("etag");
+        if (newEtag) {
+          chatEtagsRef.current.set(cleanPeer, newEtag);
+        }
+
         const data = await res.json();
         const peerKey = data.peer?.publicKeyString || null;
         const rawMessages = (data.messages as ChatMessage[]) || [];
@@ -7889,12 +7925,25 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
     }
 
     try {
+      const cleanTarget = cleanHandle(targetPeer);
+      const cachedEtag = chatEtagsRef.current.get(cleanTarget);
+      const headers: Record<string, string> = {};
+      if (cachedEtag && cached.length > 0) {
+        headers["If-None-Match"] = cachedEtag;
+      }
+
       const res = await fetch(
-        `/api/chat/history?peerHandle=${encodeURIComponent(targetPeer)}`
+        `/api/chat/history?peerHandle=${encodeURIComponent(targetPeer)}`,
+        { headers }
       );
 
       // Discard response if user already navigated to another chat while request was in flight
       if (currentPeerFetchRef.current !== targetPeer) return;
+
+      if (res.status === 304) {
+        setChatLoading(false);
+        return;
+      }
 
       if (!res.ok) {
         setChatLoading(false);
@@ -7914,6 +7963,9 @@ function HomeInner({ passiveTouchRef, androidScrollRef }: {
         setChatError(null);
         return;
       }
+
+      const newEtag = res.headers.get("etag");
+      if (newEtag) chatEtagsRef.current.set(cleanTarget, newEtag);
 
       const data = await res.json();
       if (currentPeerFetchRef.current !== targetPeer) return;

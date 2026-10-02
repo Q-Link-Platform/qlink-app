@@ -80,6 +80,18 @@ export async function GET(
       !!lastTyping &&
       now - lastTyping <= 6_000;
 
+    const etag = `W/"${user.id}-${online ? 1 : 0}-${typing ? 1 : 0}-${Math.floor(lastSeen / 15000)}"`;
+    const clientIfNoneMatch = _req.headers.get("if-none-match");
+    if (clientIfNoneMatch && clientIfNoneMatch === etag) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          ETag: etag,
+          "Cache-Control": "private, no-cache",
+        },
+      });
+    }
+
     return NextResponse.json(
       {
         online,
@@ -88,7 +100,8 @@ export async function GET(
       },
       {
         headers: {
-          "Cache-Control": "private, max-age=2, stale-while-revalidate=5",
+          ETag: etag,
+          "Cache-Control": "private, no-cache",
         },
       }
     );

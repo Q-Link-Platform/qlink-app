@@ -133,6 +133,13 @@ export function createAdaptivePoller(
       return;
     }
 
+    // Zero-Waste Origin Transfer Standard (Apple / Vercel Edge Optimization):
+    // When tab is hidden/backgrounded, PAUSE polling completely!
+    // The instant user returns to the tab or refocuses, visibilitychange / focus listener immediately fires with 0ms delay.
+    if (isHidden) {
+      return;
+    }
+
     isExecuting = true;
     try {
       const result = await pollFn();
@@ -145,13 +152,7 @@ export function createAdaptivePoller(
         // Success: reset backoff to base interval
         attempt = 0;
         if (onSuccess) onSuccess();
-        // Zero-Waste Energy & Bandwidth Standard (Apple / Linear Grade):
-        // If tab is hidden/backgrounded, relax interval to 15s-20s.
-        // The instant user returns to the tab, visibilitychange immediately wakes it with 0ms delay.
-        const nextDelay = isHidden
-          ? Math.min(maxIntervalMs, Math.max(baseIntervalMs * 5, 15000))
-          : baseIntervalMs;
-        scheduleNext(nextDelay);
+        scheduleNext(baseIntervalMs);
       }
     } catch (err) {
       attempt++;
@@ -166,8 +167,9 @@ export function createAdaptivePoller(
   const handleVisibilityOrOnline = () => {
     if (!isRunning) return;
     if (typeof navigator !== "undefined" && !navigator.onLine) return;
+    if (typeof document !== "undefined" && document.hidden) return;
 
-    // Reset backoff and execute cycle immediately on wake or refocus
+    // Reset backoff and execute cycle immediately on wake or refocus (0ms delay)
     attempt = 0;
     if (timerId) clearTimeout(timerId);
     runCycle();
@@ -184,6 +186,7 @@ export function createAdaptivePoller(
       }
       if (typeof window !== "undefined") {
         window.addEventListener("online", handleVisibilityOrOnline);
+        window.addEventListener("focus", handleVisibilityOrOnline);
         window.addEventListener("qlink:sync-messages", handleVisibilityOrOnline);
       }
 
@@ -202,6 +205,7 @@ export function createAdaptivePoller(
       }
       if (typeof window !== "undefined") {
         window.removeEventListener("online", handleVisibilityOrOnline);
+        window.removeEventListener("focus", handleVisibilityOrOnline);
         window.removeEventListener("qlink:sync-messages", handleVisibilityOrOnline);
       }
     },
