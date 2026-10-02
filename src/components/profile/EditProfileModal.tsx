@@ -1,0 +1,545 @@
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
+
+export interface EditProfileModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  currentUser: {
+    id: string;
+    name?: string | null;
+    handle?: string | null;
+    bio?: string | null;
+    image?: string | null;
+    banner?: string | null;
+    location?: string | null;
+    website?: string | null;
+  };
+  onSaved: (updatedUser: any) => void;
+}
+
+export const EditProfileModal: React.FC<EditProfileModalProps> = ({
+  isOpen,
+  onClose,
+  currentUser,
+  onSaved,
+}) => {
+  const [mounted, setMounted] = useState(false);
+  const [name, setName] = useState(currentUser.name || "");
+  const [handle, setHandle] = useState(currentUser.handle ? currentUser.handle.replace(/^@+/, "") : "");
+  const [bio, setBio] = useState(currentUser.bio || "");
+  const [location, setLocation] = useState(currentUser.location || "");
+  const [website, setWebsite] = useState(currentUser.website || "");
+  const [image, setImage] = useState(currentUser.image || "");
+  const [banner, setBanner] = useState(currentUser.banner || "");
+
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [copiedHandle, setCopiedHandle] = useState(false);
+
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  // Initial snapshot to strictly track real modifications
+  const initialName = useRef((currentUser.name || "").trim());
+  const initialHandle = useRef((currentUser.handle ? currentUser.handle.replace(/^@+/, "") : "").trim());
+  const initialBio = useRef((currentUser.bio || "").trim());
+  const initialLocation = useRef((currentUser.location || "").trim());
+  const initialWebsite = useRef((currentUser.website || "").trim());
+  const initialImage = useRef(currentUser.image || "");
+  const initialBanner = useRef(currentUser.banner || "");
+
+  const prevIsOpenRef = useRef(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Only initialize/reset state when the modal transitions from closed to open
+  // This prevents parent re-renders (like presence pings or timers) from wiping out user keystrokes
+  useEffect(() => {
+    if (isOpen && !prevIsOpenRef.current) {
+      initialName.current = (currentUser.name || "").trim();
+      initialHandle.current = (currentUser.handle ? currentUser.handle.replace(/^@+/, "") : "").trim();
+      initialBio.current = (currentUser.bio || "").trim();
+      initialLocation.current = (currentUser.location || "").trim();
+      initialWebsite.current = (currentUser.website || "").trim();
+      initialImage.current = currentUser.image || "";
+      initialBanner.current = currentUser.banner || "";
+
+      setName(currentUser.name || "");
+      setHandle(currentUser.handle ? currentUser.handle.replace(/^@+/, "") : "");
+      setBio(currentUser.bio || "");
+      setLocation(currentUser.location || "");
+      setWebsite(currentUser.website || "");
+      setImage(currentUser.image || "");
+      setBanner(currentUser.banner || "");
+      setError(null);
+      setSuccess(false);
+    }
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, currentUser]);
+
+  // Deep diffing across all editable fields
+  const isDirty = (
+    name.trim() !== initialName.current ||
+    handle.trim().replace(/^@+/, "") !== initialHandle.current ||
+    bio.trim() !== initialBio.current ||
+    location.trim() !== initialLocation.current ||
+    website.trim() !== initialWebsite.current ||
+    (image || "") !== initialImage.current ||
+    (banner || "") !== initialBanner.current
+  );
+
+  const handleCopyHandle = () => {
+    const handleText = handle ? `@${handle}` : (currentUser.handle ? `@${currentUser.handle}` : "@your-handle");
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(handleText);
+      setCopiedHandle(true);
+      setTimeout(() => setCopiedHandle(false), 2000);
+    }
+  };
+
+  if (!isOpen || !mounted) return null;
+
+// Client-side image compression helper to ensure lightning-fast upload & prevent payload size limits
+function compressImage(file: File, maxWidth: number, maxHeight: number, quality = 0.85): Promise<Blob> {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith("image/") || typeof window === "undefined") {
+      return resolve(file);
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(file);
+
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else resolve(file);
+          },
+          "image/jpeg",
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+
+  // Handle Avatar Image Upload
+  const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file.");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    setError(null);
+
+    try {
+      const optimizedBlob = await compressImage(file, 512, 512, 0.88);
+      const uploadFile = new File([optimizedBlob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+        type: "image/jpeg",
+      });
+
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+
+      const res = await fetch("/api/user/profile-pic", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to upload avatar");
+      }
+
+      setImage(data.url);
+    } catch (err: any) {
+      setError(err.message || "Failed to upload avatar");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  // Handle Banner Image Upload
+  const handleBannerFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file for the banner.");
+      return;
+    }
+
+    setUploadingBanner(true);
+    setError(null);
+
+    try {
+      // Auto-compress large photos to crisp 1600x600 for instant upload
+      const optimizedBlob = await compressImage(file, 1600, 600, 0.85);
+      const uploadFile = new File([optimizedBlob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+        type: "image/jpeg",
+      });
+
+      const formData = new FormData();
+      formData.append("file", uploadFile);
+
+      const res = await fetch("/api/user/banner", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to upload banner");
+      }
+
+      setBanner(data.url);
+    } catch (err: any) {
+      setError(err.message || "Failed to upload banner");
+    } finally {
+      setUploadingBanner(false);
+    }
+  };
+
+  // Save Profile Changes
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isDirty || saving || uploadingAvatar || uploadingBanner) return;
+    setSaving(true);
+    setError(null);
+
+    try {
+      const cleanHandle = handle.trim().replace(/^@+/, "");
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          handle: cleanHandle.length >= 3 ? cleanHandle : undefined,
+          bio: bio.trim(),
+          location: location.trim() || null,
+          website: website.trim() || null,
+          image: image || null,
+          banner: banner || null,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to save profile");
+      }
+
+      setSuccess(true);
+      if (onSaved) {
+        onSaved(data.user);
+      }
+
+      setTimeout(() => {
+        onClose();
+      }, 600);
+    } catch (err: any) {
+      setError(err.message || "Failed to save profile changes.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4 animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-lg rounded-3xl border border-white/20 bg-slate-950/90 shadow-[0_25px_60px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.2)] backdrop-blur-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-slate-800/80 transition"
+              title="Cancel"
+            >
+              ✕
+            </button>
+            <h2 className="text-base font-bold text-white tracking-tight">Edit Profile</h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!isDirty || saving || uploadingAvatar || uploadingBanner}
+            className={`rounded-full px-5 py-1.5 text-xs font-bold transition-all duration-200 flex items-center gap-1.5 shadow-md ${
+              success
+                ? "bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.35)]"
+                : !isDirty
+                ? "bg-white/10 text-white/30 cursor-not-allowed border border-white/5 pointer-events-none"
+                : "bg-white hover:bg-slate-200 text-slate-950 active:scale-95 shadow-[0_2px_15px_rgba(255,255,255,0.25)] cursor-pointer"
+            }`}
+          >
+            {saving ? (
+              <>
+                <svg className="animate-spin h-3 w-3 text-slate-950" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                <span>Saving...</span>
+              </>
+            ) : success ? (
+              <span>✓ Saved</span>
+            ) : (
+              <span>Save</span>
+            )}
+          </button>
+        </div>
+
+        {/* Scrollable Form Body */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide pb-6">
+          {/* Banner Upload Area */}
+          <div
+            className="relative w-full h-32 sm:h-40 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-b border-slate-800/80 flex items-center justify-center overflow-hidden group cursor-pointer"
+            style={
+              banner
+                ? {
+                    backgroundImage: `url(${banner})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }
+                : undefined
+            }
+            onClick={() => bannerInputRef.current?.click()}
+          >
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors flex items-center justify-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-950/70 border border-white/20 text-white text-xs font-medium backdrop-blur-md shadow-md group-hover:scale-105 transition-transform">
+                <svg className="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>{uploadingBanner ? "Uploading..." : banner ? "Change Header" : "Add Header Banner"}</span>
+              </div>
+
+              {banner && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setBanner("");
+                  }}
+                  className="p-1.5 rounded-full bg-slate-950/80 border border-white/20 text-rose-300 hover:text-rose-100 hover:bg-rose-500/20 backdrop-blur-md transition"
+                  title="Remove header"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            <input
+              ref={bannerInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleBannerFileChange}
+            />
+          </div>
+
+          {/* Avatar Area (overlapping banner) */}
+          <div className="px-5 -mt-12 sm:-mt-14 mb-4 relative z-10 flex items-end justify-between">
+            <div className="relative group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
+              <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-full overflow-hidden bg-slate-900 border-4 border-slate-950 shadow-xl relative">
+                {image ? (
+                  <img src={image} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center font-extrabold text-2xl text-white bg-gradient-to-br from-cyan-600 via-slate-800 to-indigo-950">
+                    {(name?.[0] || currentUser.handle?.[0] || "Q").toUpperCase()}
+                  </div>
+                )}
+
+                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-colors flex items-center justify-center">
+                  <svg className="h-6 w-6 text-white drop-shadow-md group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+              </div>
+
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleAvatarFileChange}
+              />
+            </div>
+          </div>
+
+          {/* Error Banner */}
+          {error && (
+            <div className="mx-5 mb-4 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
+              {error}
+            </div>
+          )}
+
+          {/* Form Fields */}
+          <div className="px-5 space-y-4">
+            {/* Display Name */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-xs">
+                <label className="text-slate-300 font-medium">Display Name</label>
+                <span className="text-[11px] text-slate-500">{name.length}/50</span>
+              </div>
+              <input
+                type="text"
+                maxLength={50}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your full name"
+                className="w-full rounded-2xl border border-slate-700/60 bg-slate-900/60 px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition focus:border-cyan-400/80 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+              />
+            </div>
+
+            {/* Handle / Username */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5">
+                  <label className="text-slate-300 font-medium">Handle / Username</label>
+                  <span className="text-[10px] text-slate-500 font-mono">(@username)</span>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-cyan-500/10 px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-cyan-300 border border-cyan-500/20 shrink-0 select-none">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                  Unique Q-ID
+                </span>
+              </div>
+              <div className="relative flex items-center">
+                <span className="absolute left-3.5 text-cyan-400 font-mono text-sm font-semibold select-none">@</span>
+                <input
+                  type="text"
+                  maxLength={30}
+                  value={handle}
+                  onChange={(e) => setHandle(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ""))}
+                  placeholder="your_handle"
+                  className="w-full rounded-2xl border border-slate-700/60 bg-slate-900/60 pl-8 pr-20 py-2.5 text-sm font-mono text-cyan-200 placeholder-slate-500 outline-none transition focus:border-cyan-400/80 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+                />
+                <button
+                  type="button"
+                  onClick={handleCopyHandle}
+                  className="absolute right-2 shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] font-sans font-medium bg-slate-800/90 hover:bg-slate-700 border border-slate-700/60 text-slate-300 hover:text-white transition active:scale-95 cursor-pointer shadow-sm"
+                  title="Copy Quantum Handle"
+                >
+                  {copiedHandle ? (
+                    <>
+                      <span className="text-emerald-400 font-bold text-xs">✓</span>
+                      <span className="text-emerald-300 font-mono text-[10px]">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              <p className="text-[11px] text-slate-500 px-0.5 leading-normal">
+                Choose a unique username (3–30 characters: letters, numbers, and underscores).
+              </p>
+            </div>
+
+            {/* Bio Field */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-xs">
+                <label className="text-slate-300 font-medium">Bio</label>
+                <span className={`text-[11px] ${bio.length > 260 ? "text-amber-400 font-bold" : "text-slate-500"}`}>
+                  {bio.length}/280
+                </span>
+              </div>
+              <textarea
+                rows={4}
+                maxLength={280}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell the world about yourself, your projects, or your interests..."
+                className="w-full rounded-2xl border border-slate-700/60 bg-slate-900/60 p-3.5 text-sm text-white placeholder-slate-500 outline-none transition focus:border-cyan-400/80 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(6,182,212,0.25)] resize-none"
+              />
+            </div>
+
+            {/* Location */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-xs">
+                <label className="text-slate-300 font-medium">Location</label>
+                <span className="text-[11px] text-slate-500">{location.length}/60</span>
+              </div>
+              <div className="relative flex items-center">
+                <span className="absolute left-3.5 text-slate-400">📍</span>
+                <input
+                  type="text"
+                  maxLength={60}
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="e.g. San Francisco, CA or London, UK"
+                  className="w-full rounded-2xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition focus:border-cyan-400/80 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+                />
+              </div>
+            </div>
+
+            {/* Website / Links */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center text-xs">
+                <label className="text-slate-300 font-medium">Website</label>
+                <span className="text-[11px] text-slate-500">{website.length}/100</span>
+              </div>
+              <div className="relative flex items-center">
+                <span className="absolute left-3.5 text-slate-400">🔗</span>
+                <input
+                  type="text"
+                  maxLength={100}
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  placeholder="https://yourwebsite.com"
+                  className="w-full rounded-2xl border border-slate-700/60 bg-slate-900/60 pl-9 pr-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition focus:border-cyan-400/80 focus:bg-slate-900 focus:shadow-[0_0_15px_rgba(6,182,212,0.25)]"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+};
+
+export default EditProfileModal;

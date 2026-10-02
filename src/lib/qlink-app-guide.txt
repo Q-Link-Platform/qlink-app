@@ -1,0 +1,152 @@
+# ==============================================================================
+# Q-LINK QUANTUM PLATFORM — OFFICIAL KNOWLEDGE BASE & ETHICAL MANIFESTO
+# ==============================================================================
+
+[SECTION: OVERVIEW_AND_ANALOGIES]
+Platform Overview:
+Q-Link is a next-generation decentralized, ultra-fast, and quantum-grade encrypted communication platform that seamlessly fuses the social discovery of modern networks with the bulletproof privacy of military-grade cryptography.
+
+Social Media Comparisons:
+• Community Feed ➔ Similar to X (formerly Twitter) and Instagram combined. You can broadcast public quantum thoughts, post multimedia cards, like, comment, repost, and discover trending community hashtags (#QuantumWeb, #CyberSecurity, #Aura).
+• Direct Encrypted Chat ➔ Similar to Signal and Telegram "Secret Chats", but elevated with zero-knowledge Curve25519 (X25519) key exchange + AES-GCM-256 authenticated encryption, instant live message edits, and delivery tick receipts.
+• Global Quantum Handle & Profile ➔ Similar to an Instagram/X username or a decentralized Web3 Identity (@handle). It features verified blue badge checkmarks, custom avatar cards, and bio descriptions.
+• Quantum Points (QP) & Aura Level ➔ Similar to Reddit Karma and VIP Gamer Ranks. Active messaging streaks, engagement, and verified interactions earn Quantum Points that increase your Aura level and unlock glowing holographic badges.
+• Q-BEACON Emergency Alert ➔ Similar to a high-priority SOS siren broadcast. Bypasses normal notifications with sound to alert your contacts during urgent situations.
+
+[SECTION: WHY_QLINK_VS_BIG_TECH_SURVEILLANCE]
+Why Choose Q-Link Over Big Tech (Meta, X, TikTok, Instagram & Facebook)?
+Q-Link was built on a radically honest, user-first, and ethical foundation — designed to completely eliminate the toxic psychological traps, attention destruction, and surveillance capitalism of traditional social media.
+
+1. The Q-Link Promise & Pure Non-Profit Ethics:
+• 100% Data Sovereignty: You own your identity, messages, and content. When you delete a message or account, it is wiped from relays with zero residual server backups.
+• Zero AI Training on User Data: Q-Link NEVER feeds your private conversations, voice notes, photos, or documents into AI training sets or corporate LLMs.
+• Zero Data Selling & Zero Advertising: We do not sell your personal information, browsing patterns, or identity to advertisers or third-party data brokers.
+• 100% Self-Sustaining Infrastructure: Revenue generated from optional cosmetic tiers (Sapphire/Diamond VIP cards) goes directly into server maintenance, high-speed relay bandwidth, and cryptographic audits — 0 hidden profits, 0 predatory venture capitalist monetization games.
+• Futuristic Next-Gen Sci-Fi UI/UX: Sleek, luminous cyberpunk glassmorphism with instant responsive performance, built for high-tech enthusiasts rather than dull corporate ad billboards.
+• Mind & Focus Protection: Zero black-box recommendation algorithms, zero dopamine traps, and zero manipulative feeds designed to fry your attention span.
+
+2. The Dark Reality of Big Tech Surveillance Platforms (What They Do Behind Your Back):
+
+• 🧠 Attention Destruction, Focus Erosion & Mental Hijacking:
+  - Attention Span Dismantling: Algorithms intentionally fragment your focus through infinite doomscrolling, inducing brain fog, ADHD-like symptoms, and weakening your ability to engage in deep, meaningful work.
+  - Aggressive Hyper-Sexualized & Provocative Content Pushing: Platforms algorithmically inject provocative, revealing, and hyper-sexualized content into explore tabs and feeds to trigger primitive dopamine pathways. This forces users into addictive trance states and compulsive screen-time loops, even when they never searched for or wanted such content.
+  - Cognitive Depletion: By keeping the brain constantly over-stimulated and fatigued, users become passive, easily influenced consumers unable to maintain independent critical thinking.
+
+• 🗳️ Political Manipulation, Perception Engineering & Mass Brainwashing:
+  - Algorithmic Statecraft & Narrative Control: Big Tech algorithms selectively amplify specific political viewpoints while suppressing opposing opinions, manipulating public perception during critical elections and social movements.
+  - Psychological Warfare & Division: Platforms deliberately stoke societal conflict, tribal hatred, and cultural polarization because an angry, divided public spends significantly more time arguing on the platform, multiplying ad revenue.
+  - Behavioral Modification (Mass Psych Experiments): Platforms conduct unannounced algorithmic experiments on millions of users, artificially altering feed emotional tones to measure how effectively they can induce depression, outrage, or obedience.
+
+• 🔎 Off-App Tracking and Shadow Profiling:
+  - Tracking Pixels: Meta and Google embed tracking code across millions of third-party websites to covertly log your browsing history, purchases, and sign-ups.
+  - Shadow Profiles: Platforms build detailed advertising dossiers on individuals who do not even have an account, harvesting data from contact lists uploaded by other users.
+  - App Tracking Transparency (ATT) Bypasses: Traditional apps inject custom JavaScript into their in-app browsers to spy on external links and monitor every keystroke outside their main app.
+  - Device Fingerprinting: Combining IP address, canvas rendering, battery levels, OS version, and screen specs to track your device across incognito and private browsing modes.
+
+• 📊 Behavioral AI Manipulation & Covert Surveillance:
+  - Micro-Engagement Dwell Monitoring: Algorithms measure the exact millisecond you pause scrolling over a post to calculate your secret insecurities, desires, and mental vulnerabilities.
+  - Biometric & Facial Analysis: AI scans uploaded photos and videos to recognize facial micro-expressions, detect emotional states, and analyze room environments.
+  - Natural Language Processing (NLP) DM Snooping: Corporate AI systems parse private direct messages and comments to extract commercial buying intent, sexual preferences, and political leanings.
+  - Predictive Churn & Rage Injection: When AI detects you are losing interest or getting bored, it intentionally floods your feed with extreme, shocking, or rage-inducing posts to force emotional re-engagement.
+
+• 📈 Exploitative Engagement Math & Addiction Traps:
+  - Dopamine Intermittent Schedules: Push notifications are strategically delayed and batched by AI to ping your phone at psychological low points, inducing compulsive addictive checking.
+  - 24/7 Location & Health Spying: Continuous background GPS monitoring, movement velocity, and physical activity tracking to construct predictive lifestyle heatmaps.
+  - Opaque Shadowbanning: Secretly throttling organic reach and silencing dissent based on shifting corporate political agendas without notifying the user.
+
+Q-Link is the antidote: Pure end-to-end encryption, zero algorithmic manipulation, zero surveillance, zero dopamine traps, and complete digital freedom.
+
+[SECTION: ENCRYPTED_CHAT_AND_E2EE]
+End-to-End Cryptographic Architecture:
+• True Zero-Knowledge E2EE: All private messages and attachments are encrypted directly inside the sender's browser using ephemeral Curve25519 key negotiation and AES-GCM-256 ciphers before transmission.
+• Zero Server Interception: The backend server only routes encrypted binary cipher blobs. No plaintext messages or secret private keys are ever stored or accessible on the server.
+• Status Receipts:
+  - 🕒 Sending (Local queue)
+  - ✓ Single Grey Tick (Sent & Delivered to Relay)
+  - ✓✓ Double Cyan Ticks (Delivered to Peer's Device)
+  - 🔵 Blue Highlighted Ticks (Read by Recipient)
+
+[SECTION: LIVE_SYNC_AND_EDITS]
+Live Message Editing & Peer Synchronization:
+• How to Edit: Hover over any of your sent messages in chat and click the "✏️ Edit" pencil icon (or double tap on mobile). Modify the text and hit Enter or click "✓ Save".
+• Instant Peer Synchronization: The edit is encrypted with a new ephemeral tag and broadcasts across the WebSocket/SSE channel in <50ms. Both screens update live with an "(edited)" indicator.
+• Cancel Edit: Press Escape or click the "✕ Cancel" pill above the input console.
+
+[SECTION: MEDIA_VOICE_ATTACHMENTS]
+Voice Audio Notes & Media Sharing:
+• Voice Messaging: Tap the 🎙️ Microphone button in the chat console to start voice recording. An active animated waveform displays recording duration. Tap the ✓ Send button to send the encrypted audio clip, or ✕ to cancel.
+• File Attachments: Click the 📎 Paperclip button (or open the 3-dots more menu `...` on compact screens) to attach documents, PDFs, images, or code files up to 50MB with instant E2EE client encryption.
+• Image & Video Media: Drag and drop media directly onto the chat window or select via the Media picker.
+
+[SECTION: Q_BEACON_EMERGENCY]
+Emergency Q-BEACON Priority Alert:
+• What It Is: An instant high-priority emergency beacon that alerts your active peer with an audible radar chime and a glowing crimson priority banner.
+• How to Trigger: Tap the 🚨 Beacon icon in the chat input bar or open the 3-dots more menu `...` and tap "🚨 Emergency Beacon".
+• Behavior: Bypasses standard mute/DND settings on the recipient's client to ensure urgent distress or time-sensitive messages are immediately noticed.
+
+[SECTION: QUANTUM_POINTS_AND_AURA]
+Quantum Economy, Daily Streaks & Aura Badges:
+• Earning Quantum Points (QP):
+  - Daily Login & Messaging Streak: Earn bonus QP every consecutive day you message peers.
+  - Active Chat & Community Posts: Earn QP for high network interaction.
+  - Profile Verification: Earn a lump sum of QP upon verifying your cryptographic handle.
+• Aura Tier Levels:
+  - Tier 1: Neon Initiate (0 - 500 QP)
+  - Tier 2: Cyber Specialist (500 - 2,500 QP)
+  - Tier 3: Quantum Operative (2,500 - 10,000 QP)
+  - Tier 4: Sapphire VIP (10,000 - 25,000 QP) ➔ Unlocks luminous sapphire theme & glowing blue badge.
+  - Tier 5: Diamond Sovereign (25,000+ QP) ➔ Unlocks holographic rainbow avatar borders & priority relay routing.
+
+[SECTION: FEED_AND_COMMUNITY]
+Public Quantum Feed & Discovery:
+• Discovery Tab: Switch from the "💬 Chats" tab to the "🌐 Feed" tab on the left sidebar to view real-time public broadcasts from the global network.
+• Posting: Type in the top broadcast box, add tags (e.g. #Security #Tech), and hit "⚡ Broadcast".
+• Interactive Reactions: Like posts, leave threaded comments, and bookmark favorite quantum broadcasts.
+
+[SECTION: UI_NAVIGATION_AND_TROUBLESHOOTING]
+UI Navigation & Common Problem Resolution:
+• Opening Q-AI Copilot: Tap the glowing cyan AI pill or floating orb on the right side of the chat panel. It opens a docked 360px sidecar without disrupting your active chat.
+• Switching Chats: Click on any friend in the left sidebar to switch conversations. Unread badges indicate pending messages.
+• Mobile View Navigation: On small screens, use the top chevron/back button `‹` to return from the chat view to the friend directory.
+• Reconnecting on Network Drop: If your connection indicator shows red ("Disconnected"), Q-Link's auto-reconnect engine will automatically poll and re-establish the encrypted session within 3 seconds. You can also click the status dot to force a manual reconnect.
+• Audio / Mic Permissions: If voice recording fails, verify that microphone access is allowed in your browser address bar permissions (lock icon).
+[SECTION: HARMS_OF_LEGACY_APPS_VS_QLINK_BENEFITS]
+Comprehensive Risk & Benefit Matrix (Why Sticking with Legacy Social Media Harms You):
+
+1. The Severe Harms of Legacy Social Media Platforms (Instagram, Meta, X, TikTok, Facebook):
+• Complete Loss of Digital Privacy (Surveillance Capitalism):
+  - Every private DM, link clicked, and photo uploaded is parsed by automated Natural Language Processing (NLP) to build commercial dossiers and targeted advertising profiles.
+  - Off-app tracking pixels on 90%+ of global websites log your external shopping, searches, and bank visits into permanent shadow profiles.
+• Focus & Mental Health Erosion (Cognitive Hijacking):
+  - Algorithms intentionally push soft-core nudity, hyper-sexualized media, and rage-inducing controversies to hijack primitive dopamine pathways and trap your brain in addictive doomscrolling loops.
+  - Attention spans are destroyed, inducing mental fatigue, anxiety, and brain fog.
+• Mass Behavioral & Political Manipulation:
+  - Your feed is not chronological or organic; it is algorithmically curated to radicalize opinions, stoke societal hatred, and sway political leanings for corporate profit.
+• 24/7 Spying & Permanent Data Leaks:
+  - Background location heatmapping, biometric facial recognition, and permanent server storage mean your data can be breached, subpoenaed, or monetized forever.
+
+2. The Immense Benefits of Q-Link:
+• 🛡️ 100% Unbreakable End-to-End Encryption:
+  - Ephemeral Curve25519 (X25519) key exchange + AES-GCM-256 authenticated encryption ensures NO ONE — not even Q-Link servers, government relays, or hackers — can read your messages or attachments.
+• 🧘 Pure Mind & Focus Sanctuary:
+  - Zero addictive algorithms, zero rage-bait injection, zero dopamine manipulation. A clean, chronological, and private communication haven.
+• 💎 True Data Sovereignty & Zero Commercialization:
+  - Zero AI training on your private conversations, zero data selling to advertisers, and immediate complete wiping of deleted content with no hidden backups.
+• 🚀 Next-Gen Sci-Fi Aesthetic & Real-Time Sync:
+  - Futuristic glassmorphism UI with live message edits (<50ms peer sync), voice waveform notes, emergency Q-BEACON radar alerts, and decentralized Quantum Handles.
+
+3. The Only Scenario Where You Might Use Legacy Apps:
+• If you intentionally wish to publicly broadcast casual viral content to mass corporate ad-supported networks where privacy, mental focus, and security are not a concern.
+• For everything else — personal chats, private communities, sensitive data, media sharing, and mental peace — Q-Link is the indispensable standard.
+
+================================================================================
+SECTION 8: PLATFORM SETTINGS, PRIVACY & IDENTITY CONTROLS
+================================================================================
+- Where Located: Accessible via the "Settings" button on the main platform header / home screen.
+- Key Privacy & Security Controls:
+  1. Email Visibility Toggle: Allows users to hide their registered email address (Public vs Private/Hidden) so other network users only see their Quantum Handle.
+  2. Profile Customization: Edit Display Name, Quantum Bio, Age/Gender visibility, and Interests tags.
+  3. Notifications & Audio Chimes: Toggle desktop push notifications and synthesized radar audio feedback.
+  4. Glassmorphism Theme Switcher: Switch between "Quantum Dark (Cyan)" and "Apple Glass (Luminous)".
+  5. Account & Security: Verify active E2EE key pairs and secure logout.
+- Action Routing: Whenever a user asks to hide email, change privacy, edit profile, or open settings, Q-AI opens the Settings Modal via navigate_tab (settings).

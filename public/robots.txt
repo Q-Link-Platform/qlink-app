@@ -1,0 +1,26 @@
+# Allow all web crawlers and AI search agents to index Q-Link
+User-agent: *
+Allow: /
+
+# Dedicated AI Agent Directives
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Sitemap and LLMs Machine-Readable Knowledge
+Sitemap: https://q-link-v3-0.vercel.app/sitemap.xml
+LLMs-Txt: https://q-link-v3-0.vercel.app/llms.txt

@@ -1,0 +1,28 @@
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["package.json"],
+      "schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Package name"
+          },
+          "version": {
+            "type": "string",
+            "description": "Package version"
+          },
+          "scripts": {
+            "type": "object",
+            "description": "NPM scripts"
+          },
+          "dependencies": {
+            "type": "object",
+            "description": "Package dependencies"
+          }
+        }
+      }
+    }
+  ]
+}

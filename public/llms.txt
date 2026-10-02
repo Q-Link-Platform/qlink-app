@@ -1,0 +1,85 @@
+# Q-Link v3.0 - Complete Platform & Micro-Features Reference
+
+> Q-Link is an ultra-fast, privacy-first quantum messaging and social connection ecosystem built for Web, Mobile PWA, and Windows Desktop.
+
+---
+
+## 1. Chat & Direct Messaging Micro-Features
+* **Dynamic Recency Ranking Engine**: Conversations automatically re-order in real time based on message recency and unread status. Active contacts stay at the top, while inactive conversations gracefully settle down.
+* **Triple-State Delivery Ticks**: Real-time WhatsApp-style message indicators:
+  - Single Grey Tick: Message sent and acknowledged by network servers.
+  - Double Grey Tick: Message successfully delivered to recipient's active device.
+  - Double Glowing Green Tick: Message opened and actively read in the conversation window.
+* **WhatsApp-Standard Message Editing**:
+  - Right-click / tap any sent message to edit its contents directly from the chat input console.
+  - Instant optimistic update with live cross-device delivery and sleek `(edited)` timestamp indicators.
+* **Real-Time Typing Waveform**: Pulsing visual wave animation displays when your peer is typing.
+* **Live Online Presence Dots**: Real-time status dots indicate when contacts are currently connected.
+* **Smart Chat Scroll Engine**: Preserves exact scroll reading position when browsing older message history without jumping, while automatically auto-snapping to the newest incoming or sent message.
+* **Voice Memos & Waveform Player**: Instant high-clarity voice recording with integrated scrubbable audio waveform playback.
+* **Image & Attachment Lightbox Viewer**: High-definition media preview with full-screen zoom, pan, and download capabilities.
+* **Unread Message Badges**: Glowing orange pulse badges notify you instantly of unread messages per contact.
+* **End-to-End Encryption Mode**: Private direct communication option with client-side key protection.
+* **Custom Quantum Audio Chimes**: Distinct acoustic feedback for message sent, incoming chat, active connection, and emergency chimes.
+
+---
+
+## 2. Privacy & Self-Cleaning Storage
+* **24-Hour Ephemeral Media Clean-up**: All shared photos, voice notes, and media attachments automatically expire and self-delete after 24 hours to preserve storage and protect conversation privacy.
+* **Zero Cloud Data Bloat**: Automatic cleanup prevents cluttered device caches and protects temporary media.
+* **Granular Privacy Toggles**: Independently set your Email, Bio, Age, Gender, and Interests to Public or Private.
+
+---
+
+## 3. Emergency & High-Urgency Features
+* **Q-BEACON Emergency Alert Protocol**: Dedicated high-urgency alert system designed for critical communications.
+* **Audible Alarm Siren & Screen Elevation**: Bypasses silent browsing with a high-priority audible chime and prominent visual alert card.
+* **One-Tap Rapid Acknowledgement**: Recipients can acknowledge incoming emergency alerts with a single tap.
+
+---
+
+## 4. Social Feed & Public Timeline
+* **Community Social Feed**: Post thoughts, updates, and announcements to the global community.
+* **Smart Mentions & Hashtags**: Automatic interactive formatting for `@user` handles and `#topics`.
+* **Rich Link Previews**: Auto-detects and highlights web links for clean readability.
+* **Multi-Reaction System**: React to posts with emojis, hearts, fire, and quantum spark effects.
+* **Media Post Attachments**: Share photos directly onto the community feed.
+
+---
+
+## 5. Global Directory & Social Discovery
+* **Global User Directory**: Discover users by handle, name, bio, or shared interests.
+* **Aura Percentage & Community Rankings**: Transparent community engagement scores and leaderboard rank tiers.
+* **Identity Verification Badges**: Verified Blue Tick and Founder Red Tick visual badges.
+* **Personalized Connection Requests**: Send friend requests accompanied by custom intro notes and category tags.
+* **Incoming & Outgoing Request Management**: Accept, reject, or cancel connection requests at any time.
+* **Founder QP Granting**: Exclusive community rewarding system for VIPs and contributors.
+
+---
+
+## 6. VIP Showcase & Visual Aesthetics
+* **Dual Spatial Glassmorphism**: Toggle between futuristic iOS 27 Quantum Glass and Apple Crystal Glass aesthetics.
+* **Diamond 10 & Sapphire 10 VIP Profile Cards**: Interactive digital collector cards with animated metallic sheens, dynamic glow borders, and looping video canvas backgrounds.
+* **Quantum Points (QP) Wallet Balance**: Track earned points and VIP perks.
+* **Custom Profile Avatars**: Upload custom profile photos with automated instant preview caching.
+
+---
+
+## 7. Windows Desktop Native App (.exe)
+* **Dedicated Standalone Client**: Complete native Windows application with installer (`Q-Link-Setup.exe`).
+* **Quantum Points (QP) & Aura Growth Engine**: Earn QP points through active conversations and community engagement to increase your global Aura % and unlock exclusive VIP perks and badges.
+* **Single-Instance Application Lock**: Prevents duplicate windows and brings the active app to the foreground on launch.
+* **Zero-Flicker Native Notifications**: Native OS alerts with real-time unread count badges.
+
+---
+
+## 8. Performance & Device Optimization
+* **Hardware & GPU Performance Switcher**: Choose between 60fps Ultra High Performance (full backdrop blurs and glows) and Battery Saver mode for extended laptop battery life.
+* **Zero Layout Shift (CLS)**: Optimized fluid transitions that eliminate visual flicker and page jumping.
+* **Progressive Web App (PWA) Support**: One-tap "Add to Home Screen" shortcut with offline caching on mobile devices.
+
+---
+
+## 9. AI Assistant Companion
+* **Smart Help Guidance**: Built-in intelligent AI assistant providing context-aware help and navigation tips.
+* **Ambient Trigger Button**: Unobtrusive circular trigger with smooth timing cycles and one-tap close controls.
